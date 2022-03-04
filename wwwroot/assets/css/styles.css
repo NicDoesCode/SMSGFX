@@ -1,8 +1,7 @@
 .smsgfx-canvas {
-    border: 1px solid #AAAAAA;
 }
 
-.smsgfx-palette button {
+.smsgfx-palette button.smsgfx-palette-button {
     height: 25px;
     width: 15px;
 }
