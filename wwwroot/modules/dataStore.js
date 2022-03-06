@@ -1,174 +1,167 @@
-import Palette from "./palette.js";
-import TileSet from "./tileSet.js";
 import PaletteList from "./paletteList.js";
+import TileSetList from "./tileSetList.js";
 
 const LOCAL_STORAGE_APPUI = 'smsgfxappUi';
 const LOCAL_STORAGE_PALETTES = 'smsgfxpalettes';
 const LOCAL_STORAGE_TILES = 'smsgfxtiles';
 
-/** @type {appUi} */
-let appUi = {
-    lastPaletteInput: '',
-    lastPaletteInputSystem: 'gg',
-    lastTileInput: '',
-    lastSelectedPalette: 0
-};
-
 export default class DataStore {
 
+    /** @type {AppUI} */
+    #appUI;
     /** @type {PaletteList} */
-    #palettes;
-    /** @type {Array<TileSet>} */
-    #tileSets = [];
+    #paletteList;
+    /** @type {TileSetList} */
+    #tileSetList;
 
     constructor() {
+        this.#appUI = new AppUI();
+        this.#paletteList = new PaletteList();
+        this.#tileSetList = new TileSetList();
+    }
+
+    /**
+     * Loads values from local storage.
+     */
+    loadFromLocalStorage() {
         // Load UI from local storage
-        const loaded = localStorage.getItem(LOCAL_STORAGE_APPUI);
-        if (loaded) {
-            if (loaded.lastPaletteInput) appUi.lastPaletteInput = loaded.lastPaletteInput;
-            if (loaded.lastPaletteInputSystem) appUi.lastPaletteInputSystem = loaded.lastPaletteInputSystem;
-            if (loaded.lastTileInput) appUi.lastTileInput = loaded.lastTileInput;
-            if (loaded.lastSelectedPalette) appUi.lastSelectedPalette = loaded.lastSelectedPalette;
+        const serialisedAppUI = localStorage.getItem(LOCAL_STORAGE_APPUI);
+        if (serialisedAppUI) {
+            this.#appUI = AppUI.deserialise(serialisedAppUI);
         }
 
         // Load palettes from local storage
         const serialisedPalettes = localStorage.getItem(LOCAL_STORAGE_PALETTES);
-        this.#palettes = PaletteList.deserialise(serialisedPalettes);
-        this.#palettes.onchanged(() => {
-            localStorage.setItem(LOCAL_STORAGE_PALETTES, this.#palettes.serialise());
-        });
-    }
-
-    /**
-     * Gets or sets the last used palette input value.
-     */
-    get lastPaletteInputSystem() {
-        return appUi.lastPaletteInputSystem;
-    }
-    set lastPaletteInputSystem(value) {
-        if (!value || (value !== 'ms' && value !== 'gg')) {
-            value = 'gg';
+        if (serialisedPalettes) {
+            this.#paletteList = PaletteList.deserialise(serialisedPalettes);
         }
-        appUi.lastPaletteInputSystem = value;
-        this.#updateUILocalStorage();
-    }
 
-
-    /**
-     * Gets or sets the last used palette input value.
-     */
-    get lastPaletteInput() {
-        return appUi.lastPaletteInput;
-    }
-    set lastPaletteInput(value) {
-        appUi.lastPaletteInput = value;
-        this.#updateUILocalStorage();
+        // Load tile sets
+        const serialisedTileSets = localStorage.getItem(LOCAL_STORAGE_TILES);
+        if (serialisedTileSets) {
+            this.#tileSetList = TileSetList.deserialise(serialisedTileSets);
+        }
     }
 
     /**
-     * Gets or sets the last tile input value.
+     * Saves to local storage.
      */
-    get lastTileInput() {
-        return appUi.lastPaletteInput;
-    }
-    set lastTileInput(value) {
-        appUi.lastTileInput = value;
-        this.#updateUILocalStorage();
+    saveToLocalStorage() {
+        localStorage.setItem(LOCAL_STORAGE_APPUI, this.#appUI.serialise());
+        localStorage.setItem(LOCAL_STORAGE_TILES, this.#tileSetList.serialise());
+        localStorage.setItem(LOCAL_STORAGE_PALETTES, this.#paletteList.serialise());
     }
 
-    #updateUILocalStorage() {
-        localStorage.setItem(LOCAL_STORAGE_APPUI, JSON.stringify(appUi));
+    /**
+     * Gets the UI elements.
+     */
+    get appUI() {
+        return this.#appUI;
     }
 
+    /**
+     * Gets the palette list.
+     */
     get paletteList() {
-        return this.#palettes;
-    }
-
-
-
-
-    /**
-     * Adds a palette to the palettes list.
-     * @param {Palette} palette Palette to add.
-     */
-    addPalette(palette) {
-        this.#palettes.push(palette);
+        return this.#paletteList;
     }
 
     /**
-     * Gets the palettes.
-     * @returns {Palette[]}
+     * Gets the tile set list.
      */
-    getPalettes() {
-        return this.#palettes;
+    get tileSetList() {
+        return this.#tileSetList;
     }
-
-    /**
-     * Adds a tile set to the tile sets list.
-     * @param {TileSet} tileSet Tile set to add.
-     */
-    addTileSet(tileSet) {
-        this.#tileSets.push(tileSet);
-    }
-
-    /**
-     * Gets the tile sets.
-     * @returns {TileSet[]}
-     */
-    getTileSets() {
-        return this.#tileSets;
-    }
-
-    /**
-     * Saves the current palette list to local storage.
-     */
-    savePalettesToLocalStorage() {
-        const jsonPalettes = this.#palettes.map(palette => {
-            return palette.toJSON();
-        });
-        localStorage.setItem(LOCAL_STORAGE_PALETTES, JSON.stringify(jsonPalettes));
-    }
-
-    /**
-     * Loads the palette list from local storage.
-     */
-    loadPalettesFromLocalStorage() {
-        const localData = localStorage.getItem(LOCAL_STORAGE_PALETTES);
-        if (localData) {
-            /** @type {string[]} */
-            const jsonPalettes = JSON.parse(localData);
-            jsonPalettes.forEach(jsonPalette => {
-                this.#palettes.push(Palette.fromJSON(jsonPalette));
-            });
-        }
-    }
-
-    saveTilesToLocalStorage() {
-        const tileSets = this.#tileSets.map(tileSet => {
-            return tileSet.toJSON();
-        });
-        localStorage.setItem('tileSets', JSON.stringify(tileSets));
-    }
-
-    loadTileSetsFromLocalStorage() {
-        const localData = localStorage.getItem('tileSets');
-        if (localData) {
-            /** @type {string[]} */
-            const jsonTileSets = JSON.parse(localData);
-            jsonTileSets.forEach(jsonTileSet => {
-                this.#tileSets.push(TileSet.fromJSON(jsonTileSet));
-            });
-        }
-    }
-
 }
 
+export class AppUI {
 
-/**
- * @typedef appUi
- * @type {object}
- * @property {string} lastPaletteInput - The HEX encoded native colour.
- * @property {string} lastPaletteInputSystem - Colour encoded in HEX format.
- * @property {string} lastTileInput - The HEX encoded native colour.
- * @property {number} lastSelectedPalette - The HEX encoded native colour.
- */
+    /** @type {string} */
+    #lastPaletteInput = '';
+    /** @type {string} */
+    #lastPaletteInputSystem = 'gg';
+    /** @type {string} */
+    #lastTileInput = '';
+    /** @type {number} */
+    #lastSelectedPaletteIndex = 0;
+
+    constructor(initialValues) {
+        if (initialValues) {
+            if (initialValues.lastPaletteInput) {
+                this.lastPaletteInput = initialValues.lastPaletteInput;
+            }
+            if (initialValues.lastPaletteInputSystem) {
+                this.lastPaletteInputSystem = initialValues.lastPaletteInputSystem;
+            }
+            if (initialValues.lastTileInput) {
+                this.lastTileInput = initialValues.lastTileInput;
+            }
+            if (initialValues.lastSelectedPaletteIndex) {
+                this.lastSelectedPaletteIndex = initialValues.lastSelectedPaletteIndex;
+            }
+        }
+    }
+
+    /**
+     * Gets or sets the last text that was entered into the palette input box.
+     */
+    get lastPaletteInput() {
+        return this.#lastPaletteInput;
+    }
+    set lastPaletteInput(value) {
+        this.#lastPaletteInput = value;
+    }
+
+    /**
+     * Gets or sets the last system that was entered into the palette input box.
+     */
+    get lastPaletteInputSystem() {
+        return this.#lastPaletteInputSystem;
+    }
+    set lastPaletteInputSystem(value) {
+        this.#lastPaletteInputSystem = value;
+    }
+
+    /**
+     * Gets or sets the last text that was entered into the tile set input box.
+     */
+    get lastTileInput() {
+        return this.#lastTileInput;
+    }
+    set lastTileInput(value) {
+        this.#lastTileInput = value;
+    }
+
+    /**
+     * Index in the palette list of the last selected palette.
+     */
+    get lastSelectedPaletteIndex() {
+        return this.#lastSelectedPaletteIndex;
+    }
+    set lastSelectedPaletteIndex(value) {
+        this.#lastSelectedPaletteIndex = value;
+    }
+
+    /**
+     * Serialises the class.
+     * @returns {string}
+     */
+    serialise() {
+        return JSON.stringify({
+            lastPaletteInput: this.lastPaletteInput,
+            lastPaletteInputSystem: this.lastPaletteInputSystem,
+            lastTileInput: this.lastTileInput,
+            lastSelectedPaletteIndex: this.lastSelectedPaletteIndex
+        });
+    }
+
+    /**
+     * Deserialises a JSON string into an AppUI object.
+     * @param {string} value JSON string.
+     * @returns {AppUI}
+     */
+    static deserialise(value) {
+        const deserialisedObject = JSON.parse(value);
+        return new AppUI(deserialisedObject);
+    }
+}

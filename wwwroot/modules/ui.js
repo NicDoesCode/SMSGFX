@@ -1,3 +1,4 @@
+import DataStore from "./dataStore.js";
 import Handlers from "./handlers.js";
 import Palette from "./palette.js";
 
@@ -20,21 +21,68 @@ const tbCanvas = document.getElementById('tbCanvas');
 /** @type {HTMLSelectElement} */
 const tbPaletteSelect = document.getElementById('tbPaletteSelect');
 
+/**
+ * Callback for when an import of palette is requested.
+ * @callback ImportPaletteCallback
+ * @param {ImportPaletteEventData} eventData - Passes parameters.
+ * @exports
+ */
+/**
+ * @typedef ImportPaletteEventData
+ * @type {object}
+ * @property {string} value - Assembly formatted value of the palette to load.
+ * @property {string} system - System the palette is for, either 'ms' or 'gg'.
+ * @exports
+ */
+
+/**
+ * Callback for when an import of tile set is requested.
+ * @callback ImportTileSetCallback
+ * @param {ImportTileSetEventData} eventData - Passes parameters.
+ * @exports
+ */
+/**
+ * @typedef ImportTileSetEventData
+ * @type {object}
+ * @property {string} value - Assembly formatted value of the tile set to load.
+ * @exports
+ */
+
 export default class UI {
+
+    /** @type {ImportPaletteCallback[]} */
+    #importPaletteCallbacks;
+    /** @type {ImportTileSetCallback[]} */
+    #importTileSetCallbacks;
+
+
+    constructor() {
+        this.#importPaletteCallbacks = [];
+        this.#importTileSetCallbacks = [];
+    }
 
     init() {
 
+        this.createPaletteButtons();
+
         document.getElementById('btnPaletteInput').onclick = () => {
-            Handlers.handleLoadPalette(UI.getPaletteSystem(), UI.getPaletteValue());
+            const value = this.paletteInput;
+            const system = this.paletteInputSystem;
+            this.#importPaletteCallbacks.forEach(callback => {
+                callback({ value, system });
+            });
         }
 
         document.getElementById('btnTileInput').onclick = () => {
-            Handlers.handleLoadTiles(UI.getTileInput());
+            const value = this.tileInput;
+            this.#importTileSetCallbacks.forEach(callback => {
+                callback({ value });
+            });
         }
 
     }
 
-    static createPaletteButtons() {
+    createPaletteButtons() {
 
         /** @type {HTMLTableElement} */
         const table = document.getElementById('smsgfx-palette-selector');
@@ -82,6 +130,9 @@ export default class UI {
         tbPaletteInput.value = value;
     }
 
+    /**
+     * Shows the modal that asks the user for the assembly formatted palette data.
+     */
     showPaletteInputModal() {
         var modal = bootstrap.Modal.getOrCreateInstance(paletteModal);
         modal.show();
@@ -94,6 +145,9 @@ export default class UI {
         tbLoadTiles.value = value;
     }
 
+    /**
+     * Shows the modal that asks the user for the assembly formatted tile set data.
+     */
     showTileInputModal() {
         var modal = bootstrap.Modal.getOrCreateInstance(tileModal);
         modal.show();
@@ -116,11 +170,27 @@ export default class UI {
     displayPalette(palette) {
         for (let i = 0; i < 16; i++) {
             if (i < palette.colours.length) {
-                button.style.backgroundColor = palette.colours[i].hex;
+                paletteButtons[i].style.backgroundColor = palette.colours[i].hex;
             } else {
-                button.style.backgroundColor = null;
+                paletteButtons[i].style.backgroundColor = null;
             }
         }
+    }
+
+    /**
+     * User has entered a new palette.
+     * @param {ImportPaletteCallback} callback The function to execute when a palette import is requested.
+     */
+    onImportPalette(callback) {
+        this.#importPaletteCallbacks.push(callback);
+    }
+
+    /**
+     * User has entered a new tile set.
+     * @param {ImportTileSetCallback} callback The function to execute when a tile set import is requested.
+     */
+    onImportTileSet(callback) {
+        this.#importTileSetCallbacks.push(callback);
     }
 
 }

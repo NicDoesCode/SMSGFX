@@ -12,6 +12,21 @@ export default class TileSetList {
     }
 
     /**
+     * Gets the amount of stored palettes. 
+     */
+    get length() {
+        return this.#tileSets.length;
+    }
+
+    /**
+     * Returns all tile sets.
+     * @returns {TileSet[]}
+     */
+    getTileSets() {
+        return this.#tileSets.slice();
+    }
+
+    /**
      * Gets a tile set.
      * @param {number} index Index of the tile set to get.
      * @returns {TileSet}
@@ -23,26 +38,11 @@ export default class TileSetList {
     }
 
     /**
-     * Sets a tile set.
-     * @param {number} index Index of the tile set to set.
-     * @param {TileSet} value Tile set value to set.
+     * Adds a tile set to the collection.
+     * @param {TileSet} value Tile set value to insert.
      */
-    setTileSet(index, value) {
-        if (index >= 0 && index < this.#tileSets.length) {
-            this.#tileSets[index] = value;
-            this.#triggerOnChanged();
-        } else throw new Error('Index out of range.');
-    }
-
-    /**
-     * Removes a pelette at a given index.
-     * @param {number} index Index of the tile set to remove.
-     */
-    removeAt(index) {
-        if (index >= 0 && index < this.#tileSets.length) {
-            this.#tileSets.splice(index, 1);
-            this.#triggerOnChanged();
-        } else throw new Error('Index out of range.');
+    addTileSet(value) {
+        this.#tileSets.push(value);
     }
 
     /**
@@ -56,7 +56,27 @@ export default class TileSetList {
         if (index === 0) this.#tileSets.unshift(value);
         else if (index === this.#tileSets.length) this.#tileSets.push(value);
         else this.#tileSets = this.#tileSets.splice(index, 0, value);
-        this.#triggerOnChanged();
+    }
+
+    /**
+     * Sets a tile set.
+     * @param {number} index Index of the tile set to set.
+     * @param {TileSet} value Tile set value to set.
+     */
+    setTileSet(index, value) {
+        if (index >= 0 && index < this.#tileSets.length) {
+            this.#tileSets[index] = value;
+        } else throw new Error('Index out of range.');
+    }
+
+    /**
+     * Removes a pelette at a given index.
+     * @param {number} index Index of the tile set to remove.
+     */
+    removeAt(index) {
+        if (index >= 0 && index < this.#tileSets.length) {
+            this.#tileSets.splice(index, 1);
+        } else throw new Error('Index out of range.');
     }
 
     /**
@@ -64,26 +84,6 @@ export default class TileSetList {
      */
     clear() {
         this.#tileSets.splice(0, this.#tileSets.length);
-        this.#triggerOnChanged();
-    }
-
-    /**
-     * Triggered when the list is changed.
-     * @param {function} [callback=null] The callback to be triggered.
-     */
-    onchanged(callback) {
-        if (callback) {
-            if (typeof callback === 'function') {
-                this.#callbacks.push(callback);
-            } else throw new Error('Callback must be a function.');
-        } else this.#triggerOnChanged();
-    }
-    #triggerOnChanged() {
-        this.#callbacks.forEach(cb => {
-            if (typeof cb === 'function') {
-                cb(this);
-            }
-        });
     }
 
     /**
@@ -111,16 +111,16 @@ export default class TileSetList {
         if (value) {
             const result = new TileSetList();
             /** @type {string[]} */
-            const jsonTileSets = JSON.parse(localData);
-            jsonTileSets.forEach(jsonTileSet => {
+            const jsonStringTileSets = JSON.parse(value);
+            jsonStringTileSets.forEach(jsonStringTileSet => {
                 /** @type {JsonTileSet} */
-                const jsonTileSet = JSON.parse(jsonString);
+                const jsonTileSet = JSON.parse(jsonStringTileSet);
                 const result = new TileSet();
                 result.tileWidth = jsonTileSet.tileWidth;
                 jsonTileSet.tilesAsHex.forEach(tileAsHex => {
                     result.addTile(Tile.fromHex(tileAsHex));
                 });
-                this.#tileSets.push(TileSet.fromJSON(jsonTileSet));
+                this.#tileSets.push(result);
             });
             return result;
         } else throw new Error('Invalid tile set data supplied.');

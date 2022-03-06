@@ -4,10 +4,23 @@ export default class PaletteList {
 
     /** @type {Palette[]} */
     #palettes = [];
-    /** @type {function[]} */
-    #callbacks = [];
 
     constructor() {
+    }
+
+    /**
+     * Gets the amount of stored palettes. 
+     */
+    get length() {
+        return this.#palettes.length;
+    }
+
+    /**
+     * Returns all palettes.
+     * @returns {Palette[]}
+     */
+    getPalettes() {
+        return this.#palettes.slice();
     }
 
     /**
@@ -22,26 +35,11 @@ export default class PaletteList {
     }
 
     /**
-     * Sets a palette.
-     * @param {number} index Index of the palette to set.
-     * @param {Palette} value Palette value to set.
+     * Adds a palette to the list.
+     * @param {Palette} value Palette object to add.
      */
-    setPalette(index, value) {
-        if (index >= 0 && index < this.#palettes.length) {
-            this.#palettes[index] = value;
-            this.#triggerOnChanged();
-        } else throw new Error('Index out of range.');
-    }
-
-    /**
-     * Removes a pelette at a given index.
-     * @param {number} index Index of the palette to remove.
-     */
-    removeAt(index) {
-        if (index >= 0 && index < this.#palettes.length) {
-            this.#palettes.splice(index, 1);
-            this.#triggerOnChanged();
-        } else throw new Error('Index out of range.');
+    addPalette(value) {
+        this.#palettes.push(value);
     }
 
     /**
@@ -55,7 +53,27 @@ export default class PaletteList {
         if (index === 0) this.#palettes.unshift(value);
         else if (index === this.#palettes.length) this.#palettes.push(value);
         else this.#palettes = this.#palettes.splice(index, 0, value);
-        this.#triggerOnChanged();
+    }
+
+    /**
+     * Sets a palette.
+     * @param {number} index Index of the palette to set.
+     * @param {Palette} value Palette value to set.
+     */
+    setPalette(index, value) {
+        if (index >= 0 && index < this.#palettes.length) {
+            this.#palettes[index] = value;
+        } else throw new Error('Index out of range.');
+    }
+
+    /**
+     * Removes a pelette at a given index.
+     * @param {number} index Index of the palette to remove.
+     */
+    removeAt(index) {
+        if (index >= 0 && index < this.#palettes.length) {
+            this.#palettes.splice(index, 1);
+        } else throw new Error('Index out of range.');
     }
 
     /**
@@ -63,26 +81,6 @@ export default class PaletteList {
      */
     clear() {
         this.#palettes.splice(0, this.#palettes.length);
-        this.#triggerOnChanged();
-    }
-
-    /**
-     * Triggered when the list is changed.
-     * @param {function} [callback=null] The callback to be triggered.
-     */
-    onchanged(callback) {
-        if (callback) {
-            if (typeof callback === 'function') {
-                this.#callbacks.push(callback);
-            } else throw new Error('Callback must be a function.');
-        } else this.#triggerOnChanged();
-    }
-    #triggerOnChanged() {
-        this.#callbacks.forEach(cb => {
-            if (typeof cb === 'function') {
-                cb(this);
-            }
-        });
     }
 
     /**
@@ -107,17 +105,17 @@ export default class PaletteList {
      */
     static deserialise(value) {
         if (value) {
-            /** @type {string[]} */
-            const jsonPalettes = JSON.parse(value);
             const result = new PaletteList();
-            jsonPalettes.forEach(jsonPalette => {
+            /** @type {string[]} */
+            const jsonPalettesAsString = JSON.parse(value);
+            jsonPalettesAsString.forEach(jsonPaletteAsString => {
                 /** @type {JSONPalette} */
-                const deserialsedPalette = JSON.parse(content);
-                const result = new Palette(deserialsedPalette.system, deserialsedPalette.index);
+                const deserialsedPalette = JSON.parse(jsonPaletteAsString);
+                const palette = new Palette(deserialsedPalette.system, deserialsedPalette.index);
                 deserialsedPalette.colours.forEach((colour, index) => {
-                    result.setColour(index, colour);
+                    palette.setColour(index, colour);
                 });
-                return result;
+                result.addPalette(palette);
             });
             return result;
         } else throw new Error('Invalid palette data supplied.');
