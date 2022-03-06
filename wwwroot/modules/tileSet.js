@@ -76,7 +76,7 @@ export default class TileSet {
      * @returns {Tile} Tile found at the given index.
      */
     getTile(index) {
-        if (index < 0 || index > this.#tiles.length) throw new Error('Index must be between 0 and tile map count.');
+        if (index < 0 || index > this.#tiles.length) throw new Error(`getTile: Index must be between 0 and tile map count, tiles: ${this.#tiles.length}, index: ${index}.`);
         return this.#tiles[index];
     }
 
@@ -86,6 +86,27 @@ export default class TileSet {
      */
     getTiles() {
         return this.#tiles;
+    }
+
+    /**
+     * Gets the pixel value at the given coordinate.
+     * @param {number} x X coordinate in the tile set.
+     * @param {number} y Y coordinate in the tile set.
+     * @returns {number}
+     */
+    getPixelAt(x, y) {
+
+        // Get the tile number
+        const tileX = (x - (x % 8)) / 8;
+        const tileY = (y - (y % 8)) / 8;
+        const tileNum = tileY * this.tileWidth + tileX;
+
+        // Work out the coordinates and byte number within the tile itself
+        x = x % 8;
+        y = y % 8;
+        const byteNum = (y * 8) + x;
+
+        return this.getTile(tileNum).readAt(byteNum);
     }
 
     /** Clears the tile set. */

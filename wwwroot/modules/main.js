@@ -3,11 +3,15 @@ import UI from "./ui.js";
 import Palette from "./palette.js";
 import TileSet from './tileSet.js'
 import AssemblyUtility from "./assemblyUtility.js";
+import TileCanvas from "./tileCanvas.js";
 
 const dataStore = new DataStore();
 const ui = new UI();
+const tileCanvas = new TileCanvas();
 
-$(() => {
+let selectedColour = null;
+
+$(async () => {
 
     dataStore.loadFromLocalStorage();
 
@@ -17,19 +21,46 @@ $(() => {
     ui.paletteInputSystem = dataStore.appUI.lastPaletteInputSystem;
     ui.tileInput = dataStore.appUI.lastTileInput;
 
+    ui.populatePaletteSelector(dataStore.paletteList.getPalettes());
+    ui.selectedPaletteIndex = dataStore.appUI.lastSelectedPaletteIndex;
+
     ui.onImportPalette(eventData => handleImportPalette(eventData));
     ui.onImportTileSet(eventData => handleImportTileSet(eventData));
+    ui.onCanvasMouseMove(eventData => handleCanvasMouseMove(eventData));
+    ui.onPaletteChange(eventData => handleOnPaletteChange(eventData));
 
+    const palette = getPalette();
+    const tileSet = getTileSet();
+
+    if (palette) {
+
+        // Display the last used palette.
+        ui.displayPalette(getPalette());
+
+        if (tileSet) {
+            // Display the last used tile set.
+            let image = await tileCanvas.drawTileSetAsync(getTileSet(), getPalette());
+            ui.drawCanvasImage(image);
+        }
+    }
+});
+
+function getTileSet() {
+    if (dataStore.tileSetList.length > 0) {
+        return dataStore.tileSetList.getTileSet(0);
+    } else return null;
+}
+
+function getPalette() {
     if (dataStore.paletteList.length > 0) {
         const paletteIndex = dataStore.appUI.lastSelectedPaletteIndex;
         let palette = dataStore.paletteList.getPalette(paletteIndex);
         if (paletteIndex >= 0 && paletteIndex < dataStore.paletteList.length) {
             palette = dataStore.paletteList.getPalette(paletteIndex);
         }
-        ui.displayPalette(palette);
-    }
-
-});
+        return palette;
+    } else return null;
+}
 
 function setNewPalette() {
     console.log('setNewPalette');
@@ -72,15 +103,51 @@ function handleImportPalette(eventData) {
 /**
  * @param {import("./ui.js").ImportTileSetEventData} eventData 
  */
- function handleImportTileSet(eventData) {
-    console.log('handleImportTileSet', eventData);
+function handleImportTileSet(eventData) {
     const tileData = eventData.value;
     const array = AssemblyUtility.readAsUint8ClampedArray(tileData);
     const tileSet = TileSet.parsePlanarFormat(array);
-    console.log('tileSet', tileSet);
     dataStore.tileSetList.addTileSet(tileSet);
-    console.log('dataStore.getTileSets', dataStore.tileSetList.getTileSets());
 
     dataStore.appUI.lastTileInput = eventData.value;
     dataStore.saveToLocalStorage();
+}
+
+/**
+ * @param {import("./ui.js").CanvasMouseMoveEventData} eventData 
+ */
+async function handleCanvasMouseMove(eventData) {
+
+    const tileSet = getTileSet();
+    const palette = getPalette();
+    const canvas = eventData.canvas;
+    const mouse = eventData.mouseEvent;
+    const rect = canvas.getBoundingClientRect();
+    const x = mouse.clientX - rect.left;
+    const y = mouse.clientY - rect.top;
+
+    // Update the UI
+    let image = await tileCanvas.drawUIAsync(tileSet, palette, x, y);
+    ui.drawCanvasImage(image);
+
+    // Show the palette colour
+    const pixel = tileSet.getPixelAt(Math.floor(x / 10), Math.floor(y / 10));
+    ui.highlightPaletteItem(pixel);
+
+}
+
+/**
+ * @param {import("./ui.js").PaletteChangeEventData} eventData 
+ */
+async function handleOnPaletteChange(eventData) {
+    if (eventData.newIndex !== eventData.oldIndex) {
+        const palette = dataStore.paletteList.getPalette(eventData.newIndex);
+        ui.displayPalette(palette);
+        
+        let image = await tileCanvas.drawUIAsync(getTileSet(), palette, 0, 0, true);
+        ui.drawCanvasImage(image);
+
+        dataStore.appUI.lastSelectedPaletteIndex = eventData.newIndex;
+        dataStore.saveToLocalStorage();
+    }
 }

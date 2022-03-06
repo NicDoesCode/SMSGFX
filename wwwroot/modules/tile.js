@@ -57,8 +57,7 @@ export default class Tile {
      * @returns {number} Palette index of the pixel at the given index.
      */
     readAt(index) {
-        if (!index) throw new Error('Read index not specified.');
-        if (index < 0 || index > 8) throw new Error('Read index must be between 0 and 8.');
+        if (index === null) throw new Error('Read index not specified.');
         return this.#data[index];
     }
 
@@ -69,9 +68,9 @@ export default class Tile {
      * @returns {number} Palette index of the pixel at the given coordinate.
      */
     readAtCoord(x, y) {
-        if (!x) throw new Error('X coordinate not specified.');
+        if (x === null) throw new Error('X coordinate not specified.');
         if (x < 0 || x > 8) throw new Error('X coordinate must be between 0 and 8.');
-        if (!y) throw new Error('Y coordinate not specified.');
+        if (y === null) throw new Error('Y coordinate not specified.');
         if (y < 0 || y > 8) throw new Error('Y coordinate must be between 0 and 8.');
         return this.readAt(y * 8 + x);
     }
@@ -82,7 +81,7 @@ export default class Tile {
      * @param {number} value Palette index of the pixel to set.
      */
     setValueAt(index, value) {
-        if (!index) throw new Error('Read index not specified.');
+        if (index === null) throw new Error('Read index not specified.');
         if (index < 0 || index > 8) throw new Error('Read index must be between 0 and 8.');
         if (value < 0 || value > 255) throw new Error('Value must be between 0 and 255.');
         this.#data[index] = value;
@@ -95,9 +94,9 @@ export default class Tile {
      * @param {number} value Palette index of the pixel to set.
      */
     setValueAtCoord(x, y, value) {
-        if (!x) throw new Error('X coordinate not specified.');
+        if (x === null) throw new Error('X coordinate not specified.');
         if (x < 0 || x > 8) throw new Error('X coordinate must be between 0 and 8.');
-        if (!y) throw new Error('Y coordinate not specified.');
+        if (y === null) throw new Error('Y coordinate not specified.');
         if (y < 0 || y > 8) throw new Error('Y coordinate must be between 0 and 8.');
         this.setValueAt(y * 8 + x, value);
     }

@@ -37,8 +37,12 @@
                             <div class="col-auto">
                                 <button class="btn btn-sm btn-secondary me-2" type="button" data-bs-toggle="modal"
                                     data-bs-target="#smsgfx-palette-modal">
-                                    <i class="bi bi-pencil-square"></i>
+                                    <i class="bi bi-plus"></i>
                                 </button>
+                            </div>
+                            <div class="col-auto">
+                                <select id="tbPaletteSelect" class="form-select form-select-sm">
+                                </select>
                             </div>
                         </div>
                         <hr>
@@ -69,12 +73,6 @@
                                 <div class="vr"></div>
                             </div>
                             <div class="col-auto">
-                                <select id="tbPaletteSelect" class="form-select form-select-sm">
-                                    <option value="gg" selected>View Game Gear palette</option>
-                                    <option value="mm">View Master System palette</option>
-                                </select>
-                            </div>
-                            <div class="col-auto">
                                 <button class="btn btn-sm btn-secondary me-2" type="button" data-bs-toggle="modal"
                                     data-bs-target="#smsgfx-tiles-modal">
                                     <i class="bi bi-pencil-square"></i> Load tiles
@@ -82,8 +80,7 @@
                             </div>
                         </div>
                         <hr>
-                        <canvas class="smsgfx-canvas" id="tbCanvas" width="700" height="700"
-                            onmousemove="canvasMouseMove(this, event)"></canvas>
+                        <canvas class="smsgfx-canvas" id="tbCanvas" width="700" height="700"></canvas>
 
                     </div>
                 </div>
@@ -145,7 +142,6 @@
         integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
         crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="./assets/js/smsgfx.js" async></script>
     <script src="./modules/main.js" type="module" async></script>
 </body>
 

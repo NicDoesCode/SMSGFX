@@ -6,20 +6,28 @@ import Palette from "./palette.js";
 const tbPaletteInputSystem = document.getElementById('tbPaletteInputSystem');
 /** @type {HTMLTextAreaElement} */
 const tbPaletteInput = document.getElementById('tbPaletteInput');
-/** @type {HTMLTextAreaElement} */
-const tbLoadTiles = document.getElementById('tbLoadTiles');
+/** @type {HTMLButtonElement} */
+const btnPaletteInput = document.getElementById('btnPaletteInput');
 /** @type {HTMLDivElement} */
 const paletteModal = document.getElementById('smsgfx-palette-modal');
+
+/** @type {HTMLTextAreaElement} */
+const tbLoadTiles = document.getElementById('tbLoadTiles');
+/** @type {HTMLButtonElement} */
+const btnTileInput = document.getElementById('btnTileInput');
 /** @type {HTMLDivElement} */
 const tileModal = document.getElementById('smsgfx-tiles-modal');
+
+/** @type {HTMLSelectElement} */
+const tbPaletteSelect = document.getElementById('tbPaletteSelect');
 /** @type {HTMLButtonElement[]} */
 const paletteButtons = [];
 /** @type {HTMLTableRowElement[]} */
 const paletteRows = [];
+
 /** @type {HTMLCanvasElement} */
 const tbCanvas = document.getElementById('tbCanvas');
-/** @type {HTMLSelectElement} */
-const tbPaletteSelect = document.getElementById('tbPaletteSelect');
+const canvasContext = tbCanvas.getContext('2d');
 
 /**
  * Callback for when an import of palette is requested.
@@ -32,7 +40,7 @@ const tbPaletteSelect = document.getElementById('tbPaletteSelect');
  * @type {object}
  * @property {string} value - Assembly formatted value of the palette to load.
  * @property {string} system - System the palette is for, either 'ms' or 'gg'.
- * @exports
+ * @exportsdocument.getElementById('btnPaletteInput')
  */
 
 /**
@@ -45,7 +53,35 @@ const tbPaletteSelect = document.getElementById('tbPaletteSelect');
  * @typedef ImportTileSetEventData
  * @type {object}
  * @property {string} value - Assembly formatted value of the tile set to load.
+ * @exports 
+ */
+
+/**
+ * Callback for when an import of tile set is requested.
+ * @callback CanvasMouseMoveCallback
+ * @param {CanvasMouseMoveEventData} eventData - Passes parameters.
  * @exports
+ */
+/**
+ * @typedef CanvasMouseMoveEventData
+ * @type {object}
+ * @property {HTMLCanvasElement} canvas - The canvas that the event originated from.
+ * @property {MouseEvent} mouseEvent - Mouse move event data.
+ * @exports 
+ */
+
+/**
+ * Callback for when an import of tile set is requested.
+ * @callback PaletteChangeCallback
+ * @param {PaletteChangeEventData} eventData - Passes parameters.
+ * @exports
+ */
+/**
+ * @typedef PaletteChangeEventData
+ * @type {object}
+ * @property {number} newIndex - New palette index.
+ * @property {number} oldIndex - Previous palette index.
+ * @exports 
  */
 
 export default class UI {
@@ -54,18 +90,29 @@ export default class UI {
     #importPaletteCallbacks;
     /** @type {ImportTileSetCallback[]} */
     #importTileSetCallbacks;
+    /** @type {CanvasMouseMoveCallback[]} */
+    #canvasMouseMoveCallbacks;
+    /** @type {PaletteChangeCallback[]} */
+    #onPaletteChangeCallbacks;
 
+    /** @type {number} */
+    #lastSelectedPaletteIndex;
 
     constructor() {
         this.#importPaletteCallbacks = [];
         this.#importTileSetCallbacks = [];
+        this.#canvasMouseMoveCallbacks = [];
+        this.#onPaletteChangeCallbacks = [];
+        this.#lastSelectedPaletteIndex = -1;
     }
 
     init() {
 
         this.createPaletteButtons();
 
-        document.getElementById('btnPaletteInput').onclick = () => {
+        const ui = this;
+
+        btnPaletteInput.onclick = () => {
             const value = this.paletteInput;
             const system = this.paletteInputSystem;
             this.#importPaletteCallbacks.forEach(callback => {
@@ -73,12 +120,28 @@ export default class UI {
             });
         }
 
-        document.getElementById('btnTileInput').onclick = () => {
+        btnTileInput.onclick = () => {
             const value = this.tileInput;
             this.#importTileSetCallbacks.forEach(callback => {
                 callback({ value });
             });
         }
+
+        tbCanvas.onmousemove = (event) => {
+            this.#canvasMouseMoveCallbacks.forEach(callback => {
+                callback({ canvas: tbCanvas, mouseEvent: event });
+            });
+        };
+
+        tbPaletteSelect.onchange = () => {
+            this.#onPaletteChangeCallbacks.forEach(callback => {
+                callback({
+                    newIndex: ui.selectedPaletteIndex,
+                    oldIndex: ui.#lastSelectedPaletteIndex
+                });
+            });
+            ui.#lastSelectedPaletteIndex = ui.selectedPaletteIndex;
+        };
 
     }
 
@@ -193,4 +256,71 @@ export default class UI {
         this.#importTileSetCallbacks.push(callback);
     }
 
+    /**
+     * Mouse moved on the canvas.
+     * @param {CanvasMouseMoveCallback} callback The function to execute the mouse is moved.
+     */
+    onCanvasMouseMove(callback) {
+        this.#canvasMouseMoveCallbacks.push(callback);
+    }
+
+    /**
+     * When the selected palette is changed.
+     * @param {PaletteChangeCallback} callback The function to execute when the palette is changed.
+     */
+    onPaletteChange(callback) {
+        this.#onPaletteChangeCallbacks.push(callback);
+    }
+
+    /**
+     * Draws the given canvas image to the display.
+     * @param {Image} image Canvas image.
+     */
+    drawCanvasImage(image) {
+        if (image.width !== 0 && image.height !== 0) {
+            tbCanvas.width = Math.max(image.width, 100);
+            tbCanvas.height = Math.max(image.height, 100);
+            canvasContext.moveTo(0, 0);
+            canvasContext.drawImage(image, 0, 0);
+        }
+    }
+
+    /**
+     * Highlights a palette item on the UI.
+     * @param {number} paletteIndex Palette colour index.
+     */
+    highlightPaletteItem(paletteIndex) {
+        paletteRows.forEach((row, index) => {
+            if (index === paletteIndex) {
+                if (!row.classList.contains('table-secondary')) {
+                    row.classList.add('table-secondary');
+                }
+            } else {
+                row.classList.remove('table-secondary');
+            }
+        });
+    }
+
+    /**
+     * Populates the list of palettes.
+     * @param {Palette[]} palettes Displays palettes in the selector list.
+     */
+    populatePaletteSelector(palettes) {
+        let lastSelectedIndex = this.selectedPaletteIndex;
+        let optionCount = tbPaletteSelect.options.length;
+        for (let i = 0; i < optionCount; i++) {
+            tbPaletteSelect.options.remove(0);
+        }
+        for (let i = 0; i < palettes.length; i++) {
+            const system = palettes[i].system === "gg" ? "Game Gear" : "Master System";
+            const option = document.createElement('option');
+            option.innerText = `#${i} - ${system}`;
+            option.value = i.toString();
+            option.selected = lastSelectedIndex === i;
+            tbPaletteSelect.options.add(option);
+        }
+        if (this.selectedPaletteIndex === -1) {
+            this.selectedPaletteIndex = 0;
+        }
+    }
 }
