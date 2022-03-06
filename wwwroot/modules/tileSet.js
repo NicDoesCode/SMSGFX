@@ -109,6 +109,22 @@ export default class TileSet {
         return this.getTile(tileNum).readAt(byteNum);
     }
 
+    setPixelAt(x, y, colourIndex) {
+        if (colourIndex < 0 || colourIndex > 15) throw new Error('setPixelAt: Palette index must be between 0 and 15.');
+  
+        // Get the tile number
+        const tileX = (x - (x % 8)) / 8;
+        const tileY = (y - (y % 8)) / 8;
+        const tileNum = tileY * this.tileWidth + tileX;
+
+        // Work out the coordinates and byte number within the tile itself
+        x = x % 8;
+        y = y % 8;
+        const byteNum = (y * 8) + x;
+
+        this.getTile(tileNum).setValueAt(byteNum, colourIndex);
+  }
+
     /** Clears the tile set. */
     clear() {
         this.#tiles = [];

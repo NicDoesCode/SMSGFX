@@ -31,9 +31,14 @@ const paletteRows = [];
 
 /** @type {HTMLLinkElement} */
 const btnAddTileSet = document.getElementById('btnAddTileSet');
+/** @type {HTMLButtonElement} */
+const btnToolPencil = document.getElementById('btnToolPencil');
+
 /** @type {HTMLCanvasElement} */
 const tbCanvas = document.getElementById('tbCanvas');
-const canvasContext = tbCanvas.getContext('2d');
+const canvasContext = tbCanvas.getContext('2d'); btnToolPencil
+
+const TOOL_PENCIL = 'pencil';
 
 /**
  * Callback for when an import of palette is requested.
@@ -63,16 +68,22 @@ const canvasContext = tbCanvas.getContext('2d');
  */
 
 /**
- * Callback for when an import of tile set is requested.
+ * Callback for when the mouse moves on the canvas.
  * @callback CanvasMouseMoveCallback
- * @param {CanvasMouseMoveEventData} eventData - Passes parameters.
+ * @param {CanvasMouseEventData} eventData - Passes parameters.
  * @exports
  */
 /**
- * @typedef CanvasMouseMoveEventData
+ * Callback for when the mouse is clicked on the canvas.
+ * @callback CanvasMouseDownCallback
+ * @param {CanvasMouseEventData} eventData - Passes parameters.
+ * @exports
+ */
+/**
+ * @typedef CanvasMouseEventData
  * @type {object}
  * @property {HTMLCanvasElement} canvas - The canvas that the event originated from.
- * @property {MouseEvent} mouseEvent - Mouse move event data.
+ * @property {MouseEvent} mouseEvent - Mouse event data.
  * @exports 
  */
 
@@ -91,7 +102,7 @@ const canvasContext = tbCanvas.getContext('2d');
  */
 
 /**
- * Callback for when an import of tile set is requested.
+ * Callback for when an remove palette is requested.
  * @callback RemovePaletteCallback
  * @param {RemovePaletteEventData} eventData - Passes parameters.
  * @exports
@@ -103,29 +114,73 @@ const canvasContext = tbCanvas.getContext('2d');
  * @exports 
  */
 
+/**
+ * Callback for when palette colour change is requested.
+ * @callback PaletteColourSelectCallback
+ * @param {PaletteColourSelectEventData} eventData - Passes parameters.
+ * @exports
+ */
+/**
+ * @typedef PaletteColourSelectEventData
+ * @type {object}
+ * @property {number} index - Palette colour index.
+ * @exports 
+ */
+
+/**
+ * Callback for when selected tool is changed.
+ * @callback SelectedToolChangedCallback
+ * @param {SelectedToolChangedEventData} eventData - Passes parameters.
+ * @exports
+ */
+/**
+ * @typedef SelectedToolChangedEventData
+ * @type {object}
+ * @property {string} tool - Selected tool.
+ * @exports 
+ */
+
 export default class UI {
 
     /** @type {ImportPaletteCallback[]} */
     #importPaletteCallbacks;
     /** @type {ImportTileSetCallback[]} */
     #importTileSetCallbacks;
-    /** @type {CanvasMouseMoveCallback[]} */
-    #canvasMouseMoveCallbacks;
     /** @type {PaletteChangeCallback[]} */
     #onPaletteChangeCallbacks;
     /** @type {RemovePaletteCallback[]} */
     #onRemovePaletteCallbacks;
+    /** @type {PaletteColourSelectCallback[]} */
+    #onPaletteColourSelectCallbacks;
+    /** @type {SelectedToolChangedCallback[]} */
+    #onSelectedToolChanged;
+
+    /** @type {CanvasMouseMoveCallback[]} */
+    #canvasMouseMoveCallbacks;
+    /** @type {CanvasMouseDownCallback[]} */
+    #canvasMouseDownCallbacks;
+    /** @type {boolean} */
+    #canvasMouseIsDown;
 
     /** @type {number} */
     #lastSelectedPaletteIndex;
+    /** @type {number} */
+    #selectedPaletteColourIndex;
 
     constructor() {
         this.#importPaletteCallbacks = [];
         this.#importTileSetCallbacks = [];
-        this.#canvasMouseMoveCallbacks = [];
         this.#onPaletteChangeCallbacks = [];
         this.#onRemovePaletteCallbacks = [];
+        this.#onPaletteColourSelectCallbacks = [];
+        this.#onSelectedToolChanged = [];
+
+        this.#canvasMouseMoveCallbacks = [];
+        this.#canvasMouseDownCallbacks = [];
+        this.#canvasMouseIsDown = false;
+
         this.#lastSelectedPaletteIndex = -1;
+        this.#selectedPaletteColourIndex = -1;
     }
 
     init() {
@@ -154,6 +209,18 @@ export default class UI {
                 callback({ canvas: tbCanvas, mouseEvent: event });
             });
         };
+        tbCanvas.onmousedown = (event) => {
+            this.#canvasMouseIsDown = true;
+            this.#canvasMouseDownCallbacks.forEach(callback => {
+                callback({ canvas: tbCanvas, mouseEvent: event });
+            });
+        };
+        tbCanvas.onmouseup = (event) => {
+            this.#canvasMouseIsDown = false;
+        };
+        tbCanvas.onmouseleave = (event) => {
+            this.#canvasMouseIsDown = false;
+        };
 
         tbPaletteSelect.onchange = () => {
             this.#onPaletteChangeCallbacks.forEach(callback => {
@@ -173,11 +240,20 @@ export default class UI {
             this.#onRemovePaletteCallbacks.forEach(callback => {
                 callback({ index: ui.selectedPaletteIndex });
             });
-        }
+        };
 
         btnAddTileSet.onclick = () => {
             this.showTileInputModal();
-        }
+        };
+
+        const toolButtons = document.querySelectorAll('button[data-tool-button]');
+        toolButtons.forEach(toolButton => {
+            toolButton.onclick = () => {
+                this.#onSelectedToolChanged.forEach(callback => {
+                    callback({ tool: toolButton.getAttribute('data-tool-button') });
+                });
+            };
+        });
 
     }
 
@@ -201,6 +277,11 @@ export default class UI {
             const button = document.createElement('button');
             button.classList.add('btn', 'btn-outline-secondary', 'smsgfx-palette-button');
             button.setAttribute('data-colour-index', i.toString());
+            button.onclick = () => {
+                this.#onPaletteColourSelectCallbacks.forEach(callback => {
+                    callback({ index: i });
+                });
+            };
             td.appendChild(button);
             tr.appendChild(td);
 
@@ -262,6 +343,31 @@ export default class UI {
         tbPaletteSelect.selectedIndex = value;
     }
 
+    get selectedPaletteColourIndex() {
+        return this.#selectedPaletteColourIndex;
+    }
+    set selectedPaletteColourIndex(value) {
+        if (value < -1 || value >= 16) {
+            throw new Error('Invalid palette index.');
+        }
+        this.#selectedPaletteColourIndex = value;
+
+        // Highlight the row
+        paletteRows.forEach((row, index) => {
+            if (index === value) {
+                if (!row.classList.contains('table-dark')) {
+                    row.classList.add('table-dark');
+                }
+            } else {
+                row.classList.remove('table-dark');
+            }
+        });
+    }
+
+    get canvasMouseIsDown() {
+        return this.#canvasMouseIsDown;
+    }
+
     /**
      * Displays a given palette to the screen.
      * @param {Palette} palette The palette to show on the buttons.
@@ -285,6 +391,14 @@ export default class UI {
     }
 
     /**
+     * User selects a palette colour.
+     * @param {PaletteColourSelectCallback} callback The function to execute.
+     */
+    onPaletteColourSelect(callback) {
+        this.#onPaletteColourSelectCallbacks.push(callback);
+    }
+
+    /**
      * User has entered a new tile set.
      * @param {ImportTileSetCallback} callback The function to execute when a tile set import is requested.
      */
@@ -301,6 +415,14 @@ export default class UI {
     }
 
     /**
+     * Mouse is down on the canvas.
+     * @param {CanvasMouseDownCallback} callback The function to execute the mouse is moved.
+     */
+    onCanvasMouseDown(callback) {
+        this.#canvasMouseDownCallbacks.push(callback);
+    }
+
+    /**
      * When the selected palette is changed.
      * @param {PaletteChangeCallback} callback The function to execute when the palette is changed.
      */
@@ -314,6 +436,14 @@ export default class UI {
      */
     onRemovePalette(callback) {
         this.#onRemovePaletteCallbacks.push(callback);
+    }
+
+    /**
+     * When the selected tool is changed.
+     * @param {SelectedToolChangedCallback} callback The function to execute.
+     */
+    onSelectedToolChanged(callback) {
+        this.#onSelectedToolChanged.push(callback);
     }
 
     /**
@@ -366,5 +496,26 @@ export default class UI {
         if (this.selectedPaletteIndex === -1) {
             this.selectedPaletteIndex = 0;
         }
+    }
+
+    /**
+     * Highlights selected tool.
+     * @param {string} toolName Tool to highlight.
+     */
+    highlightTool(toolName) {
+        const buttons = document.querySelectorAll('button[data-tool-button]');
+        buttons.forEach(button => {
+            if (button.getAttribute('data-tool-button') === toolName) {
+                button.classList.remove('btn-outline-secondary');
+                if (!button.classList.contains('btn-secondary')) {
+                    button.classList.add('btn-secondary');
+                }
+            } else {
+                button.classList.remove('btn-secondary');
+                if (!button.classList.contains('btn-outline-secondary')) {
+                    button.classList.add('btn-outline-secondary');
+                }
+            }
+        });
     }
 }

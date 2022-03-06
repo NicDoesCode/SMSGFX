@@ -9,7 +9,8 @@ const dataStore = new DataStore();
 const ui = new UI();
 const tileCanvas = new TileCanvas();
 
-let selectedColour = null;
+/** @type {string} */
+let selectedTool = null;
 
 $(async () => {
 
@@ -26,9 +27,13 @@ $(async () => {
 
     ui.onImportPalette(eventData => handleImportPalette(eventData));
     ui.onImportTileSet(eventData => handleImportTileSet(eventData));
-    ui.onCanvasMouseMove(eventData => handleCanvasMouseMove(eventData));
     ui.onPaletteChange(eventData => handleOnPaletteChange(eventData));
     ui.onRemovePalette(eventData => handleRemovePalette(eventData));
+    ui.onPaletteColourSelect(eventData => handlePaletteColourSelect(eventData));
+    ui.onSelectedToolChanged(eventData => handleSelectedToolChanged(eventData));
+
+    ui.onCanvasMouseMove(eventData => handleCanvasMouseMove(eventData));
+    ui.onCanvasMouseDown(eventData => handleCanvasMouseDown(eventData));
 
     const palette = getPalette();
     const tileSet = getTileSet();
@@ -115,25 +120,66 @@ function handleImportTileSet(eventData) {
 }
 
 /**
- * @param {import("./ui.js").CanvasMouseMoveEventData} eventData 
+ * @param {import("./ui.js").CanvasMouseEventData} eventData 
  */
 async function handleCanvasMouseMove(eventData) {
 
+    const colourIndex = ui.selectedPaletteColourIndex;
     const tileSet = getTileSet();
     const palette = getPalette();
     const canvas = eventData.canvas;
     const mouse = eventData.mouseEvent;
     const rect = canvas.getBoundingClientRect();
-    const x = mouse.clientX - rect.left;
-    const y = mouse.clientY - rect.top;
+    const canvasX = mouse.clientX - rect.left;
+    const canvasY = mouse.clientY - rect.top;
+    const imageX = Math.floor(canvasX / 10);
+    const imageY = Math.floor(canvasY / 10);
+
+    if (ui.canvasMouseIsDown) {
+        takeToolAction(selectedTool, colourIndex, imageX, imageY);
+    }
 
     // Update the UI
-    let image = await tileCanvas.drawUIAsync(tileSet, palette, x, y);
+    let image = await tileCanvas.drawUIAsync(tileSet, palette, canvasX, canvasY);
     ui.drawCanvasImage(image);
 
     // Show the palette colour
-    const pixel = tileSet.getPixelAt(Math.floor(x / 10), Math.floor(y / 10));
+    const pixel = tileSet.getPixelAt(imageX, imageY);
     ui.highlightPaletteItem(pixel);
+
+}
+
+/**
+ * @param {import("./ui.js").CanvasMouseEventData} eventData 
+ */
+async function handleCanvasMouseDown(eventData) {
+    const colourIndex = ui.selectedPaletteColourIndex;
+    const canvas = eventData.canvas;
+    const mouse = eventData.mouseEvent;
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.floor((mouse.clientX - rect.left) / 10);
+    const y = Math.floor((mouse.clientY - rect.top) / 10);
+
+    takeToolAction(selectedTool, colourIndex, x, y);
+}
+
+async function takeToolAction(tool, colourIndex, x, y) {
+    if (tool !== null && colourIndex >= 0 && colourIndex < 16) {
+
+        if (tool === 'pencil') {
+
+            // Show the palette colour
+            const tileSet = getTileSet();
+            tileSet.setPixelAt(x, y, colourIndex);
+
+            // Update the UI
+            const palette = getPalette();
+            const image = await tileCanvas.drawUIAsync(tileSet, palette, x, y, true);
+            ui.drawCanvasImage(image);
+
+        }
+
+    }
 
 }
 
@@ -142,7 +188,7 @@ async function handleCanvasMouseMove(eventData) {
  */
 async function handleOnPaletteChange(eventData) {
     if (eventData.newIndex !== eventData.oldIndex) {
-        
+
         // Swap palette
         const palette = dataStore.paletteList.getPalette(eventData.newIndex);
         ui.displayPalette(palette);
@@ -180,4 +226,21 @@ async function handleRemovePalette(eventData) {
         let image = await tileCanvas.drawUIAsync(getTileSet(), getPalette(), 0, 0, true);
         ui.drawCanvasImage(image);
     }
+}
+
+/**
+ * @param {import("./ui.js").PaletteColourSelectEventData} eventData 
+ */
+function handlePaletteColourSelect(eventData) {
+    if (eventData.index >= -1 && eventData.index < 16) {
+        ui.selectedPaletteColourIndex = eventData.index;
+    }
+}
+
+/**
+ * @param {import("./ui.js").SelectedToolChangedEventData} eventData 
+ */
+function handleSelectedToolChanged(eventData) {
+    selectedTool = eventData.tool;
+    ui.highlightTool(eventData.tool);
 }

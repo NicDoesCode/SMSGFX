@@ -82,7 +82,7 @@ export default class Tile {
      */
     setValueAt(index, value) {
         if (index === null) throw new Error('Read index not specified.');
-        if (index < 0 || index > 8) throw new Error('Read index must be between 0 and 8.');
+        if (index < 0 || index > 63) throw new Error('Read index must be between 0 and 63.');
         if (value < 0 || value > 255) throw new Error('Value must be between 0 and 255.');
         this.#data[index] = value;
     }
