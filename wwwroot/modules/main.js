@@ -28,6 +28,7 @@ $(async () => {
     ui.onImportTileSet(eventData => handleImportTileSet(eventData));
     ui.onCanvasMouseMove(eventData => handleCanvasMouseMove(eventData));
     ui.onPaletteChange(eventData => handleOnPaletteChange(eventData));
+    ui.onRemovePalette(eventData => handleRemovePalette(eventData));
 
     const palette = getPalette();
     const tileSet = getTileSet();
@@ -53,7 +54,7 @@ function getTileSet() {
 
 function getPalette() {
     if (dataStore.paletteList.length > 0) {
-        const paletteIndex = dataStore.appUI.lastSelectedPaletteIndex;
+        const paletteIndex = ui.selectedPaletteIndex;
         let palette = dataStore.paletteList.getPalette(paletteIndex);
         if (paletteIndex >= 0 && paletteIndex < dataStore.paletteList.length) {
             palette = dataStore.paletteList.getPalette(paletteIndex);
@@ -141,13 +142,42 @@ async function handleCanvasMouseMove(eventData) {
  */
 async function handleOnPaletteChange(eventData) {
     if (eventData.newIndex !== eventData.oldIndex) {
+        
+        // Swap palette
         const palette = dataStore.paletteList.getPalette(eventData.newIndex);
         ui.displayPalette(palette);
-        
+
+        // Refresh image
         let image = await tileCanvas.drawUIAsync(getTileSet(), palette, 0, 0, true);
         ui.drawCanvasImage(image);
 
+        // Store palette index to local storage
         dataStore.appUI.lastSelectedPaletteIndex = eventData.newIndex;
         dataStore.saveToLocalStorage();
+    }
+}
+
+/**
+ * @param {import("./ui.js").RemovePaletteEventData} eventData 
+ */
+async function handleRemovePalette(eventData) {
+    if (eventData.index >= 0 && eventData.index < dataStore.paletteList.length) {
+
+        // Remove palette
+        dataStore.paletteList.removeAt(eventData.index);
+        ui.populatePaletteSelector(dataStore.paletteList.getPalettes());
+        const newSelectedIndex = Math.min(eventData.index, dataStore.paletteList.length - 1);
+        if (dataStore.paletteList.length > 0) {
+            ui.selectedPaletteIndex = newSelectedIndex;
+            dataStore.appUI.lastSelectedPaletteIndex = newSelectedIndex;
+        } else {
+            ui.displayPalette(new Palette());
+            dataStore.appUI.lastSelectedPaletteIndex = -1;
+        }
+        dataStore.saveToLocalStorage();
+
+        // Refresh image
+        let image = await tileCanvas.drawUIAsync(getTileSet(), getPalette(), 0, 0, true);
+        ui.drawCanvasImage(image);
     }
 }

@@ -29,16 +29,16 @@
 
                         <div class="row g-3 align-items-center">
                             <div class="col-auto">
-                                <label>Palette</label>
-                            </div>
-                            <div class="col-auto">
-                                <div class="vr"></div>
-                            </div>
-                            <div class="col-auto">
-                                <button class="btn btn-sm btn-secondary me-2" type="button" data-bs-toggle="modal"
-                                    data-bs-target="#smsgfx-palette-modal">
-                                    <i class="bi bi-plus"></i>
-                                </button>
+                                <div class="dropdown">
+                                    <button id="paletteMenuButton" class="btn btn-secondary dropdown-toggle"
+                                        type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Palette
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="paletteMenuButton">
+                                        <li><a id="btnAddPalette" class="dropdown-item" href="#"><i class="bi bi-plus-lg"></i> Add palette</a></li>
+                                        <li><a id="btnRemovePalette" class="dropdown-item" href="#"><i class="bi bi-x-lg"></i> Remove selected</a></li>
+                                    </ul>
+                                </div>
                             </div>
                             <div class="col-auto">
                                 <select id="tbPaletteSelect" class="form-select form-select-sm">
@@ -67,21 +67,19 @@
 
                         <div class="row g-3 align-items-center">
                             <div class="col-auto">
-                                <label>Tiles</label>
-                            </div>
-                            <div class="col-auto">
-                                <div class="vr"></div>
-                            </div>
-                            <div class="col-auto">
-                                <button class="btn btn-sm btn-secondary me-2" type="button" data-bs-toggle="modal"
-                                    data-bs-target="#smsgfx-tiles-modal">
-                                    <i class="bi bi-pencil-square"></i> Load tiles
-                                </button>
+                                <div class="dropdown">
+                                    <button id="paletteMenuButton" class="btn btn-secondary dropdown-toggle"
+                                        type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Tile set
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="paletteMenuButton">
+                                        <li><a id="btnAddTileSet" class="dropdown-item" href="#"><i class="bi bi-plus-lg"></i> Add tile set</a></li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                         <hr>
                         <canvas class="smsgfx-canvas" id="tbCanvas" width="700" height="700"></canvas>
-
                     </div>
                 </div>
             </div>
@@ -93,7 +91,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Load palette</h5>
+                    <h5 class="modal-title">Add palette</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -121,7 +119,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Load tiles</h5>
+                    <h5 class="modal-title">Add tile set</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">

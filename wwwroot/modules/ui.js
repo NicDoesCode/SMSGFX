@@ -20,11 +20,17 @@ const tileModal = document.getElementById('smsgfx-tiles-modal');
 
 /** @type {HTMLSelectElement} */
 const tbPaletteSelect = document.getElementById('tbPaletteSelect');
+/** @type {HTMLLinkElement} */
+const btnAddPalette = document.getElementById('btnAddPalette');
+/** @type {HTMLLinkElement} */
+const btnRemovePalette = document.getElementById('btnRemovePalette');
 /** @type {HTMLButtonElement[]} */
 const paletteButtons = [];
 /** @type {HTMLTableRowElement[]} */
 const paletteRows = [];
 
+/** @type {HTMLLinkElement} */
+const btnAddTileSet = document.getElementById('btnAddTileSet');
 /** @type {HTMLCanvasElement} */
 const tbCanvas = document.getElementById('tbCanvas');
 const canvasContext = tbCanvas.getContext('2d');
@@ -40,7 +46,7 @@ const canvasContext = tbCanvas.getContext('2d');
  * @type {object}
  * @property {string} value - Assembly formatted value of the palette to load.
  * @property {string} system - System the palette is for, either 'ms' or 'gg'.
- * @exportsdocument.getElementById('btnPaletteInput')
+ * @exports
  */
 
 /**
@@ -84,6 +90,19 @@ const canvasContext = tbCanvas.getContext('2d');
  * @exports 
  */
 
+/**
+ * Callback for when an import of tile set is requested.
+ * @callback RemovePaletteCallback
+ * @param {RemovePaletteEventData} eventData - Passes parameters.
+ * @exports
+ */
+/**
+ * @typedef RemovePaletteEventData
+ * @type {object}
+ * @property {number} index - Palette index.
+ * @exports 
+ */
+
 export default class UI {
 
     /** @type {ImportPaletteCallback[]} */
@@ -94,6 +113,8 @@ export default class UI {
     #canvasMouseMoveCallbacks;
     /** @type {PaletteChangeCallback[]} */
     #onPaletteChangeCallbacks;
+    /** @type {RemovePaletteCallback[]} */
+    #onRemovePaletteCallbacks;
 
     /** @type {number} */
     #lastSelectedPaletteIndex;
@@ -103,6 +124,7 @@ export default class UI {
         this.#importTileSetCallbacks = [];
         this.#canvasMouseMoveCallbacks = [];
         this.#onPaletteChangeCallbacks = [];
+        this.#onRemovePaletteCallbacks = [];
         this.#lastSelectedPaletteIndex = -1;
     }
 
@@ -142,6 +164,20 @@ export default class UI {
             });
             ui.#lastSelectedPaletteIndex = ui.selectedPaletteIndex;
         };
+
+        btnAddPalette.onclick = () => {
+            this.showPaletteInputModal();
+        }
+
+        btnRemovePalette.onclick = () => {
+            this.#onRemovePaletteCallbacks.forEach(callback => {
+                callback({ index: ui.selectedPaletteIndex });
+            });
+        }
+
+        btnAddTileSet.onclick = () => {
+            this.showTileInputModal();
+        }
 
     }
 
@@ -270,6 +306,14 @@ export default class UI {
      */
     onPaletteChange(callback) {
         this.#onPaletteChangeCallbacks.push(callback);
+    }
+
+    /**
+     * When the selected palette is removed.
+     * @param {RemovePaletteCallback} callback The function to execute when the palette is removed.
+     */
+    onRemovePalette(callback) {
+        this.#onRemovePaletteCallbacks.push(callback);
     }
 
     /**
