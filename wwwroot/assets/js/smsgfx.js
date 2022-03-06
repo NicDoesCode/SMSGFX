@@ -1,65 +1,65 @@
 $(() => {
-    makePaletteButtons();
+    // makePaletteButtons();
 
-    restorePalette();
-    restoreTiles();
+    // restorePalette();
+    // restoreTiles();
 
-    loadTiles();
+    // loadTiles();
 });
 
-function makePaletteButtons() {
+// function makePaletteButtons() {
 
-    /** @type {HTMLTableElement} */
-    const table = document.getElementById('smsgfx-palette-selector');
-    /** @type {HTMLTableSectionElement} */
-    const body = table.querySelector('tbody');
+//     /** @type {HTMLTableElement} */
+//     const table = document.getElementById('smsgfx-palette-selector');
+//     /** @type {HTMLTableSectionElement} */
+//     const body = table.querySelector('tbody');
 
-    for (let i = 0; i < 16; i++) {
-        const tr = document.createElement('tr');
-        tr.setAttribute('data-colour-index', i.toString());
-        // Number
-        const tdNum = document.createElement('td');
-        tdNum.innerHTML = i.toString();
-        tr.appendChild(tdNum);
-        // GG button
-        const tdGG = document.createElement('td');
-        const btnGG = document.createElement('button');
-        btnGG.classList.add('btn', 'btn-outline-secondary', 'smsgfx-palette-button');
-        btnGG.setAttribute('data-colour-index', i.toString());
-        btnGG.setAttribute('data-system', 'gg');
-        tdGG.appendChild(btnGG);
-        tr.appendChild(tdGG);
-        // SMS button
-        const tdSMS = document.createElement('td');
-        const btnSMS = document.createElement('button');
-        btnSMS.classList.add('btn', 'btn-outline-secondary', 'smsgfx-palette-button');
-        btnSMS.setAttribute('data-colour-index', i.toString());
-        btnSMS.setAttribute('data-system', 'ms');
-        tdSMS.appendChild(btnSMS);
-        tr.appendChild(tdSMS);
+//     for (let i = 0; i < 16; i++) {
+//         const tr = document.createElement('tr');
+//         tr.setAttribute('data-colour-index', i.toString());
+//         // Number
+//         const tdNum = document.createElement('td');
+//         tdNum.innerHTML = i.toString();
+//         tr.appendChild(tdNum);
+//         // GG button
+//         const tdGG = document.createElement('td');
+//         const btnGG = document.createElement('button');
+//         btnGG.classList.add('btn', 'btn-outline-secondary', 'smsgfx-palette-button');
+//         btnGG.setAttribute('data-colour-index', i.toString());
+//         btnGG.setAttribute('data-system', 'gg');
+//         tdGG.appendChild(btnGG);
+//         tr.appendChild(tdGG);
+//         // SMS button
+//         const tdSMS = document.createElement('td');
+//         const btnSMS = document.createElement('button');
+//         btnSMS.classList.add('btn', 'btn-outline-secondary', 'smsgfx-palette-button');
+//         btnSMS.setAttribute('data-colour-index', i.toString());
+//         btnSMS.setAttribute('data-system', 'ms');
+//         tdSMS.appendChild(btnSMS);
+//         tr.appendChild(tdSMS);
 
-        body.appendChild(tr);
-    }
-}
+//         body.appendChild(tr);
+//     }
+// }
 
 function restorePalette() {
 
-    /** @type {HTMLTextAreaElement} */
-    const tbLoadPaletteMS = document.getElementById('tbLoadPaletteMS');
-    if (localStorage.getItem('lastPaletteMS')) {
-        tbLoadPaletteMS.value = localStorage.getItem('lastPaletteMS');
-    }
-    /** @type {HTMLTextAreaElement} */
-    const tbLoadPaletteGG = document.getElementById('tbLoadPaletteGG');
-    if (localStorage.getItem('lastPaletteGG')) {
-        tbLoadPaletteGG.value = localStorage.getItem('lastPaletteGG');
-    }
+    // /** @type {HTMLTextAreaElement} */
+    // const tbLoadPaletteMS = document.getElementById('tbLoadPaletteMS');
+    // if (localStorage.getItem('lastPaletteMS')) {
+    //     tbLoadPaletteMS.value = localStorage.getItem('lastPaletteMS');
+    // }
+    // /** @type {HTMLTextAreaElement} */
+    // const tbLoadPaletteGG = document.getElementById('tbLoadPaletteGG');
+    // if (localStorage.getItem('lastPaletteGG')) {
+    //     tbLoadPaletteGG.value = localStorage.getItem('lastPaletteGG');
+    // }
 
-    if (tbLoadPaletteMS.value.length > 0 || tbLoadPaletteMS.value.length > 0) {
-        loadPalette();
-    } else {
-        updatePaletteButtons();
-    }
+    // if (tbLoadPaletteMS.value.length > 0 || tbLoadPaletteMS.value.length > 0) {
+    //     loadPalette();
+    // } else {
+    //     updatePaletteButtons();
+    // }
 
 }
 
@@ -80,23 +80,6 @@ let canvasImage = null;
 
 /** @type {Array<number>} */
 let pixels = [];
-
-/**
- * @typedef palleteItem
- * @type {object}
- * @property {paletteSystem} masterSystem - Sega Master System palette entry.
- * @property {paletteSystem} gameGear - Sega Game Gear palette entry.
- */
-
-/**
- * @typedef paletteSystem
- * @type {object}
- * @property {string} nativeColour - The HEX encoded native colour.
- * @property {string} hex - Colour encoded in HEX format.
- * @property {number} r - Red value.
- * @property {number} g - Green value.
- * @property {number} b - Blue value.
- */
 
 /** @type {Array<palleteItem>} */
 const palette = [...new Array(16)].map(() => { return { masterSystem: null, gameGear: null } });

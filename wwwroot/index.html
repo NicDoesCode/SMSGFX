@@ -36,20 +36,18 @@
                             </div>
                             <div class="col-auto">
                                 <button class="btn btn-sm btn-secondary me-2" type="button" data-bs-toggle="modal"
-                                data-bs-target="#smsgfx-palette-modal">
-                                <i class="bi bi-pencil-square"></i>
-                            </button>
+                                    data-bs-target="#smsgfx-palette-modal">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
                             </div>
                         </div>
                         <hr>
-
                         <div class="table-responsive" id="smsgfx-palette-selector">
                             <table class="table table-sm">
                                 <thead>
                                     <tr>
                                         <th>#</th>
-                                        <th>GG</th>
-                                        <th>SMS</th>
+                                        <th>Colour</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -71,7 +69,7 @@
                                 <div class="vr"></div>
                             </div>
                             <div class="col-auto">
-                                <select id="tbPaletteSystemSelect" class="form-select form-select-sm" onchange="refreshImage();">
+                                <select id="tbPaletteSelect" class="form-select form-select-sm">
                                     <option value="gg" selected>View Game Gear palette</option>
                                     <option value="mm">View Master System palette</option>
                                 </select>
@@ -84,7 +82,8 @@
                             </div>
                         </div>
                         <hr>
-                        <canvas class="smsgfx-canvas" id="tbCanvas" width="700" height="700" onmousemove="canvasMouseMove(this, event)"></canvas>
+                        <canvas class="smsgfx-canvas" id="tbCanvas" width="700" height="700"
+                            onmousemove="canvasMouseMove(this, event)"></canvas>
 
                     </div>
                 </div>
@@ -101,19 +100,21 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Copy and paste the palette into the form below</p>
                     <div class="mb-3">
-                        <label for="tbLoadPaletteMS" class="form-label">Sega Master System</label>
-                        <textarea class="form-control" id="tbLoadPaletteMS" rows="2"></textarea>
+                        <label for="tbPaletteInputSystem">Select the system</label>
+                        <select id="tbPaletteInputSystem" class="form-select">
+                            <option value="gg" selected>Game Gear</option>
+                            <option value="ms">Master System</option>
+                        </select>
                     </div>
                     <div class="mb-3">
-                        <label for="tbLoadPaletteGG" class="form-label">Sega Game Gear</label>
-                        <textarea class="form-control" id="tbLoadPaletteGG" rows="2"></textarea>
+                        <label for="tbPaletteInput">Copy and paste the palette into the form below</label>
+                        <textarea class="form-control" id="tbPaletteInput" rows="4"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="loadPalette(); ">Save changes</button>
+                    <button id="btnPaletteInput" type="button" class="btn btn-primary">Save changes</button>
                 </div>
             </div>
         </div>
@@ -134,7 +135,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" onclick="loadTiles(); ">Save changes</button>
+                    <button id="btnTileInput" type="button" class="btn btn-primary">Save changes</button>
                 </div>
             </div>
         </div>
@@ -145,6 +146,7 @@
         crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="./assets/js/smsgfx.js" async></script>
+    <script src="./modules/main.js" type="module" async></script>
 </body>
 
 </html>
