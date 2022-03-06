@@ -109,20 +109,20 @@ export default class TileSetList {
      */
     static deserialise(value) {
         if (value) {
-            const result = new TileSetList();
+            const tileSetList = new TileSetList();
             /** @type {string[]} */
             const jsonStringTileSets = JSON.parse(value);
             jsonStringTileSets.forEach(jsonStringTileSet => {
                 /** @type {JsonTileSet} */
                 const jsonTileSet = JSON.parse(jsonStringTileSet);
-                const result = new TileSet();
-                result.tileWidth = jsonTileSet.tileWidth;
+                const tileSet = new TileSet();
+                tileSet.tileWidth = jsonTileSet.tileWidth;
                 jsonTileSet.tilesAsHex.forEach(tileAsHex => {
-                    result.addTile(Tile.fromHex(tileAsHex));
+                    tileSet.addTile(Tile.fromHex(tileAsHex));
                 });
-                this.#tileSets.push(result);
+                tileSetList.addTileSet(tileSet);
             });
-            return result;
+            return tileSetList;
         } else throw new Error('Invalid tile set data supplied.');
     }
 

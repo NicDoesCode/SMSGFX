@@ -20,7 +20,6 @@ $(() => {
     ui.onImportPalette(eventData => handleImportPalette(eventData));
     ui.onImportTileSet(eventData => handleImportTileSet(eventData));
 
-    console.log(dataStore.paletteList.getPalettes());
     if (dataStore.paletteList.length > 0) {
         const paletteIndex = dataStore.appUI.lastSelectedPaletteIndex;
         let palette = dataStore.paletteList.getPalette(paletteIndex);
@@ -64,6 +63,7 @@ function handleImportPalette(eventData) {
 
     dataStore.paletteList.addPalette(palette);
     ui.displayPalette(palette);
+
     dataStore.appUI.lastPaletteInput = eventData.value;
     dataStore.appUI.lastPaletteInputSystem = eventData.system;
     dataStore.saveToLocalStorage();
@@ -73,10 +73,14 @@ function handleImportPalette(eventData) {
  * @param {import("./ui.js").ImportTileSetEventData} eventData 
  */
  function handleImportTileSet(eventData) {
+    console.log('handleImportTileSet', eventData);
     const tileData = eventData.value;
     const array = AssemblyUtility.readAsUint8ClampedArray(tileData);
     const tileSet = TileSet.parsePlanarFormat(array);
     console.log('tileSet', tileSet);
     dataStore.tileSetList.addTileSet(tileSet);
     console.log('dataStore.getTileSets', dataStore.tileSetList.getTileSets());
+
+    dataStore.appUI.lastTileInput = eventData.value;
+    dataStore.saveToLocalStorage();
 }

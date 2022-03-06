@@ -109,9 +109,9 @@ export default class Tile {
     toHexString() {
         let result = '';
         for (let i = 0; i < this.#data.length; i++) {
-            let byte = this.#data[i].toString(16);
-            if (byte % 2 !== 0) result += '0';
-            result += byte;
+            let byteAsString = this.#data[i].toString(16);
+            if (byteAsString.length % 2 !== 0) result += '0';
+            result += byteAsString;
         }
         return result;
     }
@@ -122,7 +122,6 @@ export default class Tile {
      * @returns {Tile}
      */
     static fromHex(hexString) {
-
         if (hexString.length % 2 !== 0) throw new Error('Hex string length must align to 2.');
 
         let result = new Uint8ClampedArray(hexString.length / 2);
