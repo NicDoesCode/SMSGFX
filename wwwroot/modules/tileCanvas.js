@@ -4,116 +4,133 @@ import Palette from './palette.js';
 export default class TileCanvas {
 
     /** @type {HTMLCanvasElement} */
-    #canvas;
+    #baseCanvas;
     /** @type {CanvasRenderingContext2D} */
-    #ctx;
-    /** @type {image} */
-    #lastDrawnTileMapData;
+    #baseCtx;
+    /** @type {boolean} */
+    #needToDrawBase = true;
+    /** @type {TileSet} */
+    #tileSet = null;
+    /** @type {Palette} */
+    #palette = null;
+    /** @type {number} */
+    #scale = 10;
 
-    constructor() {
-        this.#canvas = document.createElement('canvas');
-        this.#ctx = this.#canvas.getContext('2d');
-        this.#lastDrawnTileMapData = null;
+    /**
+     * Creates a new instance of the tile canvas.
+     * @param {TileSet} [tileSet] Tile set to draw.
+     * @param {Palette} [palette] Colour palette to use.
+     */
+    constructor(tileSet, palette) {
+        this.#baseCanvas = document.createElement('canvas');
+        this.#baseCtx = this.#baseCanvas.getContext('2d');
+        if (tileSet) this.#tileSet = tileSet;
+        if (palette) this.#palette = palette;
     }
 
     /**
-     * Gets the last drawn image data.
+     * Gets or sets the tile set to draw.
      */
-    get lastDrawnTileMapData() {
-        return this.#lastDrawnTileMapData;
+    get tileSet() {
+        return this.#tileSet;
+    }
+    set tileSet(value) {
+        this.invalidateImage();
+        this.#tileSet = value;
+    }
+
+    /**
+     * Gets or sets the colour palette to use.
+     */
+    get palette() {
+        return this.#palette;
+    }
+    set palette(value) {
+        this.invalidateImage();
+        this.#palette = value;
+    }
+
+    /**
+     * Gets or sets the image drawing scale between 1 and 50 (1:1 and 50:1).
+     */
+    get scale() {
+        return this.#scale;
+    }
+    set scale(value) {
+        if (value < 1 || value > 50) throw new Error('Scale factor must be between 1 and 50.');
+        this.#scale = Math.round(value);
+    }
+
+    /**
+     * Invalidates the tile set image and forces a redraw.
+     */
+    invalidateImage() {
+        this.#needToDrawBase = true;
     }
 
     /**
      * Draws a tile set and then returns the image as a base 64 URL.
-     * @param {TileSet} tileSet Tile set to draw.
-     * @param {Palette} palette Palette to use for colouring.
-     * @param {boolean} [forceRedraw=false] Forces the image to be redrawn.
-     * @returns {Promise<HTMLImageElement>}
      */
-    async drawTileSetAsync(tileSet, palette, forceRedraw) {
+    #refreshBaseImage() {
 
-        // Load the image async
-        return new Promise((resolve, reject) => {
+        if (!this.tileSet) throw new Error('refreshBaseImage: No tile set.');
+        if (!this.tileSet) throw new Error('refreshBaseImage: No palette.');
 
-            if (forceRedraw || this.#lastDrawnTileMapData === null) {
+        const canvas = this.#baseCanvas;
+        const ctx = this.#baseCtx;
 
-                const canvas = this.#canvas;
-                const ctx = this.#ctx;
+        const tiles = Math.max(this.tileSet.tileWidth, 1);
+        const rows = Math.ceil(this.tileSet.tileCount / tiles);
 
-                const tiles = Math.max(tileSet.tileWidth, 1);
-                const rows = Math.ceil(tileSet.tileCount / tiles);
+        const pxSize = this.scale;
 
-                const pxSize = 10;
+        canvas.width = tiles * 8 * pxSize;
+        canvas.height = rows * 8 * pxSize;
 
-                canvas.width = tiles * 8 * pxSize;
-                canvas.height = rows * 8 * pxSize;
+        this.tileSet.getTiles().forEach((tile, tileSetIndex) => {
 
-                tileSet.getTiles().forEach((tile, tileSetIndex) => {
+            const tileSetCol = tileSetIndex % tiles;
+            const tileSetRow = (tileSetIndex - tileSetCol) / tiles;
 
-                    const tileSetCol = tileSetIndex % tiles;
-                    const tileSetRow = (tileSetIndex - tileSetCol) / tiles;
+            for (let tilePx = 0; tilePx < 64; tilePx++) {
 
-                    for (let tilePx = 0; tilePx < 64; tilePx++) {
+                const tileCol = tilePx % 8;
+                const tileRow = (tilePx - tileCol) / 8;
 
-                        const tileCol = tilePx % 8;
-                        const tileRow = (tilePx - tileCol) / 8;
+                const x = ((tileSetCol * 8) + tileCol) * pxSize;
+                const y = ((tileSetRow * 8) + tileRow) * pxSize;
 
-                        const x = ((tileSetCol * 8) + tileCol) * pxSize;
-                        const y = ((tileSetRow * 8) + tileRow) * pxSize;
+                let pixelPaletteIndex = tile.readAt(tilePx);
 
-                        let pixelPaletteIndex = tile.readAt(tilePx);
-
-                        // Set colour
-                        if (pixelPaletteIndex >= 0 && pixelPaletteIndex < 16) {
-                            ctx.fillStyle = palette.colours[pixelPaletteIndex].hex;
-                        } else {
-                            ctx.fillStyle = 'yellow';
-                        }
-
-                        ctx.moveTo(0, 0);
-                        ctx.fillRect(x, y, pxSize, pxSize);
-                    }
-
-                });
-
-                const image = new Image(canvas.width, canvas.height);
-                image.src = canvas.toDataURL();
-                image.onload = () => {
-                    this.#lastDrawnTileMapData = image;
-                    resolve(image);
+                // Set colour
+                if (pixelPaletteIndex >= 0 && pixelPaletteIndex < 16) {
+                    ctx.fillStyle = this.palette.colours[pixelPaletteIndex].hex;
+                } else {
+                    ctx.fillStyle = 'yellow';
                 }
-                image.onerror = () => {
-                    reject();
-                }
-            } else {
-                resolve(this.#lastDrawnTileMapData);
+
+                ctx.moveTo(0, 0);
+                ctx.fillRect(x, y, pxSize, pxSize);
             }
+
         });
-
-
     }
 
     /**
      * Draws a tile set and then returns the image as a base 64 URL.
-     * @param {TileSet} tileSet Tile set to draw.
-     * @param {Palette} palette Palette to use for colouring.
-     * @param {number} palette X position of the mouse on the image.
-     * @param {number} palette Y position of the mouse on the image.
-     * @param {boolean} [forceRedraw=false] Forces the image to be redrawn.
-     * @returns {Promise<HTMLImageElement>}
+     * @param {HTMLCanvasElement} canvas Canvas to draw onto.
+     * @param {number} mouseX X position of the cursor on the image.
+     * @param {number} mouseY Y position of the cursor on the image.
      */
-    async drawUIAsync(tileSet, palette, mouseX, mouseY, forceRedraw) {
+    drawUI(canvas, mouseX, mouseY) {
 
-        // Ensure we have a drawn tile set
-        let baseImage = this.#lastDrawnTileMapData;
-        if (forceRedraw) {
-            baseImage = await this.drawTileSetAsync(tileSet, palette, true);
+        if (!canvas) throw new Error('drawUI: No canvas.');
+
+        if (this.#needToDrawBase) {
+            this.#refreshBaseImage();
         }
 
-        const canvas = this.#canvas;
-        const ctx = this.#ctx;
-
-        const pxSize = 10;
+        const pxSize = this.scale;
 
         let coords = {
             x: mouseX, y: mouseY,
@@ -123,27 +140,24 @@ export default class TileCanvas {
             tileY: mouseY - (mouseY % (8 * pxSize))
         }
 
+        const baseCanvas = this.#baseCanvas;
+        const ctx = canvas.getContext('2d');
+
+        // Equalise width and height
+        canvas.width = baseCanvas.width;
+        canvas.height = baseCanvas.height;
+
         // Draw the cached image
-        ctx.drawImage(baseImage, 0, 0);
+        ctx.drawImage(baseCanvas, 0, 0);
         ctx.moveTo(0, 0);
+
         // Highlight the pixel
         ctx.strokeStyle = 'black';
         ctx.strokeRect(coords.pxX, coords.pxY, pxSize, pxSize);
+        
         // Highlight the entire tile
         ctx.strokeStyle = 'grey';
         ctx.strokeRect(coords.tileX, coords.tileY, (8 * pxSize), (8 * pxSize));
-
-        // Load the image async
-        return new Promise((resolve, reject) => {
-            const image = new Image(baseImage.width, baseImage.height);
-            image.src = canvas.toDataURL();
-            image.onload = () => {
-                resolve(image);
-            }
-            image.onerror = () => {
-                reject();
-            }
-        });
     }
 
 }

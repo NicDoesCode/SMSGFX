@@ -12,7 +12,7 @@ const tileCanvas = new TileCanvas();
 /** @type {string} */
 let selectedTool = null;
 
-$(async () => {
+$(() => {
 
     dataStore.loadFromLocalStorage();
 
@@ -39,14 +39,12 @@ $(async () => {
     const tileSet = getTileSet();
 
     if (palette) {
-
-        // Display the last used palette.
         ui.displayPalette(getPalette());
-
         if (tileSet) {
             // Display the last used tile set.
-            let image = await tileCanvas.drawTileSetAsync(getTileSet(), getPalette());
-            ui.drawCanvasImage(image);
+            tileCanvas.palette = palette;
+            tileCanvas.tileSet = tileSet;
+            tileCanvas.drawUI(ui.canvas);
         }
     }
 });
@@ -122,7 +120,7 @@ function handleImportTileSet(eventData) {
 /**
  * @param {import("./ui.js").CanvasMouseEventData} eventData 
  */
-async function handleCanvasMouseMove(eventData) {
+function handleCanvasMouseMove(eventData) {
 
     const colourIndex = ui.selectedPaletteColourIndex;
     const tileSet = getTileSet();
@@ -140,8 +138,7 @@ async function handleCanvasMouseMove(eventData) {
     }
 
     // Update the UI
-    let image = await tileCanvas.drawUIAsync(tileSet, palette, canvasX, canvasY);
-    ui.drawCanvasImage(image);
+    tileCanvas.drawUI(ui.canvas, canvasX, canvasY);
 
     // Show the palette colour
     const pixel = tileSet.getPixelAt(imageX, imageY);
@@ -152,7 +149,7 @@ async function handleCanvasMouseMove(eventData) {
 /**
  * @param {import("./ui.js").CanvasMouseEventData} eventData 
  */
-async function handleCanvasMouseDown(eventData) {
+function handleCanvasMouseDown(eventData) {
     const colourIndex = ui.selectedPaletteColourIndex;
     const canvas = eventData.canvas;
     const mouse = eventData.mouseEvent;
@@ -163,20 +160,26 @@ async function handleCanvasMouseDown(eventData) {
     takeToolAction(selectedTool, colourIndex, x, y);
 }
 
-async function takeToolAction(tool, colourIndex, x, y) {
+const lastPencilPixel = { x: -1, y: -1 };
+
+function takeToolAction(tool, colourIndex, imageX, imageY) {
     if (tool !== null && colourIndex >= 0 && colourIndex < 16) {
 
         if (tool === 'pencil') {
+            if (imageX !== lastPencilPixel.x || imageY !== lastPencilPixel.y) {
 
-            // Show the palette colour
-            const tileSet = getTileSet();
-            tileSet.setPixelAt(x, y, colourIndex);
+                lastPencilPixel.x = imageX;
+                lastPencilPixel.y = imageY;
 
-            // Update the UI
-            const palette = getPalette();
-            const image = await tileCanvas.drawUIAsync(tileSet, palette, x, y, true);
-            ui.drawCanvasImage(image);
+                // Show the palette colour
+                const tileSet = getTileSet();
+                tileSet.setPixelAt(imageX, imageY, colourIndex);
 
+                // Update the UI
+                tileCanvas.invalidateImage();
+                tileCanvas.drawUI(ui.canvas, imageX, imageY);
+
+            }
         }
 
     }
@@ -186,7 +189,7 @@ async function takeToolAction(tool, colourIndex, x, y) {
 /**
  * @param {import("./ui.js").PaletteChangeEventData} eventData 
  */
-async function handleOnPaletteChange(eventData) {
+function handleOnPaletteChange(eventData) {
     if (eventData.newIndex !== eventData.oldIndex) {
 
         // Swap palette
@@ -194,8 +197,8 @@ async function handleOnPaletteChange(eventData) {
         ui.displayPalette(palette);
 
         // Refresh image
-        let image = await tileCanvas.drawUIAsync(getTileSet(), palette, 0, 0, true);
-        ui.drawCanvasImage(image);
+        tileCanvas.palette = palette;
+        tileCanvas.drawUI(ui.canvas, 0, 0);
 
         // Store palette index to local storage
         dataStore.appUI.lastSelectedPaletteIndex = eventData.newIndex;
@@ -206,7 +209,7 @@ async function handleOnPaletteChange(eventData) {
 /**
  * @param {import("./ui.js").RemovePaletteEventData} eventData 
  */
-async function handleRemovePalette(eventData) {
+function handleRemovePalette(eventData) {
     if (eventData.index >= 0 && eventData.index < dataStore.paletteList.length) {
 
         // Remove palette
@@ -223,8 +226,8 @@ async function handleRemovePalette(eventData) {
         dataStore.saveToLocalStorage();
 
         // Refresh image
-        let image = await tileCanvas.drawUIAsync(getTileSet(), getPalette(), 0, 0, true);
-        ui.drawCanvasImage(image);
+        tileCanvas.palette = getPalette();
+        tileCanvas.drawUI(ui.canvas, 0, 0);
     }
 }
 

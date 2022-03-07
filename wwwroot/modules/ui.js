@@ -1,5 +1,3 @@
-import DataStore from "./dataStore.js";
-import Handlers from "./handlers.js";
 import Palette from "./palette.js";
 
 /** @type {HTMLSelectElement} */
@@ -364,8 +362,18 @@ export default class UI {
         });
     }
 
+    /**
+     * Gets whether the mouse is down on the canvas.
+     */
     get canvasMouseIsDown() {
         return this.#canvasMouseIsDown;
+    }
+
+    /**
+     * Gets the canvas for drawing the image.
+     */
+    get canvas() {
+        return tbCanvas;
     }
 
     /**
@@ -444,19 +452,6 @@ export default class UI {
      */
     onSelectedToolChanged(callback) {
         this.#onSelectedToolChanged.push(callback);
-    }
-
-    /**
-     * Draws the given canvas image to the display.
-     * @param {Image} image Canvas image.
-     */
-    drawCanvasImage(image) {
-        if (image.width !== 0 && image.height !== 0) {
-            tbCanvas.width = Math.max(image.width, 100);
-            tbCanvas.height = Math.max(image.height, 100);
-            canvasContext.moveTo(0, 0);
-            canvasContext.drawImage(image, 0, 0);
-        }
     }
 
     /**

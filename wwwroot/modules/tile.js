@@ -53,6 +53,20 @@ export default class Tile {
 
     /**
      * Gets the palette index of a pixal at the given index.
+     * @param {number} start Index to start reading from.
+     * @param {number} end Index to finish reading at.
+     * @returns {Uint8ClampedArray}
+     */
+     readFrom(start, end) {
+        if (start === null || end === null) throw new Error('Read start and/or end not specified.');
+        if (start < 0 || start >= this.#data.length)  throw new Error('Read start out of range.');
+        if (end < 0 || end >= this.#data.length)  throw new Error('Read end out of range.');
+        if (start > end)  throw new Error('Start is greater than end.');
+        return this.#data.slice(start, end);
+    }
+
+    /**
+     * Gets the palette index of a pixal at the given index.
      * @param {number} index Index of the pixel to read.
      * @returns {number} Palette index of the pixel at the given index.
      */

@@ -23,58 +23,57 @@
         </div>
 
         <div class="row">
-            <div class="col col-2">
-                <div class="card smsgfx-palette">
-                    <div class="card-body">
 
-                        <div class="row g-3 align-items-center">
-                            <div class="col-auto">
-                                <div class="dropdown">
-                                    <button id="paletteMenuButton" class="btn btn-secondary dropdown-toggle"
-                                        type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Palette
+            <div class="card-group">
+
+                <!-- Palette card -->
+                <div class="col-2">
+                    <div class="card smsgfx-palette">
+                        <div class="card-header">
+                            Palette
+                        </div>
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <button id="btnAddPalette" class="btn btn-secondary">
+                                        <i class="bi bi-plus-lg"></i> Add
                                     </button>
-                                    <ul class="dropdown-menu" aria-labelledby="paletteMenuButton">
-                                        <li><a id="btnAddPalette" class="dropdown-item" href="#"><i class="bi bi-plus-lg"></i> Add palette</a></li>
-                                        <li><a id="btnRemovePalette" class="dropdown-item" href="#"><i class="bi bi-x-lg"></i> Remove selected</a></li>
-                                    </ul>
+                                    <button id="btnRemovePalette" class="btn btn-secondary">
+                                        <i class="bi bi bi-trash-fill"></i>
+                                    </button>
                                 </div>
                             </div>
-                            <div class="col-auto">
-                                <select id="tbPaletteSelect" class="form-select form-select-sm">
-                                </select>
+                            <hr>
+                            <div class="table-responsive" id="smsgfx-palette-selector">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th colspan="2">
+                                                <select id="tbPaletteSelect" class="form-select form-select-sm">
+                                                </select>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
                             </div>
-                        </div>
-                        <hr>
-                        <div class="table-responsive" id="smsgfx-palette-selector">
-                            <table class="table table-sm">
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Colour</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="col">
-                <div class="card">
-                    <div class="card-body">
 
-                        <div class="row g-3 align-items-center">
+                <!-- Tile set card -->
+                <div class="card">
+                    <div class="card-header">
+                        Tile set
+                    </div>
+                    <div class="card-body">
+                        <div class="row align-items-center">
                             <div class="col-auto">
-                                <div class="dropdown">
-                                    <button id="paletteMenuButton" class="btn btn-secondary dropdown-toggle"
-                                        type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Tile set
+                                <div class="col-auto">
+                                    <button id="btnAddTileSet" class="btn btn-secondary">
+                                        <i class="bi bi-plus-lg"></i> Add
                                     </button>
-                                    <ul class="dropdown-menu" aria-labelledby="paletteMenuButton">
-                                        <li><a id="btnAddTileSet" class="dropdown-item" href="#"><i class="bi bi-plus-lg"></i> Add tile set</a></li>
-                                    </ul>
                                 </div>
                             </div>
                             <div class="col-auto">
@@ -96,6 +95,7 @@
                         <canvas class="smsgfx-canvas" id="tbCanvas" width="700" height="700"></canvas>
                     </div>
                 </div>
+
             </div>
         </div>
 
