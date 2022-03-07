@@ -1,4 +1,5 @@
 import Palette from "./palette.js";
+import UIColourPicker from "./ui/uiColourPicker.js";
 
 /** @type {HTMLSelectElement} */
 const tbPaletteInputSystem = document.getElementById('tbPaletteInputSystem');
@@ -8,6 +9,8 @@ const tbPaletteInput = document.getElementById('tbPaletteInput');
 const btnPaletteInput = document.getElementById('btnPaletteInput');
 /** @type {HTMLDivElement} */
 const paletteModal = document.getElementById('smsgfx-palette-modal');
+/** @type {HTMLDivElement} */
+const colourPickerModal = document.getElementById('smsgfx-colour-picker-modal');
 
 /** @type {HTMLTextAreaElement} */
 const tbLoadTiles = document.getElementById('tbLoadTiles');
@@ -47,6 +50,10 @@ export default class UI {
     #onRemovePaletteCallbacks;
     /** @type {PaletteColourSelectCallback[]} */
     #onPaletteColourSelectCallbacks;
+    /** @type {PaletteColourEditCallback[]} */
+    #onPaletteColourEditCallbacks;
+    /** @type {PaletteColourPickedCallback[]} */
+    #onPaletteColourPickedCallbacks;
     /** @type {SelectedToolChangedCallback[]} */
     #onSelectedToolChangedCallbacks;
     /** @type {ZoomChangedCallback[]} */
@@ -66,12 +73,17 @@ export default class UI {
 
     #lastZoom = parseInt(tbTileSetZoom.value);
 
+    /** @type {UIColourPicker} */
+    #uiColourPicker = null;
+
     constructor() {
         this.#importPaletteCallbacks = [];
         this.#importTileSetCallbacks = [];
         this.#onPaletteChangeCallbacks = [];
         this.#onRemovePaletteCallbacks = [];
         this.#onPaletteColourSelectCallbacks = [];
+        this.#onPaletteColourEditCallbacks = [];
+        this.#onPaletteColourPickedCallbacks = [];
         this.#onSelectedToolChangedCallbacks = [];
         this.#onZoomChangedCallbacks = [];
 
@@ -88,6 +100,8 @@ export default class UI {
         this.createPaletteButtons();
 
         const ui = this;
+
+        this.#uiColourPicker = new UIColourPicker();
 
         btnPaletteInput.onclick = () => {
             const value = this.paletteInput;
@@ -131,6 +145,12 @@ export default class UI {
             });
             ui.#lastSelectedPaletteIndex = ui.selectedPaletteIndex;
         };
+
+        this.#uiColourPicker.onConfirm(eventData => {
+    this.#onPaletteColourPickedCallbacks.forEach(callback => {
+                callback(eventData);
+            });
+        });
 
         tbTileSetZoom.onchange = () => {
             const newZoom = parseInt(tbTileSetZoom.value);
@@ -178,27 +198,46 @@ export default class UI {
         for (let i = 0; i < 16; i++) {
             const tr = document.createElement('tr');
             tr.setAttribute('data-colour-index', i.toString());
-            // Numberexport
+
+            // Number
             let td = document.createElement('td');
             td.innerHTML = i.toString();
             tr.appendChild(td);
-            // Button
+
+            // Colour button
             td = document.createElement('td');
-            const button = document.createElement('button');
-            button.classList.add('btn', 'btn-outline-secondary', 'smsgfx-palette-button');
-            button.setAttribute('data-colour-index', i.toString());
-            button.onclick = () => {
+            const btnColour = document.createElement('button');
+            btnColour.classList.add('btn', 'btn-outline-secondary', 'smsgfx-palette-button');
+            btnColour.setAttribute('data-colour-index', i.toString());
+            btnColour.onclick = () => {
                 this.#onPaletteColourSelectCallbacks.forEach(callback => {
                     callback({ index: i });
                 });
             };
-            td.appendChild(button);
+            btnColour.innerHTML = '&nbsp;';
+            td.appendChild(btnColour);
+            tr.appendChild(td);
+
+            // Edit button
+            td = document.createElement('td');
+            const btnEdit = document.createElement('button');
+            btnEdit.classList.add('btn', 'btn-sm', 'btn-outline-secondary', 'smsgfx-palette-edit-button');
+            btnEdit.setAttribute('data-colour-index', i.toString());
+            btnEdit.onclick = () => {
+                this.#onPaletteColourEditCallbacks.forEach(callback => {
+                    callback({ index: i });
+                });
+            };
+            const icon = document.createElement('i');
+            icon.classList.add('bi', 'bi-pencil-square');
+            btnEdit.appendChild(icon);
+            td.appendChild(btnEdit);
             tr.appendChild(td);
 
             tbody.appendChild(tr);
 
             paletteRows.push(tr);
-            paletteButtons.push(button);
+            paletteButtons.push(btnColour);
         }
 
     }
@@ -241,6 +280,22 @@ export default class UI {
     showTileInputModal() {
         var modal = bootstrap.Modal.getOrCreateInstance(tileModal);
         modal.show();
+    }
+
+    /**
+     * Shows the modal that asks the user to pick a colour.
+     * @property {Palette} palette The colour palette.
+     * @property {number} index Colour index.
+     */
+    showColourPickerModal(palette, index) {
+        this.#uiColourPicker.setTo(palette, index);
+        var modal = bootstrap.Modal.getOrCreateInstance(colourPickerModal);
+        modal.show();
+    }
+
+    hideColourPickerModal() {
+        var modal = bootstrap.Modal.getOrCreateInstance(colourPickerModal);
+        modal.hide();
     }
 
     get selectedPaletteIndex() {
@@ -319,6 +374,22 @@ export default class UI {
     }
 
     /**
+     * User edits a palette colour.
+     * @param {PaletteColourEditCallback} callback The function to execute.
+     */
+    onPaletteColourEdit(callback) {
+        this.#onPaletteColourEditCallbacks.push(callback);
+    }
+
+    /**
+     * Palette colour has been picked.
+     * @param {import("./ui/uiColourPicker.js").ConfirmColourPickerEventData} callback The function to execute.
+     */
+    onPaletteColourPicked(callback) {
+        this.#onPaletteColourPickedCallbacks.push(callback);
+    }
+
+    /**
      * User has entered a new tile set.
      * @param {ImportTileSetCallback} callback The function to execute when a tile set import is requested.
      */
@@ -370,7 +441,7 @@ export default class UI {
      * When the zoom is changed.
      * @param {ZoomChangedCallback} callback The function to execute.
      */
-     onZoomChanged(callback) {
+    onZoomChanged(callback) {
         this.#onZoomChangedCallbacks.push(callback);
     }
 
@@ -514,14 +585,27 @@ export default class UI {
 /**
  * Callback for when palette colour change is requested.
  * @callback PaletteColourSelectCallback
- * @param {PaletteColourSelectEventData} eventData - Passes parameters.
+ * @param {PaletteColourEventData} eventData - Passes parameters.
  * @exports
  */
 /**
- * @typedef PaletteColourSelectEventData
+ * Callback for when palette colour change is requested.
+ * @callback PaletteColourEditCallback
+ * @param {PaletteColourEventData} eventData - Passes parameters.
+ * @exports
+ */
+/**
+ * @typedef PaletteColourEventData
  * @type {object}
  * @property {number} index - Palette colour index.
  * @exports 
+ */
+
+/**
+ * Callback for when palette colour change is confirmed.
+ * @callback PaletteColourPickedCallback
+ * @param {import("./ui/uiColourPicker.js").ConfirmColourPickerEventData} eventData - Passes parameters.
+ * @exports
  */
 
 /**

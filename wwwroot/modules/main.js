@@ -4,6 +4,7 @@ import Palette from "./palette.js";
 import TileSet from './tileSet.js'
 import AssemblyUtility from "./assemblyUtility.js";
 import TileCanvas from "./tileCanvas.js";
+import UIColourPicker from "./ui/uiColourPicker.js";
 
 const dataStore = new DataStore();
 const ui = new UI();
@@ -30,6 +31,8 @@ $(() => {
     ui.onPaletteChange(eventData => handleOnPaletteChange(eventData));
     ui.onRemovePalette(eventData => handleRemovePalette(eventData));
     ui.onPaletteColourSelect(eventData => handlePaletteColourSelect(eventData));
+    ui.onPaletteColourEdit(eventData => handlePaletteColourEdit(eventData));
+    ui.onPaletteColourPicked(eventData => handlePaletteColourPicked(eventData));
     ui.onSelectedToolChanged(eventData => handleSelectedToolChanged(eventData));
     ui.onZoomChanged(eventData => handleZoomChanged(eventData));
 
@@ -233,12 +236,45 @@ function handleRemovePalette(eventData) {
 }
 
 /**
- * @param {import("./ui.js").PaletteColourSelectEventData} eventData 
+ * @param {import("./ui.js").PaletteColourEventData} eventData 
  */
 function handlePaletteColourSelect(eventData) {
     if (eventData.index >= -1 && eventData.index < 16) {
         ui.selectedPaletteColourIndex = eventData.index;
     }
+}
+
+/**
+ * @param {import("./ui.js").PaletteColourEventData} eventData 
+ */
+function handlePaletteColourEdit(eventData) {
+    ui.showColourPickerModal(getPalette(), eventData.index);
+}
+
+/**
+ * @param {import("./ui/uiColourPicker.js").ConfirmColourPickerEventData} eventData 
+ */
+function handlePaletteColourPicked(eventData) {
+    const palette = getPalette();
+    const colour = palette.colours[eventData.index];
+    colour.r = eventData.r;
+    colour.g = eventData.g;
+    colour.b = eventData.b;
+    colour.hex = eventData.hex;
+    if (palette.system === 'ms') {
+        const r = Math.round(3 / 255 * colour.r);
+        const g = Math.round(3 / 255 * colour.g) << 2;
+        const b = Math.round(3 / 255 * colour.b) << 4;
+        colour.nativeColour = (r | g | b).toString(16);
+    } else if (palette.system === 'gg') {
+        const r = Math.round(15 / 255 * colour.r);
+        const g = Math.round(15 / 255 * colour.g) << 4;
+        const b = Math.round(15 / 255 * colour.b) << 8;
+        colour.nativeColour = (r | g | b).toString(16);
+    }
+    ui.hideColourPickerModal();
+    ui.displayPalette(palette);
+    tileCanvas.drawUI(ui.canvas, 0, 0);
 }
 
 /**
