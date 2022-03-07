@@ -31,6 +31,7 @@ $(() => {
     ui.onRemovePalette(eventData => handleRemovePalette(eventData));
     ui.onPaletteColourSelect(eventData => handlePaletteColourSelect(eventData));
     ui.onSelectedToolChanged(eventData => handleSelectedToolChanged(eventData));
+    ui.onZoomChanged(eventData => handleZoomChanged(eventData));
 
     ui.onCanvasMouseMove(eventData => handleCanvasMouseMove(eventData));
     ui.onCanvasMouseDown(eventData => handleCanvasMouseDown(eventData));
@@ -130,8 +131,8 @@ function handleCanvasMouseMove(eventData) {
     const rect = canvas.getBoundingClientRect();
     const canvasX = mouse.clientX - rect.left;
     const canvasY = mouse.clientY - rect.top;
-    const imageX = Math.floor(canvasX / 10);
-    const imageY = Math.floor(canvasY / 10);
+    const imageX = Math.floor(canvasX / tileCanvas.scale);
+    const imageY = Math.floor(canvasY / tileCanvas.scale);
 
     if (ui.canvasMouseIsDown) {
         takeToolAction(selectedTool, colourIndex, imageX, imageY);
@@ -154,8 +155,8 @@ function handleCanvasMouseDown(eventData) {
     const canvas = eventData.canvas;
     const mouse = eventData.mouseEvent;
     const rect = canvas.getBoundingClientRect();
-    const x = Math.floor((mouse.clientX - rect.left) / 10);
-    const y = Math.floor((mouse.clientY - rect.top) / 10);
+    const x = Math.floor((mouse.clientX - rect.left) / tileCanvas.scale);
+    const y = Math.floor((mouse.clientY - rect.top) / tileCanvas.scale);
 
     takeToolAction(selectedTool, colourIndex, x, y);
 }
@@ -246,4 +247,12 @@ function handlePaletteColourSelect(eventData) {
 function handleSelectedToolChanged(eventData) {
     selectedTool = eventData.tool;
     ui.highlightTool(eventData.tool);
+}
+
+/**
+ * @param {import("./ui.js").ZoomChangedEventData} eventData 
+ */
+function handleZoomChanged(eventData) {
+    tileCanvas.scale = eventData.zoom;
+    tileCanvas.drawUI(ui.canvas, 0, 0);
 }

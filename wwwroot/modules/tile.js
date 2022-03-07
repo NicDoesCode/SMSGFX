@@ -92,13 +92,13 @@ export default class Tile {
     /**
      * Sets the palette index of a pixel at the given index.
      * @param {number} index Index of the pixel to set.
-     * @param {number} value Palette index of the pixel to set.
+     * @param {number} paletteIndex Palette index of the pixel to set.
      */
-    setValueAt(index, value) {
+    setValueAt(index, paletteIndex) {
         if (index === null) throw new Error('Read index not specified.');
         if (index < 0 || index > 63) throw new Error('Read index must be between 0 and 63.');
-        if (value < 0 || value > 255) throw new Error('Value must be between 0 and 255.');
-        this.#data[index] = value;
+        if (paletteIndex < 0 || paletteIndex > 255) throw new Error('Value must be between 0 and 255.');
+        this.#data[index] = paletteIndex;
     }
 
     /**

@@ -277,8 +277,14 @@ export default class TileSet {
         return this.getTile(tileNum).readAt(byteNum);
     }
 
-    setPixelAt(x, y, colourIndex) {
-        if (colourIndex < 0 || colourIndex > 15) throw new Error('setPixelAt: Palette index must be between 0 and 15.');
+    /**
+     * Sets the palette slot of a pixel at a given coordinate on the tile set.
+     * @param {number} x X coordinate.
+     * @param {number} y Y coordinate.
+     * @param {number} paletteIndex Palette index of the colour, 0 to 15.
+     */
+    setPixelAt(x, y, paletteIndex) {
+        if (paletteIndex < 0 || paletteIndex > 15) throw new Error('setPixelAt: Palette index must be between 0 and 15.');
 
         // Get the tile number
         const tileX = (x - (x % 8)) / 8;
@@ -290,7 +296,7 @@ export default class TileSet {
         y = y % 8;
         const byteNum = (y * 8) + x;
 
-        this.getTile(tileNum).setValueAt(byteNum, colourIndex);
+        this.getTile(tileNum).setValueAt(byteNum, paletteIndex);
     }
 
     /** Clears the tile set. */

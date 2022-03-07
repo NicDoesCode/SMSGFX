@@ -29,114 +29,11 @@ const paletteRows = [];
 
 /** @type {HTMLLinkElement} */
 const btnAddTileSet = document.getElementById('btnAddTileSet');
-/** @type {HTMLButtonElement} */
-const btnToolPencil = document.getElementById('btnToolPencil');
+/** @type {HTMLSelectElement} */
+const tbTileSetZoom = document.getElementById('tbTileSetZoom');
 
 /** @type {HTMLCanvasElement} */
 const tbCanvas = document.getElementById('tbCanvas');
-const canvasContext = tbCanvas.getContext('2d'); btnToolPencil
-
-const TOOL_PENCIL = 'pencil';
-
-/**
- * Callback for when an import of palette is requested.
- * @callback ImportPaletteCallback
- * @param {ImportPaletteEventData} eventData - Passes parameters.
- * @exports
- */
-/**
- * @typedef ImportPaletteEventData
- * @type {object}
- * @property {string} value - Assembly formatted value of the palette to load.
- * @property {string} system - System the palette is for, either 'ms' or 'gg'.
- * @exports
- */
-
-/**
- * Callback for when an import of tile set is requested.
- * @callback ImportTileSetCallback
- * @param {ImportTileSetEventData} eventData - Passes parameters.
- * @exports
- */
-/**
- * @typedef ImportTileSetEventData
- * @type {object}
- * @property {string} value - Assembly formatted value of the tile set to load.
- * @exports 
- */
-
-/**
- * Callback for when the mouse moves on the canvas.
- * @callback CanvasMouseMoveCallback
- * @param {CanvasMouseEventData} eventData - Passes parameters.
- * @exports
- */
-/**
- * Callback for when the mouse is clicked on the canvas.
- * @callback CanvasMouseDownCallback
- * @param {CanvasMouseEventData} eventData - Passes parameters.
- * @exports
- */
-/**
- * @typedef CanvasMouseEventData
- * @type {object}
- * @property {HTMLCanvasElement} canvas - The canvas that the event originated from.
- * @property {MouseEvent} mouseEvent - Mouse event data.
- * @exports 
- */
-
-/**
- * Callback for when an import of tile set is requested.
- * @callback PaletteChangeCallback
- * @param {PaletteChangeEventData} eventData - Passes parameters.
- * @exports
- */
-/**
- * @typedef PaletteChangeEventData
- * @type {object}
- * @property {number} newIndex - New palette index.
- * @property {number} oldIndex - Previous palette index.
- * @exports 
- */
-
-/**
- * Callback for when an remove palette is requested.
- * @callback RemovePaletteCallback
- * @param {RemovePaletteEventData} eventData - Passes parameters.
- * @exports
- */
-/**
- * @typedef RemovePaletteEventData
- * @type {object}
- * @property {number} index - Palette index.
- * @exports 
- */
-
-/**
- * Callback for when palette colour change is requested.
- * @callback PaletteColourSelectCallback
- * @param {PaletteColourSelectEventData} eventData - Passes parameters.
- * @exports
- */
-/**
- * @typedef PaletteColourSelectEventData
- * @type {object}
- * @property {number} index - Palette colour index.
- * @exports 
- */
-
-/**
- * Callback for when selected tool is changed.
- * @callback SelectedToolChangedCallback
- * @param {SelectedToolChangedEventData} eventData - Passes parameters.
- * @exports
- */
-/**
- * @typedef SelectedToolChangedEventData
- * @type {object}
- * @property {string} tool - Selected tool.
- * @exports 
- */
 
 export default class UI {
 
@@ -151,7 +48,9 @@ export default class UI {
     /** @type {PaletteColourSelectCallback[]} */
     #onPaletteColourSelectCallbacks;
     /** @type {SelectedToolChangedCallback[]} */
-    #onSelectedToolChanged;
+    #onSelectedToolChangedCallbacks;
+    /** @type {ZoomChangedCallback[]} */
+    #onZoomChangedCallbacks;
 
     /** @type {CanvasMouseMoveCallback[]} */
     #canvasMouseMoveCallbacks;
@@ -165,13 +64,16 @@ export default class UI {
     /** @type {number} */
     #selectedPaletteColourIndex;
 
+    #lastZoom = parseInt(tbTileSetZoom.value);
+
     constructor() {
         this.#importPaletteCallbacks = [];
         this.#importTileSetCallbacks = [];
         this.#onPaletteChangeCallbacks = [];
         this.#onRemovePaletteCallbacks = [];
         this.#onPaletteColourSelectCallbacks = [];
-        this.#onSelectedToolChanged = [];
+        this.#onSelectedToolChangedCallbacks = [];
+        this.#onZoomChangedCallbacks = [];
 
         this.#canvasMouseMoveCallbacks = [];
         this.#canvasMouseDownCallbacks = [];
@@ -230,6 +132,16 @@ export default class UI {
             ui.#lastSelectedPaletteIndex = ui.selectedPaletteIndex;
         };
 
+        tbTileSetZoom.onchange = () => {
+            const newZoom = parseInt(tbTileSetZoom.value);
+            if (newZoom !== this.#lastZoom) {
+                this.#lastZoom = newZoom;
+                this.#onZoomChangedCallbacks.forEach(callback => {
+                    callback({ zoom: newZoom });
+                });
+            }
+        };
+
         btnAddPalette.onclick = () => {
             this.showPaletteInputModal();
         }
@@ -247,7 +159,7 @@ export default class UI {
         const toolButtons = document.querySelectorAll('button[data-tool-button]');
         toolButtons.forEach(toolButton => {
             toolButton.onclick = () => {
-                this.#onSelectedToolChanged.forEach(callback => {
+                this.#onSelectedToolChangedCallbacks.forEach(callback => {
                     callback({ tool: toolButton.getAttribute('data-tool-button') });
                 });
             };
@@ -451,7 +363,15 @@ export default class UI {
      * @param {SelectedToolChangedCallback} callback The function to execute.
      */
     onSelectedToolChanged(callback) {
-        this.#onSelectedToolChanged.push(callback);
+        this.#onSelectedToolChangedCallbacks.push(callback);
+    }
+
+    /**
+     * When the zoom is changed.
+     * @param {ZoomChangedCallback} callback The function to execute.
+     */
+     onZoomChanged(callback) {
+        this.#onZoomChangedCallbacks.push(callback);
     }
 
     /**
@@ -514,3 +434,118 @@ export default class UI {
         });
     }
 }
+
+
+
+/**
+ * Callback for when an import of palette is requested.
+ * @callback ImportPaletteCallback
+ * @param {ImportPaletteEventData} eventData - Passes parameters.
+ * @exports
+ */
+/**
+ * @typedef ImportPaletteEventData
+ * @type {object}
+ * @property {string} value - Assembly formatted value of the palette to load.
+ * @property {string} system - System the palette is for, either 'ms' or 'gg'.
+ * @exports
+ */
+
+/**
+ * Callback for when an import of tile set is requested.
+ * @callback ImportTileSetCallback
+ * @param {ImportTileSetEventData} eventData - Passes parameters.
+ * @exports
+ */
+/**
+ * @typedef ImportTileSetEventData
+ * @type {object}
+ * @property {string} value - Assembly formatted value of the tile set to load.
+ * @exports 
+ */
+
+/**
+ * Callback for when the mouse moves on the canvas.
+ * @callback CanvasMouseMoveCallback
+ * @param {CanvasMouseEventData} eventData - Passes parameters.
+ * @exports
+ */
+/**
+ * Callback for when the mouse is clicked on the canvas.
+ * @callback CanvasMouseDownCallback
+ * @param {CanvasMouseEventData} eventData - Passes parameters.
+ * @exports
+ */
+/**
+ * @typedef CanvasMouseEventData
+ * @type {object}
+ * @property {HTMLCanvasElement} canvas - The canvas that the event originated from.
+ * @property {MouseEvent} mouseEvent - Mouse event data.
+ * @exports 
+ */
+
+/**
+ * Callback for when an import of tile set is requested.
+ * @callback PaletteChangeCallback
+ * @param {PaletteChangeEventData} eventData - Passes parameters.
+ * @exports
+ */
+/**
+ * @typedef PaletteChangeEventData
+ * @type {object}
+ * @property {number} newIndex - New palette index.
+ * @property {number} oldIndex - Previous palette index.
+ * @exports 
+ */
+
+/**
+ * Callback for when an remove palette is requested.
+ * @callback RemovePaletteCallback
+ * @param {RemovePaletteEventData} eventData - Passes parameters.
+ * @exports
+ */
+/**
+ * @typedef RemovePaletteEventData
+ * @type {object}
+ * @property {number} index - Palette index.
+ * @exports 
+ */
+
+/**
+ * Callback for when palette colour change is requested.
+ * @callback PaletteColourSelectCallback
+ * @param {PaletteColourSelectEventData} eventData - Passes parameters.
+ * @exports
+ */
+/**
+ * @typedef PaletteColourSelectEventData
+ * @type {object}
+ * @property {number} index - Palette colour index.
+ * @exports 
+ */
+
+/**
+ * Callback for when selected tool is changed.
+ * @callback SelectedToolChangedCallback
+ * @param {SelectedToolChangedEventData} eventData - Passes parameters.
+ * @exports
+ */
+/**
+ * @typedef SelectedToolChangedEventData
+ * @type {object}
+ * @property {string} tool - Selected tool.
+ * @exports 
+ */
+
+/**
+ * Callback for when selected tool is changed.
+ * @callback ZoomChangedCallback
+ * @param {ZoomChangedEventData} eventData - Passes parameters.
+ * @exports
+ */
+/**
+ * @typedef ZoomChangedEventData
+ * @type {object}
+ * @property {number} zoom - Zoom level.
+ * @exports 
+ */

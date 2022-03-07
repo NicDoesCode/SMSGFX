@@ -58,7 +58,11 @@ export default class TileCanvas {
     }
     set scale(value) {
         if (value < 1 || value > 50) throw new Error('Scale factor must be between 1 and 50.');
-        this.#scale = Math.round(value);
+        const newScale = Math.round(value);
+        if (newScale !== this.#scale) {
+            this.invalidateImage();
+            this.#scale = Math.round(value);
+        }
     }
 
     /**
