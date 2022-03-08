@@ -1,9 +1,22 @@
+const masks = [
+    parseInt('10000000', 2),
+    parseInt('01000000', 2),
+    parseInt('00100000', 2),
+    parseInt('00010000', 2),
+    parseInt('00001000', 2),
+    parseInt('00000100', 2),
+    parseInt('00000010', 2),
+    parseInt('00000001', 2)
+];
+
 /**
  * Single 8x8 tile.
  */
 export default class Tile {
 
+
     #data = new Uint8ClampedArray(64);
+
 
     /**
      * Creates a new instace of Tile and fills the tile from an array.
@@ -18,6 +31,7 @@ export default class Tile {
             this.fillFromArray(sourceArray, sourceIndex, sourceLength);
         }
     }
+
 
     /**
      * Fills the tile from an array.
@@ -49,7 +63,6 @@ export default class Tile {
     clear() {
         this.#data = new Uint8ClampedArray(64);
     }
-
 
     /**
      * Gets the palette index of a pixal at the given index.
@@ -185,13 +198,3 @@ export default class Tile {
     }
 }
 
-const masks = [
-    parseInt('10000000', 2),
-    parseInt('01000000', 2),
-    parseInt('00100000', 2),
-    parseInt('00010000', 2),
-    parseInt('00001000', 2),
-    parseInt('00000100', 2),
-    parseInt('00000010', 2),
-    parseInt('00000001', 2)
-];

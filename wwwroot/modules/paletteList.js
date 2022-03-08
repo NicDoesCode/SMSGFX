@@ -2,11 +2,6 @@ import Palette from "./palette.js";
 
 export default class PaletteList {
 
-    /** @type {Palette[]} */
-    #palettes = [];
-
-    constructor() {
-    }
 
     /**
      * Gets the amount of stored palettes. 
@@ -14,6 +9,15 @@ export default class PaletteList {
     get length() {
         return this.#palettes.length;
     }
+
+
+    /** @type {Palette[]} */
+    #palettes = [];
+
+
+    constructor() {
+    }
+
 
     /**
      * Returns all palettes.
@@ -121,6 +125,7 @@ export default class PaletteList {
         } else throw new Error('Invalid palette data supplied.');
     }
 
+    
 }
 
 /**

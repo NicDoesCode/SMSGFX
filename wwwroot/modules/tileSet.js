@@ -5,45 +5,11 @@ import Tile from './tile.js';
  */
 export default class TileSet {
 
-    /** @type {Tile[]} */
-    #tiles = [];
-    #tileWidth = 1;
-    #pxPerRow = 8;
-    #totalRows = 0;
-    #heightPx = 0;
-    #totalPx = 0;
-
-    /**
-     * Creates a new instace of TileSet and fills the tiles from an array.
-     * 
-     * @constructor
-     * @param {Uint8ClampedArray} [sourceArray=null] Contains the values for each pixel.
-     * @param {number} [sourceIndex=0] Optional. Index to start reading from.
-     * @param {number} [sourceLength=64] Optional. Number of items to read, if the end of the array is reached then reading will stop.
-     */
-    constructor(sourceArray, sourceIndex, sourceLength) {
-        if (sourceArray) {
-            this.fillFromArray(sourceArray, sourceIndex, sourceLength);
-        }
-    }
-
-    #calculateTotalRows() {
-        if (this.tileCount > 0) {
-            this.#totalRows = Math.ceil(this.tileWidth / this.tileCount);
-            this.#heightPx = this.#totalRows * 8;
-            this.#totalPx = this.#pxPerRow * this.#totalRows;
-        } else {
-            this.#totalRows = 0;
-            this.#heightPx = 0;
-            this.#totalPx = 0;
-        }
-        this.#pxPerRow = this.tileCount * 8;
-    }
 
     /**
      * The amount of tiles in this tile set.
      */
-    get tileCount() {
+     get tileCount() {
         return this.#tiles.length;
     }
 
@@ -71,6 +37,48 @@ export default class TileSet {
      */
     get totalPx() {
         return this.#totalPx;
+    }
+
+
+    /** @type {Tile[]} */
+    #tiles = [];
+    #tileWidth = 1;
+    #pxPerRow = 8;
+    #totalRows = 0;
+    #heightPx = 0;
+    #totalPx = 0;
+    /** @type {number} */
+    #readIndex = 0;
+    /** @type {Tile} */
+    #readTile = null;
+
+
+    /**
+     * Creates a new instace of TileSet and fills the tiles from an array.
+     * 
+     * @constructor
+     * @param {Uint8ClampedArray} [sourceArray=null] Contains the values for each pixel.
+     * @param {number} [sourceIndex=0] Optional. Index to start reading from.
+     * @param {number} [sourceLength=64] Optional. Number of items to read, if the end of the array is reached then reading will stop.
+     */
+    constructor(sourceArray, sourceIndex, sourceLength) {
+        if (sourceArray) {
+            this.fillFromArray(sourceArray, sourceIndex, sourceLength);
+        }
+    }
+
+
+    #calculateTotalRows() {
+        if (this.tileCount > 0) {
+            this.#totalRows = Math.ceil(this.tileWidth / this.tileCount);
+            this.#heightPx = this.#totalRows * 8;
+            this.#totalPx = this.#pxPerRow * this.#totalRows;
+        } else {
+            this.#totalRows = 0;
+            this.#heightPx = 0;
+            this.#totalPx = 0;
+        }
+        this.#pxPerRow = this.tileCount * 8;
     }
 
     /**
@@ -137,11 +145,6 @@ export default class TileSet {
         this.#readTile = this.getTileByCoordinate(x, y);
 
     }
-
-    /** @type {number} */
-    #readIndex = 0;
-    /** @type {Tile} */
-    #readTile = null;
 
     /**
      * Sets the next pixel index to read in the overall tile map.
@@ -350,4 +353,5 @@ export default class TileSet {
         return tileSet;
     }
 
+    
 }

@@ -28,7 +28,7 @@
 
                 <!-- Palette card -->
                 <div class="col-2">
-                    <div class="card smsgfx-palette">
+                    <div id="smsgfx-palette-toolbox" class="card smsgfx-palette">
                         <div class="card-header">
                             Palette
                         </div>
@@ -63,7 +63,7 @@
                 </div>
 
                 <!-- Tile set card -->
-                <div class="card">
+                <div id="smsgfx-tile-editor" class="card">
                     <div class="card-header">
                         Tile set
                     </div>
@@ -139,7 +139,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button id="btnPaletteInput" type="button" class="btn btn-primary">Save changes</button>
+                    <button type="button" data-button-type="confirm" class="btn btn-primary">Save changes</button>
                 </div>
             </div>
         </div>
@@ -160,7 +160,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button id="btnTileInput" type="button" class="btn btn-primary">Save changes</button>
+                    <button data-button-type="confirm" type="button" class="btn btn-primary">Save changes</button>
                 </div>
             </div>
         </div>
@@ -230,7 +230,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button id="btnColourPickerModalConfirm" type="button" class="btn btn-primary">Save changes</button>
+                    <button data-button-type="confirm" type="button" class="btn btn-primary">Save changes</button>
                 </div>
             </div>
         </div>

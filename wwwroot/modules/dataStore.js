@@ -7,50 +7,6 @@ const LOCAL_STORAGE_TILES = 'smsgfxtiles';
 
 export default class DataStore {
 
-    /** @type {AppUI} */
-    #appUI;
-    /** @type {PaletteList} */
-    #paletteList;
-    /** @type {TileSetList} */
-    #tileSetList;
-
-    constructor() {
-        this.#appUI = new AppUI();
-        this.#paletteList = new PaletteList();
-        this.#tileSetList = new TileSetList();
-    }
-
-    /**
-     * Loads values from local storage.
-     */
-    loadFromLocalStorage() {
-        // Load UI from local storage
-        const serialisedAppUI = localStorage.getItem(LOCAL_STORAGE_APPUI);
-        if (serialisedAppUI) {
-            this.#appUI = AppUI.deserialise(serialisedAppUI);
-        }
-
-        // Load palettes from local storage
-        const serialisedPalettes = localStorage.getItem(LOCAL_STORAGE_PALETTES);
-        if (serialisedPalettes) {
-            this.#paletteList = PaletteList.deserialise(serialisedPalettes);
-        }
-
-        // Load tile sets
-        const serialisedTileSets = localStorage.getItem(LOCAL_STORAGE_TILES);
-        if (serialisedTileSets) {
-            this.#tileSetList = TileSetList.deserialise(serialisedTileSets);
-        }
-    }
-
-    /**
-     * Saves to local storage.
-     */
-    saveToLocalStorage() {
-        localStorage.setItem(LOCAL_STORAGE_APPUI, this.#appUI.serialise());
-        localStorage.setItem(LOCAL_STORAGE_TILES, this.#tileSetList.serialise());
-        localStorage.setItem(LOCAL_STORAGE_PALETTES, this.#paletteList.serialise());
-    }
 
     /**
      * Gets the UI elements.
@@ -72,35 +28,61 @@ export default class DataStore {
     get tileSetList() {
         return this.#tileSetList;
     }
-}
 
-export class AppUI {
 
-    /** @type {string} */
-    #lastPaletteInput = '';
-    /** @type {string} */
-    #lastPaletteInputSystem = 'gg';
-    /** @type {string} */
-    #lastTileInput = '';
-    /** @type {number} */
-    #lastSelectedPaletteIndex = 0;
+    /** @type {DataStoreUIData} */
+    #appUI;
+    /** @type {PaletteList} */
+    #paletteList;
+    /** @type {TileSetList} */
+    #tileSetList;
 
-    constructor(initialValues) {
-        if (initialValues) {
-            if (initialValues.lastPaletteInput) {
-                this.lastPaletteInput = initialValues.lastPaletteInput;
-            }
-            if (initialValues.lastPaletteInputSystem) {
-                this.lastPaletteInputSystem = initialValues.lastPaletteInputSystem;
-            }
-            if (initialValues.lastTileInput) {
-                this.lastTileInput = initialValues.lastTileInput;
-            }
-            if (initialValues.lastSelectedPaletteIndex) {
-                this.lastSelectedPaletteIndex = initialValues.lastSelectedPaletteIndex;
-            }
+
+    constructor() {
+        this.#appUI = new DataStoreUIData();
+        this.#paletteList = new PaletteList();
+        this.#tileSetList = new TileSetList();
+    }
+
+
+    /**
+     * Loads values from local storage.
+     */
+    loadFromLocalStorage() {
+        // Load UI from local storage
+        const serialisedAppUI = localStorage.getItem(LOCAL_STORAGE_APPUI);
+        if (serialisedAppUI) {
+            this.#appUI = DataStoreUIData.deserialise(serialisedAppUI);
+        }
+
+        // Load palettes from local storage
+        const serialisedPalettes = localStorage.getItem(LOCAL_STORAGE_PALETTES);
+        if (serialisedPalettes) {
+            this.#paletteList = PaletteList.deserialise(serialisedPalettes);
+        }
+
+        // Load tile sets
+        const serialisedTileSets = localStorage.getItem(LOCAL_STORAGE_TILES);
+        if (serialisedTileSets) {
+            this.#tileSetList = TileSetList.deserialise(serialisedTileSets);
         }
     }
+
+
+    /**
+     * Saves to local storage.
+     */
+    saveToLocalStorage() {
+        localStorage.setItem(LOCAL_STORAGE_APPUI, this.#appUI.serialise());
+        localStorage.setItem(LOCAL_STORAGE_TILES, this.#tileSetList.serialise());
+        localStorage.setItem(LOCAL_STORAGE_PALETTES, this.#paletteList.serialise());
+    }
+
+
+}
+
+export class DataStoreUIData {
+
 
     /**
      * Gets or sets the last text that was entered into the palette input box.
@@ -143,6 +125,50 @@ export class AppUI {
     }
 
     /**
+     * Zoom level.
+     */
+    get lastZoomValue() {
+        return this.#lastZoomValue;
+    }
+    set lastZoomValue(value) {
+        this.#lastZoomValue = value;
+    }
+
+
+    /** @type {string} */
+    #lastPaletteInput = '';
+    /** @type {string} */
+    #lastPaletteInputSystem = 'gg';
+    /** @type {string} */
+    #lastTileInput = '';
+    /** @type {number} */
+    #lastSelectedPaletteIndex = 0;
+    /** @type {number} */
+    #lastZoomValue = 20;
+
+
+    constructor(initialValues) {
+        if (initialValues) {
+            if (initialValues.lastPaletteInput) {
+                this.lastPaletteInput = initialValues.lastPaletteInput;
+            }
+            if (initialValues.lastPaletteInputSystem) {
+                this.lastPaletteInputSystem = initialValues.lastPaletteInputSystem;
+            }
+            if (initialValues.lastTileInput) {
+                this.lastTileInput = initialValues.lastTileInput;
+            }
+            if (initialValues.lastSelectedPaletteIndex) {
+                this.lastSelectedPaletteIndex = initialValues.lastSelectedPaletteIndex;
+            }
+            if (initialValues.lastZoomValue) {
+                this.lastZoomValue = initialValues.lastZoomValue;
+            }
+        }
+    }
+
+
+    /**
      * Serialises the class.
      * @returns {string}
      */
@@ -158,10 +184,12 @@ export class AppUI {
     /**
      * Deserialises a JSON string into an AppUI object.
      * @param {string} value JSON string.
-     * @returns {AppUI}
+     * @returns {DataStoreUIData}
      */
     static deserialise(value) {
         const deserialisedObject = JSON.parse(value);
-        return new AppUI(deserialisedObject);
+        return new DataStoreUIData(deserialisedObject);
     }
+
+
 }

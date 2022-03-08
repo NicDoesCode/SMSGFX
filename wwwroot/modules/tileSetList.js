@@ -3,20 +3,22 @@ import Tile from "./tile.js";
 
 export default class TileSetList {
 
-    /** @type {TileSet[]} */
-    #tileSets = [];
-    /** @type {function[]} */
-    #callbacks = [];
-
-    constructor() {
-    }
 
     /**
      * Gets the amount of stored palettes. 
      */
-    get length() {
+     get length() {
         return this.#tileSets.length;
     }
+
+
+    /** @type {TileSet[]} */
+    #tileSets = [];
+
+
+    constructor() {
+    }
+
 
     /**
      * Returns all tile sets.
@@ -126,6 +128,7 @@ export default class TileSetList {
         } else throw new Error('Invalid tile set data supplied.');
     }
 
+    
 }
 
 /**

@@ -3,30 +3,6 @@ import Palette from './palette.js';
 
 export default class TileCanvas {
 
-    /** @type {HTMLCanvasElement} */
-    #baseCanvas;
-    /** @type {CanvasRenderingContext2D} */
-    #baseCtx;
-    /** @type {boolean} */
-    #needToDrawBase = true;
-    /** @type {TileSet} */
-    #tileSet = null;
-    /** @type {Palette} */
-    #palette = null;
-    /** @type {number} */
-    #scale = 10;
-
-    /**
-     * Creates a new instance of the tile canvas.
-     * @param {TileSet} [tileSet] Tile set to draw.
-     * @param {Palette} [palette] Colour palette to use.
-     */
-    constructor(tileSet, palette) {
-        this.#baseCanvas = document.createElement('canvas');
-        this.#baseCtx = this.#baseCanvas.getContext('2d');
-        if (tileSet) this.#tileSet = tileSet;
-        if (palette) this.#palette = palette;
-    }
 
     /**
      * Gets or sets the tile set to draw.
@@ -64,6 +40,34 @@ export default class TileCanvas {
             this.#scale = Math.round(value);
         }
     }
+
+
+    /** @type {HTMLCanvasElement} */
+    #baseCanvas;
+    /** @type {CanvasRenderingContext2D} */
+    #baseCtx;
+    /** @type {boolean} */
+    #needToDrawBase = true;
+    /** @type {TileSet} */
+    #tileSet = null;
+    /** @type {Palette} */
+    #palette = null;
+    /** @type {number} */
+    #scale = 10;
+
+
+    /**
+     * Creates a new instance of the tile canvas.
+     * @param {TileSet} [tileSet] Tile set to draw.
+     * @param {Palette} [palette] Colour palette to use.
+     */
+    constructor(tileSet, palette) {
+        this.#baseCanvas = document.createElement('canvas');
+        this.#baseCtx = this.#baseCanvas.getContext('2d');
+        if (tileSet) this.#tileSet = tileSet;
+        if (palette) this.#palette = palette;
+    }
+
 
     /**
      * Invalidates the tile set image and forces a redraw.
@@ -127,7 +131,6 @@ export default class TileCanvas {
      * @param {number} mouseY Y position of the cursor on the image.
      */
     drawUI(canvas, mouseX, mouseY) {
-
         if (!canvas) throw new Error('drawUI: No canvas.');
 
         if (this.#needToDrawBase) {
@@ -138,10 +141,10 @@ export default class TileCanvas {
 
         let coords = {
             x: mouseX, y: mouseY,
-            pxX: mouseX - (mouseX % pxSize),
-            pxY: mouseY - (mouseY % pxSize),
-            tileX: mouseX - (mouseX % (8 * pxSize)),
-            tileY: mouseY - (mouseY % (8 * pxSize))
+            pxX: mouseX * pxSize,
+            pxY: mouseY * pxSize,
+            tileX: (mouseX - (mouseX % 8)) * pxSize,
+            tileY: (mouseY - (mouseY % 8)) * pxSize
         }
 
         const baseCanvas = this.#baseCanvas;
@@ -158,10 +161,11 @@ export default class TileCanvas {
         // Highlight the pixel
         ctx.strokeStyle = 'black';
         ctx.strokeRect(coords.pxX, coords.pxY, pxSize, pxSize);
-        
+
         // Highlight the entire tile
         ctx.strokeStyle = 'grey';
         ctx.strokeRect(coords.tileX, coords.tileY, (8 * pxSize), (8 * pxSize));
     }
+    
 
 }

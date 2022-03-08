@@ -1,14 +1,22 @@
 import DataStore from "./dataStore.js";
-import UI from "./ui.js";
 import Palette from "./palette.js";
 import TileSet from './tileSet.js'
 import AssemblyUtility from "./assemblyUtility.js";
 import TileCanvas from "./tileCanvas.js";
-import UIColourPicker from "./ui/uiColourPicker.js";
+import ColourPickerModalDialogue from "./ui/colourPickerModalDialogue.js";
+import PaletteModalDialogue from "./ui/paletteModalDialogue.js";
+import TileModalDialogue from "./ui/tileModalDialogue.js";
+import PaletteToolbox from "./ui/paletteToolbox.js";
+import TileEditor from "./ui/tileEditor.js";
 
 const dataStore = new DataStore();
-const ui = new UI();
 const tileCanvas = new TileCanvas();
+
+const paletteDialogue = new PaletteModalDialogue(document.getElementById('smsgfx-palette-modal'));
+const tileDialogue = new TileModalDialogue(document.getElementById('smsgfx-tiles-modal'));
+const colourPickerDialogue = new ColourPickerModalDialogue(document.getElementById('smsgfx-colour-picker-modal'));
+const paletteToolbox = new PaletteToolbox(document.getElementById('smsgfx-palette-toolbox'));
+const tileEditor = new TileEditor(document.getElementById('smsgfx-tile-editor'));
 
 /** @type {string} */
 let selectedTool = null;
@@ -17,38 +25,40 @@ $(() => {
 
     dataStore.loadFromLocalStorage();
 
-    ui.init();
+    paletteDialogue.inputData = dataStore.appUI.lastPaletteInput;
+    paletteDialogue.inputSystem = dataStore.appUI.lastPaletteInputSystem;
+    paletteDialogue.onConfirm = handleImportPalette;
 
-    ui.paletteInput = dataStore.appUI.lastPaletteInput;
-    ui.paletteInputSystem = dataStore.appUI.lastPaletteInputSystem;
-    ui.tileInput = dataStore.appUI.lastTileInput;
+    tileDialogue.inputData = dataStore.appUI.lastTileInput;
+    tileDialogue.onConfirm = handleImportTileSet;
 
-    ui.populatePaletteSelector(dataStore.paletteList.getPalettes());
-    ui.selectedPaletteIndex = dataStore.appUI.lastSelectedPaletteIndex;
+    paletteToolbox.refreshPalettes(dataStore.paletteList.getPalettes());
+    paletteToolbox.selectedPaletteIndex = dataStore.appUI.lastSelectedPaletteIndex;
+    paletteToolbox.onAddPalette = (sender, e) => paletteDialogue.show();
+    paletteToolbox.onColourEdit = handlePaletteColourEdit;
+    paletteToolbox.onColourSelected = handlePaletteColourSelect;
+    paletteToolbox.onDeleteSelectedPalette = handlePaletteDelete;
+    paletteToolbox.onSelectedPaletteChanged = handlePaletteChanged;
 
-    ui.onImportPalette(eventData => handleImportPalette(eventData));
-    ui.onImportTileSet(eventData => handleImportTileSet(eventData));
-    ui.onPaletteChange(eventData => handleOnPaletteChange(eventData));
-    ui.onRemovePalette(eventData => handleRemovePalette(eventData));
-    ui.onPaletteColourSelect(eventData => handlePaletteColourSelect(eventData));
-    ui.onPaletteColourEdit(eventData => handlePaletteColourEdit(eventData));
-    ui.onPaletteColourPicked(eventData => handlePaletteColourPicked(eventData));
-    ui.onSelectedToolChanged(eventData => handleSelectedToolChanged(eventData));
-    ui.onZoomChanged(eventData => handleZoomChanged(eventData));
+    colourPickerDialogue.onConfirm = handleColourPickerConfirm;
 
-    ui.onCanvasMouseMove(eventData => handleCanvasMouseMove(eventData));
-    ui.onCanvasMouseDown(eventData => handleCanvasMouseDown(eventData));
+    tileEditor.onAddTileSet = (sender, e) => tileDialogue.show();
+    tileEditor.onPixelMouseDown = handleTileEditorPixelMouseDown;
+    tileEditor.onPixelMouseUp = handleTileEditorPixelMouseUp;
+    tileEditor.onPixelOver = handleTileEditorPixelOver;
+    tileEditor.onSelectedToolChanged = handleTileEditorSelectedToolChanged;
+    tileEditor.onZoomChanged = handleTileEditorZoomChanged;
 
     const palette = getPalette();
     const tileSet = getTileSet();
 
     if (palette) {
-        ui.displayPalette(getPalette());
+        paletteToolbox.setPalette(getPalette());
         if (tileSet) {
             // Display the last used tile set.
             tileCanvas.palette = palette;
             tileCanvas.tileSet = tileSet;
-            tileCanvas.drawUI(ui.canvas);
+            tileCanvas.drawUI(tileEditor.canvas);
         }
     }
 });
@@ -61,7 +71,7 @@ function getTileSet() {
 
 function getPalette() {
     if (dataStore.paletteList.length > 0) {
-        const paletteIndex = ui.selectedPaletteIndex;
+        const paletteIndex = paletteToolbox.selectedPaletteIndex;
         let palette = dataStore.paletteList.getPalette(paletteIndex);
         if (paletteIndex >= 0 && paletteIndex < dataStore.paletteList.length) {
             palette = dataStore.paletteList.getPalette(paletteIndex);
@@ -70,27 +80,17 @@ function getPalette() {
     } else return null;
 }
 
-function setNewPalette() {
-    console.log('setNewPalette');
-}
-
-function setTiles() {
-    console.log('setTiles');
-}
-
-export default {
-    dataStore,
-    setNewPalette,
-    setTiles
-}
-
 
 /**
- * @param {import("./ui.js").ImportPaletteEventData} eventData 
+ * User tries to import a palette.
+ * @param {PaletteModalDialogue} sender Palette dialogue that sent the confirmation.
+ * @param {object} e Event args.
  */
-function handleImportPalette(eventData) {
-    const system = eventData.system;
-    const paletteData = eventData.value;
+function handleImportPalette(sender, e) {
+    if (!['gg', 'ms'].includes(sender.inputSystem)) throw new Error('System must be either ""ms" or "gg".');
+
+    const system = sender.inputSystem;
+    const paletteData = sender.inputData;
     const palette = new Palette(system, 0);
     if (system === 'gg') {
         const array = AssemblyUtility.readAsUint16Array(paletteData);
@@ -98,70 +98,83 @@ function handleImportPalette(eventData) {
     } else if (system === 'ms') {
         const array = AssemblyUtility.readAsUint8ClampedArray(paletteData);
         palette.loadMasterSystemPalette(array);
-    } else throw new Error('System must be either ""ms" or "gg".');
+    }
 
     dataStore.paletteList.addPalette(palette);
-    ui.displayPalette(palette);
-
     dataStore.appUI.lastPaletteInput = eventData.value;
     dataStore.appUI.lastPaletteInputSystem = eventData.system;
     dataStore.saveToLocalStorage();
+
+    paletteToolbox.setPalette(palette);
 }
 
 /**
- * @param {import("./ui.js").ImportTileSetEventData} eventData 
+ * User tries to import a tile set.
+ * @param {TileModalDialogue} sender Tile dialogue that sent the confirmation.
+ * @param {object} e Event args.
  */
-function handleImportTileSet(eventData) {
-    const tileData = eventData.value;
+function handleImportTileSet(sender, e) {
+    const tileData = sender.inputData;
     const array = AssemblyUtility.readAsUint8ClampedArray(tileData);
     const tileSet = TileSet.parsePlanarFormat(array);
-    dataStore.tileSetList.addTileSet(tileSet);
 
+    dataStore.tileSetList.addTileSet(tileSet);
     dataStore.appUI.lastTileInput = eventData.value;
     dataStore.saveToLocalStorage();
 }
 
 /**
- * @param {import("./ui.js").CanvasMouseEventData} eventData 
+ * @param {TileEditor} sender 
+ * @param {import("./ui/tileEditor.js").TileEditorZoomChangedEventData} e 
  */
-function handleCanvasMouseMove(eventData) {
-
-    const colourIndex = ui.selectedPaletteColourIndex;
-    const tileSet = getTileSet();
-    const palette = getPalette();
-    const canvas = eventData.canvas;
-    const mouse = eventData.mouseEvent;
-    const rect = canvas.getBoundingClientRect();
-    const canvasX = mouse.clientX - rect.left;
-    const canvasY = mouse.clientY - rect.top;
-    const imageX = Math.floor(canvasX / tileCanvas.scale);
-    const imageY = Math.floor(canvasY / tileCanvas.scale);
-
-    if (ui.canvasMouseIsDown) {
-        takeToolAction(selectedTool, colourIndex, imageX, imageY);
-    }
-
-    // Update the UI
-    tileCanvas.drawUI(ui.canvas, canvasX, canvasY);
-
-    // Show the palette colour
-    const pixel = tileSet.getPixelAt(imageX, imageY);
-    ui.highlightPaletteItem(pixel);
-
+function handleTileEditorZoomChanged(sender, e) {
+    tileCanvas.scale = e.zoom;
+    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
 }
 
 /**
- * @param {import("./ui.js").CanvasMouseEventData} eventData 
+ * @param {TileEditor} sender 
+ * @param {import("./ui/tileEditor.js").TileEditorToolEventData} e 
  */
-function handleCanvasMouseDown(eventData) {
-    const colourIndex = ui.selectedPaletteColourIndex;
-    const canvas = eventData.canvas;
-    const mouse = eventData.mouseEvent;
-    const rect = canvas.getBoundingClientRect();
-    const x = Math.floor((mouse.clientX - rect.left) / tileCanvas.scale);
-    const y = Math.floor((mouse.clientY - rect.top) / tileCanvas.scale);
+function handleTileEditorSelectedToolChanged(sender, e) {
+    selectedTool = e.tool;
+    tileEditor.highlightTool(selectedTool);
+}
 
-    takeToolAction(selectedTool, colourIndex, x, y);
+/**
+ * @param {TileEditor} sender Tile dialogue that sent the confirmation.
+ * @param {import("./ui/tileEditor.js").TileEditorPixelEventData} e Event args.
+ */
+function handleTileEditorPixelOver(sender, e) {
+    const colourIndex = paletteToolbox.selectedPaletteColourIndex;
+    const tileSet = getTileSet();
+
+    if (tileEditor.canvasMouseIsDown) {
+        takeToolAction(selectedTool, colourIndex, e.imageX, e.imageY);
+    }
+
+    // Update the UI
+    tileCanvas.drawUI(tileEditor.canvas, e.imageX, e.imageY);
+
+    // Show the palette colour
+    const pixel = tileSet.getPixelAt(e.imageX, e.imageY);
+    paletteToolbox.highlightPaletteItem(pixel);
+}
+
+/**
+ * @param {TileEditor} sender Tile dialogue that sent the confirmation.
+ * @param {import("./ui/tileEditor.js").TileEditorPixelEventData} e Event args.
+ */
+function handleTileEditorPixelMouseDown(sender, e) {
+    const colourIndex = paletteToolbox.selectedPaletteColourIndex;
+    takeToolAction(selectedTool, colourIndex, e.imageX, e.imageY);
+}
+
+/**
+ * @param {TileEditor} sender Tile dialogue that sent the confirmation.
+ * @param {import("./ui/tileEditor.js").TileEditorPixelEventData} e Event args.
+ */
+function handleTileEditorPixelMouseUp(eventData) {
 }
 
 const lastPencilPixel = { x: -1, y: -1 };
@@ -171,7 +184,6 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
 
         if (tool === 'pencil') {
             if (imageX !== lastPencilPixel.x || imageY !== lastPencilPixel.y) {
-
                 lastPencilPixel.x = imageX;
                 lastPencilPixel.y = imageY;
 
@@ -181,8 +193,7 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
 
                 // Update the UI
                 tileCanvas.invalidateImage();
-                tileCanvas.drawUI(ui.canvas, imageX, imageY);
-
+                tileCanvas.drawUI(tileEditor.canvas, imageX, imageY);
             }
         }
 
@@ -190,105 +201,76 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
 
 }
 
-/**
- * @param {import("./ui.js").PaletteChangeEventData} eventData 
- */
-function handleOnPaletteChange(eventData) {
-    if (eventData.newIndex !== eventData.oldIndex) {
+function handlePaletteChanged(sender, e) {
 
-        // Swap palette
-        const palette = dataStore.paletteList.getPalette(eventData.newIndex);
-        ui.displayPalette(palette);
+    // Swap palette
+    const palette = dataStore.paletteList.getPalette(paletteToolbox.selectedPaletteIndex);
+    paletteToolbox.setPalette(palette);
 
-        // Refresh image
-        tileCanvas.palette = palette;
-        tileCanvas.drawUI(ui.canvas, 0, 0);
+    // Refresh image
+    tileCanvas.palette = palette;
+    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
 
-        // Store palette index to local storage
-        dataStore.appUI.lastSelectedPaletteIndex = eventData.newIndex;
-        dataStore.saveToLocalStorage();
-    }
+    // Store palette index to local storage
+    dataStore.appUI.lastSelectedPaletteIndex = eventData.newIndex;
+    dataStore.saveToLocalStorage();
 }
 
-/**
- * @param {import("./ui.js").RemovePaletteEventData} eventData 
- */
-function handleRemovePalette(eventData) {
-    if (eventData.index >= 0 && eventData.index < dataStore.paletteList.length) {
+function handlePaletteDelete(sender, e) {
+    const paletteIndex = paletteToolbox.selectedPaletteIndex;
+    if (paletteIndex >= 0 && paletteIndex < dataStore.paletteList.length) {
 
         // Remove palette
-        dataStore.paletteList.removeAt(eventData.index);
-        ui.populatePaletteSelector(dataStore.paletteList.getPalettes());
-        const newSelectedIndex = Math.min(eventData.index, dataStore.paletteList.length - 1);
+        dataStore.paletteList.removeAt(paletteIndex);
+        paletteToolbox.refreshPalettes(dataStore.paletteList.getPalettes());
+        const newSelectedIndex = Math.min(paletteIndex, dataStore.paletteList.length - 1);
         if (dataStore.paletteList.length > 0) {
-            ui.selectedPaletteIndex = newSelectedIndex;
+            paletteToolbox.selectedPaletteIndex = newSelectedIndex;
             dataStore.appUI.lastSelectedPaletteIndex = newSelectedIndex;
         } else {
-            ui.displayPalette(new Palette());
+            paletteToolbox.setPalette(new Palette());
             dataStore.appUI.lastSelectedPaletteIndex = -1;
         }
         dataStore.saveToLocalStorage();
 
         // Refresh image
         tileCanvas.palette = getPalette();
-        tileCanvas.drawUI(ui.canvas, 0, 0);
+        tileCanvas.drawUI(tileEditor.canvas, 0, 0);
     }
 }
 
 /**
- * @param {import("./ui.js").PaletteColourEventData} eventData 
+ * @param {PaletteToolbox} sender The palette toolbox.
+ * @param {import("./ui/paletteToolbox.js").PaletteToolboxColourEventData} e Event data.
  */
-function handlePaletteColourSelect(eventData) {
-    if (eventData.index >= -1 && eventData.index < 16) {
-        ui.selectedPaletteColourIndex = eventData.index;
+function handlePaletteColourSelect(sender, e) {
+    if (e.index >= -1 && e.index < 16) {
+        paletteToolbox.selectedPaletteColourIndex = e.index;
     }
 }
 
 /**
- * @param {import("./ui.js").PaletteColourEventData} eventData 
+ * @param {PaletteToolbox} sender The palette toolbox.
+ * @param {import("./ui/paletteToolbox.js").PaletteToolboxColourEventData} e Event data.
  */
-function handlePaletteColourEdit(eventData) {
-    ui.showColourPickerModal(getPalette(), eventData.index);
+function handlePaletteColourEdit(sender, e) {
+    colourPickerDialogue.show(getPalette(), e.index);
 }
 
 /**
- * @param {import("./ui/uiColourPicker.js").ConfirmColourPickerEventData} eventData 
+ * User tries to set a colour.
+ * @param {ColourPickerModalDialogue} sender Colour picker dialogue that sent the confirmation.
+ * @param {object} e Event args.
  */
-function handlePaletteColourPicked(eventData) {
-    const palette = getPalette();
-    const colour = palette.colours[eventData.index];
-    colour.r = eventData.r;
-    colour.g = eventData.g;
-    colour.b = eventData.b;
-    colour.hex = eventData.hex;
-    if (palette.system === 'ms') {
-        const r = Math.round(3 / 255 * colour.r);
-        const g = Math.round(3 / 255 * colour.g) << 2;
-        const b = Math.round(3 / 255 * colour.b) << 4;
-        colour.nativeColour = (r | g | b).toString(16);
-    } else if (palette.system === 'gg') {
-        const r = Math.round(15 / 255 * colour.r);
-        const g = Math.round(15 / 255 * colour.g) << 4;
-        const b = Math.round(15 / 255 * colour.b) << 8;
-        colour.nativeColour = (r | g | b).toString(16);
-    }
-    ui.hideColourPickerModal();
-    ui.displayPalette(palette);
-    tileCanvas.drawUI(ui.canvas, 0, 0);
-}
+function handleColourPickerConfirm(sender, e) {
+    const palette = sender.palette;
+    const paletteIndex = sender.paletteIndex;
+    const paletteColour = sender.toPaletteColour();
+    palette.colours[paletteIndex] = paletteColour;
 
-/**
- * @param {import("./ui.js").SelectedToolChangedEventData} eventData 
- */
-function handleSelectedToolChanged(eventData) {
-    selectedTool = eventData.tool;
-    ui.highlightTool(eventData.tool);
-}
+    dataStore.saveToLocalStorage();
 
-/**
- * @param {import("./ui.js").ZoomChangedEventData} eventData 
- */
-function handleZoomChanged(eventData) {
-    tileCanvas.scale = eventData.zoom;
-    tileCanvas.drawUI(ui.canvas, 0, 0);
+    paletteToolbox.displayPalette(palette);
+    paletteDialogue.hide();
+    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
 }
