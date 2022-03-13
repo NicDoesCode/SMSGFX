@@ -5,11 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Launch Program",
+            "program": "npx http-server ${workspaceFolder}/wwwroot -p 8080 -c-1",
+            "request": "launch",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "type": "pwa-node"
+        },
+        {
             "name": "Launch index.html",
             "type": "firefox",
             "request": "launch",
             "reAttach": true,
-            "file": "${workspaceFolder}/wwwroot/index.html"
+            "file": "${workspaceFolder}/wwwroot/index.html",
         },
         {
             "name": "Launch localhost",

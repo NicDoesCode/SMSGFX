@@ -101,8 +101,8 @@ function handleImportPalette(sender, e) {
     }
 
     dataStore.paletteList.addPalette(palette);
-    dataStore.appUI.lastPaletteInput = eventData.value;
-    dataStore.appUI.lastPaletteInputSystem = eventData.system;
+    dataStore.appUI.lastPaletteInput = sender.inputData;
+    dataStore.appUI.lastPaletteInputSystem = sender.inputSystem;
     dataStore.saveToLocalStorage();
 
     paletteToolbox.setPalette(palette);
@@ -119,7 +119,7 @@ function handleImportTileSet(sender, e) {
     const tileSet = TileSet.parsePlanarFormat(array);
 
     dataStore.tileSetList.addTileSet(tileSet);
-    dataStore.appUI.lastTileInput = eventData.value;
+    dataStore.appUI.lastTileInput = sender.inputData;
     dataStore.saveToLocalStorage();
 }
 
@@ -212,7 +212,7 @@ function handlePaletteChanged(sender, e) {
     tileCanvas.drawUI(tileEditor.canvas, 0, 0);
 
     // Store palette index to local storage
-    dataStore.appUI.lastSelectedPaletteIndex = eventData.newIndex;
+    dataStore.appUI.lastSelectedPaletteIndex = paletteToolbox.selectedPaletteIndex;
     dataStore.saveToLocalStorage();
 }
 
