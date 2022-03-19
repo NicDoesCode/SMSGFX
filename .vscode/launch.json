@@ -5,40 +5,26 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Program",
-            "program": "npx http-server ${workspaceFolder}/wwwroot -p 8080 -c-1",
+            "type": "firefox",
+            "request": "launch",
+            "reAttach": true,
+            "name": "Launch Firefox",
+            "url": "http://localhost:8080/index.html",
+            "webRoot": "${workspaceFolder}/wwwroot"
+        },
+        {
+            "type": "firefox",
+            "request": "attach",
+            "name": "Attach"
+        },
+        {
+            "name": "Launch server",
+            "program": "${workspaceFolder}/app.js",
             "request": "launch",
             "skipFiles": [
                 "<node_internals>/**"
             ],
             "type": "pwa-node"
-        },
-        {
-            "name": "Launch index.html",
-            "type": "firefox",
-            "request": "launch",
-            "reAttach": true,
-            "file": "${workspaceFolder}/wwwroot/index.html",
-        },
-        {
-            "name": "Launch localhost",
-            "type": "firefox",
-            "request": "launch",
-            "reAttach": true,
-            "url": "http://localhost/index.html",
-            "webRoot": "${workspaceFolder}"
-        },
-        {
-            "name": "Attach",
-            "type": "firefox",
-            "request": "attach"
-        },
-        {
-            "name": "Launch WebExtension",
-            "type": "firefox",
-            "request": "launch",
-            "reAttach": true,
-            "addonPath": "${workspaceFolder}"
         }
     ]
 }

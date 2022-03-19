@@ -5,7 +5,7 @@ export default class TileEditor {
      * When a palette is to be imported.
      * @type {PaletteToolboxCallback} 
      */
-     get onAddTileSet() {
+    get onAddTileSet() {
         return this.#onAddTileSetCallback;
     }
     set onAddTileSet(value) {
@@ -36,6 +36,24 @@ export default class TileEditor {
 
     /** @type {TileEditorToolCallback} */
     #onSelectedToolChangedCallback = () => { };
+
+    /** 
+     * Tile width is changed.
+     * @type {TileEditorTileWidthChangedCallback} 
+     */
+    get onTileWidthChanged() {
+        return this.#onTileWidthChangedCallback;
+    }
+    set onTileWidthChanged(value) {
+        if (value && typeof value === 'function') {
+            this.#onTileWidthChangedCallback = value;
+        } else {
+            this.#onTileWidthChangedCallback = () => { };
+        }
+    }
+
+    /** @type {TileEditorTileWidthChangedCallback} */
+    #onTileWidthChangedCallback = () => { };
 
     /** 
      * Zoom level is changed.
@@ -121,6 +139,16 @@ export default class TileEditor {
     }
 
     /**
+     * Gets the current pixel zoom value.
+     */
+    get tileWidth() {
+        return parseInt(this.#tbTileSetWidth.value);
+    }
+    set tileWidth(value) {
+        this.#tbTileSetWidth.value = value;
+    }
+
+    /**
      * Gets the canvas for drawing the image.
      */
     get canvas() {
@@ -141,6 +169,8 @@ export default class TileEditor {
     #tbCanvas;
     /** @type {HTMLButtonElement} */
     #btnAddTileSet;
+    /** @type {HTMLInputElement} */
+    #tbTileSetWidth;
     /** @type {HTMLSelectElement} */
     #tbTileSetZoom;
     /** @type {number} */
@@ -164,6 +194,9 @@ export default class TileEditor {
 
         this.#btnAddTileSet = this.#element.querySelector('#btnAddTileSet');
         this.#btnAddTileSet.onclick = () => this.onAddTileSet(this, {});
+
+        this.#tbTileSetWidth = this.#element.querySelector('#tbTileSetWidth');
+        this.#tbTileSetWidth.onchange = () => this.#handleTileSetWidthChange();
 
         this.#tbTileSetZoom = this.#element.querySelector('#tbTileSetZoom');
         this.#tbTileSetZoom.onchange = () => this.#handleZoomChange();
@@ -239,6 +272,16 @@ export default class TileEditor {
         this.onPixelMouseUp(this, { imageX: coords.imageX, imageY: coords.imageY });
     }
 
+    #handleTileSetWidthChange() {
+        const value = parseInt(this.#tbTileSetWidth.value);
+        if (!isNaN(value) && value > 0 && value <= 16) {
+            this.onTileWidthChanged(this, { tileWidth: value });
+            this.#tbTileSetWidth.classList.remove('is-invalid');
+        } else if (!this.#tbTileSetWidth.classList.contains('is-invalid')) {
+            this.#tbTileSetWidth.classList.add('is-invalid');
+        }
+    }
+
     #handleZoomChange() {
         const newZoom = parseInt(this.#tbTileSetZoom.value);
         if (newZoom !== this.#lastZoom) {
@@ -278,7 +321,21 @@ export default class TileEditor {
  */
 
 /**
- * Callback for when selected tool is changed.
+ * Callback for when tile width is changed.
+ * @callback TileEditorTileWidthChangedCallback
+ * @param {TileEditor} sender - Originating tile editor.
+ * @param {TileEditorTileWidthChangedEventData} e - Event args.
+ * @exports
+ */
+/**
+ * @typedef TileEditorTileWidthChangedEventData
+ * @type {object}
+ * @property {number} tileWidth - Tile width.
+ * @exports 
+ */
+
+/**
+ * Callback for when zoom level is changed.
  * @callback TileEditorZoomChangedCallback
  * @param {TileEditor} sender - Originating tile editor.
  * @param {TileEditorZoomChangedEventData} e - Event args.

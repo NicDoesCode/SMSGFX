@@ -26,7 +26,7 @@ export default class PaletteToolbox {
      * @type {PaletteToolboxCallback} 
      */
     get onDeleteSelectedPalette() {
-            return this.#onDeleteSelectedPaletteCallback;
+        return this.#onDeleteSelectedPaletteCallback;
     }
     set onDeleteSelectedPalette(value) {
         if (value && typeof value === 'function') {
@@ -54,8 +54,26 @@ export default class PaletteToolbox {
         }
     }
 
-    /** @type {PaletteToolboxColourCallback} */
+    /** @type {PaletteToolboxCallback} */
     #onSelectedPaletteChangedCallback = () => { };
+
+    /** 
+     * When selected palette is changed.
+     * @type {PaletteToolboxSystemCallback} 
+     */
+    get onSelectedPaletteSystemChanged() {
+        return this.#onSelectedPaletteSystemChangedCallback;
+    }
+    set onSelectedPaletteSystemChanged(value) {
+        if (value && typeof value === 'function') {
+            this.#onSelectedPaletteSystemChangedCallback = value;
+        } else {
+            this.#onSelectedPaletteSystemChangedCallback = () => { };
+        }
+    }
+
+    /** @type {PaletteToolboxSystemCallback} */
+    #onSelectedPaletteSystemChangedCallback = () => { };
 
     /** 
      * When a colour was selected.
@@ -114,15 +132,26 @@ export default class PaletteToolbox {
         this.#selectedPaletteColourIndex = value;
 
         // Highlight the row
-        this.#paletteRows.forEach((row, index) => {
+        this.#paletteCells.forEach((cell, index) => {
             if (index !== null && index === value) {
-                if (!row.classList.contains('table-dark')) {
-                    row.classList.add('table-dark');
+                if (!cell.classList.contains('table-dark')) {
+                    cell.classList.add('table-dark');
                 }
             } else {
-                row.classList.remove('table-dark');
+                cell.classList.remove('table-dark');
             }
         });
+    }
+
+    get selectedPaletteSystem() {
+        return this.#tbPaletteSystemSelect.value;
+    }
+    set selectedPaletteSystem(value) {
+        if (value && value == 'gg') {
+            this.#tbPaletteSystemSelect.value = 'gg';
+        } else {
+            this.#tbPaletteSystemSelect.value = 'ms';
+        }
     }
 
 
@@ -130,15 +159,17 @@ export default class PaletteToolbox {
     #element;
     /** @type {HTMLButtonElement[]} */
     #paletteButtons = [];
-    /** @type {HTMLTableRowElement[]} */
-    #paletteRows = [];
+    /** @type {HTMLTableCellElement[]} */
+    #paletteCells = [];
     /** @type {HTMLButtonElement} */
     #btnAddPalette;
     /** @type {HTMLButtonElement} */
     #btnRemovePalette;
     /** @type {HTMLSelectElement} */
     #tbPaletteSelect;
-    /** @type {number|null} */
+    /** @type {HTMLSelectElement} */
+    #tbPaletteSystemSelect;
+    /** @type {number} */
     #lastSelectedPaletteIndex;
     /** @type {number|null} */
     #selectedPaletteColourIndex = null;
@@ -159,6 +190,9 @@ export default class PaletteToolbox {
 
         this.#tbPaletteSelect = this.#element.querySelector('#tbPaletteSelect');
         this.#tbPaletteSelect.onchange = () => this.onSelectedPaletteChanged(this, {});
+
+        this.#tbPaletteSystemSelect = this.#element.querySelector('#tbPaletteSystemSelect');
+        this.#tbPaletteSystemSelect.onchange = () => this.onSelectedPaletteSystemChanged(this, { system: this.selectedPaletteSystem });
     }
 
     #createPaletteButtons() {
@@ -168,44 +202,49 @@ export default class PaletteToolbox {
         /** @type {HTMLTableSectionElement} */
         const tbody = table.querySelector('tbody');
 
-
+        let tr, td;
         for (let i = 0; i < 16; i++) {
-            const tr = document.createElement('tr');
-            tr.setAttribute('data-colour-index', i.toString());
 
-            // Number
-            let td = document.createElement('td');
-            td.innerHTML = i.toString();
-            tr.appendChild(td);
+            if (i % 4 === 0) {
+                tr = document.createElement('tr');
+                tbody.appendChild(tr);
+            }
 
             // Colour button
             td = document.createElement('td');
+            td.setAttribute('data-colour-index', i.toString());
+            td.classList.add('text-center');
+            tr.appendChild(td);
+
             const btnColour = document.createElement('button');
-            btnColour.classList.add('btn', 'btn-outline-secondary', 'smsgfx-palette-button');
+            btnColour.classList.add('btn', 'btn-sm', 'btn-outline-secondary', 'position-relative', 'smsgfx-palette-button');
             btnColour.setAttribute('data-colour-index', i.toString());
-            btnColour.onclick = () => this.onColourSelected(this, { index: i });
-            btnColour.innerHTML = '&nbsp;';
+            btnColour.onclick = () => this.#handleColourClicked(i);
             td.appendChild(btnColour);
-            tr.appendChild(td);
 
-            // Edit button
-            td = document.createElement('td');
-            const btnEdit = document.createElement('button');
-            btnEdit.classList.add('btn', 'btn-sm', 'btn-outline-secondary', 'smsgfx-palette-edit-button');
-            btnEdit.setAttribute('data-colour-index', i.toString());
-            btnEdit.onclick = () => this.onColourEdit(this, { index: i });
-            const icon = document.createElement('i');
-            icon.classList.add('bi', 'bi-pencil-square');
-            btnEdit.appendChild(icon);
-            td.appendChild(btnEdit);
-            tr.appendChild(td);
+            const lblContent = document.createElement('span');
+            lblContent.classList.add('position-absolute', 'translate-middle', 'badge', 'bg-dark');
+            lblContent.innerHTML = `#${i}`;
+            btnColour.appendChild(lblContent);
 
-            tbody.appendChild(tr);
-
-            this.#paletteRows.push(tr);
+            this.#paletteCells.push(td);
             this.#paletteButtons.push(btnColour);
         }
 
+    }
+
+    /**
+     * Handles colour click event, when the colour is not already selected we will select it
+     * otherwise we will edit it.
+     * @param {number} colourIndex Index of the colour that was clicked.
+     */
+    #handleColourClicked(colourIndex) {
+        if (this.#lastSelectedPaletteIndex !== colourIndex) {
+            this.#lastSelectedPaletteIndex = colourIndex;
+            this.onColourSelected(this, { index: colourIndex });
+        } else {
+            this.onColourEdit(this, { index: colourIndex });
+        }
     }
 
     /**
@@ -219,9 +258,8 @@ export default class PaletteToolbox {
             this.#tbPaletteSelect.options.remove(0);
         }
         for (let i = 0; i < palettes.length; i++) {
-            const system = palettes[i].system === "gg" ? "Game Gear" : "Master System";
             const option = document.createElement('option');
-            option.innerText = `#${i} - ${system}`;
+            option.innerText = `${i}`;
             option.value = i.toString();
             option.selected = lastSelectedIndex === i;
             this.#tbPaletteSelect.options.add(option);
@@ -244,6 +282,7 @@ export default class PaletteToolbox {
                 paletteButtons[i].style.backgroundColor = null;
             }
         }
+        this.selectedPaletteSystem = palette.system;
     }
 
     /**
@@ -251,14 +290,14 @@ export default class PaletteToolbox {
      * @param {number} paletteIndex Palette colour index.
      */
     highlightPaletteItem(paletteIndex) {
-        const paletteRows = this.#paletteRows;
-        paletteRows.forEach((row, index) => {
+        const paletteCells = this.#paletteCells;
+        paletteCells.forEach((cell, index) => {
             if (index === paletteIndex) {
-                if (!row.classList.contains('table-secondary')) {
-                    row.classList.add('table-secondary');
+                if (!cell.classList.contains('table-secondary')) {
+                    cell.classList.add('table-secondary');
                 }
             } else {
-                row.classList.remove('table-secondary');
+                cell.classList.remove('table-secondary');
             }
         });
     }
@@ -282,6 +321,20 @@ export default class PaletteToolbox {
 /**
  * @typedef PaletteToolboxColourEventData
  * @type {object}
- * @property {string} index - Colour index.
+ * @property {number} index - Colour index.
+ * @exports 
+ */
+
+/**
+ * Event callback.
+ * @callback PaletteToolboxSystemCallback
+ * @param {PaletteToolbox} sender - Originating palette toolbox.
+ * @param {PaletteToolboxSystemEventData} e - Event args.
+ * @exports
+ */
+/**
+ * @typedef PaletteToolboxSystemEventData
+ * @type {object}
+ * @property {string} system - System that the palette belongs to.
  * @exports 
  */

@@ -11,7 +11,7 @@ export default class TileCanvas {
         return this.#tileSet;
     }
     set tileSet(value) {
-        this.invalidateImage();
+        this.invalidateImage()
         this.#tileSet = value;
     }
 
@@ -33,9 +33,11 @@ export default class TileCanvas {
         return this.#scale;
     }
     set scale(value) {
+        console.log('scale set', value, this.#scale); // TMP
         if (value < 1 || value > 50) throw new Error('Scale factor must be between 1 and 50.');
         const newScale = Math.round(value);
         if (newScale !== this.#scale) {
+            console.log('image invalidated', newScale, this.#scale); // TMP
             this.invalidateImage();
             this.#scale = Math.round(value);
         }

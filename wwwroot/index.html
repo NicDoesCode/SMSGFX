@@ -14,7 +14,7 @@
 
 <body>
 
-    <div class="container">
+    <div class="container-fluid">
 
         <div class="row">
             <div class="col">
@@ -35,12 +35,16 @@
                         <div class="card-body">
                             <div class="row align-items-center">
                                 <div class="col-auto">
-                                    <button id="btnAddPalette" class="btn btn-secondary">
-                                        <i class="bi bi-plus-lg"></i> Add
-                                    </button>
-                                    <button id="btnRemovePalette" class="btn btn-secondary">
-                                        <i class="bi bi bi-trash-fill"></i>
-                                    </button>
+                                    <div class="input-group">
+                                        <select id="tbPaletteSelect" class="form-select form-select-sm">
+                                        </select>
+                                        <button id="btnAddPalette" class="btn btn-outline-secondary">
+                                            <i class="bi bi-plus-lg"></i> Add
+                                        </button>
+                                        <button id="btnRemovePalette" class="btn btn-outline-secondary">
+                                            <i class="bi bi bi-trash-fill"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <hr>
@@ -48,8 +52,10 @@
                                 <table class="table table-sm">
                                     <thead>
                                         <tr>
-                                            <th colspan="2">
-                                                <select id="tbPaletteSelect" class="form-select form-select-sm">
+                                            <th colspan="4">
+                                                <select id="tbPaletteSystemSelect" class="form-select form-select-sm">
+                                                    <option value="ms">Master System</option>
+                                                    <option value="gg">Game Gear</option>
                                                 </select>
                                             </th>
                                         </tr>
@@ -77,34 +83,39 @@
                                 </div>
                             </div>
                             <div class="col-auto">
-                                <div class="vr"></div>
+                                <div class="input-group">
+                                    <span class="input-group-text">Zoom</span>
+                                    <select id="tbTileSetZoom" class="form-select">
+                                        <options>
+                                            <option value="1">1:1</option>
+                                            <option value="2">2:1</option>
+                                            <option value="5">5:1</option>
+                                            <option value="10" selected>10:1</option>
+                                            <option value="15">15:1</option>
+                                            <option value="20">20:1</option>
+                                            <option value="50">50:1</option>
+                                        </options>
+                                    </select>
+                                </div>
                             </div>
                             <div class="col-auto">
-                                <select id="tbTileSetZoom" class="form-select">
-                                    <options>
-                                        <option value="1">Zoom 1:1</option>
-                                        <option value="2">Zoom 2:1</option>
-                                        <option value="5">Zoom 5:1</option>
-                                        <option value="10" selected>Zoom 10:1</option>
-                                        <option value="15">Zoom 15:1</option>
-                                        <option value="20">Zoom 20:1</option>
-                                        <option value="50">Zoom 50:1</option>
-                                    </options>
-                                </select>
+                                <div class="input-group">
+                                    <span class="input-group-text">Tile width</span>
+                                    <input id="tbTileSetWidth" type="text" class="form-control" style="width: 50px">
+                                </div>
                             </div>
                             <div class="col-auto">
-                                <div class="vr"></div>
-                            </div>
-                            <div class="col-auto">
-                                Tools
-                            </div>
-                            <div class="col-auto">
-                                <button id="btnToolPencil" class="btn btn-outline-secondary" data-tool-button="pencil">
-                                    <i class="bi bi-pencil-fill"></i>
-                                </button>
-                                <button id="btnToolPencil" class="btn btn-outline-secondary" data-tool-button="bucket">
-                                    <i class="bi bi-paint-bucket"></i>
-                                </button>
+                                <div class="input-group">
+                                    <span class="input-group-text">Tools</span>
+                                    <button id="btnToolPencil" class="btn btn-outline-secondary"
+                                        data-tool-button="pencil">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </button>
+                                    <button id="btnToolPencil" class="btn btn-outline-secondary"
+                                        data-tool-button="bucket">
+                                        <i class="bi bi-paint-bucket"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <hr>
@@ -181,11 +192,12 @@
                                     <label for="tbColourPickerRedSlider" class="form-label">Red</label>
                                 </div>
                                 <div class="col-auto">
-                                    <input type="range" class="form-range" id="tbColourPickerRedSlider" min="0" max="255" step="17">
+                                    <input type="range" class="form-range" id="tbColourPickerRedSlider" min="0"
+                                        max="255" step="17">
                                 </div>
                                 <div class="col-2">
-                                    <input id="tbColourPickerRed" class="form-control form-control-sm" type="number" min="0" max="255"
-                                        style="width: 80px;">
+                                    <input id="tbColourPickerRed" class="form-control form-control-sm" type="number"
+                                        min="0" max="255" style="width: 80px;">
                                 </div>
                             </div>
                             <div class="mb-3 row">
@@ -193,11 +205,12 @@
                                     <label for="tbColourPickerGreenSlider" class="form-label">Green</label>
                                 </div>
                                 <div class="col-auto">
-                                    <input type="range" class="form-range" id="tbColourPickerGreenSlider" min="0" max="255" step="17">
+                                    <input type="range" class="form-range" id="tbColourPickerGreenSlider" min="0"
+                                        max="255" step="17">
                                 </div>
                                 <div class="col-2">
-                                    <input id="tbColourPickerGreen" class="form-control form-control-sm" type="number" min="0" max="255"
-                                        style="width: 80px;">
+                                    <input id="tbColourPickerGreen" class="form-control form-control-sm" type="number"
+                                        min="0" max="255" style="width: 80px;">
                                 </div>
                             </div>
                             <div class="mb-3 row">
@@ -205,11 +218,12 @@
                                     <label for="tbColourPickerBlueSlider" class="form-label">Blue</label>
                                 </div>
                                 <div class="col-auto">
-                                    <input type="range" class="form-range" id="tbColourPickerBlueSlider" min="0" max="255" step="17">
+                                    <input type="range" class="form-range" id="tbColourPickerBlueSlider" min="0"
+                                        max="255" step="17">
                                 </div>
                                 <div class="col-2">
-                                    <input id="tbColourPickerBlue" class="form-control form-control-sm" type="number" min="0" max="255"
-                                        style="width: 80px;">
+                                    <input id="tbColourPickerBlue" class="form-control form-control-sm" type="number"
+                                        min="0" max="255" style="width: 80px;">
                                 </div>
                             </div>
                         </div>
