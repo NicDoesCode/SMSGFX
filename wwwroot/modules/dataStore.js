@@ -144,7 +144,7 @@ export class DataStoreUIData {
     /** @type {number} */
     #lastSelectedPaletteIndex = 0;
     /** @type {number} */
-    #lastZoomValue = 20;
+    #lastZoomValue = 10;
 
 
     constructor(initialValues) {
@@ -177,7 +177,8 @@ export class DataStoreUIData {
             lastPaletteInput: this.lastPaletteInput,
             lastPaletteInputSystem: this.lastPaletteInputSystem,
             lastTileInput: this.lastTileInput,
-            lastSelectedPaletteIndex: this.lastSelectedPaletteIndex
+            lastSelectedPaletteIndex: this.lastSelectedPaletteIndex,
+            lastZoomValue: this.lastZoomValue
         });
     }
 

@@ -39,6 +39,7 @@ $(() => {
     paletteToolbox.onColourSelected = handlePaletteColourSelect;
     paletteToolbox.onDeleteSelectedPalette = handlePaletteDelete;
     paletteToolbox.onSelectedPaletteChanged = handlePaletteChanged;
+    paletteToolbox.onSelectedPaletteSystemChanged = handlePaletteSystemChanged;
 
     colourPickerDialogue.onConfirm = handleColourPickerConfirm;
 
@@ -47,6 +48,7 @@ $(() => {
     tileEditor.onPixelMouseUp = handleTileEditorPixelMouseUp;
     tileEditor.onPixelOver = handleTileEditorPixelOver;
     tileEditor.onSelectedToolChanged = handleTileEditorSelectedToolChanged;
+    tileEditor.onTileWidthChanged = handleTileEditorTileWidthChanged;
     tileEditor.onZoomChanged = handleTileEditorZoomChanged;
 
     const palette = getPalette();
@@ -55,7 +57,10 @@ $(() => {
     if (palette) {
         paletteToolbox.setPalette(getPalette());
         if (tileSet) {
+            tileEditor.tileWidth = tileSet.tileWidth;
+            tileEditor.zoomValue = dataStore.appUI.lastZoomValue;
             // Display the last used tile set.
+            tileCanvas.scale = tileEditor.zoomValue;
             tileCanvas.palette = palette;
             tileCanvas.tileSet = tileSet;
             tileCanvas.drawUI(tileEditor.canvas);
@@ -125,11 +130,23 @@ function handleImportTileSet(sender, e) {
 
 /**
  * @param {TileEditor} sender 
+ * @param {import("./ui/tileEditor.js").TileEditorTileWidthChangedEventData} e 
+ */
+function handleTileEditorTileWidthChanged(sender, e) {
+    tileCanvas.tileSet.tileWidth = e.tileWidth;
+    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
+    dataStore.saveToLocalStorage();
+}
+
+/**
+ * @param {TileEditor} sender 
  * @param {import("./ui/tileEditor.js").TileEditorZoomChangedEventData} e 
  */
 function handleTileEditorZoomChanged(sender, e) {
     tileCanvas.scale = e.zoom;
     tileCanvas.drawUI(tileEditor.canvas, 0, 0);
+    dataStore.appUI.lastZoomValue = e.zoom;
+    dataStore.saveToLocalStorage();
 }
 
 /**
@@ -258,6 +275,18 @@ function handlePaletteColourEdit(sender, e) {
 }
 
 /**
+ * @param {PaletteToolbox} sender The palette toolbox.
+ * @param {import("./ui/paletteToolbox.js").PaletteToolboxSystemEventData} e Event data.
+ */
+function handlePaletteSystemChanged(sender, e) {
+    const palette = getPalette();
+    palette.system = e.system;
+    dataStore.saveToLocalStorage();
+    paletteToolbox.setPalette(palette);
+    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
+}
+
+/**
  * User tries to set a colour.
  * @param {ColourPickerModalDialogue} sender Colour picker dialogue that sent the confirmation.
  * @param {object} e Event args.
@@ -270,7 +299,7 @@ function handleColourPickerConfirm(sender, e) {
 
     dataStore.saveToLocalStorage();
 
-    paletteToolbox.displayPalette(palette);
+    paletteToolbox.setPalette(palette);
     paletteDialogue.hide();
     tileCanvas.drawUI(tileEditor.canvas, 0, 0);
 }

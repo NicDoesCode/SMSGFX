@@ -2,6 +2,15 @@
 }
 
 .smsgfx-palette button.smsgfx-palette-button {
-    height: 25px;
-    width: 15px;
+    width: 36px;
+    height: 40px;
+    white-space: nowrap;
+    padding: 5px 0;
+    margin: 0;
+}
+
+.smsgfx-palette button.smsgfx-palette-button span {
+    left: 17px; 
+    top: 8px;
+    width: 36px;
 }
