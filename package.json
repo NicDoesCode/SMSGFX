@@ -1,0 +1,22 @@
+{
+  "name": "smsgfx",
+  "version": "1.0.0",
+  "description": "Simple tile editor for Sega Master System and Game Gear games.",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NicDoesCode/SMSGFX.git"
+  },
+  "author": "Nicholas Furgiuele",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NicDoesCode/SMSGFX/issues"
+  },
+  "homepage": "https://github.com/NicDoesCode/SMSGFX#readme",
+  "dependencies": {
+    "express": "^4.17.3"
+  }
+}
