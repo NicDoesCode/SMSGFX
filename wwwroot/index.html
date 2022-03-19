@@ -69,58 +69,89 @@
                 </div>
 
                 <!-- Tile set card -->
-                <div id="smsgfx-tile-editor" class="card">
-                    <div class="card-header">
-                        Tile set
-                    </div>
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-auto">
-                                <div class="col-auto">
-                                    <button id="btnAddTileSet" class="btn btn-secondary">
-                                        <i class="bi bi-plus-lg"></i> Add
-                                    </button>
-                                </div>
+                <div class="col">
+
+                    <div class="container">
+
+                        <!-- Tile nav-->
+                        <div class="row">
+                            <div class="col">
+                                <ul class="nav nav-tabs">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" aria-current="page" href="#">Tiles</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" aria-current="page" href="#">Set 1</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button class="btn btn-secondary" aria-current="page" href="#" title="Add new tile set.">
+                                            <i class="bi bi-plus-lg"></i> Tile set
+                                        </button>
+                                    </li>
+                                </ul>
                             </div>
-                            <div class="col-auto">
-                                <div class="input-group">
-                                    <span class="input-group-text">Zoom</span>
-                                    <select id="tbTileSetZoom" class="form-select">
-                                        <options>
-                                            <option value="1">1:1</option>
-                                            <option value="2">2:1</option>
-                                            <option value="5">5:1</option>
-                                            <option value="10" selected>10:1</option>
-                                            <option value="15">15:1</option>
-                                            <option value="20">20:1</option>
-                                            <option value="50">50:1</option>
-                                        </options>
-                                    </select>
+                        </div>
+                        <!-- END: Tile nav-->
+
+                        <!-- Tile editor -->
+                        <div id="smsgfx-tile-editor" class="row">
+                            <div class="col pt-4">
+                                <div class="row align-items-center">
+                                    <div class="col-auto">
+                                        <div class="col-auto">
+                                            <button id="btnAddTileSet" class="btn btn-outline-secondary" title="Add tiles.">
+                                                <i class="bi bi-plus-lg"></i> Tiles
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <div class="input-group">
+                                            <span class="input-group-text">Zoom</span>
+                                            <select id="tbTileSetZoom" class="form-select">
+                                                <options>
+                                                    <option value="1">1:1</option>
+                                                    <option value="2">2:1</option>
+                                                    <option value="5">5:1</option>
+                                                    <option value="10" selected>10:1</option>
+                                                    <option value="15">15:1</option>
+                                                    <option value="20">20:1</option>
+                                                    <option value="50">50:1</option>
+                                                </options>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <div class="input-group">
+                                            <span class="input-group-text">Tile width</span>
+                                            <input id="tbTileSetWidth" type="text" class="form-control"
+                                                style="width: 50px">
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <div class="input-group">
+                                            <span class="input-group-text">Tools</span>
+                                            <button id="btnToolPencil" class="btn btn-outline-secondary"
+                                                data-tool-button="pencil">
+                                                <i class="bi bi-pencil-fill"></i>
+                                            </button>
+                                            <button id="btnToolPencil" class="btn btn-outline-secondary"
+                                                data-tool-button="bucket">
+                                                <i class="bi bi-paint-bucket"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-auto">
-                                <div class="input-group">
-                                    <span class="input-group-text">Tile width</span>
-                                    <input id="tbTileSetWidth" type="text" class="form-control" style="width: 50px">
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <div class="input-group">
-                                    <span class="input-group-text">Tools</span>
-                                    <button id="btnToolPencil" class="btn btn-outline-secondary"
-                                        data-tool-button="pencil">
-                                        <i class="bi bi-pencil-fill"></i>
-                                    </button>
-                                    <button id="btnToolPencil" class="btn btn-outline-secondary"
-                                        data-tool-button="bucket">
-                                        <i class="bi bi-paint-bucket"></i>
-                                    </button>
+                                <div class="row">
+                                    <div class="col pt-4">
+                                        <canvas class="smsgfx-canvas" id="tbCanvas" width="700" height="700"></canvas>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <hr>
-                        <canvas class="smsgfx-canvas" id="tbCanvas" width="700" height="700"></canvas>
+                        <!-- END: Tile editor -->
+
                     </div>
+
                 </div>
 
             </div>
