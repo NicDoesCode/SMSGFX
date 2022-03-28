@@ -10,12 +10,16 @@
             "reAttach": true,
             "name": "Launch Firefox",
             "url": "http://localhost:8080/index.html",
-            "webRoot": "${workspaceFolder}/wwwroot"
+            "webRoot": "${workspaceFolder}/wwwroot",
+            "profile": "debug",
+            "keepProfileChanges": true
         },
         {
             "type": "firefox",
             "request": "attach",
-            "name": "Attach"
+            "name": "Attach Firefox",
+            "url": "http://localhost:8080/index.html",
+            "webRoot": "${workspaceFolder}/wwwroot"
         },
         {
             "name": "Launch server",

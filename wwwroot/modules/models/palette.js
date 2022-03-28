@@ -57,4 +57,5 @@ export default class Palette {
         return new Palette(parsed.colours, parsed.system);
     }
 
+    
 }
