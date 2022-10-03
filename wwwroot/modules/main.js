@@ -7,6 +7,7 @@ import Fill from "./fill.js";
 import ColourPickerModalDialogue from "./ui/colourPickerModalDialogue.js";
 import PaletteModalDialogue from "./ui/paletteModalDialogue.js";
 import TileModalDialogue from "./ui/tileModalDialogue.js";
+import ExportModalDialogue from "./ui/exportModalDialogue.js";
 import PaletteToolbox from "./ui/paletteToolbox.js";
 import TileEditor from "./ui/tileEditor.js";
 
@@ -15,6 +16,7 @@ const tileCanvas = new TileCanvas();
 
 const paletteDialogue = new PaletteModalDialogue(document.getElementById('smsgfx-palette-modal'));
 const tileDialogue = new TileModalDialogue(document.getElementById('smsgfx-tiles-modal'));
+const exportDialogue = new ExportModalDialogue(document.getElementById('smsgfx-export-modal'));
 const colourPickerDialogue = new ColourPickerModalDialogue(document.getElementById('smsgfx-colour-picker-modal'));
 const paletteToolbox = new PaletteToolbox(document.getElementById('smsgfx-palette-toolbox'));
 const tileEditor = new TileEditor(document.getElementById('smsgfx-tile-editor'));
@@ -45,6 +47,7 @@ $(() => {
     colourPickerDialogue.onConfirm = handleColourPickerConfirm;
 
     tileEditor.onAddTileSet = (sender, e) => tileDialogue.show();
+    tileEditor.onExport = (sender, e) => exportDialogue.show();
     tileEditor.onPixelMouseDown = handleTileEditorPixelMouseDown;
     tileEditor.onPixelMouseUp = handleTileEditorPixelMouseUp;
     tileEditor.onPixelOver = handleTileEditorPixelOver;

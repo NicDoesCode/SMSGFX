@@ -3,7 +3,7 @@ export default class TileEditor {
 
     /** 
      * When a palette is to be imported.
-     * @type {PaletteToolboxCallback} 
+     * @type {TileEditorCallback} 
      */
     get onAddTileSet() {
         return this.#onAddTileSetCallback;
@@ -18,6 +18,24 @@ export default class TileEditor {
 
     /** @type {TileEditorCallback} */
     #onAddTileSetCallback = () => { };
+
+    /** 
+     * When a palette is to be imported.
+     * @type {TileEditorCallback} 
+     */
+    get onExport() {
+        return this.#onExportCallback;
+    }
+    set onExport(value) {
+        if (value && typeof value === 'function') {
+            this.#onExportCallback = value;
+        } else {
+            this.#onExportCallback = () => { };
+        }
+    }
+
+    /** @type {TileEditorCallback} */
+    #onExportCallback = () => { };
 
     /** 
      * Selected tool is changed.
@@ -181,6 +199,8 @@ export default class TileEditor {
     #lastImageY = -1;
     /** @type {boolean} */
     #canvasMouseIsDown;
+    /** @type {HTMLButtonElement} */
+    #btnExport;
 
 
     /**
@@ -207,6 +227,9 @@ export default class TileEditor {
         this.#tbCanvas.onmousedown = (event) => this.#handleCanvasMouseDown(event);
         this.#tbCanvas.onmouseup = (event) => this.#handleCanvasMouseUp(event);
         this.#tbCanvas.onmouseleave = (event) => this.#handleCanvasMouseUp(event);
+
+        this.#btnExport = this.#element.querySelector('#btnExport');
+        this.#btnExport.onclick = () => this.onExport(this, {});
 
         const toolButtons = this.#element.querySelectorAll('button[data-tool-button]');
         toolButtons.forEach(toolButton => {
