@@ -3,6 +3,7 @@ import Palette from "./palette.js";
 import TileSet from './tileSet.js'
 import AssemblyUtility from "./assemblyUtility.js";
 import TileCanvas from "./tileCanvas.js";
+import Fill from "./fill.js";
 import ColourPickerModalDialogue from "./ui/colourPickerModalDialogue.js";
 import PaletteModalDialogue from "./ui/paletteModalDialogue.js";
 import TileModalDialogue from "./ui/tileModalDialogue.js";
@@ -197,6 +198,9 @@ function handleTileEditorPixelMouseUp(eventData) {
 const lastPencilPixel = { x: -1, y: -1 };
 
 function takeToolAction(tool, colourIndex, imageX, imageY) {
+
+    console.log('Pixel tile click', { tool, colourIndex, imageX, imageY });
+
     if (tool !== null && colourIndex >= 0 && colourIndex < 16) {
 
         if (tool === 'pencil') {
@@ -212,6 +216,13 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
                 tileCanvas.invalidateImage();
                 tileCanvas.drawUI(tileEditor.canvas, imageX, imageY);
             }
+        } else if (tool === 'bucket') {
+            const filler = new Fill(tileCanvas);
+            filler.fill(imageX, imageY, colourIndex)
+
+            // Update the UI
+            tileCanvas.invalidateImage();
+            tileCanvas.drawUI(tileEditor.canvas, imageX, imageY);
         }
 
     }
