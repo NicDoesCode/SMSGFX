@@ -47,7 +47,7 @@ $(() => {
     colourPickerDialogue.onConfirm = handleColourPickerConfirm;
 
     tileEditor.onAddTileSet = (sender, e) => tileDialogue.show();
-    tileEditor.onExport = (sender, e) => exportDialogue.show();
+    tileEditor.onExport = handleShowExportDialogue;
     tileEditor.onPixelMouseDown = handleTileEditorPixelMouseDown;
     tileEditor.onPixelMouseUp = handleTileEditorPixelMouseUp;
     tileEditor.onPixelOver = handleTileEditorPixelOver;
@@ -115,6 +115,15 @@ function handleImportPalette(sender, e) {
     dataStore.saveToLocalStorage();
 
     paletteToolbox.setPalette(palette);
+}
+
+/**
+ * @param {any} sender Initiating object.
+ * @param {any} e Event args.
+ */
+ function handleShowExportDialogue(sender, e) {
+    exportDialogue.generateExportData(dataStore.tileSetList.getTileSet(0), dataStore.paletteList);
+    exportDialogue.show();
 }
 
 /**
