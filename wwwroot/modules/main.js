@@ -17,46 +17,6 @@ import TileSetList from "./tileSetList.js";
 import PaletteList from "./paletteList.js";
 import Tile from "./tile.js";
 
-// const importingNodes = [];
-
-// /**
-//  * Parent document.
-//  * @param {Node} parentNode Node to look for imports within.
-//  */
-//  async function importNodes(parentNode) {
-//     if (!parentNode) parentNode = document;
-//     const linkNodes = parentNode.querySelectorAll('link[rel=import]');
-//     linkNodes.forEach(async (linkNode) => {
-//         try {
-//             importingNodes.push(linkNode);
-//             const resp = await fetch(linkNode.href);
-//             console.log(`importNodes : ${resp.status} : ${linkNode.href}`); // TMP
-//             if (resp.ok) {
-//                 const html = await resp.text();
-//                 linkNode.innerHTML = html;
-//                 if (linkNode.hasChildNodes()) {
-//                     await importNodes(linkNode);
-//                     while (linkNode.childNodes.length > 0) {
-//                         linkNode.after(linkNode.childNodes[linkNode.childNodes.length - 1]);
-//                     }
-//                 }
-//                 linkNode.remove();
-//             } else {
-//                 throw `Import '${resp.url}' failed with status ${resp.status}.`
-//             }
-//         } catch (e) {
-//             console.error(e);
-//         } finally {
-//             importingNodes.pop();
-//         }
-//     });
-// }
-
-// await importNodes();
-
-// while (importingNodes.length > 0) {
-
-// }
 
 const dataStore = new DataStore();
 const tileCanvas = new TileCanvas();
@@ -69,8 +29,10 @@ const paletteToolbox = new PaletteToolbox(document.getElementById('tbPaletteTool
 const tileEditor = new TileEditor(document.getElementById('tbTileEditor'));
 const headerBar = new HeaderBar(document.getElementById('tbHeaderBar'));
 
+
 /** @type {string} */
 let selectedTool = null;
+
 
 $(async () => {
 
@@ -112,6 +74,8 @@ $(async () => {
     tileEditor.onSelectedToolChanged = handleTileEditorSelectedToolChanged;
     tileEditor.onTileWidthChanged = handleTileEditorTileWidthChanged;
     tileEditor.onZoomChanged = handleTileEditorZoomChanged;
+    tileEditor.onUndo = handleTileEditorUndo;
+    tileEditor.onRedo = handleTileEditorRedo;
 
     const palette = getPalette();
     const tileSet = getTileSet();
@@ -150,6 +114,7 @@ function createDefaultPalettesAndTileSetIfNoneExist() {
             dataStore.paletteList.addPalette(palette);
         }
     }
+
 }
 
 function getTileSet() {
@@ -181,23 +146,28 @@ function handleHeaderBarProjectLoad(sender, e) {
     input.onchange = () => {
         if (input.files.length > 0) {
             ProjectFile.loadFromFile(input.files[0]).then(data => {
+                dataStore.recordUndoState();
+
                 // Add loaded tiles
                 const t = TileSetList.deserialise(data.tiles);
                 dataStore.tileSetList.clear();
                 for (let i = 0; i < t.length; i++) {
                     dataStore.tileSetList.addTileSet(t.getTileSet(i));
                 }
+
                 // Add loaded palettes
                 const p = PaletteList.deserialise(data.palettes);
                 dataStore.paletteList.clear();
                 for (let i = 0; i < p.length; i++) {
                     dataStore.paletteList.addPalette(p.getPalette(i));
                 }
+
                 // Refresh
                 const palette = p.getPalette(0);
                 paletteToolbox.setPalette(dataStore.paletteList.getPalette(0));
                 const tileSet = t.getTileSet(0);
                 tileEditor.tileWidth = tileSet.tileWidth;
+
                 // Display the last used tile set.
                 tileCanvas.palette = palette;
                 tileCanvas.tileSet = tileSet;
@@ -241,6 +211,8 @@ function handleHeaderBarCodeExport(sender, e) {
 function handleImportPalette(sender, e) {
     if (!['gg', 'ms'].includes(sender.inputSystem)) throw new Error('System must be either ""ms" or "gg".');
 
+    dataStore.recordUndoState();
+
     const system = sender.inputSystem;
     const paletteData = sender.inputData;
     const palette = new Palette(system, 0);
@@ -266,6 +238,8 @@ function handleImportPalette(sender, e) {
  * @param {object} e Event args.
  */
 function handleImportTileSet(sender, e) {
+    dataStore.recordUndoState();
+
     const tileData = sender.inputData;
     const array = AssemblyUtility.readAsUint8ClampedArray(tileData);
     const tileSet = TileSet.parsePlanarFormat(array);
@@ -294,6 +268,34 @@ function handleTileEditorZoomChanged(sender, e) {
     tileCanvas.drawUI(tileEditor.canvas, 0, 0);
     dataStore.appUI.lastZoomValue = e.zoom;
     dataStore.saveToLocalStorage();
+}
+
+/**
+ * @param {TileEditor} sender 
+ * @param {object} e 
+ */
+function handleTileEditorUndo(sender, e) {
+    dataStore.undo();
+    tileCanvas.palette = getPalette();
+    tileCanvas.tileSet = getTileSet();
+    paletteToolbox.setPalette(getPalette());
+    paletteToolbox.refreshPalettes(dataStore.paletteList.getPalettes());
+    tileCanvas.invalidateImage();
+    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
+}
+
+/**
+ * @param {TileEditor} sender 
+ * @param {object} e 
+ */
+function handleTileEditorRedo(sender, e) {
+    dataStore.redo();
+    tileCanvas.palette = getPalette();
+    tileCanvas.tileSet = getTileSet();
+    paletteToolbox.setPalette(getPalette());
+    paletteToolbox.refreshPalettes(dataStore.paletteList.getPalettes());
+    tileCanvas.invalidateImage();
+    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
 }
 
 /**
@@ -332,9 +334,13 @@ function handleTileEditorPixelOver(sender, e) {
 function handleTileEditorAddTile(sender, e) {
     const tileSet = getTileSet();
     if (tileSet) {
+        dataStore.recordUndoState();
+
         const tileDataArray = new Uint8ClampedArray(64);
         tileDataArray.fill(15, 0, tileDataArray.length);
         tileSet.addTile(new Tile(tileDataArray));
+
+        dataStore.saveToLocalStorage();
         tileCanvas.invalidateImage();
         tileCanvas.drawUI(tileEditor.canvas, 0, 0);
     }
@@ -355,10 +361,14 @@ function handleTileEditorPixelMouseDown(sender, e) {
  * @param {import("./ui/tileEditor.js").TileEditorPixelEventData} e Event args.
  */
 function handleTileEditorRemoveTile(sender, e) {
+    dataStore.recordUndoState();
+
     const tileSet = getTileSet();
     const tile = tileSet.getTileByCoordinate(e.imageX, e.imageY);
     const tileIndex = tileSet.getTileIndex(tile);
     tileSet.removeTile(tileIndex);
+
+    dataStore.saveToLocalStorage();
     tileCanvas.invalidateImage();
     tileCanvas.drawUI(tileEditor.canvas, 0, 0);
 }
@@ -368,13 +378,18 @@ function handleTileEditorRemoveTile(sender, e) {
  * @param {import("./ui/tileEditor.js").TileEditorPixelEventData} e Event args.
  */
 function handleTileEditorInsertTileBefore(sender, e) {
+    dataStore.recordUndoState();
+
     const tileSet = getTileSet();
     const tile = tileSet.getTileByCoordinate(e.imageX, e.imageY);
     const tileIndex = tileSet.getTileIndex(tile);
     const tileDataArray = new Uint8ClampedArray(64);
     tileDataArray.fill(15, 0, tileDataArray.length);
+
     const newTile = new Tile(tileDataArray);
     tileSet.insertTileAt(newTile, tileIndex);
+
+    dataStore.saveToLocalStorage();
     tileCanvas.invalidateImage();
     tileCanvas.drawUI(tileEditor.canvas, 0, 0);
 }
@@ -384,13 +399,18 @@ function handleTileEditorInsertTileBefore(sender, e) {
  * @param {import("./ui/tileEditor.js").TileEditorPixelEventData} e Event args.
  */
 function handleTileEditorInsertTileAfter(sender, e) {
-    const tileSet = getTileSet();7
+    dataStore.recordUndoState();
+
+    const tileSet = getTileSet();
     const tile = tileSet.getTileByCoordinate(e.imageX, e.imageY);
     const tileIndex = tileSet.getTileIndex(tile);
     const tileDataArray = new Uint8ClampedArray(64);
     tileDataArray.fill(15, 0, tileDataArray.length);
+
     const newTile = new Tile(tileDataArray);
     tileSet.insertTileAt(newTile, tileIndex + 1);
+
+    dataStore.saveToLocalStorage();
     tileCanvas.invalidateImage();
     tileCanvas.drawUI(tileEditor.canvas, 0, 0);
 }
@@ -400,9 +420,12 @@ function handleTileEditorInsertTileAfter(sender, e) {
  * @param {import("./ui/tileEditor.js").TileEditorPixelEventData} e Event args.
  */
 function handleTileEditorPixelMouseUp(eventData) {
+    dataStore.saveToLocalStorage();
+    undoRecorded = false;
 }
 
 const lastPencilPixel = { x: -1, y: -1 };
+let undoRecorded = false;
 
 function takeToolAction(tool, colourIndex, imageX, imageY) {
 
@@ -412,6 +435,11 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
 
         if (tool === 'pencil') {
             if (imageX !== lastPencilPixel.x || imageY !== lastPencilPixel.y) {
+                if (!undoRecorded) { 
+                    dataStore.recordUndoState();
+                    undoRecorded = true;
+                }
+
                 lastPencilPixel.x = imageX;
                 lastPencilPixel.y = imageY;
 
@@ -424,6 +452,8 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
                 tileCanvas.drawUI(tileEditor.canvas, imageX, imageY);
             }
         } else if (tool === 'bucket') {
+            dataStore.recordUndoState();
+
             const filler = new Fill(tileCanvas);
             filler.fill(imageX, imageY, colourIndex)
 
@@ -454,6 +484,8 @@ function handlePaletteChanged(sender, e) {
 function handlePaletteDelete(sender, e) {
     const paletteIndex = paletteToolbox.selectedPaletteIndex;
     if (paletteIndex >= 0 && paletteIndex < dataStore.paletteList.length) {
+
+        dataStore.recordUndoState();
 
         // Remove palette
         dataStore.paletteList.removeAt(paletteIndex);
@@ -497,8 +529,11 @@ function handlePaletteColourEdit(sender, e) {
  * @param {import("./ui/paletteToolbox.js").PaletteToolboxSystemEventData} e Event data.
  */
 function handlePaletteSystemChanged(sender, e) {
+    dataStore.recordUndoState();
+
     const palette = getPalette();
     palette.system = e.system;
+
     dataStore.saveToLocalStorage();
     paletteToolbox.setPalette(palette);
     tileCanvas.drawUI(tileEditor.canvas, 0, 0);
@@ -510,11 +545,12 @@ function handlePaletteSystemChanged(sender, e) {
  * @param {object} e Event args.
  */
 function handleColourPickerConfirm(sender, e) {
+    dataStore.recordUndoState();
+
     const palette = sender.palette;
     const paletteIndex = sender.paletteIndex;
     const paletteColour = sender.toPaletteColour();
     palette.colours[paletteIndex] = paletteColour;
-
     dataStore.saveToLocalStorage();
 
     paletteToolbox.setPalette(palette);

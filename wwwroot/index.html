@@ -120,17 +120,47 @@
                         <!-- Toolbar -->
                         <div class="sms-tile-toolbar container-fluid p-0 m-0 pt-3 pb-2">
                             <div class="row align-items-center p-0 m-0">
-                                <div class="col-auto ms-0 ps-0">
+                                <div class="col-auto ms-0 ps-0 pe-0">
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text">Tile</span>
                                         <button id="btnTilesAddTile" class="btn btn-outline-secondary"
-                                            title="Add a new tile.">
-                                            <i class="bi bi-plus-lg"></i> Add
+                                            title="Add a new tile to the end of the set.">
+                                            <i class="bi bi-plus-lg"></i>
                                         </button>
                                         <button id="btnTilesImport" class="btn btn-outline-secondary"
-                                            title="Add tiles.">
-                                            <i class="bi bi-code-square"></i> Import
+                                            title="Import tiles from your code.">
+                                            <i class="bi bi-box-arrow-in-down"></i>
                                         </button>
+                                    </div>
+                                </div>
+                                <div class="col-auto pe-0">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">Undo</span>
+                                        <button id="btnToolUndo" class="btn btn-outline-secondary" title="Undo.">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        </button>
+                                        <button id="btnToolRedo" class="btn btn-outline-secondary" title="Redo.">
+                                            <i class="bi bi-arrow-clockwise"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-auto pe-0">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">Tools</span>
+                                        <button id="btnToolPencil" class="btn btn-outline-secondary"
+                                            data-tool-button="pencil" title="Pencil tool.">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </button>
+                                        <button id="btnToolBucket" class="btn btn-outline-secondary"
+                                            data-tool-button="bucket" title="Fill tool.">
+                                            <i class="bi bi-paint-bucket"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-auto pe-0">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">Tile width</span>
+                                        <input id="tbTileSetWidth" type="text" class="form-control" style="width: 40px">
                                     </div>
                                 </div>
                                 <div class="col-auto">
@@ -147,25 +177,6 @@
                                                 <option value="50">50:1</option>
                                             </options>
                                         </select>
-                                    </div>
-                                </div>
-                                <div class="col-auto">
-                                    <div class="input-group input-group-sm">
-                                        <span class="input-group-text">Tile width</span>
-                                        <input id="tbTileSetWidth" type="text" class="form-control" style="width: 50px">
-                                    </div>
-                                </div>
-                                <div class="col-auto">
-                                    <div class="input-group input-group-sm">
-                                        <span class="input-group-text">Tools</span>
-                                        <button id="btnToolPencil" class="btn btn-outline-secondary"
-                                            data-tool-button="pencil">
-                                            <i class="bi bi-pencil-fill"></i>
-                                        </button>
-                                        <button id="btnToolPencil" class="btn btn-outline-secondary"
-                                            data-tool-button="bucket">
-                                            <i class="bi bi-paint-bucket"></i>
-                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -190,8 +201,10 @@
                         </button>
                         <ul id="tbTileEditorMenuDropDown" class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
                             <li><button class="dropdown-item" data-command="remove">Remove this tile</button></li>
-                            <li><button class="dropdown-item" data-command="insert-before">Insert tile before</button></li>
-                            <li><button class="dropdown-item" data-command="insert-after">Insert tile after</button></li>
+                            <li><button class="dropdown-item" data-command="insert-before">Insert tile before</button>
+                            </li>
+                            <li><button class="dropdown-item" data-command="insert-after">Insert tile after</button>
+                            </li>
                         </ul>
                     </div>
 

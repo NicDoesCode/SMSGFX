@@ -79,6 +79,50 @@ export default class DataStore {
     }
 
 
+    #undoStates = [];
+    #redoStates = [];
+
+    recordUndoState() {
+        this.clearRedoState();
+        this.#undoStates.push({
+            palettes: this.#paletteList.serialise(),
+            tiles: this.#tileSetList.serialise()
+        });
+    }
+
+    clearRedoState() {
+        this.#redoStates = [];
+    }
+
+    clearUndoState() {
+        this.#undoStates = [];
+        this.#redoStates = [];
+    }
+
+    undo() {
+        this.#redoStates.push({
+            palettes: this.#paletteList.serialise(),
+            tiles: this.#tileSetList.serialise()
+        });
+        const thisUndo = this.#undoStates.pop();
+        if (thisUndo) {
+            this.#paletteList = PaletteList.deserialise(thisUndo.palettes);
+            this.#tileSetList = TileSetList.deserialise(thisUndo.tiles);
+        }
+    }
+
+    redo() {
+        this.#undoStates.push({
+            palettes: this.#paletteList.serialise(),
+            tiles: this.#tileSetList.serialise()
+        });
+        const thisRedo = this.#redoStates.pop();
+        if (thisRedo) {
+            this.#paletteList = PaletteList.deserialise(thisRedo.palettes);
+            this.#tileSetList = TileSetList.deserialise(thisRedo.tiles);
+        }
+    }
+
 }
 
 export class DataStoreUIData {

@@ -167,7 +167,7 @@ export default class TileEditor {
      * Tile is it be inserted before this one.
      * @type {TileEditorPixelCallback} 
      */
-     get onInsertTileBefore() {
+    get onInsertTileBefore() {
         return this.#onInsertTileBeforeCallback;
     }
     set onInsertTileBefore(value) {
@@ -185,7 +185,7 @@ export default class TileEditor {
      * Tile is it be inserted after this one.
      * @type {TileEditorPixelCallback} 
      */
-     get onInsertTileAfter() {
+    get onInsertTileAfter() {
         return this.#onInsertTileAfterCallback;
     }
     set onInsertTileAfter(value) {
@@ -198,6 +198,43 @@ export default class TileEditor {
 
     /** @type {TileEditorPixelCallback} */
     #onInsertTileAfterCallback = () => { };
+
+    /** 
+     * Undo was clicked.
+     * @type {object} 
+     */
+    get onUndo() {
+        return this.#onUndoCallback;
+    }
+    set onUndo(value) {
+        if (value && typeof value === 'function') {
+            this.#onUndoCallback = value;
+        } else {
+            this.#onUndoCallback = () => { };
+        }
+    }
+
+    /** @type {TileEditorPixelCallback} */
+    #onUndoCallback = () => { };
+
+    /** 
+     * Redo was clicked.
+     * @type {object} 
+     */
+    get onRedo() {
+        return this.#onRedoCallback;
+    }
+    set onRedo(value) {
+        if (value && typeof value === 'function') {
+            this.#onRedoCallback = value;
+        } else {
+            this.#onRedoCallback = () => { };
+        }
+    }
+
+    /** @type {TileEditorPixelCallback} */
+    #onRedoCallback = () => { };
+
 
     /**
      * Gets the current pixel zoom value.
@@ -250,6 +287,10 @@ export default class TileEditor {
     #tbTileSetWidth;
     /** @type {HTMLSelectElement} */
     #tbTileSetZoom;
+    /** @type {HTMLButtonElement} */
+    #btnToolUndo;
+    /** @type {HTMLButtonElement} */
+    #btnToolRedo;
     /** @type {number} */
     #lastZoom;
     /** @type {number} */
@@ -286,6 +327,12 @@ export default class TileEditor {
 
         this.#tbTileSetZoom = this.#element.querySelector('#tbTileSetZoom');
         this.#tbTileSetZoom.onchange = () => this.#handleZoomChange();
+
+        this.#btnToolUndo = this.#element.querySelector('#btnToolUndo');
+        this.#btnToolUndo.onclick = (event) => this.#handleToolUndoClick();
+
+        this.#btnToolRedo = this.#element.querySelector('#btnToolRedo');
+        this.#btnToolRedo.onclick = (event) => this.#handleToolRedoClick();
 
         this.#lastZoom = parseInt(tbTileSetZoom.value);
 
@@ -403,6 +450,14 @@ export default class TileEditor {
             this.#lastZoom = newZoom;
             this.onZoomChanged(this, { zoom: newZoom });
         }
+    }
+
+    #handleToolUndoClick(event) {
+        this.onUndo(this, {});
+    }
+
+    #handleToolRedoClick(event) {
+        this.onRedo(this, {});
     }
 
     /** @param {string} tool */
