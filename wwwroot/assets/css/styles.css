@@ -11,12 +11,17 @@ body {
     z-index: 20;
 }
 
-.sms-container .sms-header-bar .navbar-brand label {
+.sms-container .sms-header-bar .navbar-brand {
     position: relative;
     display: inline-block;
     margin-left: 4px;
+    font-size: 25px;
+    text-shadow: 0px 0px 2px #FFFFFF, 1px 1px 5px #555555;
 }
-
+.sms-container .sms-header-bar .navbar-brand img {
+    float: left;
+    margin: 5px 10px 0 5px;
+}
 .sms-container .sms-content {
     position: absolute;
     top: 0;
@@ -99,5 +104,8 @@ body {
 }
 
 .sms-canvas {
-    box-shadow: 0 0 6px #000000;
+    box-shadow: 0 0 10px #555555;
+}
+
+.sms-tile-toolbar {
 }
