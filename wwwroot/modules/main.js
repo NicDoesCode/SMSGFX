@@ -92,6 +92,13 @@ $(async () => {
             tileCanvas.drawUI(tileEditor.canvas);
         }
     }
+
+    // Set default colour and tool selection so that the tools work straight away
+    setTimeout(() => {
+        selectedTool = 'pencil';
+        tileEditor.highlightTool(selectedTool);
+        paletteToolbox.highlightPaletteItem(0);
+    }, 250);
 });
 
 function createDefaultPalettesAndTileSetIfNoneExist() {
