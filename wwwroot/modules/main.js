@@ -170,6 +170,7 @@ function handleHeaderBarProjectSave(sender, e) {
     const tileSetList = dataStore.tileSetList;
     const paletteList = dataStore.paletteList;
     ProjectFile.saveToFile(tileSetList, paletteList);
+    return false;    
 }
 
 /**
@@ -181,6 +182,7 @@ function handleHeaderBarCodeExport(sender, e) {
     const paletteList = dataStore.paletteList;
     exportDialogue.generateExportData(tileSetList, paletteList);
     exportDialogue.show();
+    return false;    
 }
 
 
