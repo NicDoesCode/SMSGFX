@@ -32,6 +32,7 @@ const headerBar = new HeaderBar(document.getElementById('tbHeaderBar'));
 
 /** @type {string} */
 let selectedTool = null;
+const colours = ['#000000', '#000000', '#00AA00', '#00FF00', '#000055', '#0000FF', '#550000', '#00FFFF', '#AA0000', '#FF0000', '#555500', '#FFFF00', '#005500', '#FF00FF', '#555555', '#FFFFFF'];
 
 
 $(async () => {
@@ -54,6 +55,7 @@ $(async () => {
 
     paletteToolbox.refreshPalettes(dataStore.paletteList.getPalettes());
     paletteToolbox.selectedPaletteIndex = dataStore.appUI.lastSelectedPaletteIndex;
+    paletteToolbox.onNewPalette = (sender, e) => handleNewPalette();
     paletteToolbox.onAddPalette = (sender, e) => paletteDialogue.show();
     paletteToolbox.onColourEdit = handlePaletteColourEdit;
     paletteToolbox.onColourSelected = handlePaletteColourSelect;
@@ -102,6 +104,7 @@ $(async () => {
 });
 
 function createDefaultPalettesAndTileSetIfNoneExist() {
+    // Create a default tile set
     if (dataStore.tileSetList.length === 0) {
         const dummyArray = new Uint8ClampedArray(64 * 8 * 8);
         dummyArray.fill(15, 0, dummyArray.length);
@@ -109,9 +112,9 @@ function createDefaultPalettesAndTileSetIfNoneExist() {
         tileSet.tileWidth = 8;
         dataStore.tileSetList.addTileSet(tileSet);
     };
+    // Create a default palette for Game Gear and Master System
     if (dataStore.paletteList.length === 0) {
         /** @type string[] */
-        const colours = ['#000000', '#000000', '#00AA00', '#00FF00', '#000055', '#0000FF', '#550000', '#00FFFF', '#AA0000', '#FF0000', '#555500', '#FFFF00', '#005500', '#FF00FF', '#555555', '#FFFFFF'];
         for (let i = 0; i < 2; i++) {
             const system = i % 2 === 0 ? 'ms' : 'gg';
             const palette = new Palette(system, 0);
@@ -121,7 +124,6 @@ function createDefaultPalettesAndTileSetIfNoneExist() {
             dataStore.paletteList.addPalette(palette);
         }
     }
-
 }
 
 function getTileSet() {
@@ -230,13 +232,20 @@ function handleImportPalette(sender, e) {
         const array = AssemblyUtility.readAsUint8ClampedArray(paletteData);
         palette.loadMasterSystemPalette(array);
     }
-
     dataStore.paletteList.addPalette(palette);
+
+    paletteToolbox.refreshPalettes(dataStore.paletteList.getPalettes());
+    paletteToolbox.selectedPaletteIndex = dataStore.paletteList.length - 1;
+    paletteToolbox.setPalette(getPalette());
+
+    tileCanvas.palette = getPalette();
+    tileCanvas.invalidateImage();
+    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
+
+    dataStore.appUI.lastSelectedPaletteIndex = paletteToolbox.selectedPaletteIndex;
     dataStore.appUI.lastPaletteInput = sender.inputData;
     dataStore.appUI.lastPaletteInputSystem = sender.inputSystem;
     dataStore.saveToLocalStorage();
-
-    paletteToolbox.setPalette(palette);
 }
 
 /**
@@ -442,7 +451,7 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
 
         if (tool === 'pencil') {
             if (imageX !== lastPencilPixel.x || imageY !== lastPencilPixel.y) {
-                if (!undoRecorded) { 
+                if (!undoRecorded) {
                     dataStore.recordUndoState();
                     undoRecorded = true;
                 }
@@ -496,7 +505,6 @@ function handlePaletteDelete(sender, e) {
 
         // Remove palette
         dataStore.paletteList.removeAt(paletteIndex);
-        paletteToolbox.refreshPalettes(dataStore.paletteList.getPalettes());
         const newSelectedIndex = Math.min(paletteIndex, dataStore.paletteList.length - 1);
         if (dataStore.paletteList.length > 0) {
             paletteToolbox.selectedPaletteIndex = newSelectedIndex;
@@ -505,11 +513,14 @@ function handlePaletteDelete(sender, e) {
             paletteToolbox.setPalette(new Palette());
             dataStore.appUI.lastSelectedPaletteIndex = -1;
         }
-        dataStore.saveToLocalStorage();
+        paletteToolbox.refreshPalettes(dataStore.paletteList.getPalettes());
+        paletteToolbox.setPalette(getPalette());
 
         // Refresh image
         tileCanvas.palette = getPalette();
         tileCanvas.drawUI(tileEditor.canvas, 0, 0);
+
+        dataStore.saveToLocalStorage();
     }
 }
 
@@ -521,6 +532,32 @@ function handlePaletteColourSelect(sender, e) {
     if (e.index >= -1 && e.index < 16) {
         paletteToolbox.selectedPaletteColourIndex = e.index;
     }
+}
+
+/**
+ * @param {PaletteToolbox} sender The palette toolbox.
+ * @param {object} e Event data.
+ */
+function handleNewPalette(sender, e) {
+    dataStore.recordUndoState();
+
+    const system = 'ms';
+    const palette = new Palette(system, 0);
+    for (let c = 0; c < 16; c++) {
+        palette.setColour(c, ColourUtil.paletteColourFromHex(c, system, colours[c]));
+    }
+    dataStore.paletteList.addPalette(palette);
+
+    paletteToolbox.refreshPalettes(dataStore.paletteList.getPalettes());
+    paletteToolbox.selectedPaletteIndex = dataStore.paletteList.length - 1;
+    paletteToolbox.setPalette(palette);
+
+    tileCanvas.palette = getPalette();
+    tileCanvas.invalidateImage();
+    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
+
+    dataStore.appUI.lastSelectedPaletteIndex = paletteToolbox.selectedPaletteIndex;
+    dataStore.saveToLocalStorage();
 }
 
 /**

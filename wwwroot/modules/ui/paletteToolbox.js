@@ -22,6 +22,24 @@ export default class PaletteToolbox {
     #onAddPaletteCallback = () => { };
 
     /** 
+     * When a new palette is to be created.
+     * @type {PaletteToolboxCallback} 
+     */
+     get onNewPalette() {
+        return this.#onNewPaletteCallback;
+    }
+    set onNewPalette(value) {
+        if (value && typeof value === 'function') {
+            this.#onNewPaletteCallback = value;
+        } else {
+            this.#onNewPaletteCallback = () => { };
+        }
+    }
+
+    /** @type {PaletteToolboxCallback} */
+    #onNewPaletteCallback = () => { };
+
+    /** 
      * When a palette is to be deleted.
      * @type {PaletteToolboxCallback} 
      */
@@ -162,6 +180,8 @@ export default class PaletteToolbox {
     /** @type {HTMLTableCellElement[]} */
     #paletteCells = [];
     /** @type {HTMLButtonElement} */
+    #btnNewPalette;
+    /** @type {HTMLButtonElement} */
     #btnAddPalette;
     /** @type {HTMLButtonElement} */
     #btnRemovePalette;
@@ -181,6 +201,9 @@ export default class PaletteToolbox {
     constructor(element) {
         this.#element = element;
         this.#createPaletteButtons();
+
+        this.#btnNewPalette = this.#element.querySelector('#btnNewPalette');
+        this.#btnNewPalette.onclick = () => this.onNewPalette(this, {});
 
         this.#btnAddPalette = this.#element.querySelector('#btnAddPalette');
         this.#btnAddPalette.onclick = () => this.onAddPalette(this, {});

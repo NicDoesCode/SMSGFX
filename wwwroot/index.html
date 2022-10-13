@@ -61,11 +61,14 @@
                     <div class="card-body">
                         <div class="row align-items-center">
                             <div class="col-auto">
-                                <div class="input-group">
+                                <div class="input-group input-group-sm">
                                     <select id="tbPaletteSelect" class="form-select form-select-sm">
                                     </select>
-                                    <button id="btnAddPalette" class="btn btn-outline-secondary">
-                                        <i class="bi bi-plus-lg"></i> Add
+                                    <button id="btnNewPalette" class="btn btn-outline-secondary" title="Create a new palette.">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+                                    <button id="btnAddPalette" class="btn btn-outline-secondary" title="Import a palette from your assembly code.">
+                                        <i class="bi bi-box-arrow-in-down"></i>
                                     </button>
                                     <button id="btnRemovePalette" class="btn btn-outline-secondary">
                                         <i class="bi bi bi-trash-fill"></i>
@@ -215,13 +218,16 @@
     </div>
 
     <div class="modal fade" id="tbPaletteDialogue" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Add palette</h5>
+                    <h5 class="modal-title">Import palette from assembly code</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <p>Copy and paste the HEX tile data from your WLA-DX project below and it will be decoded.</p>
+                    <p>This will add a new colour palette to your project.</p>
+                    <p>Make sure that you select the appropriate system or there may be unintended results.</p>
                     <div class="mb-3">
                         <label for="tbPaletteInputSystem">Select the system</label>
                         <select id="tbPaletteInputSystem" class="form-select">
@@ -230,7 +236,7 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="tbPaletteInput">Copy and paste the palette into the form below</label>
+                        <label for="tbPaletteInput">Copy and paste the HEX palette data from your WLA-DX project below</label>
                         <textarea class="form-control" id="tbPaletteInput" rows="4"></textarea>
                     </div>
                 </div>
@@ -243,16 +249,17 @@
     </div>
 
     <div class="modal fade" id="tbTileDialogue" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Add tile set</h5>
+                    <h5 class="modal-title">Import tile set from assembly code</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Copy and paste the tiles into the form below</p>
+                    <p>Copy and paste the HEX tile data from your WLA-DX project below and it will be decoded.</p>
+                    <p>This will replace the current tiles in your project.</p>
                     <div class="mb-3">
-                        <textarea class="form-control" id="tbLoadTiles" rows="8"></textarea>
+                        <textarea class="form-control" id="tbLoadTiles" rows="10"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -267,11 +274,11 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Export</h5>
+                    <h5 class="modal-title">Export assembly code</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Copy and paste the following into your project</p>
+                    <p>Copy and paste the following to use it in your WLA-DX project.</p>
                     <div class="mb-3">
                         <textarea class="form-control text-monospace" style="font-family:monospace; font-size: 0.8em"
                             id="tbExport" rows="16"></textarea>
