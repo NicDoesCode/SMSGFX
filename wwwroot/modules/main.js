@@ -12,6 +12,10 @@ import PaletteToolbox from "./ui/paletteToolbox.js";
 import TileEditor from "./ui/tileEditor.js";
 import HeaderBar from "./ui/headerBar.js";
 import ProjectFile from "./util/projectFile.js";
+import PaletteList from "./paletteList.js";
+import TileSetList from "./tileSetList.js";
+import Tile from "./tile.js";
+import ColourUtil from './util/colourUtil.js'
 
 const dataStore = new DataStore();
 const tileCanvas = new TileCanvas();
@@ -30,6 +34,8 @@ let selectedTool = null;
 $(() => {
 
     dataStore.loadFromLocalStorage();
+
+    createDefaultPalettesAndTileSetIfNoneExist();
 
     headerBar.onProjectLoad = handleHeaderBarProjectLoad;
     headerBar.onProjectSave = handleHeaderBarProjectSave;
@@ -77,6 +83,28 @@ $(() => {
         }
     }
 });
+
+function createDefaultPalettesAndTileSetIfNoneExist() {
+    if (dataStore.tileSetList.length === 0) {
+        const dummyArray = new Uint8ClampedArray(64 * 8 * 8);
+        dummyArray.fill(15, 0, dummyArray.length);
+        const tileSet = new TileSet(dummyArray);
+        tileSet.tileWidth = 8;
+        dataStore.tileSetList.addTileSet(tileSet);
+    };
+    if (dataStore.paletteList.length === 0) {
+        /** @type string[] */
+        const colours = ['#000000', '#000000', '#00AA00', '#00FF00', '#000055', '#0000FF', '#550000', '#00FFFF', '#AA0000', '#FF0000', '#555500', '#FFFF00', '#005500', '#FF00FF', '#555555', '#FFFFFF'];
+        for (let i = 0; i < 2; i++) {
+            const system = i % 2 === 0 ? 'ms' : 'gg';
+            const palette = new Palette(system, 0);
+            for (let c = 0; c < 16; c++) {
+                palette.setColour(c, ColourUtil.paletteColourFromHex(c, system, colours[c]));
+            }
+            dataStore.paletteList.addPalette(palette);
+        }
+    }
+}
 
 function getTileSet() {
     if (dataStore.tileSetList.length > 0) {
