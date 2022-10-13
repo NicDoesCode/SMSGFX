@@ -36,6 +36,10 @@ export default class DataStore {
     #paletteList;
     /** @type {TileSetList} */
     #tileSetList;
+    /** @type {UndoState[]} */
+    #undoStates = [];
+    /** @type {UndoState[]} */
+    #redoStates = [];
 
 
     constructor() {
@@ -79,31 +83,35 @@ export default class DataStore {
     }
 
 
-    #undoStates = [];
-    #redoStates = [];
-
+    /**
+     * Records the current palette and tile state to the undo cache.
+     */
     recordUndoState() {
         this.clearRedoState();
-        this.#undoStates.push({
-            palettes: this.#paletteList.serialise(),
-            tiles: this.#tileSetList.serialise()
-        });
+        this.#undoStates.push(this.#createUndoState());
     }
 
+    /**
+     * Clears the redo state cache.
+     */
     clearRedoState() {
         this.#redoStates = [];
     }
 
+    /**
+     * Clears the undo and redo state cache.
+     */
     clearUndoState() {
         this.#undoStates = [];
         this.#redoStates = [];
     }
 
+    /**
+     * Rolls back to the previously recorded state in the undo cache. 
+     * Stores the current state in the redo cache.
+     */
     undo() {
-        this.#redoStates.push({
-            palettes: this.#paletteList.serialise(),
-            tiles: this.#tileSetList.serialise()
-        });
+        this.#redoStates.push(this.#createUndoState());
         const thisUndo = this.#undoStates.pop();
         if (thisUndo) {
             this.#paletteList = PaletteList.deserialise(thisUndo.palettes);
@@ -111,15 +119,27 @@ export default class DataStore {
         }
     }
 
+    /**
+     * Rolls forward to the last state added to the redo cache.
+     * Stores the current state in the undo cache.
+     */
     redo() {
-        this.#undoStates.push({
-            palettes: this.#paletteList.serialise(),
-            tiles: this.#tileSetList.serialise()
-        });
+        this.#undoStates.push(this.#createUndoState());
         const thisRedo = this.#redoStates.pop();
         if (thisRedo) {
             this.#paletteList = PaletteList.deserialise(thisRedo.palettes);
             this.#tileSetList = TileSetList.deserialise(thisRedo.tiles);
+        }
+    }
+
+    /**
+     * Creates an undo state from the current data state.
+     * @returns {UndoState}
+     */
+    #createUndoState() {
+        return {
+            palettes: this.#paletteList.serialise(),
+            tiles: this.#tileSetList.serialise()
         }
     }
 
@@ -238,3 +258,11 @@ export class DataStoreUIData {
 
 
 }
+
+/**
+ * Represents a palette and tile state that can be undone.
+ * @typedef UndoState
+ * @type {object}
+ * @property {string[]} palettes - Palette data serialised to an array of strings.
+ * @property {string[]} tiles - Tile data serialised to an array of strings.
+ */
