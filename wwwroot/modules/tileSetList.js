@@ -106,14 +106,19 @@ export default class TileSetList {
 
     /**
      * Returns a deserialised list of tile sets.
-     * @param {string} value Serialised list of tile sets.
+     * @param {string|string[]} value Serialised list of tile sets.
      * @returns {TileSetList}
      */
     static deserialise(value) {
         if (value) {
             const tileSetList = new TileSetList();
             /** @type {string[]} */
-            const jsonStringTileSets = JSON.parse(value);
+            let jsonStringTileSets;
+            if (typeof value === 'string') {
+                jsonStringTileSets = JSON.parse(value);
+            } else {
+                jsonStringTileSets = value;
+            }
             jsonStringTileSets.forEach(jsonStringTileSet => {
                 /** @type {JsonTileSet} */
                 const jsonTileSet = JSON.parse(jsonStringTileSet);

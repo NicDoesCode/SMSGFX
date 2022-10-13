@@ -16,8 +16,8 @@ export default class ProjectFile {
         const fileDate = moment(theDate).format('YYYY-MM-DD-HHmmss');
         const exportData = {
             info: `Exported at ${theDate.toISOString()}`,
-            tiles: JSON.parse(tileSetList.serialise()),
-            palettes: JSON.parse(paletteList.serialise())
+            tiles: tileSetList.serialise(),
+            palettes: paletteList.serialise()
         };
         const serialisedData = JSON.stringify(exportData, null, '  ');
         const file = new File([serialisedData], `smsgfx-${fileDate}.json`, {type: 'application/json'});
@@ -27,6 +27,17 @@ export default class ProjectFile {
         a.download = `smsgfx-${fileDate}.json`;
         a.click();
         URL.revokeObjectURL(url);
+    }
+
+    /**
+     * 
+     * @param {Blob} blob - The input file.
+     */
+    static async loadFromFile(blob) {
+        const buf = await blob.arrayBuffer();
+        const data = String.fromCharCode.apply(null, new Uint8Array(buf));
+        const object = JSON.parse(data);
+        return object;
     }
 
 }

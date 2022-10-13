@@ -12,10 +12,9 @@ import PaletteToolbox from "./ui/paletteToolbox.js";
 import TileEditor from "./ui/tileEditor.js";
 import HeaderBar from "./ui/headerBar.js";
 import ProjectFile from "./util/projectFile.js";
-import PaletteList from "./paletteList.js";
-import TileSetList from "./tileSetList.js";
-import Tile from "./tile.js";
 import ColourUtil from './util/colourUtil.js'
+import TileSetList from "./tileSetList.js";
+import PaletteList from "./paletteList.js";
 
 const dataStore = new DataStore();
 const tileCanvas = new TileCanvas();
@@ -129,7 +128,38 @@ function getPalette() {
  * @param {object} e Event args.
  */
 function handleHeaderBarProjectLoad(sender, e) {
-    alert('Project load : Not implemented yet!');
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.onchange = () => {
+        if (input.files.length > 0) {
+            ProjectFile.loadFromFile(input.files[0]).then(data => {
+                // Add loaded tiles
+                const t = TileSetList.deserialise(data.tiles);
+                dataStore.tileSetList.clear();
+                for (let i = 0; i < t.length; i++) {
+                    dataStore.tileSetList.addTileSet(t.getTileSet(i));
+                }
+                // Add loaded palettes
+                const p = PaletteList.deserialise(data.palettes);
+                dataStore.paletteList.clear();
+                for (let i = 0; i < p.length; i++) {
+                    dataStore.paletteList.addPalette(p.getPalette(i));
+                }
+                // Refresh
+                const palette = p.getPalette(0);
+                paletteToolbox.setPalette(dataStore.paletteList.getPalette(0));
+                const tileSet = t.getTileSet(0);
+                tileEditor.tileWidth = tileSet.tileWidth;
+                // Display the last used tile set.
+                tileCanvas.palette = palette;
+                tileCanvas.tileSet = tileSet;
+                tileCanvas.drawUI(tileEditor.canvas);
+            });
+        }
+    }
+    input.click();
+    return false;    
 }
 
 /**

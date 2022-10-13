@@ -104,14 +104,19 @@ export default class PaletteList {
 
     /**
      * Returns a deserialised list of palettes.
-     * @param {string} value Serialised list of palettes.
+     * @param {string|string[]} value Serialised list of palettes.
      * @returns {PaletteList}
      */
     static deserialise(value) {
         if (value) {
             const result = new PaletteList();
             /** @type {string[]} */
-            const jsonPalettesAsString = JSON.parse(value);
+            let jsonPalettesAsString;
+            if (typeof value === 'string') {
+                jsonPalettesAsString = JSON.parse(value);
+            } else {
+                jsonPalettesAsString = value;
+            }
             jsonPalettesAsString.forEach(jsonPaletteAsString => {
                 /** @type {JSONPalette} */
                 const deserialsedPalette = JSON.parse(jsonPaletteAsString);
