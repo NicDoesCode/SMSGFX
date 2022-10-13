@@ -15,6 +15,48 @@ import ProjectFile from "./util/projectFile.js";
 import ColourUtil from './util/colourUtil.js'
 import TileSetList from "./tileSetList.js";
 import PaletteList from "./paletteList.js";
+import Tile from "./tile.js";
+
+// const importingNodes = [];
+
+// /**
+//  * Parent document.
+//  * @param {Node} parentNode Node to look for imports within.
+//  */
+//  async function importNodes(parentNode) {
+//     if (!parentNode) parentNode = document;
+//     const linkNodes = parentNode.querySelectorAll('link[rel=import]');
+//     linkNodes.forEach(async (linkNode) => {
+//         try {
+//             importingNodes.push(linkNode);
+//             const resp = await fetch(linkNode.href);
+//             console.log(`importNodes : ${resp.status} : ${linkNode.href}`); // TMP
+//             if (resp.ok) {
+//                 const html = await resp.text();
+//                 linkNode.innerHTML = html;
+//                 if (linkNode.hasChildNodes()) {
+//                     await importNodes(linkNode);
+//                     while (linkNode.childNodes.length > 0) {
+//                         linkNode.after(linkNode.childNodes[linkNode.childNodes.length - 1]);
+//                     }
+//                 }
+//                 linkNode.remove();
+//             } else {
+//                 throw `Import '${resp.url}' failed with status ${resp.status}.`
+//             }
+//         } catch (e) {
+//             console.error(e);
+//         } finally {
+//             importingNodes.pop();
+//         }
+//     });
+// }
+
+// await importNodes();
+
+// while (importingNodes.length > 0) {
+
+// }
 
 const dataStore = new DataStore();
 const tileCanvas = new TileCanvas();
@@ -30,8 +72,9 @@ const headerBar = new HeaderBar(document.getElementById('tbHeaderBar'));
 /** @type {string} */
 let selectedTool = null;
 
-$(() => {
+$(async () => {
 
+    // Get any saved data from local storage
     dataStore.loadFromLocalStorage();
 
     createDefaultPalettesAndTileSetIfNoneExist();
@@ -58,7 +101,11 @@ $(() => {
 
     colourPickerDialogue.onConfirm = handleColourPickerConfirm;
 
-    tileEditor.onAddTileSet = (sender, e) => tileDialogue.show();
+    tileEditor.onAddTile = handleTileEditorAddTile;
+    tileEditor.onImportTileSet = (sender, e) => tileDialogue.show();
+    tileEditor.onRemoveTile = handleTileEditorRemoveTile;
+    tileEditor.onInsertTileBefore = handleTileEditorInsertTileBefore;
+    tileEditor.onInsertTileAfter = handleTileEditorInsertTileAfter;
     tileEditor.onPixelMouseDown = handleTileEditorPixelMouseDown;
     tileEditor.onPixelMouseUp = handleTileEditorPixelMouseUp;
     tileEditor.onPixelOver = handleTileEditorPixelOver;
@@ -159,7 +206,7 @@ function handleHeaderBarProjectLoad(sender, e) {
         }
     }
     input.click();
-    return false;    
+    return false;
 }
 
 /**
@@ -170,7 +217,7 @@ function handleHeaderBarProjectSave(sender, e) {
     const tileSetList = dataStore.tileSetList;
     const paletteList = dataStore.paletteList;
     ProjectFile.saveToFile(tileSetList, paletteList);
-    return false;    
+    return false;
 }
 
 /**
@@ -182,7 +229,7 @@ function handleHeaderBarCodeExport(sender, e) {
     const paletteList = dataStore.paletteList;
     exportDialogue.generateExportData(tileSetList, paletteList);
     exportDialogue.show();
-    return false;    
+    return false;
 }
 
 
@@ -279,12 +326,73 @@ function handleTileEditorPixelOver(sender, e) {
 }
 
 /**
+ * @param {TileEditor} sender Tile editor that triggered the event.
+ * @param {import("./ui/tileEditor.js").TileEditorCallback} e Event args.
+ */
+function handleTileEditorAddTile(sender, e) {
+    const tileSet = getTileSet();
+    if (tileSet) {
+        const tileDataArray = new Uint8ClampedArray(64);
+        tileDataArray.fill(15, 0, tileDataArray.length);
+        tileSet.addTile(new Tile(tileDataArray));
+        tileCanvas.invalidateImage();
+        tileCanvas.drawUI(tileEditor.canvas, 0, 0);
+    }
+    return false;
+}
+
+/**
  * @param {TileEditor} sender Tile dialogue that sent the confirmation.
  * @param {import("./ui/tileEditor.js").TileEditorPixelEventData} e Event args.
  */
 function handleTileEditorPixelMouseDown(sender, e) {
     const colourIndex = paletteToolbox.selectedPaletteColourIndex;
     takeToolAction(selectedTool, colourIndex, e.imageX, e.imageY);
+}
+
+/**
+ * @param {TileEditor} sender Tile dialogue that sent the confirmation.
+ * @param {import("./ui/tileEditor.js").TileEditorPixelEventData} e Event args.
+ */
+function handleTileEditorRemoveTile(sender, e) {
+    const tileSet = getTileSet();
+    const tile = tileSet.getTileByCoordinate(e.imageX, e.imageY);
+    const tileIndex = tileSet.getTileIndex(tile);
+    tileSet.removeTile(tileIndex);
+    tileCanvas.invalidateImage();
+    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
+}
+
+/**
+ * @param {TileEditor} sender Tile dialogue that sent the confirmation.
+ * @param {import("./ui/tileEditor.js").TileEditorPixelEventData} e Event args.
+ */
+function handleTileEditorInsertTileBefore(sender, e) {
+    const tileSet = getTileSet();
+    const tile = tileSet.getTileByCoordinate(e.imageX, e.imageY);
+    const tileIndex = tileSet.getTileIndex(tile);
+    const tileDataArray = new Uint8ClampedArray(64);
+    tileDataArray.fill(15, 0, tileDataArray.length);
+    const newTile = new Tile(tileDataArray);
+    tileSet.insertTileAt(newTile, tileIndex);
+    tileCanvas.invalidateImage();
+    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
+}
+
+/**
+ * @param {TileEditor} sender Tile dialogue that sent the confirmation.
+ * @param {import("./ui/tileEditor.js").TileEditorPixelEventData} e Event args.
+ */
+function handleTileEditorInsertTileAfter(sender, e) {
+    const tileSet = getTileSet();7
+    const tile = tileSet.getTileByCoordinate(e.imageX, e.imageY);
+    const tileIndex = tileSet.getTileIndex(tile);
+    const tileDataArray = new Uint8ClampedArray(64);
+    tileDataArray.fill(15, 0, tileDataArray.length);
+    const newTile = new Tile(tileDataArray);
+    tileSet.insertTileAt(newTile, tileIndex + 1);
+    tileCanvas.invalidateImage();
+    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
 }
 
 /**

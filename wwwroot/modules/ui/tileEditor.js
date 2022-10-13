@@ -5,19 +5,37 @@ export default class TileEditor {
      * When a palette is to be imported.
      * @type {TileEditorCallback} 
      */
-    get onAddTileSet() {
-        return this.#onAddTileSetCallback;
+    get onImportTileSet() {
+        return this.onImportTileSetCallback;
     }
-    set onAddTileSet(value) {
+    set onImportTileSet(value) {
         if (value && typeof value === 'function') {
-            this.#onAddTileSetCallback = value;
+            this.onImportTileSetCallback = value;
         } else {
-            this.#onAddTileSetCallback = () => { };
+            this.onImportTileSetCallback = () => { };
         }
     }
 
     /** @type {TileEditorCallback} */
-    #onAddTileSetCallback = () => { };
+    onImportTileSetCallback = () => { };
+
+    /** 
+     * When a palette is to be imported.
+     * @type {TileEditorCallback} 
+     */
+    get onAddTile() {
+        return this.onAddTileCallback;
+    }
+    set onAddTile(value) {
+        if (value && typeof value === 'function') {
+            this.onAddTileCallback = value;
+        } else {
+            this.onAddTileCallback = () => { };
+        }
+    }
+
+    /** @type {TileEditorCallback} */
+    onAddTileCallback = () => { };
 
     /** 
      * Selected tool is changed.
@@ -127,6 +145,59 @@ export default class TileEditor {
     /** @type {TileEditorPixelCallback} */
     #onPixelMouseUpCallback = () => { };
 
+    /** 
+     * Tile is to be removed.
+     * @type {TileEditorPixelCallback} 
+     */
+    get onRemoveTile() {
+        return this.#onRemoveTileCallback;
+    }
+    set onRemoveTile(value) {
+        if (value && typeof value === 'function') {
+            this.#onRemoveTileCallback = value;
+        } else {
+            this.#onRemoveTileCallback = () => { };
+        }
+    }
+
+    /** @type {TileEditorPixelCallback} */
+    #onRemoveTileCallback = () => { };
+
+    /** 
+     * Tile is it be inserted before this one.
+     * @type {TileEditorPixelCallback} 
+     */
+     get onInsertTileBefore() {
+        return this.#onInsertTileBeforeCallback;
+    }
+    set onInsertTileBefore(value) {
+        if (value && typeof value === 'function') {
+            this.#onInsertTileBeforeCallback = value;
+        } else {
+            this.#onInsertTileBeforeCallback = () => { };
+        }
+    }
+
+    /** @type {TileEditorPixelCallback} */
+    #onInsertTileBeforeCallback = () => { };
+
+    /** 
+     * Tile is it be inserted after this one.
+     * @type {TileEditorPixelCallback} 
+     */
+     get onInsertTileAfter() {
+        return this.#onInsertTileAfterCallback;
+    }
+    set onInsertTileAfter(value) {
+        if (value && typeof value === 'function') {
+            this.#onInsertTileAfterCallback = value;
+        } else {
+            this.#onInsertTileAfterCallback = () => { };
+        }
+    }
+
+    /** @type {TileEditorPixelCallback} */
+    #onInsertTileAfterCallback = () => { };
 
     /**
      * Gets the current pixel zoom value.
@@ -167,8 +238,14 @@ export default class TileEditor {
     #element;
     /** @type {HTMLCanvasElement} */
     #tbCanvas;
+    /** @type {HTMLDivElement} */
+    #tbTileEditorMenu;
     /** @type {HTMLButtonElement} */
-    #btnAddTileSet;
+    #btnTileEditorMenu;
+    /** @type {HTMLButtonElement} */
+    #btnTilesAddTile;
+    /** @type {HTMLButtonElement} */
+    #btnTilesImport;
     /** @type {HTMLInputElement} */
     #tbTileSetWidth;
     /** @type {HTMLSelectElement} */
@@ -192,8 +269,17 @@ export default class TileEditor {
 
         this.#tbCanvas = this.#element.querySelector('#tbCanvas');
 
-        this.#btnAddTileSet = this.#element.querySelector('#btnAddTileSet');
-        this.#btnAddTileSet.onclick = () => this.onAddTileSet(this, {});
+        this.#tbTileEditorMenu = this.#element.querySelector('#tbTileEditorMenu');
+        this.#btnTileEditorMenu = this.#element.querySelector('#btnTileEditorMenu');
+        this.#tbTileEditorMenu.querySelector('button[data-command=remove]').onclick = (event) => this.#handleTileContext(event);
+        this.#tbTileEditorMenu.querySelector('button[data-command=insert-before]').onclick = (event) => this.#handleTileContext(event);
+        this.#tbTileEditorMenu.querySelector('button[data-command=insert-after]').onclick = (event) => this.#handleTileContext(event);
+
+        this.#btnTilesAddTile = this.#element.querySelector('#btnTilesAddTile');
+        this.#btnTilesAddTile.onclick = () => this.onAddTile(this, {});
+
+        this.#btnTilesImport = this.#element.querySelector('#btnTilesImport');
+        this.#btnTilesImport.onclick = () => this.onImportTileSet(this, {});
 
         this.#tbTileSetWidth = this.#element.querySelector('#tbTileSetWidth');
         this.#tbTileSetWidth.onchange = () => this.#handleTileSetWidthChange();
@@ -207,6 +293,7 @@ export default class TileEditor {
         this.#tbCanvas.onmousedown = (event) => this.#handleCanvasMouseDown(event);
         this.#tbCanvas.onmouseup = (event) => this.#handleCanvasMouseUp(event);
         this.#tbCanvas.onmouseleave = (event) => this.#handleCanvasMouseUp(event);
+        this.#tbCanvas.oncontextmenu = (event) => this.#handleCanvasContextMenu(event);
 
         const toolButtons = this.#element.querySelectorAll('button[data-tool-button]');
         toolButtons.forEach(toolButton => {
@@ -260,9 +347,11 @@ export default class TileEditor {
 
     /** @param {MouseEvent} event */
     #handleCanvasMouseDown(event) {
-        this.#canvasMouseIsDown = true;
-        const coords = this.#getImageCoordinatesFromMouseEvent(event);
-        this.onPixelMouseDown(this, { imageX: coords.imageX, imageY: coords.imageY });
+        if (event.button === 0) {
+            this.#canvasMouseIsDown = true;
+            const coords = this.#getImageCoordinatesFromMouseEvent(event);
+            this.onPixelMouseDown(this, { imageX: coords.imageX, imageY: coords.imageY });
+        }
     }
 
     /** @param {MouseEvent} event */
@@ -270,6 +359,32 @@ export default class TileEditor {
         this.#canvasMouseIsDown = false;
         const coords = this.#getImageCoordinatesFromMouseEvent(event);
         this.onPixelMouseUp(this, { imageX: coords.imageX, imageY: coords.imageY });
+    }
+
+    /** @param {MouseEvent} event */
+    #handleCanvasContextMenu(event) {
+        const coords = this.#getImageCoordinatesFromMouseEvent(event);
+        const rect = this.#element.getBoundingClientRect();
+        this.#btnTileEditorMenu.style.top = `${(event.clientY - rect.top - 20)}px`;
+        this.#btnTileEditorMenu.style.left = `${(event.clientX - rect.left - 20)}px`;
+        this.#btnTileEditorMenu.click();
+        this.#btnTileEditorMenu.setAttribute('data-coords', JSON.stringify(coords));
+        return false;
+    }
+
+    /**
+     * @param {MouseEvent} event 
+     */
+    #handleTileContext(event) {
+        const coords = JSON.parse(this.#btnTileEditorMenu.getAttribute('data-coords'));
+        const command = event.target.getAttribute('data-command');
+        if (command === 'remove') {
+            this.onRemoveTile(this, coords);
+        } else if (command === 'insert-before') {
+            this.onInsertTileBefore(this, coords);
+        } else if (command === 'insert-after') {
+            this.onInsertTileAfter(this, coords);
+        }
     }
 
     #handleTileSetWidthChange() {
@@ -294,7 +409,6 @@ export default class TileEditor {
     #handleToolChanged(tool) {
         this.onSelectedToolChanged(this, { tool });
     }
-
 
 }
 

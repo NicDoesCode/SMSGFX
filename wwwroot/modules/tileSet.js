@@ -9,7 +9,7 @@ export default class TileSet {
     /**
      * The amount of tiles in this tile set.
      */
-     get tileCount() {
+    get tileCount() {
         return this.#tiles.length;
     }
 
@@ -140,10 +140,7 @@ export default class TileSet {
         if (!(x >= 1 && x <= this.#pxPerRow)) throw new Error(`X coordinate must be between 1 and ${this.#pxPerRow}.`);
         if (!(y >= 1 && y <= this.#heightPx)) throw new Error(`Y coordinate must be between 1 and ${this.#heightPx}.`);
 
-        const pxFromTopLeft = ((y - 1) * this.#pxPerRow) + x;
-
         this.#readTile = this.getTileByCoordinate(x, y);
-
     }
 
     /**
@@ -227,8 +224,9 @@ export default class TileSet {
      * @returns {Tile}
      */
     getTileByCoordinate(x, y) {
-        if (!(x >= 1 && x <= this.#pxPerRow)) throw new Error(`X coordinate must be between 1 and ${this.#pxPerRow}.`);
-        if (!(y >= 1 && y <= this.#heightPx)) throw new Error(`Y coordinate must be between 1 and ${this.#heightPx}.`);
+
+        // if (!(x >= 1 && x <= this.#pxPerRow)) throw new Error(`X coordinate must be between 1 and ${this.#pxPerRow}.`);
+        // if (!(y >= 1 && y <= this.#heightPx)) throw new Error(`Y coordinate must be between 1 and ${this.#heightPx}.`);
 
         // Work out the amount of pixels counting horizontally from the top left corner, counting across and then down
         // From that, use the basis of 64 px per tile to get the tile index
@@ -257,6 +255,18 @@ export default class TileSet {
         const y = Math.ceil(index / this.#pxPerRow);
         const x = index - y;
         return this.getTileByCoordinate(x, y);
+    }
+
+    /**
+     * Gets the tile index or null if not in the list.
+     * @param {Tile} tile Tile to return the index of.
+     * @returns {number|null}
+     */
+    getTileIndex(tile) {
+        for (let i = 0; i < this.tileCount; i++) {
+            if (this.#tiles[i] === tile) return i;
+        }
+        return null;
     }
 
     /**
@@ -353,5 +363,5 @@ export default class TileSet {
         return tileSet;
     }
 
-    
+
 }

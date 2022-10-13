@@ -22,13 +22,14 @@
                 <form class="container-fluid">
                     <div class="col">
                         <span class="navbar-brand mb-0 h1">
-                            <img src="./assets/image/controller.png" alt="" style="height: 22px; width: auto; box-shadow: 1px 1px 4px #444444;">
+                            <img src="./assets/image/controller.png" alt=""
+                                style="height: 22px; width: auto; box-shadow: 1px 1px 4px #444444;">
                             <label>SMSGFX</label>
                         </span>
                     </div>
                     <div class="col-md-auto text-end pe-3">
                         <div class="input-group input-group-sm">
-                            <span class="input-group-text">Project</span>
+                            <span class="input-group-text">Project file</span>
                             <button id="btnProjectLoad" class="btn btn-outline-secondary" title="Load project.">
                                 <i class="bi bi-file-earmark-arrow-down-fill"></i> Load
                             </button>
@@ -95,8 +96,8 @@
 
             <div class="sms-content-col sms-right">
                 <div id="tbTileEditor" class="sms-rows">
-                    <div class="sms-row">
-                        <!-- Tab bar -->
+                    <!-- <div class="sms-row">
+                        <!- - Tab bar - ->
                         <div class="container-fluid p-0 m-0 mt-3">
                             <ul class="nav nav-tabs">
                                 <li class="nav-item">
@@ -113,16 +114,24 @@
                                 </li>
                             </ul>
                         </div>
-                        <!-- End: Tab bar -->
-                    </div>
+                        <!- - End: Tab bar - ->
+                    </div> -->
                     <div class="sms-row">
                         <!-- Toolbar -->
-                        <div class="sms-tile-toolbar container-fluid p-0 m-0 pt-2 pb-2">
+                        <div class="sms-tile-toolbar container-fluid p-0 m-0 pt-3 pb-2">
                             <div class="row align-items-center p-0 m-0">
                                 <div class="col-auto ms-0 ps-0">
-                                    <button id="btnAddTileSet" class="btn btn-sm btn-outline-secondary" title="Add tiles.">
-                                        <i class="bi bi-plus-lg"></i> Tiles
-                                    </button>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">Tile</span>
+                                        <button id="btnTilesAddTile" class="btn btn-outline-secondary"
+                                            title="Add a new tile.">
+                                            <i class="bi bi-plus-lg"></i> Add
+                                        </button>
+                                        <button id="btnTilesImport" class="btn btn-outline-secondary"
+                                            title="Add tiles.">
+                                            <i class="bi bi-code-square"></i> Import
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="col-auto">
                                     <div class="input-group input-group-sm">
@@ -172,6 +181,20 @@
                         </div>
                         <!-- End: Canvas -->
                     </div>
+
+                    <div id="tbTileEditorMenu" class="dropdown" style="position: absolute">
+                        <button id="btnTileEditorMenu" class="btn btn-secondary dropdown-toggle visually-hidden"
+                            style="position: absolute; z-index: 100; width: 200px" type="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            Dropdown button
+                        </button>
+                        <ul id="tbTileEditorMenuDropDown" class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                            <li><button class="dropdown-item" data-command="remove">Remove this tile</button></li>
+                            <li><button class="dropdown-item" data-command="insert-before">Insert tile before</button></li>
+                            <li><button class="dropdown-item" data-command="insert-after">Insert tile after</button></li>
+                        </ul>
+                    </div>
+
                 </div>
             </div>
         </div>
