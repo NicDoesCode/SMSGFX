@@ -198,7 +198,7 @@ export default class PaletteToolbox {
     #createPaletteButtons() {
 
         /** @type {HTMLTableElement} */
-        const table = this.#element.querySelector('#smsgfx-palette-selector');
+        const table = this.#element.querySelector('#tbPalette');
         /** @type {HTMLTableSectionElement} */
         const tbody = table.querySelector('tbody');
 
@@ -217,7 +217,7 @@ export default class PaletteToolbox {
             tr.appendChild(td);
 
             const btnColour = document.createElement('button');
-            btnColour.classList.add('btn', 'btn-sm', 'btn-outline-secondary', 'position-relative', 'smsgfx-palette-button');
+            btnColour.classList.add('btn', 'btn-sm', 'btn-outline-secondary', 'position-relative', 'sms-palette-button');
             btnColour.setAttribute('data-colour-index', i.toString());
             btnColour.onclick = () => this.#handleColourClicked(i);
             td.appendChild(btnColour);

@@ -10,16 +10,19 @@ import TileModalDialogue from "./ui/tileModalDialogue.js";
 import ExportModalDialogue from "./ui/exportModalDialogue.js";
 import PaletteToolbox from "./ui/paletteToolbox.js";
 import TileEditor from "./ui/tileEditor.js";
+import HeaderBar from "./ui/headerBar.js";
+import ProjectFile from "./util/projectFile.js";
 
 const dataStore = new DataStore();
 const tileCanvas = new TileCanvas();
 
-const paletteDialogue = new PaletteModalDialogue(document.getElementById('smsgfx-palette-modal'));
-const tileDialogue = new TileModalDialogue(document.getElementById('smsgfx-tiles-modal'));
-const exportDialogue = new ExportModalDialogue(document.getElementById('smsgfx-export-modal'));
-const colourPickerDialogue = new ColourPickerModalDialogue(document.getElementById('smsgfx-colour-picker-modal'));
-const paletteToolbox = new PaletteToolbox(document.getElementById('smsgfx-palette-toolbox'));
-const tileEditor = new TileEditor(document.getElementById('smsgfx-tile-editor'));
+const paletteDialogue = new PaletteModalDialogue(document.getElementById('tbPaletteDialogue'));
+const tileDialogue = new TileModalDialogue(document.getElementById('tbTileDialogue'));
+const exportDialogue = new ExportModalDialogue(document.getElementById('tbExportDialogue'));
+const colourPickerDialogue = new ColourPickerModalDialogue(document.getElementById('tbColourPickerDialogue'));
+const paletteToolbox = new PaletteToolbox(document.getElementById('tbPaletteToolbox'));
+const tileEditor = new TileEditor(document.getElementById('tbTileEditor'));
+const headerBar = new HeaderBar(document.getElementById('tbHeaderBar'));
 
 /** @type {string} */
 let selectedTool = null;
@@ -27,6 +30,10 @@ let selectedTool = null;
 $(() => {
 
     dataStore.loadFromLocalStorage();
+
+    headerBar.onProjectLoad = handleHeaderBarProjectLoad;
+    headerBar.onProjectSave = handleHeaderBarProjectSave;
+    headerBar.onCodeExport = handleHeaderBarCodeExport;
 
     paletteDialogue.inputData = dataStore.appUI.lastPaletteInput;
     paletteDialogue.inputSystem = dataStore.appUI.lastPaletteInputSystem;
@@ -47,7 +54,6 @@ $(() => {
     colourPickerDialogue.onConfirm = handleColourPickerConfirm;
 
     tileEditor.onAddTileSet = (sender, e) => tileDialogue.show();
-    tileEditor.onExport = handleShowExportDialogue;
     tileEditor.onPixelMouseDown = handleTileEditorPixelMouseDown;
     tileEditor.onPixelMouseUp = handleTileEditorPixelMouseUp;
     tileEditor.onPixelOver = handleTileEditorPixelOver;
@@ -91,6 +97,36 @@ function getPalette() {
 
 
 /**
+ * @param {HeaderBar} sender Palette dialogue that sent the confirmation.
+ * @param {object} e Event args.
+ */
+function handleHeaderBarProjectLoad(sender, e) {
+    alert('Project load : Not implemented yet!');
+}
+
+/**
+ * @param {HeaderBar} sender Palette dialogue that sent the confirmation.
+ * @param {object} e Event args.
+ */
+function handleHeaderBarProjectSave(sender, e) {
+    const tileSetList = dataStore.tileSetList;
+    const paletteList = dataStore.paletteList;
+    ProjectFile.saveToFile(tileSetList, paletteList);
+}
+
+/**
+ * @param {HeaderBar} sender Palette dialogue that sent the confirmation.
+ * @param {object} e Event args.
+ */
+function handleHeaderBarCodeExport(sender, e) {
+    const tileSetList = dataStore.tileSetList.getTileSet(0);
+    const paletteList = dataStore.paletteList;
+    exportDialogue.generateExportData(tileSetList, paletteList);
+    exportDialogue.show();
+}
+
+
+/**
  * User tries to import a palette.
  * @param {PaletteModalDialogue} sender Palette dialogue that sent the confirmation.
  * @param {object} e Event args.
@@ -115,15 +151,6 @@ function handleImportPalette(sender, e) {
     dataStore.saveToLocalStorage();
 
     paletteToolbox.setPalette(palette);
-}
-
-/**
- * @param {any} sender Initiating object.
- * @param {any} e Event args.
- */
- function handleShowExportDialogue(sender, e) {
-    exportDialogue.generateExportData(dataStore.tileSetList.getTileSet(0), dataStore.paletteList);
-    exportDialogue.show();
 }
 
 /**

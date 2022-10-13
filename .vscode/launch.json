@@ -20,15 +20,6 @@
             "name": "Attach Firefox",
             "url": "http://localhost:8080/index.html",
             "webRoot": "${workspaceFolder}/wwwroot"
-        },
-        {
-            "name": "Launch server",
-            "program": "${workspaceFolder}/app.js",
-            "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "type": "pwa-node"
         }
     ]
 }
