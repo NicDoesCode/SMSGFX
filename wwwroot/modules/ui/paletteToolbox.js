@@ -1,4 +1,5 @@
 import Palette from "../palette.js";
+import ColourUtil from "../util/colourUtil.js";
 
 export default class PaletteToolbox {
 
@@ -299,8 +300,9 @@ export default class PaletteToolbox {
     setPalette(palette) {
         const paletteButtons = this.#paletteButtons;
         for (let i = 0; i < 16; i++) {
-            if (i < palette.colours.length) {
-                paletteButtons[i].style.backgroundColor = palette.colours[i].hex;
+            if (i < palette.getColours().length) {
+                const c = palette.getColour(i);
+                paletteButtons[i].style.backgroundColor = ColourUtil.toHex(c.r, c.g, c.b);
             } else {
                 paletteButtons[i].style.backgroundColor = null;
             }

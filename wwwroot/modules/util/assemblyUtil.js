@@ -1,5 +1,6 @@
-export default class AssemblyUtility {
+export default class AssemblyUtil {
 
+    
     /**
      * Reads the contents of a WLA-DX assembly string as a string of bytes. 
      * Supports .db, .dw, .dl, .dd.
@@ -64,7 +65,7 @@ export default class AssemblyUtility {
      */
     static readAsUint8ClampedArray(content) {
 
-        const hexContent = AssemblyUtility.#readToHexString(content);
+        const hexContent = AssemblyUtil.#readToHexString(content);
         const result = new Uint8ClampedArray(hexContent.length / 2);
         for (let i = 0; i < result.length; i++) {
             result[i] = parseInt(hexContent.substring(i * 2, i * 2 + 2), 16);
@@ -80,7 +81,7 @@ export default class AssemblyUtility {
      */
     static readAsUint8Array(content) {
 
-        const hexContent = AssemblyUtility.#readToHexString(content);
+        const hexContent = AssemblyUtil.#readToHexString(content);
         const result = new Uint8Array(hexContent.length / 2);
         for (let i = 0; i < result.length; i++) {
             result[i] = parseInt(hexContent.substring(i * 2, i * 2 + 2), 16);
@@ -96,7 +97,7 @@ export default class AssemblyUtility {
      */
     static readAsUint16Array(content) {
 
-        const hexContent = AssemblyUtility.#readToHexString(content);
+        const hexContent = AssemblyUtil.#readToHexString(content);
         const result = new Uint16Array(hexContent.length / 4);
         for (let i = 0; i < result.length; i++) {
             result[i] = parseInt(hexContent.substring(i * 4, i * 4 + 4), 16);
@@ -112,7 +113,7 @@ export default class AssemblyUtility {
      */
     static readAsUint32Array(content) {
 
-        const hexContent = AssemblyUtility.#readToHexString(content);
+        const hexContent = AssemblyUtil.#readToHexString(content);
         const result = new Uint32Array(hexContent.length / 8);
         for (let i = 0; i < result.length; i++) {
             result[i] = parseInt(hexContent.substring(i * 8, i * 8 + 8), 16);
@@ -157,5 +158,6 @@ export default class AssemblyUtility {
 
         return result;
     }
+
 
 }

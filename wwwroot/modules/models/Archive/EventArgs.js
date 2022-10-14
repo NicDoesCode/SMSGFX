@@ -1,0 +1,4 @@
+/**
+ * @typedef EventArgs
+ * @type {object}
+ */

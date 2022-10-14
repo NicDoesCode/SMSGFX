@@ -15,7 +15,15 @@ export default class PaletteList {
     #palettes = [];
 
 
-    constructor() {
+    /**
+     * Creates a new instance of a palette list.
+     * @param {Palette[]?} palettes - Initial array of palettes to populate.
+     */
+    constructor(palettes) {
+        if (palettes && !Array.isArray(palettes)) throw new Error('Array of palettes must be passed.');
+        if (palettes && Array.isArray(palettes)) {
+            palettes.forEach(p => this.addPalette(p));
+        }
     }
 
 
@@ -40,7 +48,7 @@ export default class PaletteList {
 
     /**
      * Adds a palette to the list.
-     * @param {Palette} value Palette object to add.
+     * @param {Palette|Palette[]} value Palette object to add.
      */
     addPalette(value) {
         this.#palettes.push(value);
@@ -87,56 +95,5 @@ export default class PaletteList {
         this.#palettes.splice(0, this.#palettes.length);
     }
 
-    /**
-     * Serialises the list of palettes.
-     * @returns {string} 
-     */
-    serialise() {
-        const jsonPalettes = this.#palettes.map(palette => {
-            return JSON.stringify({
-                system: palette.system,
-                index: palette.index,
-                colours: palette.colours
-            });
-        });
-        return JSON.stringify(jsonPalettes);
-    }
-
-    /**
-     * Returns a deserialised list of palettes.
-     * @param {string|string[]} value Serialised list of palettes.
-     * @returns {PaletteList}
-     */
-    static deserialise(value) {
-        if (value) {
-            const result = new PaletteList();
-            /** @type {string[]} */
-            let jsonPalettesAsString;
-            if (typeof value === 'string') {
-                jsonPalettesAsString = JSON.parse(value);
-            } else {
-                jsonPalettesAsString = value;
-            }
-            jsonPalettesAsString.forEach(jsonPaletteAsString => {
-                /** @type {JSONPalette} */
-                const deserialsedPalette = JSON.parse(jsonPaletteAsString);
-                const palette = new Palette(deserialsedPalette.system, deserialsedPalette.index);
-                deserialsedPalette.colours.forEach((colour, index) => {
-                    palette.setColour(index, colour);
-                });
-                result.addPalette(palette);
-            });
-            return result;
-        } else throw new Error('Invalid palette data supplied.');
-    }
-
     
 }
-
-/**
- * @typedef JSONPalette
- * @type {object}
- * @property {string} system - Either 'ms' (Sega Master) or 'gg' (Sega Game Gear).
- * @property {number} index - Palette index, either 0 or 1.
- * @property {Array<PaletteColour>} colours - Colours in the palette.
- */

@@ -1,29 +1,28 @@
-import TileSet from "./tileSet.js";
-import PaletteList from "./paletteList.js";
+import TileSet from "../models/tileSet.js";
+import PaletteList from "../models/paletteList.js";
+import ColourUtil from "../util/colourUtil.js";
+import Project from "../models/project.js";
 
-export default class Export {
+export default class ProjectAssemblySerialiser {
 
-    constructor() {
-    }
 
     /**
-     * 
-     * @param {TileSet} tileSet 
-     * @param {PaletteList} palettes 
+     * Exports project tile set and colour palettes as WLA-DX compatible assembly code.
+     * @param {Project} project - The project to export.
      */
-    getExportData(tileSet, palettes) {
+    static serialise(project) {
         const result = [];
-        result.push(this.#exportPalettes(palettes));
+        result.push(ProjectAssemblySerialiser.#exportPalettes(project.paletteList));
         result.push('');
-        result.push(this.#exportTiles(tileSet));
+        result.push(ProjectAssemblySerialiser.#exportTiles(project.tileSet));
         return result.join('\r\n');
     }
 
     /**
-     * 
-     * @param {PaletteList} palettes 
+     * Exports colour palettes as WLA-DX compatible assembly code.
+     * @param {PaletteList} palettes - Colour palettes to export.
      */
-    #exportPalettes(palettes) {
+    static #exportPalettes(palettes) {
         const message = ['; PALETTES'];
 
         palettes.getPalettes().forEach((p, i, a) => {
@@ -32,14 +31,16 @@ export default class Export {
             message.push(`; Palette ${num} - ${sys}`);
             if (p.system === 'gg') {
                 const colourMessage = ['.dw'];
-                p.colours.forEach(c => {
-                    colourMessage.push(this.#ggColour(c));
+                p.getColours().forEach(c => {
+                    const colour = `$${ColourUtil.getNativeColour('gg', c.r, c.g, c.b)}`;
+                    colourMessage.push(colour);
                 });
                 message.push(colourMessage.join(' '));
             } else if (p.system === 'ms') {
                 const colourMessage = ['.db'];
-                p.colours.forEach(c => {
-                    colourMessage.push(this.#msColour(c));
+                p.getColours().forEach(c => {
+                    const colour = `$${ColourUtil.getNativeColour('ms', c.r, c.g, c.b)}`;
+                    colourMessage.push(colour);
                 });
                 message.push(colourMessage.join(' '));
             }
@@ -49,35 +50,10 @@ export default class Export {
     }
 
     /**
-     * 
-     * @param {import("./palette.js").PaletteColour} value 
-     * @returns 
+     * Exports tile set as WLA-DX compatible assembly code.
+     * @param {TileSet} tileSet - Tile set to export.
      */
-    #ggColour(value) {
-        const r = Math.floor(value.r / 16).toString(16);
-        const g = Math.floor(value.g / 16).toString(16);
-        const b = Math.floor(value.b / 16).toString(16);
-        return `$${b}${g}${r}`.toUpperCase();
-    }
-
-    /**
-     * 
-     * @param {import("./palette.js").PaletteColour} value 
-     * @returns 
-     */
-    #msColour(value) {
-        const r = Math.floor(value.r / 64);
-        const g = Math.floor(value.g / 64);
-        const b = Math.floor(value.b / 64);
-        const result = (b << 4 | g << 2 | r).toString(16).padStart(4, '0').substring(2);
-        return '$' + result.toUpperCase();
-    }
-
-    /**
-     * 
-     * @param {TileSet} tileSet 
-     */
-    #exportTiles(tileSet) {
+    static #exportTiles(tileSet) {
         const message = ['; TILES'];
 
         tileSet.getTiles().forEach((tile, idx, a) => {
