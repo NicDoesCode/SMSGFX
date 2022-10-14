@@ -1,4 +1,4 @@
-import Palette from "../palette.js";
+import Palette from "../models/palette.js";
 import ColourUtil from "../util/colourUtil.js";
 import ModalDialogue from "./modalDialogue.js";
 

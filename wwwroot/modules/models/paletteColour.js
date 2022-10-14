@@ -7,22 +7,22 @@ export default class PaletteColour {
     /** Red component. */
     get r() { return this.#r; }
     set r(value) {
-        if (value < 0 || value > 255) throw 'Colour value must be between 0 and 255';
-        r = value;
+        if (value < 0 || value > 255) throw 'Red colour value must be between 0 and 255';
+        this.#r = value;
     }
 
     /** Green component. */
     get g() { return this.#g; }
     set g(value) {
-        if (value < 0 || value > 255) throw 'Colour value must be between 0 and 255';
-        g = value;
+        if (value < 0 || value > 255) throw 'Green colour value must be between 0 and 255';
+        this.#g = value;
     }
 
     /** Blue component. */
     get b() { return this.#b; }
     set b(value) {
-        if (value < 0 || value > 255) throw 'Colour value must be between 0 and 255';
-        b = value;
+        if (value < 0 || value > 255) throw 'Blue colour value must be between 0 and 255';
+        this.#b = value;
     }
 
 

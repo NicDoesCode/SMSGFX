@@ -1,4 +1,7 @@
 import Palette from "../models/palette.js";
+import PaletteColour from "../models/paletteColour.js";
+import PaletteColourFactory from "../factory/paletteColourFactory.js";
+import ColourUtil from "../util/colourUtil.js";
 
 const defaultColours = ['#000000', '#000000', '#00AA00', '#00FF00', '#000055', '#0000FF', '#550000', '#00FFFF', '#AA0000', '#FF0000', '#555500', '#FFFF00', '#005500', '#FF00FF', '#555555', '#FFFFFF'];
 
@@ -9,8 +12,9 @@ export default class PaletteFactory {
      * Creates a new instance of a palette object.
      * @param {string} index - Title of the palette.
      * @param {string} system - Intended system, either 'ms' (Sega Master) or 'gg' (Sega Game Gear).
+     * @returns {Palette}
      */
-     static create(title, system) {
+    static create(title, system) {
         return new Palette(title, system);
     }
 
@@ -18,21 +22,18 @@ export default class PaletteFactory {
      * Creates a new palette object with the default colours.
      * @param {string} title - Title for the new palette.
      * @param {string} system - System the palette is for, either 'ms' or 'gg'. When invalid input 'ms' is assumed.
+     * @returns {Palette}
      */
     static createNewStandardColourPalette(title, system) {
         if (!title || title.trim() === '') title = 'New palette';
         if (!system || system !== 'gg') system = 'ms';
 
-        /** @type {NewPalette} */
-
-        for (let i = 0; i < 2; i++) {
-            const system = i % 2 === 0 ? 'ms' : 'gg';
-            const palette = PaletteFactory.create(system, 0);
-            for (let c = 0; c < 16; c++) {
-                palette.setColour(c, ColourUtil.paletteColourFromHex(c, system, defaultColours[c]));
-            }
-            dataStore.paletteList.addPalette(palette);
+        const palette = PaletteFactory.create(`${system.toUpperCase()} palette`, system);
+        for (let c = 0; c < 16; c++) {
+            const colour = PaletteColourFactory.fromHex(defaultColours[c]);
+            palette.setColour(c, colour);
         }
+        return palette;
     }
 
     /**
@@ -69,5 +70,5 @@ export default class PaletteFactory {
         return result;
     }
 
-    
+
 }

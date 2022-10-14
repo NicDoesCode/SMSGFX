@@ -1,7 +1,4 @@
 import ModalDialogue from "./modalDialogue.js";
-import Export from "./../export.js";
-import ProjectFactory from "../factory/projectFactory.js";
-import ProjectAssemblySerialiser from "../serialisers/projectAssemblySerialiser.js";
 
 export default class ExportModalDialogue extends ModalDialogue {
 

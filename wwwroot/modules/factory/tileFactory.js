@@ -1,4 +1,5 @@
 import Tile from "../models/tile.js";
+import TileBinarySerialiser from "../serialisers/tileBinarySerialiser.js";
 
 export default class TileFactory {
 
@@ -26,6 +27,31 @@ export default class TileFactory {
         }
 
         return TileFactory.fromArray(result);
+    }
+
+    /**
+     * Creates a tile set from a given array.
+     * @param {Uint8ClampedArray} sourceArray Contains the values for each pixel.
+     * @param {number} [sourceIndex=0] Optional. Index to start reading from.
+     * @param {number} [sourceLength=null] Optional. Number of items to read, if the end of the array is reached then reading will stop.
+     * @returns {Tile}
+     */
+     static fromArray(sourceArray, sourceIndex, sourceLength) {
+        if (!sourceArray) throw new Error('Source array was not valid.');
+        if (!sourceIndex) sourceIndex = 0;
+        if (sourceIndex >= sourceArray.length) throw new Error('The index exceeds the bounds of the source array.');
+        if (sourceIndex < 0) throw new Error('Index must be 0 or greater.');
+        if (!sourceLength) sourceLength = 64;
+        if (sourceLength < 0 || sourceLength > 64) throw new Error('Length must be between 0 and 64.');
+
+        const tile = TileFactory.create();
+        const sourceStopIndex = sourceIndex + sourceLength;
+        let dataIndex = 0;
+        for (let i = sourceIndex; i < sourceArray.length && i < sourceStopIndex; i++) {
+            tile.setValueAt(dataIndex, sourceArray[i]);
+            dataIndex++;
+        }
+        return tile;
     }
 
 

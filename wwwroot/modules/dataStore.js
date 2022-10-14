@@ -2,9 +2,10 @@ import PaletteJsonSerialiser from "./serialisers/paletteJsonSerialiser.js";
 import TileSetJsonSerialiser from "./serialisers/tileSetJsonSerialiser.js";
 import TileSetFactory from "./factory/tileSetFactory.js";
 import TileSet from "./models/tileSet.js";
-import PaletteList from "./models/paletteList.js";
 import AppUIState from "./models/appUIState.js";
 import AppUIStateFactory from "./factory/appUIStateFactory.js";
+import AppUIStateJsonSerialiser from "./serialisers/appUIStateJsonSerialiser.js";
+import PaletteList from "./models/paletteList.js";
 import PaletteListFactory from "./factory/paletteListFactory.js";
 
 const LOCAL_STORAGE_APPUI = 'smsgfxappUi';
@@ -77,7 +78,7 @@ export default class DataStore {
         // Load UI from local storage
         const serialisedAppUI = localStorage.getItem(LOCAL_STORAGE_APPUI);
         if (serialisedAppUI) {
-            this.#appUIState = DataStoreUIData.deserialise(serialisedAppUI);
+            this.#appUIState = AppUIStateJsonSerialiser.deserialise(serialisedAppUI);
         }
 
         // Load palettes from local storage
@@ -165,9 +166,10 @@ export default class DataStore {
      */
     #createUndoState() {
         const paletteArray = this.#paletteList.getPalettes();
-        const palettes = PaletteJsonSerialiser.serialise(paletteArray)
+        const palettes = PaletteJsonSerialiser.serialise(paletteArray);
+        const tiles = TileSetJsonSerialiser.serialise(this.#tileSet);
         return {
-            palettes, tiles: this.#tileSet.serialise()
+            palettes, tiles
         }
     }
 

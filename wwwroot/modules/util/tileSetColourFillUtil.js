@@ -11,12 +11,13 @@ export default class TileSetColourFillUtil {
      * @param {number} fillColour - Palette index to fill with.
      */
     static fill(tileSet, x, y, fillColour) {
-        if (x < 0 || x >= this.#w || y < 0 || y >= this.#h)
-            throw 'Invalid origin coordinates.';
-
-        const f = TileSetColourFillUtil;
         const w = tileSet.tileWidth * 8;
         const h = tileSet.tileHeight * 8;
+        if (x < 0 || x >= w || y < 0 || y >= h)
+            throw 'Invalid origin coordinates.';
+
+
+        const f = TileSetColourFillUtil;
         const originColour = tileSet.getPixelAt(x, y);
         const props = { tileSet, w, h, originColour };
 

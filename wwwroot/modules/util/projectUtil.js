@@ -1,4 +1,4 @@
-import PaletteList from "../paletteList.js";
+import PaletteList from "../models/paletteList.js";
 import PaletteJsonSerialiser from "../serialisers/paletteJsonSerialiser.js";
 import TileSet from "../models/tileSet.js";
 import TileSetJsonSerialiser from "../serialisers/tileSetJsonSerialiser.js";

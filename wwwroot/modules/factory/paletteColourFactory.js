@@ -1,4 +1,5 @@
 import PaletteColour from "../models/paletteColour.js";
+import ColourUtil from "../util/colourUtil.js";
 
 export default class PaletteColourFactory {
 
@@ -26,8 +27,7 @@ export default class PaletteColourFactory {
      * @returns {PaletteColour}
      */
     static fromHex(hex) {
-        const rgb = this.rgbFromHex(hex);
-        rgb.index = index;
+        const rgb = ColourUtil.rgbFromHex(hex);
         return PaletteColourFactory.create(rgb.r, rgb.g, rgb.b);
     }
 
