@@ -11,11 +11,7 @@ export default class TileSetJsonSerialiser {
      * @returns {string} 
      */
     static serialise(tileSet) {
-        /** @type {TileSetSerialisable} */
-        const result = {
-            tileWidth: tileSet.tileWidth,
-            tilesAsHex: tileSet.getTiles().map(t => TileSetJsonSerialiser.#toHex(t))
-        };
+        const result = TileSetJsonSerialiser.toSerialisable(tileSet);
         return JSON.stringify(result);
     }
 
@@ -37,21 +33,45 @@ export default class TileSetJsonSerialiser {
 
     /**
      * Returns a deserialised tile set.
-     * @param {string} tileSetJsonString - JSON serialised tile set.
+     * @param {string} jsonTileSet - JSON serialised tile set.
      * @returns {TileSet}
      */
-    static deserialise(tileSetJsonString) {
-        if (tileSetJsonString) {
+    static deserialise(jsonTileSet) {
+        if (jsonTileSet) {
             /** @type {TileSetSerialisable} */
-            const jsonTileSet = JSON.parse(tileSetJsonString);
-            const result = TileSetFactory.create();
-            result.tileWidth = jsonTileSet.tileWidth;
-            jsonTileSet.tilesAsHex.forEach(tileAsHex => {
-                const newTile = TileFactory.fromHex(tileAsHex);
-                result.addTile(newTile);
-            });
-            return result;
+            const deserialised = JSON.parse(jsonTileSet);
+            return TileSetJsonSerialiser.fromSerialisable(deserialised);
         } else throw new Error('Invalid tile set data supplied.');
+    }
+
+    /**
+     * Converts a tile set object to a serialisable one.
+     * @param {TileSet} tileSet - Tile set to serialise.
+     * @returns {TileSetSerialisable} 
+     */
+     static toSerialisable(tileSet) {
+        if (!tileSet || typeof tileSet.getPixelAt !== 'function') throw new Error('Please pass a tile set.');
+        return {
+            tileWidth: tileSet.tileWidth,
+            tilesAsHex: tileSet.getTiles().map(t => TileSetJsonSerialiser.#toHex(t))
+        };
+    }
+
+    /**
+     * Converts a serialisable tiles set back to a tile set.
+     * @param {TileSetSerialisable} tileSetSerialisable - Serialisable tile set to convert.
+     * @returns {TileSet}
+     */
+    static fromSerialisable(tileSetSerialisable) {
+        if (!tileSetSerialisable) throw new Error('Please pass a serialisable tile set.');
+
+        const result = TileSetFactory.create();
+        result.tileWidth = tileSetSerialisable.tileWidth;
+        tileSetSerialisable.tilesAsHex.forEach(tileAsHex => {
+            const newTile = TileFactory.fromHex(tileAsHex);
+            result.addTile(newTile);
+        });
+        return result;
     }
 
 

@@ -1,7 +1,4 @@
-import Palette from "../models/palette.js";
 import PaletteList from "../models/paletteList.js";
-import PaletteColourFactory from "../factory/paletteColourFactory.js";
-import PaletteFactory from "../factory/paletteFactory.js";
 import PaletteJsonSerialiser from "./paletteJsonSerialiser.js";
 
 export default class PaletteListJsonSerialiser {
@@ -15,10 +12,9 @@ export default class PaletteListJsonSerialiser {
     static serialise(paletteList) {
         if (!paletteList || typeof paletteList.getPalettes !== 'function') throw new Error('Please pass a palette list.');
 
-        const result = paletteList.getPalettes().map(palette => PaletteJsonSerialiser.toSerialisable(palette));
+        const result = PaletteListJsonSerialiser.toSerialisable(paletteList);
         return JSON.stringify(result);
     }
-
 
     /**
      * Returns a deserialised palette list.
@@ -30,13 +26,31 @@ export default class PaletteListJsonSerialiser {
 
         /** @type {import('./paletteJsonSerialiser').PaletteSerialisable[]} */
         const deserialised = JSON.parse(jsonPaletteList);
-        if (Array.isArray(deserialised)) {
+        return PaletteListJsonSerialiser.fromSerialisable(deserialised);
+    }
 
-            const result = new PaletteList();
-            deserialised.forEach(p => result.addPalette(PaletteJsonSerialiser.fromSerialisable(p)));
-            return result;
+    /**
+     * Converts a palette object to a serialisable one.
+     * @param {PaletteList} paletteList - Palette list to convert.
+     * @returns {paletteList} 
+     */
+    static toSerialisable(paletteList) {
+        if (!paletteList || typeof paletteList.getPalettes !== 'function') throw new Error('Please pass a palette list.');
 
-        } else throw new Error('Palette list to deserialise was not valid.');
+        return paletteList.getPalettes().map(palette => PaletteJsonSerialiser.toSerialisable(palette));
+    }
+
+    /**
+     * Converts a serialisable palette array array back to a palette list.
+     * @param {import('./paletteJsonSerialiser').PaletteSerialisable[]} paletteSerialisableArray - Serialisable palette to convert.
+     * @returns {PaletteList}
+     */
+    static fromSerialisable(paletteSerialisableArray) {
+        if (!paletteSerialisableArray || !Array.isArray(paletteSerialisableArray)) throw new Error('Please pass an array of serialisable palettes.');
+
+        const result = new PaletteList();
+        paletteSerialisableArray.forEach(p => result.addPalette(PaletteJsonSerialiser.fromSerialisable(p)));
+        return result;
     }
 
 

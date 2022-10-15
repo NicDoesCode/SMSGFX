@@ -1,5 +1,4 @@
 import DataStore from "./dataStore.js";
-import TileSet from "./models/tileSet.js";
 import AssemblyUtil from "./util/assemblyUtil.js";
 import CanvasManager from "./canvasManager.js";
 import TileSetColourFillUtil from "./util/tileSetColourFillUtil.js";
@@ -11,17 +10,12 @@ import PaletteToolbox from "./ui/paletteToolbox.js";
 import TileEditor from "./ui/tileEditor.js";
 import HeaderBar from "./ui/headerBar.js";
 import ProjectUtil from "./util/projectUtil.js";
-import ColourUtil from "./util/colourUtil.js";
-import PaletteList from "./models/paletteList.js";
-import Tile from "./models/tile.js";
-import Palette from "./models/palette.js";
 import PaletteFactory from "./factory/paletteFactory.js";
-import TileBinarySerialiser from "./serialisers/tileBinarySerialiser.js";
 import TileSetBinarySerialiser from "./serialisers/tileSetBinarySerialiser.js";
 import TileFactory from "./factory/tileFactory.js";
 import TileSetFactory from "./factory/tileSetFactory.js";
 import TileSetJsonSerialiser from "./serialisers/tileSetJsonSerialiser.js";
-import PaletteColourFactory from "./factory/paletteColourFactory.js";
+import PaletteListJsonSerialiser from "./serialisers/paletteListJsonSerialiser.js";
 import ProjectFactory from "./factory/projectFactory.js";
 
 
@@ -154,16 +148,16 @@ function handleHeaderBarProjectLoad(sender, e) {
                 dataStore.recordUndoState();
 
                 // Add loaded tiles
-                const tileSet = TileSetJsonSerialiser.deserialise(data.tiles);
+                const tileSet = TileSetJsonSerialiser.fromSerialisable(data.tiles);
                 dataStore.tileSet = tileSet;
 
                 // Add loaded palettes
-                const paletteList = PaletteListJsonSerialiser.deserialise(data.palettes);
+                const paletteList = PaletteListJsonSerialiser.fromSerialisable(data.palettes);
                 dataStore.paletteList = paletteList;
 
                 // Refresh
-                const palette = p.getPalette(0);
-                paletteToolbox.setPalette(dataStore.paletteList.getPalette(0));
+                const palette = paletteList.getPalette(0);
+                paletteToolbox.setPalette(palette);
                 tileEditor.tileWidth = tileSet.tileWidth;
 
                 // Display the last used tile set.

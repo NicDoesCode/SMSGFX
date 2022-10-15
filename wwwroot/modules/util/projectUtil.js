@@ -16,8 +16,8 @@ export default class ProjectUtil {
         const fileDate = moment(theDate).format('YYYY-MM-DD-HHmmss');
         
         const info = `Exported at ${theDate.toISOString()}`;
-        const tiles = TileSetJsonSerialiser.serialise(tileSet);
-        const palettes = PaletteListJsonSerialiser.serialise(paletteList);
+        const tiles = TileSetJsonSerialiser.toSerialisable(tileSet);
+        const palettes = PaletteListJsonSerialiser.toSerialisable(paletteList);
         const exportData = { info, tiles, palettes };
 
         const serialisedData = JSON.stringify(exportData, null, '  ');
