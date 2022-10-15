@@ -1,7 +1,5 @@
 import Palette from "../models/palette.js";
-import PaletteColour from "../models/paletteColour.js";
 import PaletteColourFactory from "../factory/paletteColourFactory.js";
-import ColourUtil from "../util/colourUtil.js";
 
 const defaultColours = ['#000000', '#000000', '#00AA00', '#00FF00', '#000055', '#0000FF', '#550000', '#00FFFF', '#AA0000', '#FF0000', '#555500', '#FFFF00', '#005500', '#FF00FF', '#555555', '#FFFFFF'];
 

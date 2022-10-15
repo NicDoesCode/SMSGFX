@@ -13,8 +13,8 @@ export default class PaletteColourFactory {
      */
     static create(r, g, b) {
         if (!r) r = 0;
-        if (!g) r = 0;
-        if (!b) r = 0;
+        if (!g) g = 0;
+        if (!b) b = 0;
         if (r < 0 || r > 255) throw 'Red colour value must be between 0 and 255';
         if (g < 0 || g > 255) throw 'Green colour value must be between 0 and 255';
         if (b < 0 || b > 255) throw 'Blue colour value must be between 0 and 255';

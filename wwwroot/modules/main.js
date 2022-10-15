@@ -14,7 +14,6 @@ import PaletteFactory from "./factory/paletteFactory.js";
 import TileSetBinarySerialiser from "./serialisers/tileSetBinarySerialiser.js";
 import TileFactory from "./factory/tileFactory.js";
 import TileSetFactory from "./factory/tileSetFactory.js";
-import ProjectJsonSerialiser from "./serialisers/projectJsonSerialiser.js";
 import ProjectFactory from "./factory/projectFactory.js";
 
 
@@ -82,6 +81,7 @@ $(async () => {
     const tileSet = getTileSet();
 
     if (palette) {
+        headerBar.projectTitle = dataStore.project.title;
         paletteToolbox.setPalette(getPalette());
         if (tileSet) {
             tileEditor.tileWidth = tileSet.tileWidth;
@@ -125,11 +125,12 @@ function getTileSet() {
 function getPalette() {
     if (dataStore.paletteList.length > 0) {
         const paletteIndex = paletteToolbox.selectedPaletteIndex;
-        let palette = dataStore.paletteList.getPalette(paletteIndex);
         if (paletteIndex >= 0 && paletteIndex < dataStore.paletteList.length) {
-            palette = dataStore.paletteList.getPalette(paletteIndex);
+            return dataStore.paletteList.getPalette(paletteIndex);
+        } else {
+            dataStore.appUIState.lastSelectedPaletteIndex = 0;
+            return dataStore.paletteList.getPalette(0);
         }
-        return palette;
     } else return null;
 }
 
@@ -158,6 +159,8 @@ function handleHeaderBarProjectLoad(sender, e) {
                 dataStore.recordUndoState();
 
                 dataStore.project = project;
+
+                headerBar.projectTitle = project.title;
 
                 // Refresh
                 const tileSet = project.tileSet;
