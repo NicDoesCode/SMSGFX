@@ -3,14 +3,6 @@ import ModalDialogue from "./modalDialogue.js";
 export default class ExportModalDialogue extends ModalDialogue {
 
 
-    get value() {
-        return this.#tbExport.value;
-    }
-    set value(value) {
-        this.#tbExport.value = value;
-    }
-
-
     /** @type {HTMLTextAreaElement} */
     #tbExport = document.getElementById('tbExport');
 
@@ -21,6 +13,16 @@ export default class ExportModalDialogue extends ModalDialogue {
      */
     constructor(element) {
         super(element);
+    }
+
+
+    /**
+     * Shows the dialogue with assembly data.
+     * @param {string} code - Assembly code to show.
+     */
+    show(code) {
+        this.#tbExport.value = code
+        super.show();
     }
 
 

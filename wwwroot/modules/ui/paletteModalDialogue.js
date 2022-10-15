@@ -1,26 +1,9 @@
 import ModalDialogue from "./modalDialogue.js";
+import EventDispatcher from "../eventDispatcher.js";
 
 export default class PaletteModalDialogue extends ModalDialogue {
 
 
-    get inputSystem() {
-        return this.#tbPaletteInputSystem.value;
-    }
-    set inputSystem(value) {
-        if (!value || (value !== 'ms' && value !== 'gg')) {
-            throw new Error('System must be either "ms" or "gg".');
-        }
-        this.#tbPaletteInputSystem.value = value;
-    }
-
-    get inputData() {
-        return this.#tbPaletteInput.value;
-    }
-    set inputData(value) {
-        this.#tbPaletteInput.value = value;
-    }
-
-    
     /** @type {HTMLSelectElement} */
     #tbPaletteInputSystem = document.getElementById('tbPaletteInputSystem');
     /** @type {HTMLTextAreaElement} */
@@ -36,4 +19,45 @@ export default class PaletteModalDialogue extends ModalDialogue {
     }
 
 
+    /**
+     * Shows the dialogue with assembly data.
+     * @param {string} system - The system to be imported, either 'ms' or 'gg'.
+     * @param {string} paletteData - The WLA-DLX assembly code that contains the palette.
+     */
+    show(system, paletteData) {
+        this.#tbPaletteInputSystem.value = system;
+        this.#tbPaletteInput.value = paletteData;
+        super.show();
+    }
+
+
+    /**
+     * 
+     * @param {PaletteConfirmDialogueCallback} callback - Callback to use.
+     */
+    addHandlerOnConfirm(callback) {
+        super.addHandlerOnConfirm(() => {
+            callback({
+                system: this.#tbPaletteInputSystem.value,
+                paletteData: this.#tbPaletteInput.value
+            });
+        });
+    }
+
+
 }
+
+
+/**
+ * Import palette dialogue confirm callback.
+ * @callback PaletteConfirmDialogueCallback
+ * @argument {PaletteConfirmDialogueEventArgs} data - Data from the dialogue.
+ * @exports
+ */
+/**
+ * Import palette dialogue confirm args.
+ * @typedef {object} PaletteConfirmDialogueEventArgs
+ * @property {string} system - The system to be imported, either 'ms' or 'gg'.
+ * @property {string} paletteData - The WLA-DLX assembly code that contains the palette.
+ * @exports
+ */

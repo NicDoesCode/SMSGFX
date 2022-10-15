@@ -16,6 +16,7 @@ import TileFactory from "./factory/tileFactory.js";
 import TileSetFactory from "./factory/tileSetFactory.js";
 import ProjectFactory from "./factory/projectFactory.js";
 import ProjectAssemblySerialiser from "./serialisers/projectAssemblySerialiser.js";
+import PaletteColourFactory from "./factory/paletteColourFactory.js";
 
 
 const paletteDialogue = new PaletteModalDialogue(document.getElementById('tbPaletteDialogue'));
@@ -32,6 +33,8 @@ const canvasManager = new CanvasManager();
 
 /** @type {string} */
 let selectedTool = null;
+/** @type {number} */
+let selectedColourIndex = 0;
 
 $(async () => {
 
@@ -45,24 +48,23 @@ $(async () => {
     headerBar.addHandlerProjectSave(handleHeaderBarProjectSave);
     headerBar.addHandlerCodeExport(handleHeaderBarCodeExport);
 
-    paletteDialogue.inputData = dataStore.appUIState.lastPaletteInput;
-    paletteDialogue.inputSystem = dataStore.appUIState.lastPaletteInputSystem;
-    paletteDialogue.onConfirm = handleImportPalette;
+    paletteDialogue.addHandlerOnConfirm(handleImportPalette);
 
     tileDialogue.inputData = dataStore.appUIState.lastTileInput;
-    tileDialogue.onConfirm = handleImportTileSet;
+    tileDialogue.onConfirm = handleImportTileSet; // TODO
 
-    paletteToolbox.refreshPalettes(dataStore.paletteList.getPalettes());
-    paletteToolbox.selectedPaletteIndex = dataStore.appUIState.lastSelectedPaletteIndex;
-    paletteToolbox.onNewPalette = (sender, e) => handleNewPalette();
-    paletteToolbox.onAddPalette = (sender, e) => paletteDialogue.show();
-    paletteToolbox.onColourEdit = handlePaletteColourEdit;
-    paletteToolbox.onColourSelected = handlePaletteColourSelect;
-    paletteToolbox.onDeleteSelectedPalette = handlePaletteDelete;
-    paletteToolbox.onSelectedPaletteChanged = handlePaletteChanged;
-    paletteToolbox.onSelectedPaletteSystemChanged = handlePaletteSystemChanged;
+    paletteToolbox.setState(dataStore.project, { selectedPaletteIndex: dataStore.appUIState.lastSelectedPaletteIndex, lastPaletteInputSystem: dataStore.appUIState.lastPaletteInputSystem });
+    paletteToolbox.addHandlerNewPalette(handlePaletteToolboxNewPalette);
+    paletteToolbox.addHandlerImportPaletteFromCode(handlePaletteToolboxImportPaletteFromCode);
+    paletteToolbox.addHandlerSelectedPaletteChanged(handlePaletteToolboxSelectedPaletteChanged);
+    paletteToolbox.addHandlerPaletteDelete(handlePaletteToolboxPaletteDelete);
+    paletteToolbox.addHandlerSystemChanged(handlePaletteToolboxSystemChanged);
+    paletteToolbox.addHandlerColourSelected(handlePaletteToolboxColourSelected);
+    paletteToolbox.addHandlerColourEdit(handlePaletteToolboxColourEdit);
 
-    colourPickerDialogue.onConfirm = handleColourPickerConfirm;
+    colourPickerDialogue.addHandlerOnChange(handleColourPickerChange);
+    colourPickerDialogue.addHandlerOnConfirm(handleColourPickerConfirm);
+    colourPickerDialogue.addHandlerOnCancel(handleColourPickerCancel);
 
     tileEditor.onAddTile = handleTileEditorAddTile;
     tileEditor.onImportTileSet = (sender, e) => tileDialogue.show();
@@ -82,8 +84,8 @@ $(async () => {
     const tileSet = getTileSet();
 
     if (palette) {
-        headerBar.projectTitle = dataStore.project.title;
-        paletteToolbox.setPalette(getPalette());
+        headerBar.setState(dataStore.project);
+        paletteToolbox.setState(dataStore.project, {});
         if (tileSet) {
             tileEditor.tileWidth = tileSet.tileWidth;
             tileEditor.zoomValue = dataStore.appUIState.lastZoomValue;
@@ -99,7 +101,7 @@ $(async () => {
     setTimeout(() => {
         selectedTool = 'pencil';
         tileEditor.highlightTool(selectedTool);
-        paletteToolbox.highlightPaletteItem(0);
+        paletteToolbox.setState(dataStore.project, { selectedColourIndex: 0 });
     }, 250);
 });
 
@@ -125,7 +127,7 @@ function getTileSet() {
 
 function getPalette() {
     if (dataStore.paletteList.length > 0) {
-        const paletteIndex = paletteToolbox.selectedPaletteIndex;
+        const paletteIndex = dataStore.appUIState.lastSelectedPaletteIndex;
         if (paletteIndex >= 0 && paletteIndex < dataStore.paletteList.length) {
             return dataStore.paletteList.getPalette(paletteIndex);
         } else {
@@ -156,12 +158,13 @@ function handleHeaderBarProjectLoad() {
 
                 dataStore.project = project;
 
-                headerBar.projectTitle = project.title;
+                headerBar.setState(project);
 
                 // Refresh
                 const tileSet = project.tileSet;
                 const palette = project.paletteList.getPalette(0);
-                paletteToolbox.setPalette(palette);
+
+                paletteToolbox.setState(dataStore.project, {});
                 tileEditor.tileWidth = tileSet.tileWidth;
 
                 // Display the last used tile set.
@@ -172,56 +175,29 @@ function handleHeaderBarProjectLoad() {
         }
     }
     input.click();
-    return false;
 }
 
 function handleHeaderBarProjectSave() {
     ProjectUtil.saveToFile(dataStore.project);
-    return false;
 }
 
 function handleHeaderBarCodeExport() {
-    // const tileSet = dataStore.tileSet;
-    // const paletteList = dataStore.paletteList;
-    // const project = ProjectFactory.create(sender.projectTitle, tileSet, paletteList);
-    try {
-        exportDialogue.value = ProjectAssemblySerialiser.serialise(dataStore.project);
-        exportDialogue.show();
-    } catch {
-
-    }
-    return false;
-}
-
-/** @type {EventCallback} */
-function handleHeaderBarEvent(event, sender, args) {
-    if (event) {
-        switch (event) {
-            case HeaderBar.events.projectTitleChange:
-                break;
-        }
-    }
-    const tileSet = dataStore.tileSet;
-    const paletteList = dataStore.paletteList;
-    const project = ProjectFactory.create(sender.projectTitle, tileSet, paletteList);
-    exportDialogue.value = ProjectAssemblySerialiser.serialise(project);
-    exportDialogue.show();
-    return false;
+    const code = ProjectAssemblySerialiser.serialise(dataStore.project);
+    exportDialogue.show(code);
 }
 
 
 /**
  * User tries to import a palette.
- * @param {PaletteModalDialogue} sender Palette dialogue that sent the confirmation.
- * @param {object} e Event args.
+ * @param {import('./ui/paletteModalDialogue').PaletteConfirmDialogueEventArgs} data - Event args.
  */
-function handleImportPalette(sender, e) {
-    if (!['gg', 'ms'].includes(sender.inputSystem)) throw new Error('System must be either ""ms" or "gg".');
+function handleImportPalette(data) {
+    if (!['gg', 'ms'].includes(data.system)) throw new Error('System must be either ""ms" or "gg".');
 
     dataStore.recordUndoState();
 
-    const system = sender.inputSystem;
-    const paletteData = sender.inputData;
+    const system = data.system;
+    const paletteData = data.paletteData;
     if (system === 'gg') {
         const array = AssemblyUtil.readAsUint16Array(paletteData);
         const palette = PaletteFactory.createFromGameGearPalette(array);
@@ -232,17 +208,16 @@ function handleImportPalette(sender, e) {
         dataStore.paletteList.addPalette(palette);
     }
 
-    paletteToolbox.refreshPalettes(dataStore.paletteList.getPalettes());
-    paletteToolbox.selectedPaletteIndex = dataStore.paletteList.length - 1;
-    paletteToolbox.setPalette(getPalette());
+    const selectedPaletteIndex = dataStore.paletteList.length - 1;
+    paletteToolbox.setState(dataStore.project, {selectedPaletteIndex: selectedPaletteIndex});
 
     canvasManager.palette = getPalette();
     canvasManager.invalidateImage();
     canvasManager.drawUI(tileEditor.canvas, 0, 0);
 
-    dataStore.appUIState.lastSelectedPaletteIndex = paletteToolbox.selectedPaletteIndex;
-    dataStore.appUIState.lastPaletteInput = sender.inputData;
-    dataStore.appUIState.lastPaletteInputSystem = sender.inputSystem;
+    dataStore.appUIState.lastSelectedPaletteIndex = selectedPaletteIndex;
+    dataStore.appUIState.lastPaletteInputSystem = data.system;
+    dataStore.appUIState.lastPaletteInput = data.paletteData;
     dataStore.saveToLocalStorage();
 }
 
@@ -292,8 +267,7 @@ function handleTileEditorUndo(sender, e) {
     dataStore.undo();
     canvasManager.palette = getPalette();
     canvasManager.tileSet = getTileSet();
-    paletteToolbox.setPalette(getPalette());
-    paletteToolbox.refreshPalettes(dataStore.paletteList.getPalettes());
+    paletteToolbox.setState(dataStore.project, {});
     canvasManager.invalidateImage();
     canvasManager.drawUI(tileEditor.canvas, 0, 0);
 }
@@ -306,8 +280,7 @@ function handleTileEditorRedo(sender, e) {
     dataStore.redo();
     canvasManager.palette = getPalette();
     canvasManager.tileSet = getTileSet();
-    paletteToolbox.setPalette(getPalette());
-    paletteToolbox.refreshPalettes(dataStore.paletteList.getPalettes());
+    paletteToolbox.setState(dataStore.project, {});
     canvasManager.invalidateImage();
     canvasManager.drawUI(tileEditor.canvas, 0, 0);
 }
@@ -326,11 +299,10 @@ function handleTileEditorSelectedToolChanged(sender, e) {
  * @param {import("./ui/tileEditor.js").TileEditorPixelEventData} e Event args.
  */
 function handleTileEditorPixelOver(sender, e) {
-    const colourIndex = paletteToolbox.selectedPaletteColourIndex;
     const tileSet = getTileSet();
 
     if (tileEditor.canvasMouseIsDown) {
-        takeToolAction(selectedTool, colourIndex, e.imageX, e.imageY);
+        takeToolAction(selectedTool, selectedColourIndex, e.imageX, e.imageY);
     }
 
     // Update the UI
@@ -338,7 +310,7 @@ function handleTileEditorPixelOver(sender, e) {
 
     // Show the palette colour
     const pixel = tileSet.getPixelAt(e.imageX, e.imageY);
-    paletteToolbox.highlightPaletteItem(pixel);
+    paletteToolbox.setState(dataStore.project, { highlightedColourIndex: pixel });
 }
 
 /**
@@ -366,8 +338,7 @@ function handleTileEditorAddTile(sender, e) {
  * @param {import("./ui/tileEditor.js").TileEditorPixelEventData} e Event args.
  */
 function handleTileEditorPixelMouseDown(sender, e) {
-    const colourIndex = paletteToolbox.selectedPaletteColourIndex;
-    takeToolAction(selectedTool, colourIndex, e.imageX, e.imageY);
+    takeToolAction(selectedTool, selectedColourIndex, e.imageX, e.imageY);
 }
 
 /**
@@ -479,23 +450,34 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
 
 }
 
-function handlePaletteChanged(sender, e) {
+function handlePaletteToolboxNewPalette(args) {
+    dataStore.recordUndoState();
 
-    // Swap palette
-    const palette = dataStore.paletteList.getPalette(paletteToolbox.selectedPaletteIndex);
-    paletteToolbox.setPalette(palette);
+    const palette = PaletteFactory.createNewStandardColourPalette('New palette', 'ms');
+    dataStore.paletteList.addPalette(palette);
 
-    // Refresh image
-    canvasManager.palette = palette;
+    const selectedPaletteIndex = dataStore.paletteList.length - 1;
+    paletteToolbox.setState(dataStore.project, { selectedPaletteIndex });
+
+    canvasManager.palette = getPalette();
+    canvasManager.invalidateImage();
     canvasManager.drawUI(tileEditor.canvas, 0, 0);
 
-    // Store palette index to local storage
-    dataStore.appUIState.lastSelectedPaletteIndex = paletteToolbox.selectedPaletteIndex;
+    dataStore.appUIState.lastSelectedPaletteIndex = selectedPaletteIndex;
     dataStore.saveToLocalStorage();
 }
 
-function handlePaletteDelete(sender, e) {
-    const paletteIndex = paletteToolbox.selectedPaletteIndex;
+function handlePaletteToolboxImportPaletteFromCode(args) {
+    const lastSystem = dataStore.appUIState.lastPaletteInputSystem;
+    const lastPaletteData = dataStore.appUIState.lastPaletteInput;
+    paletteDialogue.show(lastSystem, lastPaletteData);
+}
+
+/**
+ * @param {import('./ui/paletteToolbox').PaletteToolboxSelectedPaletteEventArgs} args 
+ */
+function handlePaletteToolboxPaletteDelete(args) {
+    const paletteIndex = args.paletteIndex;
     if (paletteIndex >= 0 && paletteIndex < dataStore.paletteList.length) {
 
         dataStore.recordUndoState();
@@ -504,14 +486,13 @@ function handlePaletteDelete(sender, e) {
         dataStore.paletteList.removeAt(paletteIndex);
         const newSelectedIndex = Math.min(paletteIndex, dataStore.paletteList.length - 1);
         if (dataStore.paletteList.length > 0) {
-            paletteToolbox.selectedPaletteIndex = newSelectedIndex;
+            paletteToolbox.setState(dataStore.project, { selectedPaletteIndex: newSelectedIndex });
             dataStore.appUIState.lastSelectedPaletteIndex = newSelectedIndex;
         } else {
-            paletteToolbox.setPalette(PaletteFactory.create());
-            dataStore.appUIState.lastSelectedPaletteIndex = -1;
+            dataStore.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('ms'));
+            paletteToolbox.setState(dataStore.project, { selectedPaletteIndex: 0 });
+            dataStore.appUIState.lastSelectedPaletteIndex = 0;
         }
-        paletteToolbox.refreshPalettes(dataStore.paletteList.getPalettes());
-        paletteToolbox.setPalette(getPalette());
 
         // Refresh image
         canvasManager.palette = getPalette();
@@ -522,75 +503,115 @@ function handlePaletteDelete(sender, e) {
 }
 
 /**
- * @param {PaletteToolbox} sender The palette toolbox.
- * @param {import("./ui/paletteToolbox.js").PaletteToolboxColourEventData} e Event data.
+ * @param {import('./ui/paletteToolbox').PaletteToolboxPaletteChangedEventArgs} args 
  */
-function handlePaletteColourSelect(sender, e) {
-    if (e.index >= -1 && e.index < 16) {
-        paletteToolbox.selectedPaletteColourIndex = e.index;
+function handlePaletteToolboxSelectedPaletteChanged(args) {
+
+    // Swap palette
+    const palette = dataStore.paletteList.getPalette(args.paletteIndex);
+    paletteToolbox.setState(dataStore.project, { selectedPaletteIndex: args.paletteIndex });
+
+    // Refresh image
+    canvasManager.palette = palette;
+    canvasManager.drawUI(tileEditor.canvas, 0, 0);
+
+    // Store palette index to local storage
+    dataStore.appUIState.lastSelectedPaletteIndex = args.paletteIndex;
+    dataStore.saveToLocalStorage();
+}
+
+/**
+ * @param {import('./ui/paletteToolbox').PaletteToolboxSystemChangedEventArgs} args 
+ */
+function handlePaletteToolboxSystemChanged(args) {
+    dataStore.recordUndoState();
+
+    const oldPalette = dataStore.project.paletteList.getPalette(args.paletteIndex);
+    const newPalette = PaletteFactory.clone(oldPalette);
+    newPalette.system = args.system;
+    dataStore.project.paletteList.setPalette(args.paletteIndex, newPalette);
+
+    paletteToolbox.setState(dataStore.project, { selectedPaletteIndex: args.paletteIndex, selectedSystem: args.system });
+
+    dataStore.saveToLocalStorage();
+    canvasManager.drawUI(tileEditor.canvas, 0, 0);
+}
+
+/**
+ * @param {import('./ui/paletteToolbox').PaletteToolboxColourEventArgs} args 
+ */
+function handlePaletteToolboxColourSelected(args) {
+    if (args.colourIndex >= 0 && args.colourIndex < 16) {
+        paletteToolbox.setState(dataStore.project, { selectedPaletteIndex: args.paletteIndex, selectedColourIndex: args.colourIndex });
+        selectedColourIndex = args.colourIndex;
     }
 }
 
 /**
- * @param {PaletteToolbox} sender The palette toolbox.
- * @param {object} e Event data.
+ * @param {import('./ui/paletteToolbox').PaletteToolboxColourEventArgs} args 
  */
-function handleNewPalette(sender, e) {
-    dataStore.recordUndoState();
-
-    const palette = PaletteFactory.createNewStandardColourPalette('New palette', 'ms');
-    dataStore.paletteList.addPalette(palette);
-
-    paletteToolbox.refreshPalettes(dataStore.paletteList.getPalettes());
-    paletteToolbox.selectedPaletteIndex = dataStore.paletteList.length - 1;
-    paletteToolbox.setPalette(palette);
-
-    canvasManager.palette = getPalette();
-    canvasManager.invalidateImage();
-    canvasManager.drawUI(tileEditor.canvas, 0, 0);
-
-    dataStore.appUIState.lastSelectedPaletteIndex = paletteToolbox.selectedPaletteIndex;
-    dataStore.saveToLocalStorage();
+function handlePaletteToolboxColourEdit(args) {
+    const palette = dataStore.project.paletteList.getPalette(args.paletteIndex);
+    colourPickerDialogue.show(palette, args.colourIndex);
 }
 
 /**
- * @param {PaletteToolbox} sender The palette toolbox.
- * @param {import("./ui/paletteToolbox.js").PaletteToolboxColourEventData} e Event data.
+ * Colour picker is changed.
+ * @param {import('./ui/colourPickerModalDialogue').ColourModalDialogueColourEventArgs} args - Event args.
  */
-function handlePaletteColourEdit(sender, e) {
-    colourPickerDialogue.show(getPalette(), e.index);
+function handleColourPickerChange(args) {
+    const palette = getPalette();
+    const currentColour = palette.getColour(args.index);
+    if (args.r !== currentColour.r || args.g !== currentColour.g || args.b !== currentColour.b) {
+        const newColour = PaletteColourFactory.create(args.r, args.g, args.b);
+        palette.setColour(args.index, newColour);
+
+        paletteToolbox.setState(dataStore.project, {});
+
+        canvasManager.invalidateImage();
+        canvasManager.drawUI(tileEditor.canvas, 0, 0);
+    }
 }
 
 /**
- * @param {PaletteToolbox} sender The palette toolbox.
- * @param {import("./ui/paletteToolbox.js").PaletteToolboxSystemEventData} e Event data.
+ * Colour picker is confirmed.
+ * @param {import('./ui/colourPickerModalDialogue').ColourModalDialogueColourEventArgs} args - Event args.
  */
-function handlePaletteSystemChanged(sender, e) {
+function handleColourPickerConfirm(args) {
     dataStore.recordUndoState();
 
     const palette = getPalette();
-    palette.system = e.system;
+    const currentColour = palette.getColour(args.index);
+    if (args.r !== currentColour.r || args.g !== currentColour.g || args.b !== currentColour.b) {
+        const newColour = PaletteColourFactory.create(args.r, args.g, args.b);
+        palette.setColour(args.index, newColour);
 
-    dataStore.saveToLocalStorage();
-    paletteToolbox.setPalette(palette);
-    canvasManager.drawUI(tileEditor.canvas, 0, 0);
+        paletteToolbox.setState(dataStore.project, {});
+
+        canvasManager.invalidateImage();
+        canvasManager.drawUI(tileEditor.canvas, 0, 0);
+
+        dataStore.saveToLocalStorage();
+    }
+    colourPickerDialogue.hide();
 }
 
 /**
- * User tries to set a colour.
- * @param {ColourPickerModalDialogue} sender Colour picker dialogue that sent the confirmation.
- * @param {object} e Event args.
+ * Colour picker is hidden without confirmation, so restore the colour.
+ * @param {import('./ui/colourPickerModalDialogue').ColourModalDialogueColourEventArgs} args - Event args.
  */
-function handleColourPickerConfirm(sender, e) {
-    dataStore.recordUndoState();
+function handleColourPickerCancel(args) {
+    console.log('cancel', args);
+    const palette = getPalette();
+    const currentColour = palette.getColour(args.index);
+    if (args.originalR !== currentColour.r || args.originalG !== currentColour.g || args.originalB !== currentColour.b) {
+        const restoreColour = PaletteColourFactory.create(args.originalR, args.originalG, args.originalB);
+        palette.setColour(args.index, restoreColour);
 
-    const palette = sender.palette;
-    const paletteIndex = sender.paletteIndex;
-    const paletteColour = sender.toPaletteColour();
-    palette.setColour(paletteIndex, paletteColour);
-    dataStore.saveToLocalStorage();
+        paletteToolbox.setState(dataStore.project, {});
 
-    paletteToolbox.setPalette(palette);
-    paletteDialogue.hide();
-    canvasManager.drawUI(tileEditor.canvas, 0, 0);
+        canvasManager.invalidateImage();
+        canvasManager.drawUI(tileEditor.canvas, 0, 0);
+    }
+    colourPickerDialogue.hide();
 }

@@ -1,5 +1,6 @@
 import Palette from "../models/palette.js";
 import PaletteColourFactory from "../factory/paletteColourFactory.js";
+import PaletteJsonSerialiser from "../serialisers/paletteJsonSerialiser.js";
 
 const defaultColours = ['#000000', '#000000', '#00AA00', '#00FF00', '#000055', '#0000FF', '#550000', '#00FFFF', '#AA0000', '#FF0000', '#555500', '#FFFF00', '#005500', '#FF00FF', '#555555', '#FFFFFF'];
 
@@ -66,6 +67,16 @@ export default class PaletteFactory {
             result.setColour(index, { r, g, b })
         });
         return result;
+    }
+
+    /**
+     * Creates a new instance of a palette object from an existing.
+     * @param {Palette} palette - Palette to clone.
+     * @returns {Palette}
+     */
+     static clone(palette) {
+        const serialiseable = PaletteJsonSerialiser.toSerialisable(palette);
+        return PaletteJsonSerialiser.fromSerialisable(serialiseable);
     }
 
 

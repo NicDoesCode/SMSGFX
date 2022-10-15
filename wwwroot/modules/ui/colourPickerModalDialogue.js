@@ -1,80 +1,25 @@
+import EventDispatcher from "../eventDispatcher.js";
 import Palette from "../models/palette.js";
 import ColourUtil from "../util/colourUtil.js";
 import ModalDialogue from "./modalDialogue.js";
 
-const hexRegex = /^#([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})$/i;
+const EVENT_OnChange = 'EVENT_OnChange';
 
 export default class ColourPickerModalDialogue extends ModalDialogue {
 
 
-    get palette() {
-        return this.#palette;
-    }
-
-    get paletteIndex() {
-        return this.#paletteIndex;
-    }
-
-    get inputSystem() {
-        return this.#palette.system;
-    }
-
-    get redValue() {
-        return this.#r;
-    }
-    set redValue(value) {
-        if (typeof value !== 'number' || value < 0 && value > 255) throw new Error('Value must be a number between 0 and 255.');
-        this.#r = value;
-    }
-
-    get greenValue() {
-        return this.#g;
-    }
-    set greenValue(value) {
-        if (typeof value !== 'number' || value < 0 && value > 255) throw new Error('Value must be a number between 0 and 255.');
-        this.#g = value;
-    }
-
-    get blueValue() {
-        return this.#b;
-    }
-    set blueValue(value) {
-        if (typeof value !== 'number' || value < 0 && value > 255) throw new Error('Value must be a number between 0 and 255.');
-        this.#b = value;
-    }
-
-    get hexValue() {
-        const hexR = this.#r.toString(16).padStart(2, '0');
-        const hexG = this.#g.toString(16).padStart(2, '0');
-        const hexB = this.#b.toString(16).padStart(2, '0');
-        return `#${hexR}${hexG}${hexB}`;
-    }
-
-    get nativeValue() {
-        if (this.inputSystem === 'ms') {
-            const r = Math.round(3 / 255 * this.redValue);
-            const g = Math.round(3 / 255 * this.greenValue) << 2;
-            const b = Math.round(3 / 255 * this.blueValue) << 4;
-            return (r | g | b).toString(16).padStart(8, '0');
-        } else if (this.inputSystem === 'gg') {
-            const r = Math.round(15 / 255 * this.redValue);
-            const g = Math.round(15 / 255 * this.greenValue) << 4;
-            const b = Math.round(15 / 255 * this.blueValue) << 8;
-            return (r | g | b).toString(16).padStart(16, '0');
-        }
-    }
-
-
+    /** @type {EventDispatcher} */
+    #dispatcher;
     /** @type {number} */
     #paletteIndex = -1;
-    /** @type {Palette} */
-    #palette = null;
+    /** @type {string} */
+    #system = 'ms';
     /** @type {number} */
-    #r = 0;
+    #r = 0; #originalR = 0;
     /** @type {number} */
-    #g = 0;
+    #g = 0; #originalG = 0;
     /** @type {number} */
-    #b = 0;
+    #b = 0; #originalB = 0;
     /** @type {HTMLInputElement} */
     #tbColourPickerRedSlider;
     /** @type {HTMLInputElement} */
@@ -92,8 +37,6 @@ export default class ColourPickerModalDialogue extends ModalDialogue {
     /** @type {HTMLInputElement} */
     #tbColourPickerHex;
 
-    /** @type {colourPickerEvent} */
-    #event;
 
     /**
      * Initialises a new instance of the AddPaletteModalDialogue class.
@@ -101,6 +44,7 @@ export default class ColourPickerModalDialogue extends ModalDialogue {
      */
     constructor(element) {
         super(element);
+        this.#dispatcher = new EventDispatcher();
 
         this.#tbColourPickerRedSlider = element.querySelector('#tbColourPickerRedSlider');
         this.#tbColourPickerGreenSlider = element.querySelector('#tbColourPickerGreenSlider');
@@ -130,23 +74,68 @@ export default class ColourPickerModalDialogue extends ModalDialogue {
      * @param {number} index Colour index, 0 to 15.
      */
     show(palette, index) {
-        this.#palette = palette;
         this.#paletteIndex = index;
-        this.#setTo(palette, index);
-        super.show();
-    }
-
-    /**
-     * Sets the values.
-     * @param {Palette} palette The palette.
-     * @param {number} index Colour index.
-     */
-    #setTo(palette, index) {
+        this.#system = palette.system;
         const colour = palette.getColour(index);
         this.#r = colour.r;
         this.#g = colour.g;
         this.#b = colour.b;
+        this.#originalR = colour.r;
+        this.#originalG = colour.g;
+        this.#originalB = colour.b;
         this.#setAllValues();
+        super.show();
+    }
+
+    /**
+     * When the colour picker box has been confirmed.
+     * @param {ColourModalDialogueCallback} callback - Callback function.
+     */
+    addHandlerOnConfirm(callback) {
+        super.addHandlerOnConfirm(() => {
+            const args = this.#createEventArgs();
+            callback(args);
+        });
+    }
+
+    /**
+     * When the colour picker box has a value changed.
+     * @param {ColourModalDialogueCallback} callback - Callback function.
+     */
+    addHandlerOnChange(callback) {
+        this.#dispatcher.on(EVENT_OnChange, callback)
+    }
+
+    /**
+     * When the colour picker box is cancelled.
+     * @param {ColourModalDialogueCallback} callback - Callback function.
+     */
+    addHandlerOnCancel(callback) {
+        super.addHandlerOnCancel(() => {
+            const args = this.#createEventArgs();
+            callback(args);
+        });
+    }
+
+    #triggerOnChange() {
+        const args = this.#createEventArgs();
+        this.#dispatcher.dispatch(EVENT_OnChange, args);
+    }
+
+    /**
+     * @returns {ColourModalDialogueColourEventArgs}
+     */
+    #createEventArgs() {
+        return {
+            index: this.#paletteIndex,
+            system: this.#system,
+            r: this.#r,
+            g: this.#g,
+            b: this.#b,
+            originalR: this.#originalR,
+            originalG: this.#originalG,
+            originalB: this.#originalB
+        };
     }
 
     /**
@@ -163,6 +152,7 @@ export default class ColourPickerModalDialogue extends ModalDialogue {
         if (colour === 'g') this.#g = numValue;
         if (colour === 'b') this.#b = numValue;
         this.#setAllValues();
+        this.#triggerOnChange();
     }
 
     /**
@@ -175,6 +165,7 @@ export default class ColourPickerModalDialogue extends ModalDialogue {
         this.#g = rgb.g;
         this.#b = rgb.b;
         this.#setAllValues();
+        this.#triggerOnChange();
     }
 
     #setAllValues() {
@@ -189,17 +180,24 @@ export default class ColourPickerModalDialogue extends ModalDialogue {
         btnColourPickerPick.value = hex;
     }
 
-    /**
-     * Returns the values from this object as a palette colour.
-     * @returns {import("../palette").PaletteColour}
-     */
-    toPaletteColour() {
-        return {
-            r: this.redValue,
-            g: this.greenValue,
-            b: this.blueValue
-        };
-    }
-
 
 }
+
+/**
+ * Colour picker modal dialogue callback.
+ * @callback ColourModalDialogueCallback
+ * @argument {ColourModalDialogueColourEventArgs} args - Event args.
+ */
+/**
+ * Event args from the colour picker modal.
+ * @typedef {object} ColourModalDialogueColourEventArgs
+ * @property {number} index - Palette index, 0 to 15.
+ * @property {string} system - Target system, either 'ms' or 'gg'.
+ * @property {number} r - Red component.
+ * @property {number} g - Green component.
+ * @property {number} b - Blue component.
+ * @property {number} originalR - Original red component.
+ * @property {number} originalG - Original green component.
+ * @property {number} originalB - Original blue component.
+ * @export
+ */

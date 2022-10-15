@@ -30,11 +30,14 @@
                     <div class="col-md-auto text-end pe-3">
                         <div class="input-group input-group-sm">
                             <span class="input-group-text">Project file</span>
-                            <input id="tbProjectTitle" type="text" class="form-control" placeholder="Project title" aria-label="Project title">
-                            <button id="btnProjectLoad" class="btn btn-outline-secondary" title="Load project." type="button">
+                            <input id="tbProjectTitle" type="text" class="form-control" placeholder="Project title"
+                                aria-label="Project title">
+                            <button id="btnProjectLoad" class="btn btn-outline-secondary" title="Load project."
+                                type="button">
                                 <i class="bi bi-file-earmark-arrow-down-fill"></i> Load
                             </button>
-                            <button id="btnProjectSave" class="btn btn-outline-secondary" title="Save project." type="button">
+                            <button id="btnProjectSave" class="btn btn-outline-secondary" title="Save project."
+                                type="button">
                                 <i class="bi bi-file-earmark-arrow-up-fill"></i> Save
                             </button>
                         </div>
@@ -42,7 +45,8 @@
                     <div class="col-md-auto text-end">
                         <div class="input-group input-group-sm">
                             <span class="input-group-text">Code</span>
-                            <button id="btnCodeExport" class="btn btn-outline-secondary" title="Load project." type="button">
+                            <button id="btnCodeExport" class="btn btn-outline-secondary" title="Load project."
+                                type="button">
                                 <i class="bi bi-box-arrow-right"></i> Export
                             </button>
                         </div>
@@ -69,7 +73,7 @@
                                         title="Create a new palette.">
                                         <i class="bi bi-plus-lg"></i>
                                     </button>
-                                    <button id="btnAddPalette" class="btn btn-outline-secondary"
+                                    <button id="btnImportPaletteFromCode" class="btn btn-outline-secondary"
                                         title="Import a palette from your assembly code.">
                                         <i class="bi bi-box-arrow-in-down"></i>
                                     </button>
@@ -300,7 +304,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Pick a colour</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" data-button-type="cancel"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row">
@@ -361,8 +365,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button data-button-type="confirm" type="button" class="btn btn-primary">Save changes</button>
+                    <button type="button" class="btn btn-secondary" data-button-type="cancel">Cancel</button>
+                    <button type="button" class="btn btn-primary" data-button-type="confirm">Save changes</button>
                 </div>
             </div>
         </div>

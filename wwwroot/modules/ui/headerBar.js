@@ -1,4 +1,5 @@
-import EventDispatcher from "../../eventDispatcher.js";
+import EventDispatcher from "../eventDispatcher.js";
+import Project from "../models/project.js";
 
 
 const EVENT_TitleChanged = 'EVENT_TitleChanged';
@@ -8,69 +9,6 @@ const EVENT_CodeExport = 'EVENT_CodeExport';
 
 
 export default class HeaderBar {
-
-
-    /**
-     * Gets or sets the project title.
-     */
-    get projectTitle() {
-        return this.#tbProjectTitle.value;
-    }
-    set projectTitle(value) {
-        if (typeof value === 'undefined' || value === null) throw new Error('Project title was not valid.');
-        this.#tbProjectTitle.value = value;
-    }
-
-    /** 
-     * When project is to be loaded from a file.
-     */
-    get onProjectLoad() {
-        return this.#onProjectLoadCallback;
-    }
-    set onProjectLoad(value) {
-        if (value && typeof value === 'function') {
-            this.#onProjectLoadCallback = value;
-        } else {
-            this.#onProjectLoadCallback = () => { };
-        }
-    }
-
-    /** @type {TileEditorCallback} */
-    #onProjectLoadCallback = () => { };
-
-    /** 
-     * When project is to be saved to a file.
-     */
-    get onProjectSave() {
-        return this.#onProjectSaveCallback;
-    }
-    set onProjectSave(value) {
-        if (value && typeof value === 'function') {
-            this.#onProjectSaveCallback = value;
-        } else {
-            this.#onProjectSaveCallback = () => { };
-        }
-    }
-
-    /** @type {HeaderBarCallback} */
-    #onProjectSaveCallback = () => { };
-
-    /** 
-     * When code is to be exported.
-     */
-    get onCodeExport() {
-        return this.#onCodeExportCallback;
-    }
-    set onCodeExport(value) {
-        if (value && typeof value === 'function') {
-            this.#onCodeExportCallback = value;
-        } else {
-            this.#onCodeExportCallback = () => { };
-        }
-    }
-
-    /** @type {HeaderBarCallback} */
-    #onCodeExportCallback = () => { };
 
 
     /** @type {HTMLDivElement} */
@@ -100,7 +38,7 @@ export default class HeaderBar {
         this.#tbProjectTitle = this.#element.querySelector('#tbProjectTitle');
         this.#tbProjectTitle.onchange = () => {
             /** @type {HeaderBarTitleChangeEventArgs} */
-            const args = { newTitle: this.projectTitle };
+            const args = { newTitle: this.#tbProjectTitle.value };
             this.#dispatcher.dispatch(EVENT_TitleChanged, args);
         };
         this.#tbProjectTitle.onkeydown = (evt) => {
@@ -135,7 +73,7 @@ export default class HeaderBar {
      * Adds a callback for loading a project from a file.
      * @param {HeaderBarEventArgs} callback - Callback function.
      */
-     addHandlerProjectLoad(callback) {
+    addHandlerProjectLoad(callback) {
         this.#dispatcher.on(EVENT_ProjectLoad, callback);
     }
 
@@ -143,7 +81,7 @@ export default class HeaderBar {
      * Adds a callback for saving the project to file.
      * @param {HeaderBarEventArgs} callback - Callback function.
      */
-     addHandlerProjectSave(callback) {
+    addHandlerProjectSave(callback) {
         this.#dispatcher.on(EVENT_ProjectSave, callback);
     }
 
@@ -151,8 +89,17 @@ export default class HeaderBar {
      * Adds a callback for requesting code export.
      * @param {HeaderBarEventArgs} callback - Callback function.
      */
-     addHandlerCodeExport(callback) {
+    addHandlerCodeExport(callback) {
         this.#dispatcher.on(EVENT_CodeExport, callback);
+    }
+
+
+    /**
+     * Updates the state of the header bar.
+     * @param {Project} project - Project to bind values from.
+     */
+    setState(project) {
+        this.#tbProjectTitle.value = project.title;
     }
 
 
