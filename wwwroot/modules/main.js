@@ -40,10 +40,10 @@ $(async () => {
 
     createDefaultPalettesAndTileSetIfNoneExist();
 
-    headerBar.onProjectTitleChanged = handleHeaderBarProjectTitleChanged;
-    headerBar.onProjectLoad = handleHeaderBarProjectLoad;
-    headerBar.onProjectSave = handleHeaderBarProjectSave;
-    headerBar.onCodeExport = handleHeaderBarCodeExport;
+    headerBar.addHandlerProjectTitleChanged(handleHeaderBarProjectTitleChanged);
+    headerBar.addHandlerProjectLoad(handleHeaderBarProjectLoad);
+    headerBar.addHandlerProjectSave(handleHeaderBarProjectSave);
+    headerBar.addHandlerCodeExport(handleHeaderBarCodeExport);
 
     paletteDialogue.inputData = dataStore.appUIState.lastPaletteInput;
     paletteDialogue.inputSystem = dataStore.appUIState.lastPaletteInputSystem;
@@ -137,19 +137,14 @@ function getPalette() {
 
 
 /**
- * @param {HeaderBar} sender Palette dialogue that sent the confirmation.
- * @param {object} e Event args.
+ * @param {import('./ui/headerBar').HeaderBarTitleChangeEventArgs} data - Event data.
  */
-function handleHeaderBarProjectTitleChanged(sender, e) {
+function handleHeaderBarProjectTitleChanged(data) {
     dataStore.recordUndoState();
-    dataStore.project.title = sender.projectTitle;
+    dataStore.project.title = data.newTitle;
 }
 
-/**
- * @param {HeaderBar} sender Palette dialogue that sent the confirmation.
- * @param {object} e Event args.
- */
-function handleHeaderBarProjectLoad(sender, e) {
+function handleHeaderBarProjectLoad() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'application/json';
@@ -180,20 +175,32 @@ function handleHeaderBarProjectLoad(sender, e) {
     return false;
 }
 
-/**
- * @param {HeaderBar} sender Palette dialogue that sent the confirmation.
- * @param {object} e Event args.
- */
-function handleHeaderBarProjectSave(sender, e) {
+function handleHeaderBarProjectSave() {
     ProjectUtil.saveToFile(dataStore.project);
     return false;
 }
 
-/**
- * @param {HeaderBar} sender Palette dialogue that sent the confirmation.
- * @param {object} e Event args.
- */
-function handleHeaderBarCodeExport(sender, e) {
+function handleHeaderBarCodeExport() {
+    // const tileSet = dataStore.tileSet;
+    // const paletteList = dataStore.paletteList;
+    // const project = ProjectFactory.create(sender.projectTitle, tileSet, paletteList);
+    try {
+        exportDialogue.value = ProjectAssemblySerialiser.serialise(dataStore.project);
+        exportDialogue.show();
+    } catch {
+
+    }
+    return false;
+}
+
+/** @type {EventCallback} */
+function handleHeaderBarEvent(event, sender, args) {
+    if (event) {
+        switch (event) {
+            case HeaderBar.events.projectTitleChange:
+                break;
+        }
+    }
     const tileSet = dataStore.tileSet;
     const paletteList = dataStore.paletteList;
     const project = ProjectFactory.create(sender.projectTitle, tileSet, paletteList);

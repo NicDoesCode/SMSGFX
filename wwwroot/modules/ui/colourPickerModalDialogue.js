@@ -92,6 +92,8 @@ export default class ColourPickerModalDialogue extends ModalDialogue {
     /** @type {HTMLInputElement} */
     #tbColourPickerHex;
 
+    /** @type {colourPickerEvent} */
+    #event;
 
     /**
      * Initialises a new instance of the AddPaletteModalDialogue class.
