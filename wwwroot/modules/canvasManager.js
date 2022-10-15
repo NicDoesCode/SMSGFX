@@ -115,8 +115,9 @@ export default class CanvasManager {
 
                 // Set colour
                 if (pixelPaletteIndex >= 0 && pixelPaletteIndex < 16) {
-                    ColourUtil.rgbFromHex
-                    ctx.fillStyle = this.palette.getColour(pixelPaletteIndex).hex;
+                    const colour = this.palette.getColour(pixelPaletteIndex);
+                    const hex = ColourUtil.toHex(colour.r, colour.g, colour.b);
+                    ctx.fillStyle = hex;
                 } else {
                     ctx.fillStyle = 'yellow';
                 }

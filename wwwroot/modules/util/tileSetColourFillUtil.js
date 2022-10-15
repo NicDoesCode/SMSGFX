@@ -16,7 +16,6 @@ export default class TileSetColourFillUtil {
         if (x < 0 || x >= w || y < 0 || y >= h)
             throw 'Invalid origin coordinates.';
 
-
         const f = TileSetColourFillUtil;
         const originColour = tileSet.getPixelAt(x, y);
         const props = { tileSet, w, h, originColour };
@@ -31,21 +30,21 @@ export default class TileSetColourFillUtil {
                 // Fill left of the origin
                 let leftX = coord.x;
                 while (f.#inside(leftX - 1, coord.y, props)) {
-                    f.#set(leftX - 1, coord.y, fillColour);
+                    f.#set(tileSet, leftX - 1, coord.y, fillColour);
                     leftX -= 1;
                 }
 
                 // Fill right of the origin
                 let rightX = coord.x - 1;
                 while (f.#inside(rightX + 1, coord.y, props)) {
-                    f.#set(rightX + 1, coord.y, fillColour);
+                    f.#set(tileSet, rightX + 1, coord.y, fillColour);
                     rightX += 1;
                 }
 
                 // Now scan the line above and below this one, if any matching pixels 
                 // found then add them to the coords list
-                f.#scan(leftX, rightX, coord.y + 1, coords);
-                f.#scan(leftX, rightX, coord.y - 1, coords);
+                f.#scan(leftX, rightX, coord.y + 1, coords, props);
+                f.#scan(leftX, rightX, coord.y - 1, coords, props);
             }
 
         }
@@ -60,12 +59,13 @@ export default class TileSetColourFillUtil {
      * @param {*} rx 
      * @param {*} y 
      * @param {*} s 
+     * @param {FillProps} props - Object containing fill properties.
      */
-    static #scan(lx, rx, y, s) {
+    static #scan(lx, rx, y, s, props) {
         const f = TileSetColourFillUtil;
         let added = false;
         for (let x = lx; x < rx; x++) {
-            if (!f.#inside(x, y)) {
+            if (!f.#inside(x, y, props)) {
                 added = false;
             } else if (!added) {
                 s.push({ x, y });
@@ -83,9 +83,9 @@ export default class TileSetColourFillUtil {
      * @returns {boolean}
      */
     static #inside(x, y, props) {
-        if (x < 0 || x > props.w) {
+        if (x < 0 || x >= props.w) {
             return false;
-        } else if (y < 0 || y > props.h) {
+        } else if (y < 0 || y >= props.h) {
             return false;
         } else if (props.tileSet.getPixelAt(x, y) !== props.originColour) {
             return false;
