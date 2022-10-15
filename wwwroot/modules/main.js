@@ -15,6 +15,7 @@ import TileSetBinarySerialiser from "./serialisers/tileSetBinarySerialiser.js";
 import TileFactory from "./factory/tileFactory.js";
 import TileSetFactory from "./factory/tileSetFactory.js";
 import ProjectFactory from "./factory/projectFactory.js";
+import ProjectAssemblySerialiser from "./serialisers/projectAssemblySerialiser.js";
 
 
 const paletteDialogue = new PaletteModalDialogue(document.getElementById('tbPaletteDialogue'));

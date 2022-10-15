@@ -60,12 +60,12 @@ export default class ColourUtil {
             r = Math.round(3 / 255 * r);
             g = Math.round(3 / 255 * g) << 2;
             b = Math.round(3 / 255 * b) << 4;
-            return (r | g | b).toString(16).padStart(8, '0');
+            return (r | g | b).toString(16).padStart(2, '0');
         } else if (system === 'gg') {
             r = Math.round(15 / 255 * r);
             g = Math.round(15 / 255 * g) << 4;
             b = Math.round(15 / 255 * b) << 8;
-            return (r | g | b).toString(16).padStart(16, '0');
+            return (r | g | b).toString(16).padStart(3, '0');
         } else throw new Error('System was not valid.');
     }
 
