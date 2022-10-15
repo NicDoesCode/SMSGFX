@@ -1,5 +1,6 @@
 import PaletteListJsonSerialiser from "./serialisers/paletteListJsonSerialiser.js";
 import TileSetJsonSerialiser from "./serialisers/tileSetJsonSerialiser.js";
+import ProjectJsonSerialiser from "./serialisers/projectJsonSerialiser.js";
 import TileSetFactory from "./factory/tileSetFactory.js";
 import TileSet from "./models/tileSet.js";
 import AppUIState from "./models/appUIState.js";
@@ -7,10 +8,13 @@ import AppUIStateFactory from "./factory/appUIStateFactory.js";
 import AppUIStateJsonSerialiser from "./serialisers/appUIStateJsonSerialiser.js";
 import PaletteList from "./models/paletteList.js";
 import PaletteListFactory from "./factory/paletteListFactory.js";
+import Project from "./models/project.js";
+import ProjectFactory from "./factory/projectFactory.js";
 
 const LOCAL_STORAGE_APPUI = 'smsgfxappUi';
 const LOCAL_STORAGE_PALETTES = 'smsgfxpalettes';
 const LOCAL_STORAGE_TILES = 'smsgfxtiles';
+const LOCAL_STORAGE_PROJECT = 'smsgfxproject';
 
 export default class DataStore {
 
@@ -38,11 +42,11 @@ export default class DataStore {
      * Gets the palette list.
      */
     get paletteList() {
-        return this.#paletteList;
+        return this.project.paletteList;
     }
     set paletteList(value) {
         if (value && typeof value.getPalettes === 'function') {
-            this.#paletteList = value;
+            this.project.paletteList = value;
         } else {
             throw new Error('Please pass a palette list.');
         }
@@ -52,29 +56,36 @@ export default class DataStore {
      * Gets or sets the tile set.
      */
     get tileSet() {
-        return this.#tileSet;
+        return this.project.tileSet;
     }
     set tileSet(value) {
-        this.#tileSet = value;
+        this.project.tileSet = value;
+    }
+
+    /**
+     * Gets or sets the project.
+     */
+    get project() {
+        return this.#project;
+    }
+    set project(value) {
+        this.#project = value;
     }
 
 
     /** @type {AppUIState} */
     #appUIState;
-    /** @type {PaletteList} */
-    #paletteList;
-    /** @type {TileSet} */
-    #tileSet;
-    /** @type {UndoState[]} */
+    /** @type {Project} */
+    #project;
+    /** @type {Project[]} */
     #undoStates = [];
-    /** @type {UndoState[]} */
+    /** @type {Project[]} */
     #redoStates = [];
 
 
     constructor() {
         this.#appUIState = AppUIStateFactory.create();
-        this.#paletteList = PaletteListFactory.create();
-        this.#tileSet = TileSetFactory.create();
+        this.project = ProjectFactory.create();
     }
 
 
@@ -88,16 +99,10 @@ export default class DataStore {
             this.#appUIState = AppUIStateJsonSerialiser.deserialise(serialisedAppUI);
         }
 
-        // Load palettes from local storage
-        const serialisedPaletteList = localStorage.getItem(LOCAL_STORAGE_PALETTES);
-        if (serialisedPaletteList) {
-            this.#paletteList = PaletteListJsonSerialiser.deserialise(serialisedPaletteList);
-        }
-
-        // Load tile sets
-        const serialisedTileSets = localStorage.getItem(LOCAL_STORAGE_TILES);
-        if (serialisedTileSets) {
-            this.#tileSet = TileSetJsonSerialiser.deserialise(serialisedTileSets);
+        // Load the projedt
+        const serialisedProject = localStorage.getItem(LOCAL_STORAGE_PROJECT);
+        if (serialisedProject) {
+            this.project = ProjectJsonSerialiser.deserialise(serialisedProject);
         }
     }
 
@@ -109,11 +114,8 @@ export default class DataStore {
         const serialisedUIState = AppUIStateJsonSerialiser.serialise(this.appUIState);
         localStorage.setItem(LOCAL_STORAGE_APPUI, serialisedUIState);
 
-        const serialisedTiles = TileSetJsonSerialiser.serialise(this.tileSet);
-        localStorage.setItem(LOCAL_STORAGE_TILES, serialisedTiles);
-
-        const serialisedPaletteList = PaletteListJsonSerialiser.serialise(this.paletteList);
-        localStorage.setItem(LOCAL_STORAGE_PALETTES, serialisedPaletteList);
+        const serialisedProject = ProjectJsonSerialiser.serialise(this.project);
+        localStorage.setItem(LOCAL_STORAGE_PROJECT, serialisedProject);
     }
 
 
@@ -122,7 +124,7 @@ export default class DataStore {
      */
     recordUndoState() {
         this.clearRedoState();
-        this.#undoStates.push(this.#createUndoState());
+        this.#undoStates.push(this.project);
     }
 
     /**
@@ -145,11 +147,10 @@ export default class DataStore {
      * Stores the current state in the redo cache.
      */
     undo() {
-        this.#redoStates.push(this.#createUndoState());
-        const thisUndo = this.#undoStates.pop();
-        if (thisUndo) {
-            this.#paletteList = PaletteListJsonSerialiser.deserialise(thisUndo.palettes);
-            this.#tileSet = TileSetJsonSerialiser.deserialise(thisUndo.tiles);
+        this.#redoStates.push(this.project);
+        const undoStateProject = this.#undoStates.pop();
+        if (undoStateProject) {
+            this.project = undoStateProject;
         }
     }
 
@@ -158,33 +159,12 @@ export default class DataStore {
      * Stores the current state in the undo cache.
      */
     redo() {
-        this.#undoStates.push(this.#createUndoState());
-        const thisRedo = this.#redoStates.pop();
-        if (thisRedo) {
-            this.#paletteList = PaletteListJsonSerialiser.deserialise(thisRedo.palettes);
-            this.#tileSet = TileSetJsonSerialiser.deserialise(thisRedo.tiles);
+        this.#undoStates.push(this.project);
+        const redoStateProjedt = this.#redoStates.pop();
+        if (redoStateProjedt) {
+            this.project = redoStateProjedt;
         }
     }
 
-    /**
-     * Creates an undo state from the current data state.
-     * @returns {UndoState}
-     */
-    #createUndoState() {
-        const palettes = PaletteListJsonSerialiser.serialise(this.paletteList);
-        const tiles = TileSetJsonSerialiser.serialise(this.tileSet);
-        return {
-            palettes, tiles
-        }
-    }
 
 }
-
-
-/**
- * Represents a palette and tile state that can be undone.
- * @typedef UndoState
- * @type {object}
- * @property {string[]} palettes - Palette data serialised to an array of strings.
- * @property {string[]} tiles - Tile data serialised to an array of strings.
- */

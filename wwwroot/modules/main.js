@@ -14,8 +14,7 @@ import PaletteFactory from "./factory/paletteFactory.js";
 import TileSetBinarySerialiser from "./serialisers/tileSetBinarySerialiser.js";
 import TileFactory from "./factory/tileFactory.js";
 import TileSetFactory from "./factory/tileSetFactory.js";
-import TileSetJsonSerialiser from "./serialisers/tileSetJsonSerialiser.js";
-import PaletteListJsonSerialiser from "./serialisers/paletteListJsonSerialiser.js";
+import ProjectJsonSerialiser from "./serialisers/projectJsonSerialiser.js";
 import ProjectFactory from "./factory/projectFactory.js";
 
 
@@ -41,6 +40,7 @@ $(async () => {
 
     createDefaultPalettesAndTileSetIfNoneExist();
 
+    headerBar.onProjectTitleChanged = handleHeaderBarProjectTitleChanged;
     headerBar.onProjectLoad = handleHeaderBarProjectLoad;
     headerBar.onProjectSave = handleHeaderBarProjectSave;
     headerBar.onCodeExport = handleHeaderBarCodeExport;
@@ -138,25 +138,30 @@ function getPalette() {
  * @param {HeaderBar} sender Palette dialogue that sent the confirmation.
  * @param {object} e Event args.
  */
+function handleHeaderBarProjectTitleChanged(sender, e) {
+    dataStore.recordUndoState();
+    dataStore.project.title = sender.projectTitle;
+}
+
+/**
+ * @param {HeaderBar} sender Palette dialogue that sent the confirmation.
+ * @param {object} e Event args.
+ */
 function handleHeaderBarProjectLoad(sender, e) {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'application/json';
     input.onchange = () => {
         if (input.files.length > 0) {
-            ProjectUtil.loadFromBlob(input.files[0]).then(data => {
+            // Load the project from the file
+            ProjectUtil.loadFromBlob(input.files[0]).then(project => {
                 dataStore.recordUndoState();
 
-                // Add loaded tiles
-                const tileSet = TileSetJsonSerialiser.fromSerialisable(data.tiles);
-                dataStore.tileSet = tileSet;
-
-                // Add loaded palettes
-                const paletteList = PaletteListJsonSerialiser.fromSerialisable(data.palettes);
-                dataStore.paletteList = paletteList;
+                dataStore.project = project;
 
                 // Refresh
-                const palette = paletteList.getPalette(0);
+                const tileSet = project.tileSet;
+                const palette = project.paletteList.getPalette(0);
                 paletteToolbox.setPalette(palette);
                 tileEditor.tileWidth = tileSet.tileWidth;
 
@@ -176,9 +181,7 @@ function handleHeaderBarProjectLoad(sender, e) {
  * @param {object} e Event args.
  */
 function handleHeaderBarProjectSave(sender, e) {
-    const tileSet = dataStore.tileSet;
-    const paletteList = dataStore.paletteList;
-    ProjectUtil.saveToFile(tileSet, paletteList);
+    ProjectUtil.saveToFile(dataStore.project);
     return false;
 }
 
@@ -189,7 +192,7 @@ function handleHeaderBarProjectSave(sender, e) {
 function handleHeaderBarCodeExport(sender, e) {
     const tileSet = dataStore.tileSet;
     const paletteList = dataStore.paletteList;
-    const project = ProjectFactory.create(tileSet, paletteList);
+    const project = ProjectFactory.create(sender.projectTitle, tileSet, paletteList);
     exportDialogue.value = ProjectAssemblySerialiser.serialise(project);
     exportDialogue.show();
     return false;
