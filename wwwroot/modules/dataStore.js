@@ -1,51 +1,91 @@
-import PaletteList from "./paletteList.js";
-import TileSetList from "./tileSetList.js";
+import PaletteListJsonSerialiser from "./serialisers/paletteListJsonSerialiser.js";
+import TileSetJsonSerialiser from "./serialisers/tileSetJsonSerialiser.js";
+import ProjectJsonSerialiser from "./serialisers/projectJsonSerialiser.js";
+import TileSetFactory from "./factory/tileSetFactory.js";
+import TileSet from "./models/tileSet.js";
+import AppUIState from "./models/appUIState.js";
+import AppUIStateFactory from "./factory/appUIStateFactory.js";
+import AppUIStateJsonSerialiser from "./serialisers/appUIStateJsonSerialiser.js";
+import PaletteList from "./models/paletteList.js";
+import PaletteListFactory from "./factory/paletteListFactory.js";
+import Project from "./models/project.js";
+import ProjectFactory from "./factory/projectFactory.js";
 
 const LOCAL_STORAGE_APPUI = 'smsgfxappUi';
 const LOCAL_STORAGE_PALETTES = 'smsgfxpalettes';
 const LOCAL_STORAGE_TILES = 'smsgfxtiles';
+const LOCAL_STORAGE_PROJECT = 'smsgfxproject';
 
 export default class DataStore {
+
+
+    /** Gets the static singleton instance. */
+    static get instance() {
+        if (!DataStore.#instance) {
+            DataStore.#instance = new DataStore();
+        }
+        return DataStore.#instance;
+    }
+
+    /** @type {DataStore} */
+    static #instance = null;
 
 
     /**
      * Gets the UI elements.
      */
-    get appUI() {
-        return this.#appUI;
+    get appUIState() {
+        return this.#appUIState;
     }
 
     /**
      * Gets the palette list.
      */
     get paletteList() {
-        return this.#paletteList;
+        return this.project.paletteList;
+    }
+    set paletteList(value) {
+        if (value && typeof value.getPalettes === 'function') {
+            this.project.paletteList = value;
+        } else {
+            throw new Error('Please pass a palette list.');
+        }
     }
 
     /**
-     * Gets the tile set list.
+     * Gets or sets the tile set.
      */
-    get tileSetList() {
-        return this.#tileSetList;
+    get tileSet() {
+        return this.project.tileSet;
+    }
+    set tileSet(value) {
+        this.project.tileSet = value;
+    }
+
+    /**
+     * Gets or sets the project.
+     */
+    get project() {
+        return this.#project;
+    }
+    set project(value) {
+        this.#project = value;
     }
 
 
-    /** @type {DataStoreUIData} */
-    #appUI;
-    /** @type {PaletteList} */
-    #paletteList;
-    /** @type {TileSetList} */
-    #tileSetList;
-    /** @type {UndoState[]} */
+    /** @type {AppUIState} */
+    #appUIState;
+    /** @type {Project} */
+    #project;
+    /** @type {Project[]} */
     #undoStates = [];
-    /** @type {UndoState[]} */
+    /** @type {Project[]} */
     #redoStates = [];
 
 
     constructor() {
-        this.#appUI = new DataStoreUIData();
-        this.#paletteList = new PaletteList();
-        this.#tileSetList = new TileSetList();
+        this.#appUIState = AppUIStateFactory.create();
+        this.project = ProjectFactory.create();
     }
 
 
@@ -56,19 +96,13 @@ export default class DataStore {
         // Load UI from local storage
         const serialisedAppUI = localStorage.getItem(LOCAL_STORAGE_APPUI);
         if (serialisedAppUI) {
-            this.#appUI = DataStoreUIData.deserialise(serialisedAppUI);
+            this.#appUIState = AppUIStateJsonSerialiser.deserialise(serialisedAppUI);
         }
 
-        // Load palettes from local storage
-        const serialisedPalettes = localStorage.getItem(LOCAL_STORAGE_PALETTES);
-        if (serialisedPalettes) {
-            this.#paletteList = PaletteList.deserialise(serialisedPalettes);
-        }
-
-        // Load tile sets
-        const serialisedTileSets = localStorage.getItem(LOCAL_STORAGE_TILES);
-        if (serialisedTileSets) {
-            this.#tileSetList = TileSetList.deserialise(serialisedTileSets);
+        // Load the projedt
+        const serialisedProject = localStorage.getItem(LOCAL_STORAGE_PROJECT);
+        if (serialisedProject) {
+            this.project = ProjectJsonSerialiser.deserialise(serialisedProject);
         }
     }
 
@@ -77,9 +111,11 @@ export default class DataStore {
      * Saves to local storage.
      */
     saveToLocalStorage() {
-        localStorage.setItem(LOCAL_STORAGE_APPUI, this.#appUI.serialise());
-        localStorage.setItem(LOCAL_STORAGE_TILES, this.#tileSetList.serialise());
-        localStorage.setItem(LOCAL_STORAGE_PALETTES, this.#paletteList.serialise());
+        const serialisedUIState = AppUIStateJsonSerialiser.serialise(this.appUIState);
+        localStorage.setItem(LOCAL_STORAGE_APPUI, serialisedUIState);
+
+        const serialisedProject = ProjectJsonSerialiser.serialise(this.project);
+        localStorage.setItem(LOCAL_STORAGE_PROJECT, serialisedProject);
     }
 
 
@@ -88,7 +124,7 @@ export default class DataStore {
      */
     recordUndoState() {
         this.clearRedoState();
-        this.#undoStates.push(this.#createUndoState());
+        this.#undoStates.push(this.project);
     }
 
     /**
@@ -111,11 +147,10 @@ export default class DataStore {
      * Stores the current state in the redo cache.
      */
     undo() {
-        this.#redoStates.push(this.#createUndoState());
-        const thisUndo = this.#undoStates.pop();
-        if (thisUndo) {
-            this.#paletteList = PaletteList.deserialise(thisUndo.palettes);
-            this.#tileSetList = TileSetList.deserialise(thisUndo.tiles);
+        this.#redoStates.push(this.project);
+        const undoStateProject = this.#undoStates.pop();
+        if (undoStateProject) {
+            this.project = undoStateProject;
         }
     }
 
@@ -124,145 +159,12 @@ export default class DataStore {
      * Stores the current state in the undo cache.
      */
     redo() {
-        this.#undoStates.push(this.#createUndoState());
-        const thisRedo = this.#redoStates.pop();
-        if (thisRedo) {
-            this.#paletteList = PaletteList.deserialise(thisRedo.palettes);
-            this.#tileSetList = TileSetList.deserialise(thisRedo.tiles);
+        this.#undoStates.push(this.project);
+        const redoStateProjedt = this.#redoStates.pop();
+        if (redoStateProjedt) {
+            this.project = redoStateProjedt;
         }
-    }
-
-    /**
-     * Creates an undo state from the current data state.
-     * @returns {UndoState}
-     */
-    #createUndoState() {
-        return {
-            palettes: this.#paletteList.serialise(),
-            tiles: this.#tileSetList.serialise()
-        }
-    }
-
-}
-
-export class DataStoreUIData {
-
-
-    /**
-     * Gets or sets the last text that was entered into the palette input box.
-     */
-    get lastPaletteInput() {
-        return this.#lastPaletteInput;
-    }
-    set lastPaletteInput(value) {
-        this.#lastPaletteInput = value;
-    }
-
-    /**
-     * Gets or sets the last system that was entered into the palette input box.
-     */
-    get lastPaletteInputSystem() {
-        return this.#lastPaletteInputSystem;
-    }
-    set lastPaletteInputSystem(value) {
-        this.#lastPaletteInputSystem = value;
-    }
-
-    /**
-     * Gets or sets the last text that was entered into the tile set input box.
-     */
-    get lastTileInput() {
-        return this.#lastTileInput;
-    }
-    set lastTileInput(value) {
-        this.#lastTileInput = value;
-    }
-
-    /**
-     * Index in the palette list of the last selected palette.
-     */
-    get lastSelectedPaletteIndex() {
-        return this.#lastSelectedPaletteIndex;
-    }
-    set lastSelectedPaletteIndex(value) {
-        this.#lastSelectedPaletteIndex = value;
-    }
-
-    /**
-     * Zoom level.
-     */
-    get lastZoomValue() {
-        return this.#lastZoomValue;
-    }
-    set lastZoomValue(value) {
-        this.#lastZoomValue = value;
-    }
-
-
-    /** @type {string} */
-    #lastPaletteInput = '';
-    /** @type {string} */
-    #lastPaletteInputSystem = 'gg';
-    /** @type {string} */
-    #lastTileInput = '';
-    /** @type {number} */
-    #lastSelectedPaletteIndex = 0;
-    /** @type {number} */
-    #lastZoomValue = 10;
-
-
-    constructor(initialValues) {
-        if (initialValues) {
-            if (initialValues.lastPaletteInput) {
-                this.lastPaletteInput = initialValues.lastPaletteInput;
-            }
-            if (initialValues.lastPaletteInputSystem) {
-                this.lastPaletteInputSystem = initialValues.lastPaletteInputSystem;
-            }
-            if (initialValues.lastTileInput) {
-                this.lastTileInput = initialValues.lastTileInput;
-            }
-            if (initialValues.lastSelectedPaletteIndex) {
-                this.lastSelectedPaletteIndex = initialValues.lastSelectedPaletteIndex;
-            }
-            if (initialValues.lastZoomValue) {
-                this.lastZoomValue = initialValues.lastZoomValue;
-            }
-        }
-    }
-
-
-    /**
-     * Serialises the class.
-     * @returns {string}
-     */
-    serialise() {
-        return JSON.stringify({
-            lastPaletteInput: this.lastPaletteInput,
-            lastPaletteInputSystem: this.lastPaletteInputSystem,
-            lastTileInput: this.lastTileInput,
-            lastSelectedPaletteIndex: this.lastSelectedPaletteIndex,
-            lastZoomValue: this.lastZoomValue
-        });
-    }
-
-    /**
-     * Deserialises a JSON string into an AppUI object.
-     * @param {string} value JSON string.
-     * @returns {DataStoreUIData}
-     */
-    static deserialise(value) {
-        const deserialisedObject = JSON.parse(value);
-        return new DataStoreUIData(deserialisedObject);
     }
 
 
 }
-
-/**
- * Represents a palette and tile state that can be undone.
- * @typedef UndoState
- * @type {object}
- * @property {string[]} palettes - Palette data serialised to an array of strings.
- * @property {string[]} tiles - Tile data serialised to an array of strings.
- */

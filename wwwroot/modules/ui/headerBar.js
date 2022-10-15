@@ -1,9 +1,36 @@
 export default class HeaderBar {
 
 
+    /**
+     * Gets or sets the project title.
+     */
+    get projectTitle() {
+        return this.#tbProjectTitle.value;
+    }
+    set projectTitle(value) {
+        if (typeof value === 'undefined' || value === null) throw new Error('Project title was not valid.');
+        this.#tbProjectTitle.value = value;
+    }
+
+    /** 
+     * When the project title is changed.
+     */
+    get onProjectTitleChanged() {
+        return this.#onProjectTitleChangedCallback;
+    }
+    set onProjectTitleChanged(value) {
+        if (value && typeof value === 'function') {
+            this.#onProjectTitleChangedCallback = value;
+        } else {
+            this.#onProjectTitleChangedCallback = () => { };
+        }
+    }
+
+    /** @type {HeaderBarCallback} */
+    #onProjectTitleChangedCallback = () => { };
+
     /** 
      * When project is to be loaded from a file.
-     * @type {HeaderBarCallback} 
      */
     get onProjectLoad() {
         return this.#onProjectLoadCallback;
@@ -21,7 +48,6 @@ export default class HeaderBar {
 
     /** 
      * When project is to be saved to a file.
-     * @type {HeaderBarCallback} 
      */
     get onProjectSave() {
         return this.#onProjectSaveCallback;
@@ -34,12 +60,11 @@ export default class HeaderBar {
         }
     }
 
-    /** @type {TileEditorCallback} */
+    /** @type {HeaderBarCallback} */
     #onProjectSaveCallback = () => { };
 
     /** 
      * When code is to be exported.
-     * @type {HeaderBarCallback} 
      */
     get onCodeExport() {
         return this.#onCodeExportCallback;
@@ -52,12 +77,14 @@ export default class HeaderBar {
         }
     }
 
-    /** @type {TileEditorCallback} */
+    /** @type {HeaderBarCallback} */
     #onCodeExportCallback = () => { };
 
 
     /** @type {HTMLDivElement} */
     #element;
+    /** @type {HTMLInputElement} */
+    #tbProjectTitle;
     /** @type {HTMLButtonElement} */
     #btnProjectLoad;
     /** @type {HTMLButtonElement} */
@@ -72,6 +99,17 @@ export default class HeaderBar {
      */
     constructor(element) {
         this.#element = element;
+
+        this.#tbProjectTitle = this.#element.querySelector('#tbProjectTitle');
+        this.#tbProjectTitle.onchange = (evt) => this.onProjectTitleChanged(this, { });
+        this.#tbProjectTitle.onkeydown = (evt) => {
+            // Prevent the enter key from triggering the 'load project' button
+            // instead make it trigger the onchange event.
+            if (evt.key.toLowerCase() === 'enter') {
+                this.#tbProjectTitle.onchange();
+                return false;
+            }
+        };
 
         this.#btnProjectLoad = this.#element.querySelector('#btnProjectLoad');
         this.#btnProjectLoad.onclick = () => this.onProjectLoad(this, {});
@@ -92,4 +130,3 @@ export default class HeaderBar {
  * @param {object} e - Event args.
  * @exports
  */
-

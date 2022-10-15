@@ -1,9 +1,7 @@
 import DataStore from "./dataStore.js";
-import Palette from "./palette.js";
-import TileSet from './tileSet.js'
-import AssemblyUtility from "./assemblyUtility.js";
-import TileCanvas from "./tileCanvas.js";
-import Fill from "./fill.js";
+import AssemblyUtil from "./util/assemblyUtil.js";
+import CanvasManager from "./canvasManager.js";
+import TileSetColourFillUtil from "./util/tileSetColourFillUtil.js";
 import ColourPickerModalDialogue from "./ui/colourPickerModalDialogue.js";
 import PaletteModalDialogue from "./ui/paletteModalDialogue.js";
 import TileModalDialogue from "./ui/tileModalDialogue.js";
@@ -11,15 +9,14 @@ import ExportModalDialogue from "./ui/exportModalDialogue.js";
 import PaletteToolbox from "./ui/paletteToolbox.js";
 import TileEditor from "./ui/tileEditor.js";
 import HeaderBar from "./ui/headerBar.js";
-import ProjectFile from "./util/projectFile.js";
-import ColourUtil from './util/colourUtil.js'
-import TileSetList from "./tileSetList.js";
-import PaletteList from "./paletteList.js";
-import Tile from "./tile.js";
+import ProjectUtil from "./util/projectUtil.js";
+import PaletteFactory from "./factory/paletteFactory.js";
+import TileSetBinarySerialiser from "./serialisers/tileSetBinarySerialiser.js";
+import TileFactory from "./factory/tileFactory.js";
+import TileSetFactory from "./factory/tileSetFactory.js";
+import ProjectFactory from "./factory/projectFactory.js";
+import ProjectAssemblySerialiser from "./serialisers/projectAssemblySerialiser.js";
 
-
-const dataStore = new DataStore();
-const tileCanvas = new TileCanvas();
 
 const paletteDialogue = new PaletteModalDialogue(document.getElementById('tbPaletteDialogue'));
 const tileDialogue = new TileModalDialogue(document.getElementById('tbTileDialogue'));
@@ -29,11 +26,12 @@ const paletteToolbox = new PaletteToolbox(document.getElementById('tbPaletteTool
 const tileEditor = new TileEditor(document.getElementById('tbTileEditor'));
 const headerBar = new HeaderBar(document.getElementById('tbHeaderBar'));
 
+const dataStore = DataStore.instance;
+const canvasManager = new CanvasManager();
+
 
 /** @type {string} */
 let selectedTool = null;
-const colours = ['#000000', '#000000', '#00AA00', '#00FF00', '#000055', '#0000FF', '#550000', '#00FFFF', '#AA0000', '#FF0000', '#555500', '#FFFF00', '#005500', '#FF00FF', '#555555', '#FFFFFF'];
-
 
 $(async () => {
 
@@ -42,19 +40,20 @@ $(async () => {
 
     createDefaultPalettesAndTileSetIfNoneExist();
 
+    headerBar.onProjectTitleChanged = handleHeaderBarProjectTitleChanged;
     headerBar.onProjectLoad = handleHeaderBarProjectLoad;
     headerBar.onProjectSave = handleHeaderBarProjectSave;
     headerBar.onCodeExport = handleHeaderBarCodeExport;
 
-    paletteDialogue.inputData = dataStore.appUI.lastPaletteInput;
-    paletteDialogue.inputSystem = dataStore.appUI.lastPaletteInputSystem;
+    paletteDialogue.inputData = dataStore.appUIState.lastPaletteInput;
+    paletteDialogue.inputSystem = dataStore.appUIState.lastPaletteInputSystem;
     paletteDialogue.onConfirm = handleImportPalette;
 
-    tileDialogue.inputData = dataStore.appUI.lastTileInput;
+    tileDialogue.inputData = dataStore.appUIState.lastTileInput;
     tileDialogue.onConfirm = handleImportTileSet;
 
     paletteToolbox.refreshPalettes(dataStore.paletteList.getPalettes());
-    paletteToolbox.selectedPaletteIndex = dataStore.appUI.lastSelectedPaletteIndex;
+    paletteToolbox.selectedPaletteIndex = dataStore.appUIState.lastSelectedPaletteIndex;
     paletteToolbox.onNewPalette = (sender, e) => handleNewPalette();
     paletteToolbox.onAddPalette = (sender, e) => paletteDialogue.show();
     paletteToolbox.onColourEdit = handlePaletteColourEdit;
@@ -83,15 +82,16 @@ $(async () => {
     const tileSet = getTileSet();
 
     if (palette) {
+        headerBar.projectTitle = dataStore.project.title;
         paletteToolbox.setPalette(getPalette());
         if (tileSet) {
             tileEditor.tileWidth = tileSet.tileWidth;
-            tileEditor.zoomValue = dataStore.appUI.lastZoomValue;
+            tileEditor.zoomValue = dataStore.appUIState.lastZoomValue;
             // Display the last used tile set.
-            tileCanvas.scale = tileEditor.zoomValue;
-            tileCanvas.palette = palette;
-            tileCanvas.tileSet = tileSet;
-            tileCanvas.drawUI(tileEditor.canvas);
+            canvasManager.scale = tileEditor.zoomValue;
+            canvasManager.palette = palette;
+            canvasManager.tileSet = tileSet;
+            canvasManager.drawUI(tileEditor.canvas);
         }
     }
 
@@ -105,44 +105,45 @@ $(async () => {
 
 function createDefaultPalettesAndTileSetIfNoneExist() {
     // Create a default tile set
-    if (dataStore.tileSetList.length === 0) {
+    if (dataStore.tileSet.length === 0) {
         const dummyArray = new Uint8ClampedArray(64 * 8 * 8);
         dummyArray.fill(15, 0, dummyArray.length);
-        const tileSet = new TileSet(dummyArray);
+        const tileSet = TileSetFactory.fromArray(dummyArray);
         tileSet.tileWidth = 8;
-        dataStore.tileSetList.addTileSet(tileSet);
+        dataStore.tileSet = tileSet;
     };
     // Create a default palette for Game Gear and Master System
     if (dataStore.paletteList.length === 0) {
-        /** @type string[] */
-        for (let i = 0; i < 2; i++) {
-            const system = i % 2 === 0 ? 'ms' : 'gg';
-            const palette = new Palette(system, 0);
-            for (let c = 0; c < 16; c++) {
-                palette.setColour(c, ColourUtil.paletteColourFromHex(c, system, colours[c]));
-            }
-            dataStore.paletteList.addPalette(palette);
-        }
+        dataStore.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('Default Master System', 'ms'));
+        dataStore.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('Default Game Gear', 'gg'));
     }
 }
 
 function getTileSet() {
-    if (dataStore.tileSetList.length > 0) {
-        return dataStore.tileSetList.getTileSet(0);
-    } else return null;
+    return dataStore.tileSet;
 }
 
 function getPalette() {
     if (dataStore.paletteList.length > 0) {
         const paletteIndex = paletteToolbox.selectedPaletteIndex;
-        let palette = dataStore.paletteList.getPalette(paletteIndex);
         if (paletteIndex >= 0 && paletteIndex < dataStore.paletteList.length) {
-            palette = dataStore.paletteList.getPalette(paletteIndex);
+            return dataStore.paletteList.getPalette(paletteIndex);
+        } else {
+            dataStore.appUIState.lastSelectedPaletteIndex = 0;
+            return dataStore.paletteList.getPalette(0);
         }
-        return palette;
     } else return null;
 }
 
+
+/**
+ * @param {HeaderBar} sender Palette dialogue that sent the confirmation.
+ * @param {object} e Event args.
+ */
+function handleHeaderBarProjectTitleChanged(sender, e) {
+    dataStore.recordUndoState();
+    dataStore.project.title = sender.projectTitle;
+}
 
 /**
  * @param {HeaderBar} sender Palette dialogue that sent the confirmation.
@@ -154,33 +155,24 @@ function handleHeaderBarProjectLoad(sender, e) {
     input.accept = 'application/json';
     input.onchange = () => {
         if (input.files.length > 0) {
-            ProjectFile.loadFromFile(input.files[0]).then(data => {
+            // Load the project from the file
+            ProjectUtil.loadFromBlob(input.files[0]).then(project => {
                 dataStore.recordUndoState();
 
-                // Add loaded tiles
-                const t = TileSetList.deserialise(data.tiles);
-                dataStore.tileSetList.clear();
-                for (let i = 0; i < t.length; i++) {
-                    dataStore.tileSetList.addTileSet(t.getTileSet(i));
-                }
+                dataStore.project = project;
 
-                // Add loaded palettes
-                const p = PaletteList.deserialise(data.palettes);
-                dataStore.paletteList.clear();
-                for (let i = 0; i < p.length; i++) {
-                    dataStore.paletteList.addPalette(p.getPalette(i));
-                }
+                headerBar.projectTitle = project.title;
 
                 // Refresh
-                const palette = p.getPalette(0);
-                paletteToolbox.setPalette(dataStore.paletteList.getPalette(0));
-                const tileSet = t.getTileSet(0);
+                const tileSet = project.tileSet;
+                const palette = project.paletteList.getPalette(0);
+                paletteToolbox.setPalette(palette);
                 tileEditor.tileWidth = tileSet.tileWidth;
 
                 // Display the last used tile set.
-                tileCanvas.palette = palette;
-                tileCanvas.tileSet = tileSet;
-                tileCanvas.drawUI(tileEditor.canvas);
+                canvasManager.palette = palette;
+                canvasManager.tileSet = tileSet;
+                canvasManager.drawUI(tileEditor.canvas);
             });
         }
     }
@@ -193,9 +185,7 @@ function handleHeaderBarProjectLoad(sender, e) {
  * @param {object} e Event args.
  */
 function handleHeaderBarProjectSave(sender, e) {
-    const tileSetList = dataStore.tileSetList;
-    const paletteList = dataStore.paletteList;
-    ProjectFile.saveToFile(tileSetList, paletteList);
+    ProjectUtil.saveToFile(dataStore.project);
     return false;
 }
 
@@ -204,9 +194,10 @@ function handleHeaderBarProjectSave(sender, e) {
  * @param {object} e Event args.
  */
 function handleHeaderBarCodeExport(sender, e) {
-    const tileSetList = dataStore.tileSetList.getTileSet(0);
+    const tileSet = dataStore.tileSet;
     const paletteList = dataStore.paletteList;
-    exportDialogue.generateExportData(tileSetList, paletteList);
+    const project = ProjectFactory.create(sender.projectTitle, tileSet, paletteList);
+    exportDialogue.value = ProjectAssemblySerialiser.serialise(project);
     exportDialogue.show();
     return false;
 }
@@ -224,27 +215,27 @@ function handleImportPalette(sender, e) {
 
     const system = sender.inputSystem;
     const paletteData = sender.inputData;
-    const palette = new Palette(system, 0);
     if (system === 'gg') {
-        const array = AssemblyUtility.readAsUint16Array(paletteData);
-        palette.loadGameGearPalette(array);
+        const array = AssemblyUtil.readAsUint16Array(paletteData);
+        const palette = PaletteFactory.createFromGameGearPalette(array);
+        dataStore.paletteList.addPalette(palette);
     } else if (system === 'ms') {
-        const array = AssemblyUtility.readAsUint8ClampedArray(paletteData);
-        palette.loadMasterSystemPalette(array);
+        const array = AssemblyUtil.readAsUint8ClampedArray(paletteData);
+        const palette = PaletteFactory.createFromMasterSystemPalette(array);
+        dataStore.paletteList.addPalette(palette);
     }
-    dataStore.paletteList.addPalette(palette);
 
     paletteToolbox.refreshPalettes(dataStore.paletteList.getPalettes());
     paletteToolbox.selectedPaletteIndex = dataStore.paletteList.length - 1;
     paletteToolbox.setPalette(getPalette());
 
-    tileCanvas.palette = getPalette();
-    tileCanvas.invalidateImage();
-    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
+    canvasManager.palette = getPalette();
+    canvasManager.invalidateImage();
+    canvasManager.drawUI(tileEditor.canvas, 0, 0);
 
-    dataStore.appUI.lastSelectedPaletteIndex = paletteToolbox.selectedPaletteIndex;
-    dataStore.appUI.lastPaletteInput = sender.inputData;
-    dataStore.appUI.lastPaletteInputSystem = sender.inputSystem;
+    dataStore.appUIState.lastSelectedPaletteIndex = paletteToolbox.selectedPaletteIndex;
+    dataStore.appUIState.lastPaletteInput = sender.inputData;
+    dataStore.appUIState.lastPaletteInputSystem = sender.inputSystem;
     dataStore.saveToLocalStorage();
 }
 
@@ -257,11 +248,11 @@ function handleImportTileSet(sender, e) {
     dataStore.recordUndoState();
 
     const tileData = sender.inputData;
-    const array = AssemblyUtility.readAsUint8ClampedArray(tileData);
-    const tileSet = TileSet.parsePlanarFormat(array);
+    const array = AssemblyUtil.readAsUint8ClampedArray(tileData);
+    const tileSet = TileSetBinarySerialiser.deserialise(array);
 
-    dataStore.tileSetList.addTileSet(tileSet);
-    dataStore.appUI.lastTileInput = sender.inputData;
+    dataStore.tileSet = tileSet;
+    dataStore.appUIState.lastTileInput = sender.inputData;
     dataStore.saveToLocalStorage();
 }
 
@@ -270,8 +261,8 @@ function handleImportTileSet(sender, e) {
  * @param {import("./ui/tileEditor.js").TileEditorTileWidthChangedEventData} e 
  */
 function handleTileEditorTileWidthChanged(sender, e) {
-    tileCanvas.tileSet.tileWidth = e.tileWidth;
-    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
+    canvasManager.tileSet.tileWidth = e.tileWidth;
+    canvasManager.drawUI(tileEditor.canvas, 0, 0);
     dataStore.saveToLocalStorage();
 }
 
@@ -280,9 +271,9 @@ function handleTileEditorTileWidthChanged(sender, e) {
  * @param {import("./ui/tileEditor.js").TileEditorZoomChangedEventData} e 
  */
 function handleTileEditorZoomChanged(sender, e) {
-    tileCanvas.scale = e.zoom;
-    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
-    dataStore.appUI.lastZoomValue = e.zoom;
+    canvasManager.scale = e.zoom;
+    canvasManager.drawUI(tileEditor.canvas, 0, 0);
+    dataStore.appUIState.lastZoomValue = e.zoom;
     dataStore.saveToLocalStorage();
 }
 
@@ -292,12 +283,12 @@ function handleTileEditorZoomChanged(sender, e) {
  */
 function handleTileEditorUndo(sender, e) {
     dataStore.undo();
-    tileCanvas.palette = getPalette();
-    tileCanvas.tileSet = getTileSet();
+    canvasManager.palette = getPalette();
+    canvasManager.tileSet = getTileSet();
     paletteToolbox.setPalette(getPalette());
     paletteToolbox.refreshPalettes(dataStore.paletteList.getPalettes());
-    tileCanvas.invalidateImage();
-    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
+    canvasManager.invalidateImage();
+    canvasManager.drawUI(tileEditor.canvas, 0, 0);
 }
 
 /**
@@ -306,12 +297,12 @@ function handleTileEditorUndo(sender, e) {
  */
 function handleTileEditorRedo(sender, e) {
     dataStore.redo();
-    tileCanvas.palette = getPalette();
-    tileCanvas.tileSet = getTileSet();
+    canvasManager.palette = getPalette();
+    canvasManager.tileSet = getTileSet();
     paletteToolbox.setPalette(getPalette());
     paletteToolbox.refreshPalettes(dataStore.paletteList.getPalettes());
-    tileCanvas.invalidateImage();
-    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
+    canvasManager.invalidateImage();
+    canvasManager.drawUI(tileEditor.canvas, 0, 0);
 }
 
 /**
@@ -336,7 +327,7 @@ function handleTileEditorPixelOver(sender, e) {
     }
 
     // Update the UI
-    tileCanvas.drawUI(tileEditor.canvas, e.imageX, e.imageY);
+    canvasManager.drawUI(tileEditor.canvas, e.imageX, e.imageY);
 
     // Show the palette colour
     const pixel = tileSet.getPixelAt(e.imageX, e.imageY);
@@ -354,11 +345,11 @@ function handleTileEditorAddTile(sender, e) {
 
         const tileDataArray = new Uint8ClampedArray(64);
         tileDataArray.fill(15, 0, tileDataArray.length);
-        tileSet.addTile(new Tile(tileDataArray));
+        tileSet.addTile(TileFactory.fromArray(tileDataArray));
 
         dataStore.saveToLocalStorage();
-        tileCanvas.invalidateImage();
-        tileCanvas.drawUI(tileEditor.canvas, 0, 0);
+        canvasManager.invalidateImage();
+        canvasManager.drawUI(tileEditor.canvas, 0, 0);
     }
     return false;
 }
@@ -385,8 +376,8 @@ function handleTileEditorRemoveTile(sender, e) {
     tileSet.removeTile(tileIndex);
 
     dataStore.saveToLocalStorage();
-    tileCanvas.invalidateImage();
-    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
+    canvasManager.invalidateImage();
+    canvasManager.drawUI(tileEditor.canvas, 0, 0);
 }
 
 /**
@@ -402,12 +393,12 @@ function handleTileEditorInsertTileBefore(sender, e) {
     const tileDataArray = new Uint8ClampedArray(64);
     tileDataArray.fill(15, 0, tileDataArray.length);
 
-    const newTile = new Tile(tileDataArray);
+    const newTile = TileFactory.fromArray(tileDataArray);
     tileSet.insertTileAt(newTile, tileIndex);
 
     dataStore.saveToLocalStorage();
-    tileCanvas.invalidateImage();
-    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
+    canvasManager.invalidateImage();
+    canvasManager.drawUI(tileEditor.canvas, 0, 0);
 }
 
 /**
@@ -423,12 +414,12 @@ function handleTileEditorInsertTileAfter(sender, e) {
     const tileDataArray = new Uint8ClampedArray(64);
     tileDataArray.fill(15, 0, tileDataArray.length);
 
-    const newTile = new Tile(tileDataArray);
+    const newTile = TileFactory.fromArray(tileDataArray);
     tileSet.insertTileAt(newTile, tileIndex + 1);
 
     dataStore.saveToLocalStorage();
-    tileCanvas.invalidateImage();
-    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
+    canvasManager.invalidateImage();
+    canvasManager.drawUI(tileEditor.canvas, 0, 0);
 }
 
 /**
@@ -464,18 +455,17 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
                 tileSet.setPixelAt(imageX, imageY, colourIndex);
 
                 // Update the UI
-                tileCanvas.invalidateImage();
-                tileCanvas.drawUI(tileEditor.canvas, imageX, imageY);
+                canvasManager.invalidateImage();
+                canvasManager.drawUI(tileEditor.canvas, imageX, imageY);
             }
         } else if (tool === 'bucket') {
             dataStore.recordUndoState();
 
-            const filler = new Fill(tileCanvas);
-            filler.fill(imageX, imageY, colourIndex)
+            TileSetColourFillUtil.fill(getTileSet(), imageX, imageY, colourIndex)
 
             // Update the UI
-            tileCanvas.invalidateImage();
-            tileCanvas.drawUI(tileEditor.canvas, imageX, imageY);
+            canvasManager.invalidateImage();
+            canvasManager.drawUI(tileEditor.canvas, imageX, imageY);
         }
 
     }
@@ -489,11 +479,11 @@ function handlePaletteChanged(sender, e) {
     paletteToolbox.setPalette(palette);
 
     // Refresh image
-    tileCanvas.palette = palette;
-    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
+    canvasManager.palette = palette;
+    canvasManager.drawUI(tileEditor.canvas, 0, 0);
 
     // Store palette index to local storage
-    dataStore.appUI.lastSelectedPaletteIndex = paletteToolbox.selectedPaletteIndex;
+    dataStore.appUIState.lastSelectedPaletteIndex = paletteToolbox.selectedPaletteIndex;
     dataStore.saveToLocalStorage();
 }
 
@@ -508,17 +498,17 @@ function handlePaletteDelete(sender, e) {
         const newSelectedIndex = Math.min(paletteIndex, dataStore.paletteList.length - 1);
         if (dataStore.paletteList.length > 0) {
             paletteToolbox.selectedPaletteIndex = newSelectedIndex;
-            dataStore.appUI.lastSelectedPaletteIndex = newSelectedIndex;
+            dataStore.appUIState.lastSelectedPaletteIndex = newSelectedIndex;
         } else {
-            paletteToolbox.setPalette(new Palette());
-            dataStore.appUI.lastSelectedPaletteIndex = -1;
+            paletteToolbox.setPalette(PaletteFactory.create());
+            dataStore.appUIState.lastSelectedPaletteIndex = -1;
         }
         paletteToolbox.refreshPalettes(dataStore.paletteList.getPalettes());
         paletteToolbox.setPalette(getPalette());
 
         // Refresh image
-        tileCanvas.palette = getPalette();
-        tileCanvas.drawUI(tileEditor.canvas, 0, 0);
+        canvasManager.palette = getPalette();
+        canvasManager.drawUI(tileEditor.canvas, 0, 0);
 
         dataStore.saveToLocalStorage();
     }
@@ -541,22 +531,18 @@ function handlePaletteColourSelect(sender, e) {
 function handleNewPalette(sender, e) {
     dataStore.recordUndoState();
 
-    const system = 'ms';
-    const palette = new Palette(system, 0);
-    for (let c = 0; c < 16; c++) {
-        palette.setColour(c, ColourUtil.paletteColourFromHex(c, system, colours[c]));
-    }
+    const palette = PaletteFactory.createNewStandardColourPalette('New palette', 'ms');
     dataStore.paletteList.addPalette(palette);
 
     paletteToolbox.refreshPalettes(dataStore.paletteList.getPalettes());
     paletteToolbox.selectedPaletteIndex = dataStore.paletteList.length - 1;
     paletteToolbox.setPalette(palette);
 
-    tileCanvas.palette = getPalette();
-    tileCanvas.invalidateImage();
-    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
+    canvasManager.palette = getPalette();
+    canvasManager.invalidateImage();
+    canvasManager.drawUI(tileEditor.canvas, 0, 0);
 
-    dataStore.appUI.lastSelectedPaletteIndex = paletteToolbox.selectedPaletteIndex;
+    dataStore.appUIState.lastSelectedPaletteIndex = paletteToolbox.selectedPaletteIndex;
     dataStore.saveToLocalStorage();
 }
 
@@ -580,7 +566,7 @@ function handlePaletteSystemChanged(sender, e) {
 
     dataStore.saveToLocalStorage();
     paletteToolbox.setPalette(palette);
-    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
+    canvasManager.drawUI(tileEditor.canvas, 0, 0);
 }
 
 /**
@@ -594,10 +580,10 @@ function handleColourPickerConfirm(sender, e) {
     const palette = sender.palette;
     const paletteIndex = sender.paletteIndex;
     const paletteColour = sender.toPaletteColour();
-    palette.colours[paletteIndex] = paletteColour;
+    palette.setColour(paletteIndex, paletteColour);
     dataStore.saveToLocalStorage();
 
     paletteToolbox.setPalette(palette);
     paletteDialogue.hide();
-    tileCanvas.drawUI(tileEditor.canvas, 0, 0);
+    canvasManager.drawUI(tileEditor.canvas, 0, 0);
 }

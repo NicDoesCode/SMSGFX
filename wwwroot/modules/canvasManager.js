@@ -1,7 +1,8 @@
-import TileSet from './tileSet.js';
-import Palette from './palette.js';
+import TileSet from "./models/tileSet.js";
+import Palette from "./models/palette.js";
+import ColourUtil from "./util/colourUtil.js";
 
-export default class TileCanvas {
+export default class CanvasManager {
 
 
     /**
@@ -90,7 +91,7 @@ export default class TileCanvas {
         const ctx = this.#baseCtx;
 
         const tiles = Math.max(this.tileSet.tileWidth, 1);
-        const rows = Math.ceil(this.tileSet.tileCount / tiles);
+        const rows = Math.ceil(this.tileSet.length / tiles);
 
         const pxSize = this.scale;
 
@@ -114,7 +115,9 @@ export default class TileCanvas {
 
                 // Set colour
                 if (pixelPaletteIndex >= 0 && pixelPaletteIndex < 16) {
-                    ctx.fillStyle = this.palette.colours[pixelPaletteIndex].hex;
+                    const colour = this.palette.getColour(pixelPaletteIndex);
+                    const hex = ColourUtil.toHex(colour.r, colour.g, colour.b);
+                    ctx.fillStyle = hex;
                 } else {
                     ctx.fillStyle = 'yellow';
                 }

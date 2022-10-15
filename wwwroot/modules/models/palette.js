@@ -1,60 +1,81 @@
+import PaletteColour from './paletteColour.js';
+
+/**
+ * Represents a colour palette.
+ */
 export default class Palette {
 
 
     /**
-     * Gets the colours for this palette.
+     * Title of the palette.
      */
-    get colours() {
-        return this.#colours;
+    get title() {
+        return this.#title;
+    }
+    set title(value) {
+        if (!value) throw new Error('Please supply a valid title for this palette.');
+        this.#title = value;
     }
 
     /**
-     * Gets the system for this palette (either 'ms' or 'gg').
+     * System this palette is for, either 'ms' (Sega Master) or 'gg' (Sega Game Gear).
      */
     get system() {
         return this.#system;
     }
     set system(value) {
-        if (value && (value === 'ms' || value === 'gg')) {
-            this.#system = value;
-        }
-        throw new Error('System must be either "ms" or "gg".');
+        if (!value || !/^ms|gg$/i.test(value)) throw new Error('System must be non null and either "ms" or "gg".');
+        this.#system = value.toLowerCase();
     }
 
 
-    /** @type {number[]} */
+    /** @type {string} */
+    #system;
+    /** @type {number} */
+    #title;
+    /** @type {PaletteColour[]} */
     #colours = new Array(16);
-    #system = '';
 
 
     /**
-     * Create a new Palette class.
-     * @param {number[]=} colours - Array of colours for the palette.
-     * @param {string=} system - Either 'ms' or 'gg'.
+     * Creates a new instance of a palette object.
+     * @param {string} index - Title of the palette.
+     * @param {string} system - Intended system, either 'ms' (Sega Master) or 'gg' (Sega Game Gear).
      */
-    constructor(colours, system) {
-        if (!colours || typeof colours !== 'array') throw new Error('Invalid parameter value: colours.');
-        if (!system || (system !== 'ms' && system !== 'gg')) throw new Error('Invalid parameter value: system.');
-        this.#colours = colours.splice(0);
-        this.#system = system;
+    constructor(title, system) {
+        this.title = title ? title : 'Palette';
+        this.system = system;
     }
 
 
     /**
-     * Serialises the palette object to a string.
-     * @returns {string}
+     * Gets all stored colours.
+     * @returns {PaletteColour[]}
      */
-    toJSON() {
-        return {
-            colours: this.#colours,
-            system: this.#system
-        };
+    getColours() {
+        return this.#colours.slice(0);
     }
 
-    static fromJSON(jsonString) {
-        if (!jsonString || jsonString !== 'string') throw new Error('Please pass a JSON string.');
-        const parsed = JSON.parse(jsonString);
-        return new Palette(parsed.colours, parsed.system);
+    /**
+     * Gets the colour at a given index.
+     * @param {number} index - Index of the colour to get.
+     * @returns {PaletteColour}
+     */
+    getColour(index) {
+        if (index >= 0 && index < 16) {
+            return this.#colours[index];
+        } else throw new Error('Colour index was out of range.');
+    }
+
+    /**
+     * Sets the colour at a given index.
+     * @param {number} index Index of the colour to set.
+     * @param {PaletteColour} value Colour data to set.
+     */
+    setColour(index, value) {
+        if (index >= 0 && index < 16) {
+            this.#colours[index] = value;
+        } else throw new Error('Colour index was out of range.');
     }
 
     

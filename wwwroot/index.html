@@ -19,7 +19,7 @@
 
         <div id="tbHeaderBar" class="sms-header-bar">
             <div class="navbar navbar-light bg-light">
-                <form class="container-fluid">
+                <form id="tbHeaderForm" class="container-fluid">
                     <div class="col">
                         <span class="navbar-brand mb-0 h1">
                             <img src="./assets/image/controller.png" alt=""
@@ -30,6 +30,7 @@
                     <div class="col-md-auto text-end pe-3">
                         <div class="input-group input-group-sm">
                             <span class="input-group-text">Project file</span>
+                            <input id="tbProjectTitle" type="text" class="form-control" placeholder="Project title" aria-label="Project title">
                             <button id="btnProjectLoad" class="btn btn-outline-secondary" title="Load project.">
                                 <i class="bi bi-file-earmark-arrow-down-fill"></i> Load
                             </button>
@@ -64,10 +65,12 @@
                                 <div class="input-group input-group-sm">
                                     <select id="tbPaletteSelect" class="form-select form-select-sm">
                                     </select>
-                                    <button id="btnNewPalette" class="btn btn-outline-secondary" title="Create a new palette.">
+                                    <button id="btnNewPalette" class="btn btn-outline-secondary"
+                                        title="Create a new palette.">
                                         <i class="bi bi-plus-lg"></i>
                                     </button>
-                                    <button id="btnAddPalette" class="btn btn-outline-secondary" title="Import a palette from your assembly code.">
+                                    <button id="btnAddPalette" class="btn btn-outline-secondary"
+                                        title="Import a palette from your assembly code.">
                                         <i class="bi bi-box-arrow-in-down"></i>
                                     </button>
                                     <button id="btnRemovePalette" class="btn btn-outline-secondary">
@@ -236,7 +239,8 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label for="tbPaletteInput">Copy and paste the HEX palette data from your WLA-DX project below</label>
+                        <label for="tbPaletteInput">Copy and paste the HEX palette data from your WLA-DX project
+                            below</label>
                         <textarea class="form-control" id="tbPaletteInput" rows="4"></textarea>
                     </div>
                 </div>

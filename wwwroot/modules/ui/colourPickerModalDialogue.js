@@ -1,4 +1,5 @@
-import Palette from "../palette.js";
+import Palette from "../models/palette.js";
+import ColourUtil from "../util/colourUtil.js";
 import ModalDialogue from "./modalDialogue.js";
 
 const hexRegex = /^#([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})$/i;
@@ -41,7 +42,7 @@ export default class ColourPickerModalDialogue extends ModalDialogue {
         if (typeof value !== 'number' || value < 0 && value > 255) throw new Error('Value must be a number between 0 and 255.');
         this.#b = value;
     }
-    
+
     get hexValue() {
         const hexR = this.#r.toString(16).padStart(2, '0');
         const hexG = this.#g.toString(16).padStart(2, '0');
@@ -139,7 +140,7 @@ export default class ColourPickerModalDialogue extends ModalDialogue {
      * @param {number} index Colour index.
      */
     #setTo(palette, index) {
-        const colour = palette.colours[index];
+        const colour = palette.getColour(index);
         this.#r = colour.r;
         this.#g = colour.g;
         this.#b = colour.b;
@@ -167,13 +168,11 @@ export default class ColourPickerModalDialogue extends ModalDialogue {
      * @param {string} hex Hexadecimal value.
      */
     #setFromHex(hex) {
-        if (hex && hexRegex.test(hex)) {
-            const match = hexRegex.exec(hex);
-            this.#r = parseInt(match[1], 16);
-            this.#g = parseInt(match[2], 16);
-            this.#b = parseInt(match[3], 16);
-            this.#setAllValues();
-        } else throw new Error(`Invalid hex value "${hex}".`);
+        const rgb = ColourUtil.rgbFromHex(hex);
+        this.#r = rgb.r;
+        this.#g = rgb.g;
+        this.#b = rgb.b;
+        this.#setAllValues();
     }
 
     #setAllValues() {
@@ -183,10 +182,7 @@ export default class ColourPickerModalDialogue extends ModalDialogue {
         this.#tbColourPickerRed.value = this.#r;
         this.#tbColourPickerGreen.value = this.#g;
         this.#tbColourPickerBlue.value = this.#b;
-        const hexR = this.#r.toString(16).padStart(2, '0');
-        const hexG = this.#g.toString(16).padStart(2, '0');
-        const hexB = this.#b.toString(16).padStart(2, '0');
-        const hex = `#${hexR}${hexG}${hexB}`;
+        const hex = ColourUtil.toHex(this.#r, this.#g, this.#b);
         tbColourPickerHex.value = hex;
         btnColourPickerPick.value = hex;
     }
@@ -195,14 +191,11 @@ export default class ColourPickerModalDialogue extends ModalDialogue {
      * Returns the values from this object as a palette colour.
      * @returns {import("../palette").PaletteColour}
      */
-     toPaletteColour() {
+    toPaletteColour() {
         return {
-            index: this.paletteIndex,
             r: this.redValue,
             g: this.greenValue,
-            b: this.blueValue,
-            hex: this.hexValue,
-            nativeColour: this.nativeValue
+            b: this.blueValue
         };
     }
 

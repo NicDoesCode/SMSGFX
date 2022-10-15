@@ -1,3 +1,4 @@
+import TileFactory from './../factory/tileFactory.js';
 import Tile from './tile.js';
 
 /**
@@ -9,7 +10,7 @@ export default class TileSet {
     /**
      * The amount of tiles in this tile set.
      */
-    get tileCount() {
+    get length() {
         return this.#tiles.length;
     }
 
@@ -29,7 +30,7 @@ export default class TileSet {
      * Gets the calculated tile height of the tile map.
      */
     get tileHeight() {
-        return Math.ceil(this.tileCount / this.tileWidth);
+        return Math.ceil(this.length / this.tileWidth);
     }
 
     /**
@@ -53,24 +54,14 @@ export default class TileSet {
     #readTile = null;
 
 
-    /**
-     * Creates a new instace of TileSet and fills the tiles from an array.
-     * 
-     * @constructor
-     * @param {Uint8ClampedArray} [sourceArray=null] Contains the values for each pixel.
-     * @param {number} [sourceIndex=0] Optional. Index to start reading from.
-     * @param {number} [sourceLength=64] Optional. Number of items to read, if the end of the array is reached then reading will stop.
-     */
-    constructor(sourceArray, sourceIndex, sourceLength) {
-        if (sourceArray) {
-            this.fillFromArray(sourceArray, sourceIndex, sourceLength);
-        }
+    /** Initialises a new instance of the tile set class. */
+    constructor() {
     }
 
 
     #calculateTotalRows() {
-        if (this.tileCount > 0) {
-            this.#totalRows = Math.ceil(this.tileWidth / this.tileCount);
+        if (this.length > 0) {
+            this.#totalRows = Math.ceil(this.tileWidth / this.length);
             this.#heightPx = this.#totalRows * 8;
             this.#totalPx = this.#pxPerRow * this.#totalRows;
         } else {
@@ -78,7 +69,7 @@ export default class TileSet {
             this.#heightPx = 0;
             this.#totalPx = 0;
         }
-        this.#pxPerRow = this.tileCount * 8;
+        this.#pxPerRow = this.length * 8;
     }
 
     /**
@@ -125,7 +116,7 @@ export default class TileSet {
 
     /**
      * Gets all tiles.
-     * @returns {Array<Tile>}
+     * @returns {Tile[]}
      */
     getTiles() {
         return this.#tiles;
@@ -235,12 +226,12 @@ export default class TileSet {
         const tileIndex = (yTileIndex * this.#tileWidth) + xTileIndex;
 
         // Return the tile
-        if (tileIndex >= 0 && tileIndex < this.tileCount) {
+        if (tileIndex >= 0 && tileIndex < this.length) {
             // Our tile map contains tiles for this
             return this.getTile(tileIndex);
         } else if (tileIndex >= 0 && tileIndex < this.#tileWidth * this.#totalRows) {
             // There may not be enough tiles so just return a blank one
-            return new Tile();
+            return TileFactory.create();
         } else {
             throw new Error(`There was an error when returning tile for coordinate of ${x},${y}.`);
         }
@@ -263,7 +254,7 @@ export default class TileSet {
      * @returns {number|null}
      */
     getTileIndex(tile) {
-        for (let i = 0; i < this.tileCount; i++) {
+        for (let i = 0; i < this.length; i++) {
             if (this.#tiles[i] === tile) return i;
         }
         return null;
@@ -316,51 +307,6 @@ export default class TileSet {
     clear() {
         this.#tiles = [];
         this.#calculateTotalRows();
-    }
-
-    /**
-     * Creates a tile set from a given array.
-     * @param {Uint8ClampedArray} sourceArray Contains the values for each pixel.
-     * @param {number} [sourceIndex=0] Optional. Index to start reading from.
-     * @param {number} [sourceLength=null] Optional. Number of items to read, if the end of the array is reached then reading will stop.
-     */
-    fillFromArray(sourceArray, sourceIndex, sourceLength) {
-        if (!sourceArray) throw new Error('Source array was not valid.');
-        if (!sourceIndex) sourceIndex = 0;
-
-        if (sourceIndex >= sourceArray.length) throw new Error('The source index exceeds the bounds of the source array.');
-        if (sourceIndex < 0) throw new Error('Source index must be 0 or greater.');
-
-        if (sourceLength === null) sourceLength = sourceIndex - sourceArray.length;
-        else if (sourceLength < 0) throw new Error('Source length must be greater than 0.');
-
-        let leftToRead = sourceLength;
-        while (sourceIndex < sourceArray.length) {
-            let amtToRead = Math.min(leftToRead, 64);
-            const sourceReadEnd = sourceIndex + amtToRead;
-            if (sourceReadEnd > sourceArray.length) amtToRead = sourceIndex - sourceArray.length;
-
-            const tile = new Tile(sourceArray, sourceIndex, amtToRead);
-            this.#tiles.push(tile);
-            this.#calculateTotalRows();
-
-            sourceIndex += 64;
-        }
-    }
-
-    /**
-     * Parses the tile data in planar format.
-     * @param {Uint8ClampedArray} array Array or tile data in planar format.
-     * @returns {TileSet}
-     */
-    static parsePlanarFormat(array) {
-        const tileSet = new TileSet();
-        for (let i = 0; i < array.length; i += 32) {
-            const arraySlice = array.slice(i, i + 32);
-            const tile = Tile.parsePlanarFormat(arraySlice);
-            tileSet.addTile(tile);
-        }
-        return tileSet;
     }
 
 

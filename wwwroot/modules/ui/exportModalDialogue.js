@@ -1,13 +1,12 @@
 import ModalDialogue from "./modalDialogue.js";
-import Export from "./../export.js";
 
 export default class ExportModalDialogue extends ModalDialogue {
 
 
-    get inputData() {
+    get value() {
         return this.#tbExport.value;
     }
-    set inputData(value) {
+    set value(value) {
         this.#tbExport.value = value;
     }
 
@@ -22,16 +21,6 @@ export default class ExportModalDialogue extends ModalDialogue {
      */
     constructor(element) {
         super(element);
-    }
-
-    /**
-     * 
-     * @param {TileSet} tileSet 
-     * @param {PaletteList} palettes 
-     */
-    generateExportData(tileSet, palettes) {
-        const exp = new Export();
-        this.inputData = exp.getExportData(tileSet, palettes);
     }
 
 
