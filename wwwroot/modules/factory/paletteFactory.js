@@ -10,7 +10,7 @@ export default class PaletteFactory {
 
     /**
      * Creates a new instance of a palette object.
-     * @param {string} index - Title of the palette.
+     * @param {string} title - Title of the palette.
      * @param {string} system - Intended system, either 'ms' (Sega Master) or 'gg' (Sega Game Gear).
      * @returns {Palette}
      */
@@ -25,10 +25,10 @@ export default class PaletteFactory {
      * @returns {Palette}
      */
     static createNewStandardColourPalette(title, system) {
-        if (!title || title.trim() === '') title = 'New palette';
+        if (!title || title.trim() === '') title = `${system.toUpperCase()} palette`;
         if (!system || system !== 'gg') system = 'ms';
 
-        const palette = PaletteFactory.create(`${system.toUpperCase()} palette`, system);
+        const palette = PaletteFactory.create(title, system);
         for (let c = 0; c < 16; c++) {
             const colour = PaletteColourFactory.fromHex(defaultColours[c]);
             palette.setColour(c, colour);

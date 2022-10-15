@@ -10,7 +10,7 @@ export default class TileSet {
     /**
      * The amount of tiles in this tile set.
      */
-    get tileCount() {
+    get length() {
         return this.#tiles.length;
     }
 
@@ -30,7 +30,7 @@ export default class TileSet {
      * Gets the calculated tile height of the tile map.
      */
     get tileHeight() {
-        return Math.ceil(this.tileCount / this.tileWidth);
+        return Math.ceil(this.length / this.tileWidth);
     }
 
     /**
@@ -60,8 +60,8 @@ export default class TileSet {
 
 
     #calculateTotalRows() {
-        if (this.tileCount > 0) {
-            this.#totalRows = Math.ceil(this.tileWidth / this.tileCount);
+        if (this.length > 0) {
+            this.#totalRows = Math.ceil(this.tileWidth / this.length);
             this.#heightPx = this.#totalRows * 8;
             this.#totalPx = this.#pxPerRow * this.#totalRows;
         } else {
@@ -69,7 +69,7 @@ export default class TileSet {
             this.#heightPx = 0;
             this.#totalPx = 0;
         }
-        this.#pxPerRow = this.tileCount * 8;
+        this.#pxPerRow = this.length * 8;
     }
 
     /**
@@ -226,7 +226,7 @@ export default class TileSet {
         const tileIndex = (yTileIndex * this.#tileWidth) + xTileIndex;
 
         // Return the tile
-        if (tileIndex >= 0 && tileIndex < this.tileCount) {
+        if (tileIndex >= 0 && tileIndex < this.length) {
             // Our tile map contains tiles for this
             return this.getTile(tileIndex);
         } else if (tileIndex >= 0 && tileIndex < this.#tileWidth * this.#totalRows) {
@@ -254,7 +254,7 @@ export default class TileSet {
      * @returns {number|null}
      */
     getTileIndex(tile) {
-        for (let i = 0; i < this.tileCount; i++) {
+        for (let i = 0; i < this.length; i++) {
             if (this.#tiles[i] === tile) return i;
         }
         return null;

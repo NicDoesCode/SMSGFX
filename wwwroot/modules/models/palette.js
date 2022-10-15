@@ -33,7 +33,7 @@ export default class Palette {
     #system;
     /** @type {number} */
     #title;
-    /** @type {Array<PaletteColour>} */
+    /** @type {PaletteColour[]} */
     #colours = new Array(16);
 
 
@@ -53,7 +53,7 @@ export default class Palette {
      * @returns {PaletteColour[]}
      */
     getColours() {
-        return JSON.parse(JSON.stringify(this.#colours));
+        return this.#colours.slice(0);
     }
 
     /**

@@ -91,7 +91,7 @@ export default class CanvasManager {
         const ctx = this.#baseCtx;
 
         const tiles = Math.max(this.tileSet.tileWidth, 1);
-        const rows = Math.ceil(this.tileSet.tileCount / tiles);
+        const rows = Math.ceil(this.tileSet.length / tiles);
 
         const pxSize = this.scale;
 

@@ -1,5 +1,5 @@
 import PaletteList from "../models/paletteList.js";
-import PaletteJsonSerialiser from "../serialisers/paletteJsonSerialiser.js";
+import PaletteListJsonSerialiser from "../serialisers/paletteListJsonSerialiser.js";
 import TileSet from "../models/tileSet.js";
 import TileSetJsonSerialiser from "../serialisers/tileSetJsonSerialiser.js";
 
@@ -17,7 +17,7 @@ export default class ProjectUtil {
         
         const info = `Exported at ${theDate.toISOString()}`;
         const tiles = TileSetJsonSerialiser.serialise(tileSet);
-        const palettes = PaletteJsonSerialiser.serialise(paletteList.getPalettes());
+        const palettes = PaletteListJsonSerialiser.serialise(paletteList);
         const exportData = { info, tiles, palettes };
 
         const serialisedData = JSON.stringify(exportData, null, '  ');
@@ -32,10 +32,10 @@ export default class ProjectUtil {
     }
 
     /**
-     * 
-     * @param {Blob} blob - The input file.
+     * Loads project data from a blob.
+     * @param {Blob} blob - The input data.
      */
-    static async loadFromFile(blob) {
+    static async loadFromBlob(blob) {
         const buf = await blob.arrayBuffer();
         const data = String.fromCharCode.apply(null, new Uint8Array(buf));
         const object = JSON.parse(data);

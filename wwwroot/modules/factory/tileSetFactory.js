@@ -1,4 +1,5 @@
 import TileSet from "../models/tileSet.js";
+import TileFactory from "./tileFactory.js";
 
 export default class TileSetFactory {
 

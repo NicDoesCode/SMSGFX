@@ -1,5 +1,6 @@
 import TileSet from "../models/tileSet.js";
 import TileSetFactory from "../factory/tileSetFactory.js";
+import TileFactory from "../factory/tileFactory.js";
 
 export default class TileSetJsonSerialiser {
 
@@ -47,7 +48,7 @@ export default class TileSetJsonSerialiser {
             result.tileWidth = jsonTileSet.tileWidth;
             jsonTileSet.tilesAsHex.forEach(tileAsHex => {
                 const newTile = TileFactory.fromHex(tileAsHex);
-                tileSet.addTile(newTile);
+                result.addTile(newTile);
             });
             return result;
         } else throw new Error('Invalid tile set data supplied.');

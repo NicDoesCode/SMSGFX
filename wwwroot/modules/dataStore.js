@@ -1,4 +1,4 @@
-import PaletteJsonSerialiser from "./serialisers/paletteJsonSerialiser.js";
+import PaletteListJsonSerialiser from "./serialisers/paletteListJsonSerialiser.js";
 import TileSetJsonSerialiser from "./serialisers/tileSetJsonSerialiser.js";
 import TileSetFactory from "./factory/tileSetFactory.js";
 import TileSet from "./models/tileSet.js";
@@ -39,6 +39,13 @@ export default class DataStore {
      */
     get paletteList() {
         return this.#paletteList;
+    }
+    set paletteList(value) {
+        if (value && typeof value.getPalettes === 'function') {
+            this.#paletteList = value;
+        } else {
+            throw new Error('Please pass a palette list.');
+        }
     }
 
     /**
@@ -82,10 +89,9 @@ export default class DataStore {
         }
 
         // Load palettes from local storage
-        const serialisedPalettes = localStorage.getItem(LOCAL_STORAGE_PALETTES);
-        if (serialisedPalettes) {
-            const palettes = PaletteJsonSerialiser.deserialise(serialisedPalettes);
-            this.#paletteList = PaletteListFactory.create(palettes);
+        const serialisedPaletteList = localStorage.getItem(LOCAL_STORAGE_PALETTES);
+        if (serialisedPaletteList) {
+            this.#paletteList = PaletteListJsonSerialiser.deserialise(serialisedPaletteList);
         }
 
         // Load tile sets
@@ -100,12 +106,14 @@ export default class DataStore {
      * Saves to local storage.
      */
     saveToLocalStorage() {
-        localStorage.setItem(LOCAL_STORAGE_APPUI, this.#appUIState.serialise());
-        localStorage.setItem(LOCAL_STORAGE_TILES, this.#tileSet.serialise());
+        const serialisedUIState = AppUIStateJsonSerialiser.serialise(this.appUIState);
+        localStorage.setItem(LOCAL_STORAGE_APPUI, serialisedUIState);
 
-        const paletteArray = this.#paletteList.getPalettes();
-        const palettesSerialised = PaletteJsonSerialiser.serialise(paletteArray);
-        localStorage.setItem(LOCAL_STORAGE_PALETTES, palettesSerialised);
+        const serialisedTiles = TileSetJsonSerialiser.serialise(this.tileSet);
+        localStorage.setItem(LOCAL_STORAGE_TILES, serialisedTiles);
+
+        const serialisedPaletteList = PaletteListJsonSerialiser.serialise(this.paletteList);
+        localStorage.setItem(LOCAL_STORAGE_PALETTES, serialisedPaletteList);
     }
 
 
@@ -140,8 +148,7 @@ export default class DataStore {
         this.#redoStates.push(this.#createUndoState());
         const thisUndo = this.#undoStates.pop();
         if (thisUndo) {
-            const palettes = PaletteJsonSerialiser.deserialise(thisUndo.palettes);
-            this.#paletteList = PaletteListFactory.create(palettes);
+            this.#paletteList = PaletteListJsonSerialiser.deserialise(thisUndo.palettes);
             this.#tileSet = TileSetJsonSerialiser.deserialise(thisUndo.tiles);
         }
     }
@@ -154,8 +161,7 @@ export default class DataStore {
         this.#undoStates.push(this.#createUndoState());
         const thisRedo = this.#redoStates.pop();
         if (thisRedo) {
-            const palettes = PaletteJsonSerialiser.deserialise(thisRedo.palettes);
-            this.#paletteList = PaletteListFactory.create(palettes);
+            this.#paletteList = PaletteListJsonSerialiser.deserialise(thisRedo.palettes);
             this.#tileSet = TileSetJsonSerialiser.deserialise(thisRedo.tiles);
         }
     }
@@ -165,9 +171,8 @@ export default class DataStore {
      * @returns {UndoState}
      */
     #createUndoState() {
-        const paletteArray = this.#paletteList.getPalettes();
-        const palettes = PaletteJsonSerialiser.serialise(paletteArray);
-        const tiles = TileSetJsonSerialiser.serialise(this.#tileSet);
+        const palettes = PaletteListJsonSerialiser.serialise(this.paletteList);
+        const tiles = TileSetJsonSerialiser.serialise(this.tileSet);
         return {
             palettes, tiles
         }

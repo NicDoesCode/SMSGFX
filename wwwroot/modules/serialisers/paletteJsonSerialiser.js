@@ -6,47 +6,54 @@ export default class PaletteJsonSerialiser {
 
 
     /**
-     * Serialises an array of palettes.
-     * @param {Palette[]} paletteArray - Array of palettes to serialise.
+     * Serialises a palette to a JSON string.
+     * @param {Palette} palette - Palette to serialise.
      * @returns {string} 
      */
-    static serialise(paletteArray) {
-        if (!paletteArray || !Array.isArray(paletteArray)) throw new Error('Please pass an array of palettes.');
+    static serialise(palette) {
+        if (!palette) throw new Error('Please pass a palette.');
 
-        const result = paletteArray.map(palette => {
-            /** @type {PaletteSerialisable} */
-            return {
-                title: palette.title,
-                system: palette.system,
-                colours: palette.getColours().map(c => { return { r: c.r, g: c.g, b: c.b } })
-            };
-        });
+        const result = PaletteJsonSerialiser.toSerialisable(palette);
         return JSON.stringify(result);
     }
 
+    /**
+     * Returns a deserialised palette.
+     * @param {string} jsonPalette - JSON serialised palette.
+     * @returns {Palette}
+     */
+    static deserialise(jsonPalette) {
+        if (!jsonPalette || typeof jsonPalette !== 'string') throw new Error('Palette to deserialise must be passed as a JSON string.');
+
+        /** @type {PaletteSerialisable} */
+        const deserialised = JSON.parse(jsonPalette);
+        return PaletteJsonSerialiser.fromSerialisable(deserialised);
+    }
 
     /**
-     * Returns a deserialised list of palettes.
-     * @param {string} jsonPaletteArray - JSON serialised palettes.
-     * @returns {Palette[]}
+     * Converts a palette object to a serialisable one.
+     * @param {Palette} palette - Palette to create serialisable from.
+     * @returns {PaletteSerialisable} 
      */
-    static deserialise(jsonPaletteArray) {
-        if (!jsonPaletteArray || typeof jsonPaletteArray !== 'string') throw new Error('Palettes to deserialise must be passed as a JSON string.');
+     static toSerialisable(palette) {
+        return {
+            title: palette.title,
+            system: palette.system,
+            colours: palette.getColours().map(c => { return { r: c.r, g: c.g, b: c.b } })
+        };
+    }
 
-        /** @type {PaletteSerialisable[]} */
-        const jsonPalettes = JSON.parse(jsonPaletteArray);
-        if (Array.isArray(jsonPalettes)) {
-
-            const result = jsonPalettes.map(jsonPalette => {
-                const palette =PaletteFactory.create(jsonPalette.title, jsonPalette.system);
-                jsonPalette.colours.forEach((jsonColour, index) => {
-                    palette.setColour(index, PaletteColourFactory.create(jsonColour.r, jsonColour.g, jsonColour.b));
-                });
-                return palette;
-            });
-            return result;
-
-        } else throw new Error('Palettes must be passed as an array.');
+    /**
+     * Converts a serialisable palette back to a palette.
+     * @param {PaletteSerialisable} paletteSerialisable - Serialisable palette to convert.
+     * @returns {Palette}
+     */
+    static fromSerialisable(paletteSerialisable) {
+        const palette = PaletteFactory.create(paletteSerialisable.title, paletteSerialisable.system);
+        paletteSerialisable.colours.forEach((jsonColour, index) => {
+            palette.setColour(index, PaletteColourFactory.create(jsonColour.r, jsonColour.g, jsonColour.b));
+        });
+        return palette;
     }
 
 
@@ -58,6 +65,7 @@ export default class PaletteJsonSerialiser {
  * @property {string} title
  * @property {string} system
  * @property {PaletteColourSerialisable[]} colours
+ * @exports
  */
 /**
  * @typedef PaletteColourSerialisable
@@ -65,4 +73,5 @@ export default class PaletteJsonSerialiser {
  * @property {number} r
  * @property {number} g
  * @property {number} b
+ * @exports
  */
