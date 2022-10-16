@@ -10,6 +10,7 @@ const EVENT_PaletteChanged = 'EVENT_PaletteChanged';
 const EVENT_PaletteSystemChanged = 'EVENT_PaletteSystemChanged';
 const EVENT_ColourSelected = 'EVENT_ColourSelected';
 const EVENT_ColourEdit = 'EVENT_ColourEdit';
+const EVENT_RequestTitleChange = 'EVENT_TitleChanged';
 
 export default class PaletteEditor {
 
@@ -28,6 +29,10 @@ export default class PaletteEditor {
     #btnRemovePalette;
     /** @type {HTMLSelectElement} */
     #tbPaletteSelect;
+    /** @type {HTMLUListElement} */
+    #tbPaletteSelectDropDown;
+    /** @type {HTMLInputElement} */
+    #tbPaletteTitle;
     /** @type {HTMLSelectElement} */
     #tbPaletteSystemSelect;
     /** @type {number} */
@@ -71,6 +76,15 @@ export default class PaletteEditor {
             this.#currentColourIndex = this.#tbPaletteSelect.selectedIndex;
         };
 
+        this.#tbPaletteSelectDropDown = this.#element.querySelector('#tbPaletteSelectDropDown');
+
+        this.#tbPaletteTitle = this.#element.querySelector('#tbPaletteTitle');
+        this.#tbPaletteTitle.onchange = () => {
+            /** @type {PaletteEditorTitleEventArgs} */
+            const args = { title: this.#tbPaletteTitle.value };
+            this.#dispatcher.dispatch(EVENT_RequestTitleChange, args);
+        };
+
         this.#tbPaletteSystemSelect = this.#element.querySelector('#tbPaletteSystemSelect');
         this.#tbPaletteSystemSelect.onchange = () => {
             /** @type {PaletteEditorSystemChangedEventArgs} */
@@ -89,17 +103,23 @@ export default class PaletteEditor {
      */
     setState(state) {
         if (state) {
+            /** @type {PaletteList} */
+            let paletteList;
             if (state.paletteList && typeof state.paletteList.getPalettes === 'function') {
-                this.#paletteList = state.paletteList;
-                this.#refreshPalettes(this.#paletteList);
+                paletteList = state.paletteList;
+                this.#refreshPaletteSelectList(state.paletteList);
             }
             if (typeof state.selectedPaletteIndex === 'number') {
                 this.#tbPaletteSelect.selectedIndex = state.selectedPaletteIndex;
             }
-            if (this.#paletteList) {
-                const selectedPalette = this.#paletteList.getPalette(this.#tbPaletteSelect.selectedIndex);
+            if (paletteList) {
+                const selectedPalette = paletteList.getPalette(this.#tbPaletteSelect.selectedIndex);
                 this.#setPalette(selectedPalette);
             }
+            // if (this.#paletteList) {
+            //     const selectedPalette = this.#paletteList.getPalette(this.#tbPaletteSelect.selectedIndex);
+            //     this.#setPalette(selectedPalette);
+            // }
             if (typeof state.selectedColourIndex === 'number' && state.selectedColourIndex >= 0 && state.selectedColourIndex < 16) {
                 this.#currentColourIndex = state.selectedColourIndex;
                 this.#selectPaletteColour(state.selectedColourIndex);
@@ -107,7 +127,10 @@ export default class PaletteEditor {
             if (typeof state.highlightedColourIndex === 'number' && state.highlightedColourIndex >= 0 && state.highlightedColourIndex < 16) {
                 this.#highlightPaletteColour(state.highlightedColourIndex);
             }
-            if (state.selectedSystem) {
+            if (typeof state.title === 'string') {
+                this.#tbPaletteTitle.value = state.title;
+            }
+            if (typeof state.selectedSystem === 'string') {
                 this.#tbPaletteSystemSelect.value = state.selectedSystem;
             }
         }
@@ -147,10 +170,18 @@ export default class PaletteEditor {
     }
 
     /**
+     * User changes the palette title.
+     * @param {PaletteEditorTitleCallback} callback - Callback function.
+     */
+    addHandlerRequestTitleChange(callback) {
+        this.#dispatcher.on(EVENT_RequestTitleChange, callback);
+    }
+
+    /**
      * User changes the selected system.
      * @param {PaletteEditorSystemChangedCallback} callback - Callback function.
      */
-    addHandlerRequestChangeSystem(callback) {
+    addHandlerRequestSystemChange(callback) {
         this.#dispatcher.on(EVENT_PaletteSystemChanged, callback);
     }
 
@@ -158,7 +189,7 @@ export default class PaletteEditor {
      * User changes the selected colour.
      * @param {PaletteEditorColourIndexCallback} callback - Callback function.
      */
-    addHandlerRequestChangeColourIndex(callback) {
+    addHandlerRequestColourIndexChange(callback) {
         this.#dispatcher.on(EVENT_ColourSelected, callback);
     }
 
@@ -175,7 +206,7 @@ export default class PaletteEditor {
      * Refreshes the list of palettes.
      * @param {PaletteList} paletteList - List of palettes.
      */
-    #refreshPalettes(paletteList) {
+    #refreshPaletteSelectList(paletteList) {
         const lastSelectedIndex = this.#tbPaletteSelect.selectedIndex;
         const optionCount = this.#tbPaletteSelect.options.length;
         for (let i = 0; i < optionCount; i++) {
@@ -191,6 +222,36 @@ export default class PaletteEditor {
         }
         if (this.#tbPaletteSelect.selectedIndex === -1) {
             this.#tbPaletteSelect.selectedIndex = 0;
+        }
+        this.#updateVirtualList(paletteList);
+    }
+
+    /**
+     * Updates the fake dropdown list to mirror the real one.
+     * @param {PaletteList} paletteList
+     */
+    #updateVirtualList(paletteList) {
+        while (this.#tbPaletteSelectDropDown.childNodes.length > 0) {
+            this.#tbPaletteSelectDropDown.childNodes.item(0).remove();
+        }
+        if (paletteList) {
+            paletteList.getPalettes().forEach((p, index) => {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = '#';
+                a.classList.add('dropdown-item');
+                if (index === this.#tbPaletteSelect.selectedIndex) {
+                    a.classList.add('active');
+                } else {
+                    a.onclick = () => {
+                        this.#tbPaletteSelect.selectedIndex = index;
+                        this.#tbPaletteSelect.onchange();
+                    };
+                }
+                a.innerText = `${index}`;
+                li.appendChild(a);
+                this.#tbPaletteSelectDropDown.appendChild(li);
+            });
         }
     }
 
@@ -222,7 +283,7 @@ export default class PaletteEditor {
             td.appendChild(btnColour);
 
             const lblContent = document.createElement('span');
-            lblContent.classList.add('position-absolute', 'translate-middle', 'badge', 'bg-dark');
+            lblContent.classList.add('position-absolute', 'translate-middle', 'badge');
             lblContent.innerHTML = `#${i}`;
             btnColour.appendChild(lblContent);
 
@@ -265,6 +326,7 @@ export default class PaletteEditor {
                 paletteButtons[i].style.backgroundColor = null;
             }
         }
+        this.#tbPaletteTitle.value = palette.title;
         this.#tbPaletteSystemSelect.value = palette.system;
     }
 
@@ -277,10 +339,12 @@ export default class PaletteEditor {
         paletteCells.forEach((cell, index) => {
             if (index === paletteIndex) {
                 if (!cell.classList.contains('table-secondary')) {
-                    cell.classList.add('table-secondary');
+                    cell.classList.add('sms-highlight');
+                    // cell.classList.add('table-secondary');
                 }
             } else {
-                cell.classList.remove('table-secondary');
+                cell.classList.remove('sms-highlight');
+                // cell.classList.remove('table-secondary');
             }
         });
     }
@@ -289,10 +353,12 @@ export default class PaletteEditor {
         this.#paletteCells.forEach((cell, index) => {
             if (index !== null && index === colourIndex) {
                 if (!cell.classList.contains('table-dark')) {
-                    cell.classList.add('table-dark');
+                    cell.classList.add('sms-selected');
+                    // cell.classList.add('table-dark');
                 }
             } else {
-                cell.classList.remove('table-dark');
+                cell.classList.remove('sms-selected');
+                // cell.classList.remove('table-dark');
             }
         });
     }
@@ -305,6 +371,7 @@ export default class PaletteEditor {
  * Palette editor state.
  * @typedef {object} PaletteEditorState
  * @property {PaletteList?} paletteList - Current list of palettes.
+ * @property {string?} title - Title of the palette.
  * @property {string?} selectedSystem - Sets the selected system, either 'ms' or 'gg'.
  * @property {number?} selectedPaletteIndex - Sets the selected palette index.
  * @property {number?} selectedColourIndex - Sets the selected colour index.
@@ -370,5 +437,18 @@ export default class PaletteEditor {
  * @type {object}
  * @property {number} paletteIndex - Palette index.
  * @property {number} colourIndex - Colour index within the palette.
+ * @exports 
+ */
+
+/**
+ * Event callback with new palette title.
+ * @callback PaletteEditorTitleCallback
+ * @param {PaletteEditorTitleEventArgs} args - Arguments.
+ * @exports
+ */
+/**
+ * @typedef PaletteEditorTitleEventArgs
+ * @type {object}
+ * @property {number} title - Palette title.
  * @exports 
  */

@@ -58,48 +58,74 @@
         <div class="sms-content">
 
             <!-- Palette card -->
-            <div class="sms-content-col sms-left">
-                <div id="tbPaletteEditor" class="sms-palette card p-0 m-0">
-                    <div class="card-header">
-                        Palette
-                    </div>
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-auto">
+            <div id="tbPaletteEditor" class="sms-content-col sms-left">
+                <!-- Palette editor : header -->
+                <div class="input-group input-group-sm rounded-top">
+                    <span class="input-group-text form-control">Palette</span>
+                    <button id="btnNewPalette" class="btn btn-outline-secondary" title="Create a new palette.">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                    <button id="btnImportPaletteFromCode" class="btn btn-outline-secondary"
+                        title="Import a palette from your assembly code.">
+                        <i class="bi bi-box-arrow-in-down"></i>
+                    </button>
+                </div>
+                <!-- End: Palette editor : header -->
+                <div class="sms-palette card">
+                    <div class="card-body p-2">
+                        <!-- Palette editor : palette select and title -->
+                        <div class="row mb-2 mt-0 pt-0">
+                            <div class="col">
+                                <p class="text-muted m-0"><small>Title</small></p>
+                                <select id="tbPaletteSelect" class="form-select d-none">
+                                </select>
                                 <div class="input-group input-group-sm">
-                                    <select id="tbPaletteSelect" class="form-select form-select-sm">
-                                    </select>
-                                    <button id="btnNewPalette" class="btn btn-outline-secondary"
-                                        title="Create a new palette.">
-                                        <i class="bi bi-plus-lg"></i>
-                                    </button>
-                                    <button id="btnImportPaletteFromCode" class="btn btn-outline-secondary"
-                                        title="Import a palette from your assembly code.">
-                                        <i class="bi bi-box-arrow-in-down"></i>
-                                    </button>
-                                    <button id="btnRemovePalette" class="btn btn-outline-secondary">
-                                        <i class="bi bi bi-trash-fill"></i>
+                                    <input id="tbPaletteTitle" type="text" class="form-control" aria-label="Enter name"
+                                        list="tbPaletteSelectx">
+                                    <button id="btnPaletteSelectDropDown"
+                                        class="btn btn-outline-secondary dropdown-toggle" type="button"
+                                        data-bs-toggle="dropdown" aria-expanded="false"></button>
+                                    <ul id="tbPaletteSelectDropDown" class="dropdown-menu dropdown-menu-end">
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- End: Palette editor : palette select and title -->
+                        <div class="row mb-2">
+                            <div class="col">
+                                <p class="text-muted m-0"><small>Target system</small></p>
+                                <select id="tbPaletteSystemSelect" class="form-select form-select-sm">
+                                    <option value="ms">Master System</option>
+                                    <option value="gg">Game Gear</option>
+                                </select>
+                            </div>
+                        </div>
+                        <!-- Palette editor : colours -->
+                        <div class="row">
+                            <div class="col">
+                                <p class="text-muted m-0"><small>Palette colours</small></p>
+                                <div class="sms-palette-colours table-responsive table-borderless" id="tbPalette">
+                                    <table class="table table-sm m-0">
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <p><small class="text-muted"><small>Single click to select.<br>Click again to
+                                            edit.</small></small></p>
+                            </div>
+                        </div>
+                        <!-- End: Palette editor : colours -->
+                        <!-- Palette editor : colours -->
+                        <div class="row">
+                            <div class="col">
+                                <div class="d-grid gap-2">
+                                    <button id="btnRemovePalette" class="btn btn-outline-secondary btn-sm">
+                                        <i class="bi bi bi-trash-fill"></i> Remove palette
                                     </button>
                                 </div>
                             </div>
                         </div>
-                        <hr>
-                        <div class="table-responsive" id="tbPalette">
-                            <table class="table table-sm">
-                                <thead>
-                                    <tr>
-                                        <th colspan="4">
-                                            <select id="tbPaletteSystemSelect" class="form-select form-select-sm">
-                                                <option value="ms">Master System</option>
-                                                <option value="gg">Game Gear</option>
-                                            </select>
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
-                        </div>
+                        <!-- End: Palette editor : colours -->
                     </div>
                 </div>
             </div>

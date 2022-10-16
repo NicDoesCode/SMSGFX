@@ -73,8 +73,9 @@ function wireUpEventHandlers() {
     paletteEditor.addHandlerRequestImportPaletteFromCode(handlePaletteEditorRequestImportPaletteFromCode);
     paletteEditor.addHandlerRequestSelectedPaletteChange(handlePaletteEditorRequestSelectedPaletteChange);
     paletteEditor.addHandlerRequestDeletePalette(handlePaletteEditorRequestDeletePalette);
-    paletteEditor.addHandlerRequestChangeSystem(handlePaletteEditorRequestChangeSystem);
-    paletteEditor.addHandlerRequestChangeColourIndex(handlePaletteEditorRequestChangeColourIndex);
+    paletteEditor.addHandlerRequestTitleChange(handlePaletteEditorRequestTitleChange);
+    paletteEditor.addHandlerRequestSystemChange(handlePaletteEditorRequestSystemChange);
+    paletteEditor.addHandlerRequestColourIndexChange(handlePaletteEditorRequestColourIndexChange);
     paletteEditor.addHandlerRequestColourEdit(handlePaletteEditorRequestColourEdit);
 
     tileEditorToolbar.addHandlerRequestAddTile(handleTileEditorToolbarRequestAddTile);
@@ -244,8 +245,26 @@ function handlePaletteEditorRequestDeletePalette(args) {
     }
 }
 
+/** @param {import('./ui/paletteEditor').PaletteEditorTitleEventArgs} args */
+function handlePaletteEditorRequestTitleChange(args) {
+    addUndoState();
+
+    const project = state.project;
+    const paletteList = project.paletteList;
+    const palette = paletteList.getPalette(state.persistentUIState.paletteIndex);
+    palette.title = args.title;
+
+    state.setProject(project);
+
+    paletteEditor.setState({
+        paletteList: paletteList
+    });
+
+    state.saveToLocalStorage();
+}
+
 /** @param {import('./ui/paletteEditor').PaletteEditorSystemChangedEventArgs} args */
-function handlePaletteEditorRequestChangeSystem(args) {
+function handlePaletteEditorRequestSystemChange(args) {
     addUndoState();
 
     const project = state.project;
@@ -268,7 +287,7 @@ function handlePaletteEditorRequestChangeSystem(args) {
 }
 
 /** @param {import('./ui/paletteEditor').PaletteEditorColourIndexEventArgs} args */
-function handlePaletteEditorRequestChangeColourIndex(args) {
+function handlePaletteEditorRequestColourIndexChange(args) {
     if (args.colourIndex >= 0 && args.colourIndex < 16) {
         paletteEditor.setState({
             selectedColourIndex: args.colourIndex
@@ -406,7 +425,6 @@ function handleTileEditorPixelMouseOver(args) {
     // Show the palette colour
     const pixel = tileSet.getPixelAt(args.x, args.y);
     paletteEditor.setState({
-        paletteList: state.paletteList,
         highlightedColourIndex: pixel
     });
 }
