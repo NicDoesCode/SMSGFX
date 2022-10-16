@@ -167,19 +167,24 @@ function handleHeaderBarRequestCodeExport(args) {
 function handlePaletteEditorRequestNewPalette(args) {
     addUndoState();
 
+    const project = state.project;
+    const paletteList = project.paletteList;
     const palette = PaletteFactory.createNewStandardColourPalette('New palette', 'ms');
-    state.paletteList.addPalette(palette);
+    paletteList.addPalette(palette);
+    state.setProject(project);
 
     const selectedPaletteIndex = state.paletteList.length - 1;
+
+    // Update state
+    state.persistentUIState.paletteIndex = selectedPaletteIndex;
     paletteEditor.setState({
-        paletteList: state.paletteList,
+        paletteList: state.project.paletteList,
         selectedPaletteIndex: selectedPaletteIndex
     });
     tileEditor.setState({
-        palette: getPalette()
+        palette: state.project.paletteList.getPalette(selectedPaletteIndex)
     });
 
-    state.persistentUIState.paletteIndex = selectedPaletteIndex;
     state.saveToLocalStorage();
 }
 /** @param {import('./ui/paletteEditor').PaletteEditorCallback} args */
