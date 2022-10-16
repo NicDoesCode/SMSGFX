@@ -123,7 +123,7 @@ function handleHeaderBarRequestProjectLoad(args) {
                 const tileSet = project.tileSet;
                 const palette = project.paletteList.getPalette(0);
 
-                paletteEditor.setState(dataStore.project, {});
+                paletteEditor.setState({ paletteList: dataStore.paletteList, selectedPaletteIndex: 0, selectedColourIndex: 0, highlightedColourIndex: -1 });
                 tileEditorToolbar.setState({ tileWidth: tileSet.tileWidth });
                 tileEditor.setState({ palette: palette, tileSet: tileSet });
             });
@@ -152,7 +152,7 @@ function handlePaletteEditorRequestNewPalette(args) {
     dataStore.paletteList.addPalette(palette);
 
     const selectedPaletteIndex = dataStore.paletteList.length - 1;
-    paletteEditor.setState(dataStore.project, { selectedPaletteIndex });
+    paletteEditor.setState({ paletteList: dataStore.paletteList, selectedPaletteIndex: selectedPaletteIndex });
 
     tileEditor.setState({ palette: getPalette() });
 
@@ -171,7 +171,7 @@ function handlePaletteEditorRequestSelectedPaletteChange(args) {
 
     // Swap palette
     const palette = dataStore.paletteList.getPalette(args.paletteIndex);
-    paletteEditor.setState(dataStore.project, { selectedPaletteIndex: args.paletteIndex });
+    paletteEditor.setState({ paletteList: dataStore.paletteList, selectedPaletteIndex: args.paletteIndex });
 
     // Refresh image
     tileEditor.setState({ palette: palette });
@@ -192,11 +192,11 @@ function handlePaletteEditorRequestDeletePalette(args) {
         dataStore.paletteList.removeAt(paletteIndex);
         const newSelectedIndex = Math.min(paletteIndex, dataStore.paletteList.length - 1);
         if (dataStore.paletteList.length > 0) {
-            paletteEditor.setState(dataStore.project, { selectedPaletteIndex: newSelectedIndex });
+            paletteEditor.setState({ paletteList: dataStore.paletteList, selectedPaletteIndex: newSelectedIndex });
             dataStore.appUIState.lastSelectedPaletteIndex = newSelectedIndex;
         } else {
             dataStore.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('ms'));
-            paletteEditor.setState(dataStore.project, { selectedPaletteIndex: 0 });
+            paletteEditor.setState({ paletteList: dataStore.paletteList, selectedPaletteIndex: 0 });
             dataStore.appUIState.lastSelectedPaletteIndex = 0;
         }
 
@@ -216,7 +216,7 @@ function handlePaletteEditorRequestChangeSystem(args) {
     newPalette.system = args.system;
     dataStore.project.paletteList.setPalette(args.paletteIndex, newPalette);
 
-    paletteEditor.setState(dataStore.project, { selectedPaletteIndex: args.paletteIndex, selectedSystem: args.system });
+    paletteEditor.setState({ selectedSystem: args.system });
     tileEditor.setState({ palette: newPalette });
 
     dataStore.saveToLocalStorage();
@@ -225,7 +225,7 @@ function handlePaletteEditorRequestChangeSystem(args) {
 /** @param {import('./ui/paletteEditor').PaletteEditorColourIndexEventArgs} args */
 function handlePaletteEditorRequestChangeColourIndex(args) {
     if (args.colourIndex >= 0 && args.colourIndex < 16) {
-        paletteEditor.setState(dataStore.project, { selectedPaletteIndex: args.paletteIndex, selectedColourIndex: args.colourIndex });
+        paletteEditor.setState({ selectedColourIndex: args.colourIndex });
         appState.currentPaletteColourIndex = args.colourIndex;
     }
 }
@@ -261,14 +261,14 @@ function handleTileEditorToolbarRequestImportTileSetFromCode(args) {
 function handleTileEditorToolbarRequestUndo(args) {
     dataStore.undo();
     tileEditor.setState({ tileSet: getTileSet(), palette: getPalette() });
-    paletteEditor.setState(dataStore.project, {});
+    paletteEditor.setState({ paletteList: dataStore.paletteList });
 }
 
 /** @param {import('./ui/tileEditorToolbar').TileEditorToolbarCallback} args */
 function handleTileEditorToolbarRequestRedo(args) {
     dataStore.redo();
     tileEditor.setState({ tileSet: getTileSet(), palette: getPalette() });
-    paletteEditor.setState(dataStore.project, {});
+    paletteEditor.setState({ paletteList: dataStore.paletteList });
 }
 
 /** @param {import('./ui/tileEditorToolbar.js').TileEditorToolbarUIEventArgs} args */
@@ -302,7 +302,7 @@ function handleTileEditorPixelMouseOver(args) {
 
     // Show the palette colour
     const pixel = tileSet.getPixelAt(args.x, args.y);
-    paletteEditor.setState(dataStore.project, { highlightedColourIndex: pixel });
+    paletteEditor.setState({ paletteList: dataStore.paletteList, highlightedColourIndex: pixel });
 }
 
 /** @param {import("./ui/tileEditor.js").TileEditorPixelEventArgs} args */
@@ -377,7 +377,7 @@ function handleImportPaletteModalDialogueOnConfirm(args) {
     }
 
     const selectedPaletteIndex = dataStore.paletteList.length - 1;
-    paletteEditor.setState(dataStore.project, { selectedPaletteIndex: selectedPaletteIndex });
+    paletteEditor.setState({ paletteList: dataStore.paletteList, selectedPaletteIndex: selectedPaletteIndex });
     tileEditor.setState({ palette: getPalette() });
 
     dataStore.appUIState.lastSelectedPaletteIndex = selectedPaletteIndex;
@@ -397,7 +397,7 @@ function handleColourPickerChange(args) {
         const newColour = PaletteColourFactory.create(args.r, args.g, args.b);
         palette.setColour(args.index, newColour);
 
-        paletteEditor.setState(dataStore.project, {});
+        paletteEditor.setState({ paletteList: dataStore.paletteList });
         tileEditor.setState({ palette: palette });
     }
 }
@@ -415,7 +415,7 @@ function handleColourPickerConfirm(args) {
         const newColour = PaletteColourFactory.create(args.r, args.g, args.b);
         palette.setColour(args.index, newColour);
 
-        paletteEditor.setState(dataStore.project, {});
+        paletteEditor.setState({ paletteList: dataStore.paletteList });
         tileEditor.setState({ palette: palette });
 
         dataStore.saveToLocalStorage();
@@ -434,7 +434,7 @@ function handleColourPickerCancel(args) {
         const restoreColour = PaletteColourFactory.create(args.originalR, args.originalG, args.originalB);
         palette.setColour(args.index, restoreColour);
 
-        paletteEditor.setState(dataStore.project, {});
+        paletteEditor.setState({ paletteList: dataStore.paletteList });
         tileEditor.setState({ palette: palette });
     }
     colourPickerDialogue.hide();
@@ -488,7 +488,7 @@ function createDefaultPalettesAndTileSetIfNoneExist() {
  * Gets the current tile set from the data store.
  * @returns {TileSet}
  */
- function getTileSet() {
+function getTileSet() {
     return dataStore.tileSet;
 }
 
@@ -569,7 +569,7 @@ $(async () => {
 
     if (palette) {
         headerBar.setState(dataStore.project);
-        paletteEditor.setState(dataStore.project, {});
+        paletteEditor.setState({ paletteList: dataStore.paletteList });
         if (tileSet) {
             const zoom = dataStore.appUIState.lastZoomValue;
             tileEditorToolbar.setState({ tileWidth: tileSet.tileWidth, zoom: zoom });
@@ -581,7 +581,7 @@ $(async () => {
     setTimeout(() => {
         appState.selectedTool = 'pencil';
         tileEditorToolbar.setState({ selectedTool: appState.selectedTool });
-        paletteEditor.setState(dataStore.project, { selectedColourIndex: 0 });
+        paletteEditor.setState({ paletteList: dataStore.paletteList, selectedColourIndex: 0 });
     }, 250);
 
 });

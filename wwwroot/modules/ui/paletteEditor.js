@@ -244,6 +244,7 @@ export default class PaletteEditor {
             colourIndex: colourIndex
         }
         if (this.#currentColourIndex !== colourIndex) {
+            this.#currentColourIndex = colourIndex;
             this.#dispatcher.dispatch(EVENT_ColourSelected, args);
         } else {
             this.#dispatcher.dispatch(EVENT_ColourEdit, args);

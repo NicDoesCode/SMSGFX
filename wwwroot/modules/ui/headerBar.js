@@ -33,8 +33,8 @@ export default class HeaderBar {
 
         this.#tbProjectTitle = this.#element.querySelector('#tbProjectTitle');
         this.#tbProjectTitle.onchange = () => {
-            /** @type {HeaderBarTitleChangeEventArgs} */
-            const args = { newTitle: this.#tbProjectTitle.value };
+            /** @type {HeaderBarProjectTitleChangeEventArgs} */
+            const args = { projectTitle: this.#tbProjectTitle.value };
             this.#dispatcher.dispatch(EVENT_RequestTitleChange, args);
         };
         this.#tbProjectTitle.onkeydown = (evt) => {

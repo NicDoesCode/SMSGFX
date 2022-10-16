@@ -16,7 +16,7 @@ export default class PaletteModalDialogue extends ModalDialogue {
      */
     constructor(element) {
         super(element);
-        this.#tbPaletteSystem = document.getElementById('tbPaletteInputSystem');
+        this.#tbPaletteSystem = document.getElementById('tbPaletteSystem');
         this.#tbPaletteData = document.getElementById('tbPaletteData');
     }
 
