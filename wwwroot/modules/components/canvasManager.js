@@ -1,6 +1,6 @@
-import TileSet from "./models/tileSet.js";
-import Palette from "./models/palette.js";
-import ColourUtil from "./util/colourUtil.js";
+import TileSet from "./../models/tileSet.js";
+import Palette from "./../models/palette.js";
+import ColourUtil from "./../util/colourUtil.js";
 
 export default class CanvasManager {
 
@@ -34,17 +34,17 @@ export default class CanvasManager {
         return this.#scale;
     }
     set scale(value) {
-        console.log('scale set', value, this.#scale); // TMP
         if (value < 1 || value > 50) throw new Error('Scale factor must be between 1 and 50.');
         const newScale = Math.round(value);
         if (newScale !== this.#scale) {
-            console.log('image invalidated', newScale, this.#scale); // TMP
             this.invalidateImage();
             this.#scale = Math.round(value);
         }
     }
 
 
+    /** @type {HTMLCanvasElement} */
+    #exportCanvas;
     /** @type {HTMLCanvasElement} */
     #baseCanvas;
     /** @type {CanvasRenderingContext2D} */
@@ -65,6 +65,7 @@ export default class CanvasManager {
      * @param {Palette} [palette] Colour palette to use.
      */
     constructor(tileSet, palette) {
+        this.#exportCanvas = document.createElement('canvas');
         this.#baseCanvas = document.createElement('canvas');
         this.#baseCtx = this.#baseCanvas.getContext('2d');
         if (tileSet) this.#tileSet = tileSet;
@@ -131,9 +132,9 @@ export default class CanvasManager {
 
     /**
      * Draws a tile set and then returns the image as a base 64 URL.
-     * @param {HTMLCanvasElement} canvas Canvas to draw onto.
-     * @param {number} mouseX X position of the cursor on the image.
-     * @param {number} mouseY Y position of the cursor on the image.
+     * @param {HTMLCanvasElement} canvas - Canvas to draw onto.
+     * @param {number} mouseX - X position of the cursor on the image.
+     * @param {number} mouseY - Y position of the cursor on the image.
      */
     drawUI(canvas, mouseX, mouseY) {
         if (!canvas) throw new Error('drawUI: No canvas.');
@@ -171,6 +172,6 @@ export default class CanvasManager {
         ctx.strokeStyle = 'grey';
         ctx.strokeRect(coords.tileX, coords.tileY, (8 * pxSize), (8 * pxSize));
     }
-    
+
 
 }

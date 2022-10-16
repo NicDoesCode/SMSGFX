@@ -10,3 +10,6 @@ https://mui.com/getting-started/installation/
 
 ## Base Web
 https://baseweb.design
+
+# Credits 
+* https://blog.k.io/atech/creating-a-simple-custom-event-system-in-javascript

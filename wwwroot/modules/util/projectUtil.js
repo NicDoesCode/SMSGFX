@@ -13,9 +13,10 @@ export default class ProjectUtil {
     static saveToFile(project) {
         const theDate = new Date();
         const fileDate = moment(theDate).format('YYYY-MM-DD-HHmmss');
-        const fileTitle = project.title.replaceAll(fileNameRegex, '_');
+        const title = project.title ? project.title : 'project';
+        const fileTitle = title.replaceAll(fileNameRegex, '_');
         const fileName = `smsgfx-${fileTitle}-${fileDate}.json`;
-        
+
         const serialisedData = ProjectJsonSerialiser.serialise(project, true);
 
         const file = new File([serialisedData], fileName, { type: 'application/json' });

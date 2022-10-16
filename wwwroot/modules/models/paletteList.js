@@ -43,7 +43,9 @@ export default class PaletteList {
     getPalette(index) {
         if (index >= 0 && index < this.#palettes.length) {
             return this.#palettes[index];
-        } else throw new Error('Index out of range.');
+        } else {
+            throw new Error('Index out of range.');
+        }
     }
 
     /**

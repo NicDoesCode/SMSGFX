@@ -1,84 +1,11 @@
+import EventDispatcher from "../components/eventDispatcher.js";
+
+const EVENT_RequestTitleChange = 'EVENT_TitleChanged';
+const EVENT_RequestProjectLoad = 'EVENT_ProjectLoad';
+const EVENT_RequestProjectSave = 'EVENT_ProjectSave';
+const EVENT_RequestCodeExport = 'EVENT_CodeExport';
+
 export default class HeaderBar {
-
-
-    /**
-     * Gets or sets the project title.
-     */
-    get projectTitle() {
-        return this.#tbProjectTitle.value;
-    }
-    set projectTitle(value) {
-        if (typeof value === 'undefined' || value === null) throw new Error('Project title was not valid.');
-        this.#tbProjectTitle.value = value;
-    }
-
-    /** 
-     * When the project title is changed.
-     */
-    get onProjectTitleChanged() {
-        return this.#onProjectTitleChangedCallback;
-    }
-    set onProjectTitleChanged(value) {
-        if (value && typeof value === 'function') {
-            this.#onProjectTitleChangedCallback = value;
-        } else {
-            this.#onProjectTitleChangedCallback = () => { };
-        }
-    }
-
-    /** @type {HeaderBarCallback} */
-    #onProjectTitleChangedCallback = () => { };
-
-    /** 
-     * When project is to be loaded from a file.
-     */
-    get onProjectLoad() {
-        return this.#onProjectLoadCallback;
-    }
-    set onProjectLoad(value) {
-        if (value && typeof value === 'function') {
-            this.#onProjectLoadCallback = value;
-        } else {
-            this.#onProjectLoadCallback = () => { };
-        }
-    }
-
-    /** @type {TileEditorCallback} */
-    #onProjectLoadCallback = () => { };
-
-    /** 
-     * When project is to be saved to a file.
-     */
-    get onProjectSave() {
-        return this.#onProjectSaveCallback;
-    }
-    set onProjectSave(value) {
-        if (value && typeof value === 'function') {
-            this.#onProjectSaveCallback = value;
-        } else {
-            this.#onProjectSaveCallback = () => { };
-        }
-    }
-
-    /** @type {HeaderBarCallback} */
-    #onProjectSaveCallback = () => { };
-
-    /** 
-     * When code is to be exported.
-     */
-    get onCodeExport() {
-        return this.#onCodeExportCallback;
-    }
-    set onCodeExport(value) {
-        if (value && typeof value === 'function') {
-            this.#onCodeExportCallback = value;
-        } else {
-            this.#onCodeExportCallback = () => { };
-        }
-    }
-
-    /** @type {HeaderBarCallback} */
-    #onCodeExportCallback = () => { };
 
 
     /** @type {HTMLDivElement} */
@@ -91,6 +18,8 @@ export default class HeaderBar {
     #btnProjectSave;
     /** @type {HTMLButtonElement} */
     #btnCodeExport;
+    /** @type {EventDispatcher} */
+    #dispatcher;
 
 
     /**
@@ -100,8 +29,14 @@ export default class HeaderBar {
     constructor(element) {
         this.#element = element;
 
+        this.#dispatcher = new EventDispatcher();
+
         this.#tbProjectTitle = this.#element.querySelector('#tbProjectTitle');
-        this.#tbProjectTitle.onchange = (evt) => this.onProjectTitleChanged(this, { });
+        this.#tbProjectTitle.onchange = () => {
+            /** @type {HeaderBarProjectTitleChangeEventArgs} */
+            const args = { projectTitle: this.#tbProjectTitle.value };
+            this.#dispatcher.dispatch(EVENT_RequestTitleChange, args);
+        };
         this.#tbProjectTitle.onkeydown = (evt) => {
             // Prevent the enter key from triggering the 'load project' button
             // instead make it trigger the onchange event.
@@ -112,21 +47,86 @@ export default class HeaderBar {
         };
 
         this.#btnProjectLoad = this.#element.querySelector('#btnProjectLoad');
-        this.#btnProjectLoad.onclick = () => this.onProjectLoad(this, {});
+        this.#btnProjectLoad.onclick = () => this.#dispatcher.dispatch(EVENT_RequestProjectLoad, {});
 
         this.#btnProjectSave = this.#element.querySelector('#btnProjectSave');
-        this.#btnProjectSave.onclick = () => this.onProjectSave(this, {});
+        this.#btnProjectSave.onclick = () => this.#dispatcher.dispatch(EVENT_RequestProjectSave, {});
 
         this.#btnCodeExport = this.#element.querySelector('#btnCodeExport');
-        this.#btnCodeExport.onclick = () => this.onCodeExport(this, {});
+        this.#btnCodeExport.onclick = () => this.#dispatcher.dispatch(EVENT_RequestCodeExport, {});
     }
 
+
+    /**
+     * Updates the state of the header bar.
+     * @param {HeaderBarState} state - State to set.
+     */
+     setState(state) {
+        if (state) {
+            if (typeof state.projectTitle === 'string' && state.projectTitle.length > 0 && state.projectTitle !== null) {
+                this.#tbProjectTitle.value = state.projectTitle;
+            }
+        }
+    }
+
+
+    /**
+     * Adds a callback for when the project title was changed.
+     * @param {HeaderBarProjectTitleChangeCallback} callback - Callback function.
+     */
+    addHandlerRequestProjectTitleChange(callback) {
+        this.#dispatcher.on(EVENT_RequestTitleChange, callback);
+    }
+
+    /**
+     * Adds a callback for loading a project from a file.
+     * @param {HeaderBarCallback} callback - Callback function.
+     */
+    addHandlerRequestProjectLoad(callback) {
+        this.#dispatcher.on(EVENT_RequestProjectLoad, callback);
+    }
+
+    /**
+     * Adds a callback for saving the project to file.
+     * @param {HeaderBarCallback} callback - Callback function.
+     */
+    addHandlerRequestProjectSave(callback) {
+        this.#dispatcher.on(EVENT_RequestProjectSave, callback);
+    }
+
+    /**
+     * Adds a callback for requesting code export.
+     * @param {HeaderBarCallback} callback - Callback function.
+     */
+    addHandlerRequestCodeExport(callback) {
+        this.#dispatcher.on(EVENT_RequestCodeExport, callback);
+    }
+
+
 }
+
+
+/**
+ * Header bar state.
+ * @typedef {object} HeaderBarState
+ * @property {string?} projectTitle - Project title to display.
+ */
 
 /**
  * Event callback.
  * @callback HeaderBarCallback
- * @param {HeaderBar} sender - Originating header bar.
- * @param {object} e - Event args.
+ * @param {object} args - Arguments.
  * @exports
+ */
+
+/**
+ * Event args for when a header bar title change is requested.
+ * @callback HeaderBarProjectTitleChangeCallback
+ * @param {HeaderBarProjectTitleChangeEventArgs} args - Arguments.
+ * @exports
+ */
+/**
+ * @typedef {object} HeaderBarProjectTitleChangeEventArgs
+ * @property {String} projectTitle - Changed title.
+ * @exports 
  */
