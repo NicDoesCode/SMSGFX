@@ -16,11 +16,11 @@ export default class TileEditorToolbar {
     /**
      * Gets the current pixel zoom value.
      */
-    get #zoomValue() {
-        return parseInt(this.#tbTileSetZoom.value);
+    get #scaleValue() {
+        return parseInt(this.#tbTileSetScale.value);
     }
-    set #zoomValue(value) {
-        this.#tbTileSetZoom.value = value;
+    set #scaleValue(value) {
+        this.#tbTileSetScale.value = value;
     }
 
     /**
@@ -43,7 +43,7 @@ export default class TileEditorToolbar {
     /** @type {HTMLInputElement} */
     #tbTileSetWidth;
     /** @type {HTMLSelectElement} */
-    #tbTileSetZoom;
+    #tbTileSetScale;
     /** @type {HTMLButtonElement} */
     #btnToolUndo;
     /** @type {HTMLButtonElement} */
@@ -69,8 +69,8 @@ export default class TileEditorToolbar {
         this.#tbTileSetWidth = this.#element.querySelector('#tbTileSetWidth');
         this.#tbTileSetWidth.onchange = (e) => this.#handleTileSetWidthChange(e);
 
-        this.#tbTileSetZoom = this.#element.querySelector('#tbTileSetZoom');
-        this.#tbTileSetZoom.onchange = (e) => this.#handleZoomChange(e);
+        this.#tbTileSetScale = this.#element.querySelector('#tbTileSetScale');
+        this.#tbTileSetScale.onchange = (e) => this.#handleZoomChange(e);
 
         this.#btnToolUndo = this.#element.querySelector('#btnToolUndo');
         this.#btnToolUndo.onclick = (e) => this.#handleToolUndoClick(e);
@@ -89,7 +89,7 @@ export default class TileEditorToolbar {
      * @typedef {object} TileEditorToolbarState
      * @property {number?} tileWidth - Tile width to display.
      * @property {string?} selectedTool - Currently selected tool.
-     * @property {number?} zoom - New zoom level.
+     * @property {number?} scale - New scale level.
      * @property {boolean?} undoEnabled - Is the user able to undo?
      * @property {boolean?} redoEnabled - Is the user able to redo?
      * @exports 
@@ -106,21 +106,21 @@ export default class TileEditorToolbar {
             if (typeof state.selectedTool === 'string' && tools.includes(state.selectedTool)) {
                 this.#highlightTool(state.selectedTool);
             }
-            if (typeof state.zoom === 'number') {
-                this.#zoomValue = state.zoom;
+            if (typeof state.scale === 'number') {
+                this.#scaleValue = state.scale;
             }
             if (typeof state.undoEnabled === 'boolean' || typeof state.undoEnabled === 'number') {
                 if (state.undoEnabled) {
-                    this.#btnToolUndo.setAttribute('disabled', 'disabled');
-                } else {
                     this.#btnToolUndo.removeAttribute('disabled');
+                } else {
+                    this.#btnToolUndo.setAttribute('disabled', 'disabled');
                 }
             }
             if (typeof state.redoEnabled === 'boolean' || typeof state.redoEnabled === 'number') {
                 if (state.redoEnabled) {
-                    this.#btnToolRedo.setAttribute('disabled', 'disabled');
-                } else {
                     this.#btnToolRedo.removeAttribute('disabled');
+                } else {
+                    this.#btnToolRedo.setAttribute('disabled', 'disabled');
                 }
             }
         }
@@ -227,7 +227,7 @@ export default class TileEditorToolbar {
     }
 
     #handleZoomChange(event) {
-        const newZoom = this.#zoomValue;
+        const newZoom = this.#scaleValue;
         if (newZoom !== this.#lastZoom) {
             /** @type {TileEditorToolbarUIEventArgs} */
             const args = { zoom: newZoom };

@@ -100,11 +100,11 @@ export default class PaletteEditor {
                 const selectedPalette = this.#paletteList.getPalette(this.#tbPaletteSelect.selectedIndex);
                 this.#setPalette(selectedPalette);
             }
-            if (state.selectedColourIndex && state.selectedColourIndex >= 0 && state.selectedColourIndex < 16) {
+            if (typeof state.selectedColourIndex === 'number' && state.selectedColourIndex >= 0 && state.selectedColourIndex < 16) {
                 this.#currentColourIndex = state.selectedColourIndex;
                 this.#selectPaletteColour(state.selectedColourIndex);
             }
-            if (state.highlightedColourIndex && state.highlightedColourIndex >= 0 && state.highlightedColourIndex < 16) {
+            if (typeof state.highlightedColourIndex === 'number' && state.highlightedColourIndex >= 0 && state.highlightedColourIndex < 16) {
                 this.#highlightPaletteColour(state.highlightedColourIndex);
             }
             if (state.selectedSystem) {

@@ -252,7 +252,7 @@ export default class TileEditor {
      * Converts a mouse position within the application viewport to the corresponding tile set x/y.
      * @param {number} mouseClientX - Mouse horizontal coordinate within the application's viewport.
      * @param {number} mouseClientY - Mouse vertical coordinate within the application's viewport.
-     * @returns {import('./../types.js').Coordinates}
+     * @returns {Coordinates}
      */
     #convertMouseClientCoordsToTileSetPixelCoords(mouseClientX, mouseClientY) {
         const rect = this.#tbCanvas.getBoundingClientRect();
@@ -266,6 +266,14 @@ export default class TileEditor {
 
 
 }
+
+
+/**
+ * @typedef {object} Coordinates
+ * @property {number} x - X coordinate.
+ * @property {number} y - Y coordinate.
+ * @exports
+ */
 
 /**
  * Tile editor pixel callback.
