@@ -215,7 +215,7 @@ export default class PaletteEditor {
         const palettes = paletteList.getPalettes();
         for (let i = 0; i < palettes.length; i++) {
             const option = document.createElement('option');
-            option.innerText = `${i}`;
+            option.innerText = `#${i} | ${palettes[i].title}`;
             option.value = i.toString();
             option.selected = lastSelectedIndex === i;
             this.#tbPaletteSelect.options.add(option);
@@ -248,7 +248,7 @@ export default class PaletteEditor {
                         this.#tbPaletteSelect.onchange();
                     };
                 }
-                a.innerText = `${index}`;
+                a.innerText = `#${index} | ${p.title}`;
                 li.appendChild(a);
                 this.#tbPaletteSelectDropDown.appendChild(li);
             });
