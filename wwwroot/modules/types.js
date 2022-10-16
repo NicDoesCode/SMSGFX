@@ -1,11 +1,6 @@
 /**
- * @callback EventCallback
- * @param {string} event - Event that occurred.
- * @param {object} sender - The object that originated the event.
- * @param {object} args - Event data.
+ * @typedef {object} Coordinates
+ * @property {number} x - X coordinate.
+ * @property {number} y - Y coordinate.
  * @exports
- */
-/**
- * @callback EventCallbackFunction
- * @param {string} event - Event that occurred.
  */

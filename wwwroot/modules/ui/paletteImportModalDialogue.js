@@ -1,13 +1,13 @@
 import ModalDialogue from "./modalDialogue.js";
-import EventDispatcher from "../eventDispatcher.js";
+import EventDispatcher from "../components/eventDispatcher.js";
 
 export default class PaletteModalDialogue extends ModalDialogue {
 
 
     /** @type {HTMLSelectElement} */
-    #tbPaletteInputSystem = document.getElementById('tbPaletteInputSystem');
+    #tbPaletteSystem;
     /** @type {HTMLTextAreaElement} */
-    #tbPaletteInput = document.getElementById('tbPaletteInput');
+    #tbPaletteData;
 
 
     /**
@@ -16,6 +16,8 @@ export default class PaletteModalDialogue extends ModalDialogue {
      */
     constructor(element) {
         super(element);
+        this.#tbPaletteSystem = document.getElementById('tbPaletteInputSystem');
+        this.#tbPaletteData = document.getElementById('tbPaletteData');
     }
 
 
@@ -25,21 +27,21 @@ export default class PaletteModalDialogue extends ModalDialogue {
      * @param {string} paletteData - The WLA-DLX assembly code that contains the palette.
      */
     show(system, paletteData) {
-        this.#tbPaletteInputSystem.value = system;
-        this.#tbPaletteInput.value = paletteData;
+        this.#tbPaletteSystem.value = system;
+        this.#tbPaletteData.value = paletteData;
         super.show();
     }
 
 
     /**
-     * 
-     * @param {PaletteConfirmDialogueCallback} callback - Callback to use.
+     * Adds an event handler for when the user confirms the palette modal dialogue.
+     * @param {PaletteImportModalDialogueConfirmCallback} callback - Callback function.
      */
     addHandlerOnConfirm(callback) {
         super.addHandlerOnConfirm(() => {
             callback({
-                system: this.#tbPaletteInputSystem.value,
-                paletteData: this.#tbPaletteInput.value
+                system: this.#tbPaletteSystem.value,
+                paletteData: this.#tbPaletteData.value
             });
         });
     }
@@ -50,13 +52,13 @@ export default class PaletteModalDialogue extends ModalDialogue {
 
 /**
  * Import palette dialogue confirm callback.
- * @callback PaletteConfirmDialogueCallback
- * @argument {PaletteConfirmDialogueEventArgs} data - Data from the dialogue.
+ * @callback PaletteImportModalDialogueConfirmCallback
+ * @argument {PaletteImportModalDialogueConfirmEventArgs} data - Data from the dialogue.
  * @exports
  */
 /**
  * Import palette dialogue confirm args.
- * @typedef {object} PaletteConfirmDialogueEventArgs
+ * @typedef {object} PaletteImportModalDialogueConfirmEventArgs
  * @property {string} system - The system to be imported, either 'ms' or 'gg'.
  * @property {string} paletteData - The WLA-DLX assembly code that contains the palette.
  * @exports

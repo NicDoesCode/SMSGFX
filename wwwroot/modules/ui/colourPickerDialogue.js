@@ -1,11 +1,11 @@
-import EventDispatcher from "../eventDispatcher.js";
+import EventDispatcher from "../components/eventDispatcher.js";
 import Palette from "../models/palette.js";
 import ColourUtil from "../util/colourUtil.js";
 import ModalDialogue from "./modalDialogue.js";
 
 const EVENT_OnChange = 'EVENT_OnChange';
 
-export default class ColourPickerModalDialogue extends ModalDialogue {
+export default class ColourPickerDialogue extends ModalDialogue {
 
 
     /** @type {EventDispatcher} */
@@ -87,9 +87,10 @@ export default class ColourPickerModalDialogue extends ModalDialogue {
         super.show();
     }
 
+
     /**
      * When the colour picker box has been confirmed.
-     * @param {ColourModalDialogueCallback} callback - Callback function.
+     * @param {ColourPickerDialogueColourCallback} callback - Callback function.
      */
     addHandlerOnConfirm(callback) {
         super.addHandlerOnConfirm(() => {
@@ -100,7 +101,7 @@ export default class ColourPickerModalDialogue extends ModalDialogue {
 
     /**
      * When the colour picker box has a value changed.
-     * @param {ColourModalDialogueCallback} callback - Callback function.
+     * @param {ColourPickerDialogueColourCallback} callback - Callback function.
      */
     addHandlerOnChange(callback) {
         this.#dispatcher.on(EVENT_OnChange, callback)
@@ -108,7 +109,7 @@ export default class ColourPickerModalDialogue extends ModalDialogue {
 
     /**
      * When the colour picker box is cancelled.
-     * @param {ColourModalDialogueCallback} callback - Callback function.
+     * @param {ColourPickerDialogueColourCallback} callback - Callback function.
      */
     addHandlerOnCancel(callback) {
         super.addHandlerOnCancel(() => {
@@ -117,13 +118,14 @@ export default class ColourPickerModalDialogue extends ModalDialogue {
         });
     }
 
+    
     #triggerOnChange() {
         const args = this.#createEventArgs();
         this.#dispatcher.dispatch(EVENT_OnChange, args);
     }
 
     /**
-     * @returns {ColourModalDialogueColourEventArgs}
+     * @returns {ColourPickerDialogueColourEventArgs}
      */
     #createEventArgs() {
         return {
@@ -184,13 +186,21 @@ export default class ColourPickerModalDialogue extends ModalDialogue {
 }
 
 /**
+ * Event callback.
+ * @callback PalettColourPickerDialogueCallback
+ * @param {object} args - Arguments.
+ * @exports
+ */
+
+/**
  * Colour picker modal dialogue callback.
- * @callback ColourModalDialogueCallback
- * @argument {ColourModalDialogueColourEventArgs} args - Event args.
+ * @callback ColourPickerDialogueColourCallback
+ * @argument {ColourPickerDialogueColourEventArgs} args - Event args.
+ * @export
  */
 /**
  * Event args from the colour picker modal.
- * @typedef {object} ColourModalDialogueColourEventArgs
+ * @typedef {object} ColourPickerDialogueColourEventArgs
  * @property {number} index - Palette index, 0 to 15.
  * @property {string} system - Target system, either 'ms' or 'gg'.
  * @property {number} r - Red component.

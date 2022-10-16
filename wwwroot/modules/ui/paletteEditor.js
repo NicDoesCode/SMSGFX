@@ -1,7 +1,6 @@
 import Palette from "../models/palette.js";
 import ColourUtil from "../util/colourUtil.js";
-import EventDispatcher from "../eventDispatcher.js";
-import Project from "../models/project.js";
+import EventDispatcher from "../components/eventDispatcher.js";
 import PaletteList from "../models/paletteList.js";
 
 const EVENT_NewPalette = 'EVENT_NewPalette';
@@ -12,7 +11,7 @@ const EVENT_PaletteSystemChanged = 'EVENT_PaletteSystemChanged';
 const EVENT_ColourSelected = 'EVENT_ColourSelected';
 const EVENT_ColourEdit = 'EVENT_ColourEdit';
 
-export default class PaletteToolbox {
+export default class PaletteEditor {
 
 
     /** @type {HTMLDivElement} */
@@ -35,6 +34,8 @@ export default class PaletteToolbox {
     #currentColourIndex = 0;
     /** @type {EventDispatcher} */
     #dispatcher;
+    /** @type {PaletteList} */
+    #paletteList;
 
 
     /**
@@ -54,14 +55,14 @@ export default class PaletteToolbox {
 
         this.#btnRemovePalette = this.#element.querySelector('#btnRemovePalette');
         this.#btnRemovePalette.onclick = () => {
-            /** @type {PaletteToolboxSelectedPaletteEventArgs} */
+            /** @type {PaletteEditorPaletteEventArgs} */
             const args = { paletteIndex: this.#tbPaletteSelect.selectedIndex };
             this.#dispatcher.dispatch(EVENT_PaletteDelete, args);
         };
 
         this.#tbPaletteSelect = this.#element.querySelector('#tbPaletteSelect');
         this.#tbPaletteSelect.onchange = () => {
-            /** @type {PaletteToolboxPaletteChangedEventArgs} */
+            /** @type {PaletteEditorPaletteChangeEventArgs} */
             const args = {
                 paletteIndex: this.#tbPaletteSelect.selectedIndex,
                 oldPaletteIndex: this.#currentColourIndex
@@ -72,7 +73,7 @@ export default class PaletteToolbox {
 
         this.#tbPaletteSystemSelect = this.#element.querySelector('#tbPaletteSystemSelect');
         this.#tbPaletteSystemSelect.onchange = () => {
-            /** @type {PaletteToolboxSystemChangedEventArgs} */
+            /** @type {PaletteEditorSystemChangedEventArgs} */
             const args = {
                 paletteIndex: this.#tbPaletteSelect.selectedIndex,
                 system: this.#tbPaletteSystemSelect.value
@@ -83,77 +84,20 @@ export default class PaletteToolbox {
 
 
     /**
-     * User requests a new palette.
-     * @param {PaletteToolboxCallback} callback - Callback function.
-     */
-    addHandlerNewPalette(callback) {
-        this.#dispatcher.on(EVENT_NewPalette, callback);
-    }
-
-    /**
-     * User requests to import a new palette.
-     * @param {PaletteToolboxCallback} callback - Callback function.
-     */
-    addHandlerImportPaletteFromCode(callback) {
-        this.#dispatcher.on(EVENT_ImportPaletteFromCode, callback);
-    }
-
-    /**
-     * User requests to delete a palette.
-     * @param {PaletteToolboxSelectedPaletteCallback} callback - Callback function.
-     */
-    addHandlerPaletteDelete(callback) {
-        this.#dispatcher.on(EVENT_PaletteDelete, callback);
-    }
-
-    /**
-     * User changes the selected palette.
-     * @param {PaletteToolboxPaletteChangedCallback} callback - Callback function.
-     */
-    addHandlerSelectedPaletteChanged(callback) {
-        this.#dispatcher.on(EVENT_PaletteChanged, callback);
-    }
-
-    /**
-     * User changes the selected system.
-     * @param {PaletteToolboxSystemChangedCallback} callback - Callback function.
-     */
-    addHandlerSystemChanged(callback) {
-        this.#dispatcher.on(EVENT_PaletteSystemChanged, callback);
-    }
-
-    /**
-     * User changes the selected colour.
-     * @param {PaletteToolboxColourCallback} callback - Callback function.
-     */
-    addHandlerColourSelected(callback) {
-        this.#dispatcher.on(EVENT_ColourSelected, callback);
-    }
-
-    /**
-     * User wants to edit the selected colour.
-     * @param {PaletteToolboxColourCallback} callback - Callback function.
-     */
-    addHandlerColourEdit(callback) {
-        this.#dispatcher.on(EVENT_ColourEdit, callback);
-    }
-
-
-    /**
      * Sets the state of the object.
-     * @param {Project} project - Mandatory to pass the current project.
-     * @param {PaletteToolboxState} state - Optional additional state to set.
+     * @param {PaletteEditorState} state - State to set.
      */
-    setState(project, state) {
-        if (project && project.paletteList) {
-            this.#refreshPalettes(project.paletteList);
-        }
+    setState(state) {
         if (state) {
+            if (state.paletteList && typeof state.paletteList.getPalettes === 'function') {
+                this.#paletteList = state.paletteList;
+                this.#refreshPalettes(this.#paletteList);
+            }
             if (typeof state.selectedPaletteIndex === 'number') {
                 this.#tbPaletteSelect.selectedIndex = state.selectedPaletteIndex;
             }
-            if (project && project.paletteList) {
-                const selectedPalette = project.paletteList.getPalette(this.#tbPaletteSelect.selectedIndex);
+            if (this.#paletteList) {
+                const selectedPalette = this.#paletteList.getPalette(this.#tbPaletteSelect.selectedIndex);
                 this.#setPalette(selectedPalette);
             }
             if (state.selectedColourIndex && state.selectedColourIndex >= 0 && state.selectedColourIndex < 16) {
@@ -168,6 +112,64 @@ export default class PaletteToolbox {
             }
         }
     }
+
+
+    /**
+     * User requests a new palette.
+     * @param {PaletteEditorCallback} callback - Callback function.
+     */
+    addHandlerRequestNewPalette(callback) {
+        this.#dispatcher.on(EVENT_NewPalette, callback);
+    }
+
+    /**
+     * User requests to import a new palette.
+     * @param {PaletteEditorCallback} callback - Callback function.
+     */
+    addHandlerRequestImportPaletteFromCode(callback) {
+        this.#dispatcher.on(EVENT_ImportPaletteFromCode, callback);
+    }
+
+    /**
+     * User requests to delete a palette.
+     * @param {PaletteEditorPaletteCallback} callback - Callback function.
+     */
+    addHandlerRequestDeletePalette(callback) {
+        this.#dispatcher.on(EVENT_PaletteDelete, callback);
+    }
+
+    /**
+     * User changes the selected palette.
+     * @param {PaletteEditorPaletteChangeCallback} callback - Callback function.
+     */
+    addHandlerRequestSelectedPaletteChange(callback) {
+        this.#dispatcher.on(EVENT_PaletteChanged, callback);
+    }
+
+    /**
+     * User changes the selected system.
+     * @param {PaletteEditorSystemChangedCallback} callback - Callback function.
+     */
+    addHandlerRequestChangeSystem(callback) {
+        this.#dispatcher.on(EVENT_PaletteSystemChanged, callback);
+    }
+
+    /**
+     * User changes the selected colour.
+     * @param {PaletteEditorColourIndexCallback} callback - Callback function.
+     */
+    addHandlerRequestChangeColourIndex(callback) {
+        this.#dispatcher.on(EVENT_ColourSelected, callback);
+    }
+
+    /**
+     * User wants to edit the selected colour.
+     * @param {PaletteEditorColourIndexCallback} callback - Callback function.
+     */
+    addHandlerRequestColourEdit(callback) {
+        this.#dispatcher.on(EVENT_ColourEdit, callback);
+    }
+
 
     /**
      * Refreshes the list of palettes.
@@ -236,7 +238,7 @@ export default class PaletteToolbox {
      * @param {number} colourIndex Index of the colour that was clicked.
      */
     #handleColourClicked(colourIndex) {
-        /** @type {PaletteToolboxColourEventArgs} */
+        /** @type {PaletteEditorColourIndexEventArgs} */
         const args = {
             paletteIndex: this.#tbPaletteSelect.selectedIndex,
             colourIndex: colourIndex
@@ -297,9 +299,11 @@ export default class PaletteToolbox {
 
 }
 
+
 /**
- * Palette toolbox state.
- * @typedef {object} PaletteToolboxState
+ * Palette editor state.
+ * @typedef {object} PaletteEditorState
+ * @property {PaletteList?} paletteList - Current list of palettes.
  * @property {string?} selectedSystem - Sets the selected system, either 'ms' or 'gg'.
  * @property {number?} selectedPaletteIndex - Sets the selected palette index.
  * @property {number?} selectedColourIndex - Sets the selected colour index.
@@ -308,32 +312,32 @@ export default class PaletteToolbox {
 
 /**
  * Event callback.
- * @callback PaletteToolboxCallback
+ * @callback PaletteEditorCallback
  * @param {object} args - Arguments.
  * @exports
  */
 
 /**
- * Event callback.
- * @callback PaletteToolboxSelectedPaletteCallback
- * @param {PaletteToolboxSelectedPaletteEventArgs} args - Arguments.
+ * Event callback with palette index.
+ * @callback PaletteEditorPaletteCallback
+ * @param {PaletteEditorPaletteEventArgs} args - Arguments.
  * @exports
  */
 /**
- * @typedef PaletteToolboxSelectedPaletteEventArgs
+ * @typedef PaletteEditorPaletteEventArgs
  * @type {object}
  * @property {number} paletteIndex - Palette index.
  * @exports 
  */
 
 /**
- * Event callback.
- * @callback PaletteToolboxPaletteChangedCallback
- * @param {PaletteToolboxPaletteChangedEventArgs} args - Arguments.
+ * Event callback with old and new palette index.
+ * @callback PaletteEditorPaletteChangeCallback
+ * @param {PaletteEditorPaletteChangeEventArgs} args - Arguments.
  * @exports
  */
 /**
- * @typedef PaletteToolboxPaletteChangedEventArgs
+ * @typedef PaletteEditorPaletteChangeEventArgs
  * @type {object}
  * @property {number} paletteIndex - New palette index.
  * @property {number} oldPaletteIndex - Old palette index.
@@ -341,13 +345,13 @@ export default class PaletteToolbox {
  */
 
 /**
- * Event callback.
- * @callback PaletteToolboxSystemChangedCallback
- * @param {PaletteToolboxSystemChangedEventArgs} args - Arguments.
+ * Event callback for when the system is changed.
+ * @callback PaletteEditorSystemChangedCallback
+ * @param {PaletteEditorSystemChangedEventArgs} args - Arguments.
  * @exports
  */
 /**
- * @typedef PaletteToolboxSystemChangedEventArgs
+ * @typedef PaletteEditorSystemChangedEventArgs
  * @type {object}
  * @property {number} paletteIndex - Palette index.
  * @property {string} system - Either 'ms' or 'gg'.
@@ -355,13 +359,13 @@ export default class PaletteToolbox {
  */
 
 /**
- * Event callback.
- * @callback PaletteToolboxColourCallback
- * @param {PaletteToolboxColourEventArgs} args - Arguments.
+ * Event callback with colour index.
+ * @callback PaletteEditorColourIndexCallback
+ * @param {PaletteEditorColourIndexEventArgs} args - Arguments.
  * @exports
  */
 /**
- * @typedef PaletteToolboxColourEventArgs
+ * @typedef PaletteEditorColourIndexEventArgs
  * @type {object}
  * @property {number} paletteIndex - Palette index.
  * @property {number} colourIndex - Colour index within the palette.

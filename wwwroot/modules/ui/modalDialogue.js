@@ -1,4 +1,4 @@
-import EventDispatcher from "../eventDispatcher.js";
+import EventDispatcher from "../components/eventDispatcher.js";
 
 const EVENT_OnShow = 'EVENT_OnShow';
 const EVENT_OnShown = 'EVENT_OnShown';
@@ -34,17 +34,23 @@ export default class ModalDialogue {
             button.onclick = () => this.#dispatcher.dispatch(EVENT_OnCancel, {});
         });
 
-        this.#element.addEventListener('show.bs.modal', (event) => this.#dispatcher.dispatch(EVENT_OnShow, {}));
-        this.#element.addEventListener('shown.bs.modal', (event) => this.#dispatcher.dispatch(EVENT_OnShown, {}));
-        this.#element.addEventListener('hide.bs.modal', (event) => this.#dispatcher.dispatch(EVENT_OnHide, {}));
-        this.#element.addEventListener('hidden.bs.modal', (event) => this.#dispatcher.dispatch(EVENT_OnHidden, {}));
+        this.#element.addEventListener('show.bs.modal', () => this.#dispatcher.dispatch(EVENT_OnShow, {}));
+        this.#element.addEventListener('shown.bs.modal', () => this.#dispatcher.dispatch(EVENT_OnShown, {}));
+        this.#element.addEventListener('hide.bs.modal', () => this.#dispatcher.dispatch(EVENT_OnHide, {}));
+        this.#element.addEventListener('hidden.bs.modal', () => this.#dispatcher.dispatch(EVENT_OnHidden, {}));
     }
 
 
+    /**
+     * Shows the dialogue.
+     */
     show() {
         this.#bootstrapModal.show();
     }
 
+    /**
+     * Hides the dialogue.
+     */
     hide() {
         this.#bootstrapModal.hide();
     }

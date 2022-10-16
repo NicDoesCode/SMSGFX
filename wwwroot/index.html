@@ -59,7 +59,7 @@
 
             <!-- Palette card -->
             <div class="sms-content-col sms-left">
-                <div id="tbPaletteToolbox" class="sms-palette card p-0 m-0">
+                <div id="tbPaletteEditor" class="sms-palette card p-0 m-0">
                     <div class="card-header">
                         Palette
                     </div>
@@ -105,7 +105,7 @@
             </div>
 
             <div class="sms-content-col sms-right">
-                <div id="tbTileEditor" class="sms-rows">
+                <div class="sms-rows">
                     <!-- <div class="sms-row">
                         <!- - Tab bar - ->
                         <div class="container-fluid p-0 m-0 mt-3">
@@ -128,7 +128,7 @@
                     </div> -->
                     <div class="sms-row">
                         <!-- Toolbar -->
-                        <div class="sms-tile-toolbar container-fluid p-0 m-0 pt-3 pb-2">
+                        <div id="tbTileEditorToolbar" class="sms-tile-toolbar container-fluid p-0 m-0 pt-3 pb-2">
                             <div class="row align-items-center p-0 m-0">
                                 <div class="col-auto ms-0 ps-0 pe-0">
                                     <div class="input-group input-group-sm">
@@ -194,28 +194,32 @@
                         <!-- End: Toolbar -->
                     </div>
                     <div class="sms-row sms-grow">
-                        <!-- Canvas -->
-                        <div class="sms-canvas-container">
+                        <!-- Tile editor -->
+                        <div id="tbTileEditor" class="sms-canvas-container">
                             <div id="pnlCanvas" class="sms-canvas-container-item">
                                 <canvas class="sms-canvas" id="tbCanvas" width="700" height="700"></canvas>
                             </div>
+                            <!-- Tile editor context menu -->
+                            <div id="tbTileEditorMenu" class="dropdown" style="position: absolute">
+                                <button id="btnTileEditorMenu" class="btn btn-secondary dropdown-toggle visually-hidden"
+                                    style="position: absolute; z-index: 100; width: 200px" type="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    Dropdown button
+                                </button>
+                                <ul id="tbTileEditorMenuDropDown" class="dropdown-menu">
+                                    <li><button class="dropdown-item" data-command="remove">Remove this tile</button>
+                                    </li>
+                                    <li><button class="dropdown-item" data-command="insert-before">Insert tile
+                                            before</button>
+                                    </li>
+                                    <li><button class="dropdown-item" data-command="insert-after">Insert tile
+                                            after</button>
+                                    </li>
+                                </ul>
+                            </div>
+                            <!-- End: Tile editor context menu -->
                         </div>
-                        <!-- End: Canvas -->
-                    </div>
-
-                    <div id="tbTileEditorMenu" class="dropdown" style="position: absolute">
-                        <button id="btnTileEditorMenu" class="btn btn-secondary dropdown-toggle visually-hidden"
-                            style="position: absolute; z-index: 100; width: 200px" type="button"
-                            data-bs-toggle="dropdown" aria-expanded="false">
-                            Dropdown button
-                        </button>
-                        <ul id="tbTileEditorMenuDropDown" class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                            <li><button class="dropdown-item" data-command="remove">Remove this tile</button></li>
-                            <li><button class="dropdown-item" data-command="insert-before">Insert tile before</button>
-                            </li>
-                            <li><button class="dropdown-item" data-command="insert-after">Insert tile after</button>
-                            </li>
-                        </ul>
+                        <!-- End: Tile editor -->
                     </div>
 
                 </div>
@@ -236,8 +240,8 @@
                     <p>This will add a new colour palette to your project.</p>
                     <p>Make sure that you select the appropriate system or there may be unintended results.</p>
                     <div class="mb-3">
-                        <label for="tbPaletteInputSystem">Select the system</label>
-                        <select id="tbPaletteInputSystem" class="form-select">
+                        <label for="tbPaletteSystem">Select the system</label>
+                        <select id="tbPaletteSystem" class="form-select">
                             <option value="gg" selected>Game Gear</option>
                             <option value="ms">Master System</option>
                         </select>
@@ -245,7 +249,7 @@
                     <div class="mb-3">
                         <label for="tbPaletteInput">Copy and paste the HEX palette data from your WLA-DX project
                             below</label>
-                        <textarea class="form-control" id="tbPaletteInput" rows="4"></textarea>
+                        <textarea class="form-control" id="tbPaletteData" rows="4"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -267,7 +271,7 @@
                     <p>Copy and paste the HEX tile data from your WLA-DX project below and it will be decoded.</p>
                     <p>This will replace the current tiles in your project.</p>
                     <div class="mb-3">
-                        <textarea class="form-control" id="tbLoadTiles" rows="10"></textarea>
+                        <textarea class="form-control" id="tbTileSetData" rows="10"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -304,7 +308,8 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Pick a colour</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" data-button-type="cancel"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                        data-button-type="cancel"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row">
