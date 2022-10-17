@@ -75,6 +75,7 @@ function wireUpEventHandlers() {
     paletteEditor.addHandlerRequestDeletePalette(handlePaletteEditorRequestDeletePalette);
     paletteEditor.addHandlerRequestTitleChange(handlePaletteEditorRequestTitleChange);
     paletteEditor.addHandlerRequestSystemChange(handlePaletteEditorRequestSystemChange);
+    paletteEditor.addHandlerRequestNativeChange(handlePaletteEditorRequestNativeChange);
     paletteEditor.addHandlerRequestColourIndexChange(handlePaletteEditorRequestColourIndexChange);
     paletteEditor.addHandlerRequestColourEdit(handlePaletteEditorRequestColourEdit);
 
@@ -137,14 +138,16 @@ function handleHeaderBarRequestProjectLoad(args) {
                     paletteList: state.paletteList,
                     selectedPaletteIndex: 0,
                     selectedColourIndex: 0,
-                    highlightedColourIndex: -1
+                    highlightedColourIndex: -1,
+                    displayNative: getUIState().displayNativeColour
                 });
                 tileEditorToolbar.setState({
                     tileWidth: tileSet.tileWidth
                 });
                 tileEditor.setState({
                     palette: palette,
-                    tileSet: tileSet
+                    tileSet: tileSet,
+                    displayNative: getUIState().displayNativeColour
                 });
             });
         }
@@ -268,7 +271,7 @@ function handlePaletteEditorRequestSystemChange(args) {
     addUndoState();
 
     const project = state.project;
-    const paletteList = project.paletteList;
+    const paletteList = getPaletteList();
     const oldPalette = paletteList.getPalette(args.paletteIndex);
     const newPalette = PaletteFactory.clone(oldPalette);
     newPalette.system = args.system;
@@ -277,13 +280,33 @@ function handlePaletteEditorRequestSystemChange(args) {
     state.setProject(project);
 
     paletteEditor.setState({
-        selectedSystem: args.system
+        paletteList: getPaletteList(),
+        selectedSystem: args.system,
+        displayNative: getUIState().displayNativeColour
     });
     tileEditor.setState({
-        palette: newPalette
+        palette: getPalette(),
+        displayNative: getUIState().displayNativeColour
     });
 
     state.saveToLocalStorage();
+}
+
+/** @param {import('./ui/paletteEditor').PaletteEditorDisplayNativeEventArgs} args */
+function handlePaletteEditorRequestNativeChange(args) {
+
+    state.persistentUIState.displayNativeColour = args.displayNativeEnabled;
+    state.saveToLocalStorage();
+
+    paletteEditor.setState({
+        paletteList: getPaletteList(),
+        displayNative: getUIState().displayNativeColour
+    });
+    tileEditor.setState({
+        tileSet: getTileSet(),
+        palette: getPalette(),
+        displayNative: getUIState().displayNativeColour
+    });
 }
 
 /** @param {import('./ui/paletteEditor').PaletteEditorColourIndexEventArgs} args */
@@ -711,18 +734,9 @@ function checkPersistentUIValues() {
    Helpers and general methods
 */
 
-/**
- * Gets the current tile set from the data store.
- * @returns {TileSet}
- */
 function getTileSet() {
-    return state.tileSet;
-}
-
-/**
- * Gets the currently selected palette from the data store.
- * @returns {Palette?}
- */
+    return state.tileSet
+};
 function getPalette() {
     if (state.paletteList.length > 0) {
         const paletteIndex = state.persistentUIState.paletteIndex;
@@ -733,6 +747,12 @@ function getPalette() {
             return state.paletteList.getPalette(0);
         }
     } else return null;
+}
+function getPaletteList() {
+    return state.paletteList;
+}
+function getUIState() {
+    return state.persistentUIState;
 }
 
 function takeToolAction(tool, colourIndex, imageX, imageY) {
@@ -806,7 +826,8 @@ $(async () => {
         paletteList: state.project.paletteList,
         selectedPaletteIndex: state.persistentUIState.paletteIndex,
         lastPaletteInputSystem: state.persistentUIState.importPaletteSystem,
-        selectedColourIndex: 0
+        selectedColourIndex: 0,
+        displayNative: getUIState().displayNativeColour
     });
     tileEditorToolbar.setState({
         tileWidth: tileSet.tileWidth,
@@ -818,7 +839,8 @@ $(async () => {
     tileEditor.setState({
         palette: palette,
         tileSet: tileSet,
-        scale: state.persistentUIState.scale
+        scale: state.persistentUIState.scale,
+        displayNative: getUIState().displayNativeColour
     });
 
 });

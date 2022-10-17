@@ -16,7 +16,8 @@ export default class PersistentUIStateJsonSerialiser {
             importPaletteSystem: appUI.importPaletteSystem,
             importTileAssemblyCode: appUI.importTileAssemblyCode,
             paletteIndex: appUI.paletteIndex,
-            scale: appUI.scale
+            scale: appUI.scale,
+            displayNativeColour: appUI.displayNativeColour
         };
         return JSON.stringify(result);
     }
@@ -46,6 +47,9 @@ export default class PersistentUIStateJsonSerialiser {
             if (deserialised.scale) {
                 result.scale = deserialised.scale;
             }
+            if (typeof deserialised.displayNativeColour === 'boolean') {
+                result.displayNativeColour = deserialised.displayNativeColour;
+            } 
         }
         return result;
     }
@@ -61,4 +65,5 @@ export default class PersistentUIStateJsonSerialiser {
  * @property {string} importTileAssemblyCode
  * @property {number} paletteIndex
  * @property {number} scale
+ * @property {boolean} displayNativeColour
  */

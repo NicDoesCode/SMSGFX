@@ -1,6 +1,7 @@
 import Palette from "../models/palette.js";
 import PaletteColourFactory from "../factory/paletteColourFactory.js";
 import PaletteJsonSerialiser from "../serialisers/paletteJsonSerialiser.js";
+import ColourUtil from "../util/colourUtil.js";
 
 const defaultColours = ['#000000', '#000000', '#00AA00', '#00FF00', '#000055', '#0000FF', '#550000', '#00FFFF', '#AA0000', '#FF0000', '#555500', '#FFFF00', '#005500', '#FF00FF', '#555555', '#FFFFFF'];
 
@@ -74,9 +75,23 @@ export default class PaletteFactory {
      * @param {Palette} palette - Palette to clone.
      * @returns {Palette}
      */
-     static clone(palette) {
+    static clone(palette) {
         const serialiseable = PaletteJsonSerialiser.toSerialisable(palette);
         return PaletteJsonSerialiser.fromSerialisable(serialiseable);
+    }
+
+    /**
+     * Returns a palette with native colours for the system.
+     * @param {Palette} palette - Palette to convert.
+     * @returns {Palette}
+     */
+    static convertToNative(palette) {
+        const result = new Palette(palette.title, palette.system);
+        palette.getColours().forEach((colour, index) => {
+            const nativeColour = PaletteColourFactory.convertToNative(palette.system, colour);
+            result.setColour(index, nativeColour);
+        });
+        return result;
     }
 
 

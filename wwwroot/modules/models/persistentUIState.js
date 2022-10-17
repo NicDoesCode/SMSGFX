@@ -51,6 +51,16 @@ export default class PersistentUIState {
         this.#scale = value;
     }
 
+    /**
+     * Gets or sets whether UI elements should display native colours.
+     */
+    get displayNativeColour() {
+        return this.#displayNativeColour;
+    }
+    set displayNativeColour(value) {
+        this.#displayNativeColour = value;
+    }
+
 
     /** @type {string} */
     #importPaletteAssemblyCode = '';
@@ -62,6 +72,8 @@ export default class PersistentUIState {
     #paletteIndex = 0;
     /** @type {number} */
     #scale = 10;
+    /** @type {boolean} */
+    #displayNativeColour = true;
 
 
     constructor() {

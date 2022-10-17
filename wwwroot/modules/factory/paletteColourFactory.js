@@ -31,5 +31,17 @@ export default class PaletteColourFactory {
         return PaletteColourFactory.create(rgb.r, rgb.g, rgb.b);
     }
 
+    /**
+     * Returns a palette with native colours for the system.
+     * @param {string} system - System to make native colour for, either 'ms' or 'gg'.
+     * @param {PaletteColour} paletteColour - Palette colour to convert.
+     * @returns {PaletteColour}
+     */
+    static convertToNative(system, paletteColour) {
+        const originalHex = ColourUtil.toHex(paletteColour.r, paletteColour.g, paletteColour.b);
+        const nativeHex = ColourUtil.getNativeHexFromHex(system, originalHex);
+        return PaletteColourFactory.fromHex(nativeHex);
+    }
+
 
 }

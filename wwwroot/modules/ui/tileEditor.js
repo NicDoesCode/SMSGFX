@@ -1,5 +1,6 @@
 import CanvasManager from "../components/canvasManager.js";
 import EventDispatcher from "../components/eventDispatcher.js";
+import PaletteFactory from "../factory/paletteFactory.js";
 import Palette from "../models/palette.js";
 import Tile from "../models/tile.js";
 import TileSet from "../models/tileSet.js";
@@ -30,6 +31,7 @@ export default class TileEditor {
     #scale = 1;
     #canvasManager;
     #canvasMouseIsDown = false;
+    #displayNative = true;
     #dispatcher;
 
 
@@ -57,13 +59,6 @@ export default class TileEditor {
     }
 
 
-    /**
-     * @typedef {object} TileEditorState
-     * @property {TileSet?} tileSet - Tile set that will be drawn, passing this will trigger a redraw.
-     * @property {Palette?} palette - Palette to use for drawing, passing this will trigger a redraw.
-     * @property {number?} scale - Current zoom level.
-     * @exports 
-     */
     /**
      * Sets the state of the tile editor.
      * @param {TileEditorState} state - State object.
@@ -95,9 +90,15 @@ export default class TileEditor {
                 throw new Error('Scale must be between 1 and 50.');
             }
         }
+        // Display native?
+        if (typeof state.displayNative === 'boolean') {
+            this.#displayNative = state.displayNative;
+            dirty = true;
+        }
         // Refresh image?
         if (dirty && this.#palette && this.#tileSet) {
-            this.#canvasManager.palette = this.#palette;
+            let palette = !this.#displayNative ? this.#palette : PaletteFactory.convertToNative(this.#palette);
+            this.#canvasManager.palette = palette;
             this.#canvasManager.tileSet = this.#tileSet;
             this.#canvasManager.scale = this.#scale;
             if (this.#lastCoords) {
@@ -267,6 +268,15 @@ export default class TileEditor {
 
 }
 
+
+/**
+ * @typedef {object} TileEditorState
+ * @property {TileSet?} tileSet - Tile set that will be drawn, passing this will trigger a redraw.
+ * @property {Palette?} palette - Palette to use for drawing, passing this will trigger a redraw.
+ * @property {number?} scale - Current zoom level.
+ * @property {boolean?} displayNative - Should the tile editor display native colours?
+ * @exports 
+ */
 
 /**
  * @typedef {object} Coordinates

@@ -36,6 +36,10 @@ export default class ColourPickerDialogue extends ModalDialogue {
     #btnColourPickerPick;
     /** @type {HTMLInputElement} */
     #tbColourPickerHex;
+    /** @type {HTMLDivElement} */
+    #tbPreviewSelected;
+    /** @type {HTMLDivElement} */
+    #tbPreviewNative;
 
 
     /**
@@ -65,6 +69,9 @@ export default class ColourPickerDialogue extends ModalDialogue {
 
         this.#btnColourPickerPick.onchange = () => this.#setFromHex(btnColourPickerPick.value);
         this.#tbColourPickerHex.onchange = () => this.#setFromHex(tbColourPickerHex.value);
+
+        this.#tbPreviewSelected = element.querySelector('[data-colour-preview=selected]');
+        this.#tbPreviewNative = element.querySelector('[data-colour-preview=native]');
     }
 
 
@@ -118,7 +125,7 @@ export default class ColourPickerDialogue extends ModalDialogue {
         });
     }
 
-    
+
     #triggerOnChange() {
         const args = this.#createEventArgs();
         this.#dispatcher.dispatch(EVENT_OnChange, args);
@@ -180,6 +187,10 @@ export default class ColourPickerDialogue extends ModalDialogue {
         const hex = ColourUtil.toHex(this.#r, this.#g, this.#b);
         tbColourPickerHex.value = hex;
         btnColourPickerPick.value = hex;
+        // Previews
+        const previewHex = ColourUtil.toNativeHex(this.#system, this.#r, this.#g, this.#b);
+        this.#tbPreviewSelected.style.backgroundColor = hex;
+        this.#tbPreviewNative.style.backgroundColor = previewHex;
     }
 
 

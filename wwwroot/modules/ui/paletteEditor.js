@@ -2,6 +2,7 @@ import Palette from "../models/palette.js";
 import ColourUtil from "../util/colourUtil.js";
 import EventDispatcher from "../components/eventDispatcher.js";
 import PaletteList from "../models/paletteList.js";
+import PaletteColourFactory from "../factory/paletteColourFactory.js";
 
 const EVENT_NewPalette = 'EVENT_NewPalette';
 const EVENT_ImportPaletteFromCode = 'EVENT_ImportPaletteFromCode';
@@ -11,6 +12,7 @@ const EVENT_PaletteSystemChanged = 'EVENT_PaletteSystemChanged';
 const EVENT_ColourSelected = 'EVENT_ColourSelected';
 const EVENT_ColourEdit = 'EVENT_ColourEdit';
 const EVENT_RequestTitleChange = 'EVENT_TitleChanged';
+const EVENT_RequestDisplayNativeChange = 'EVENT_RequestDisplayNativeChange';
 
 export default class PaletteEditor {
 
@@ -35,12 +37,12 @@ export default class PaletteEditor {
     #tbPaletteTitle;
     /** @type {HTMLSelectElement} */
     #tbPaletteSystemSelect;
+    /** @type {HTMLInputElement} */
+    #tbPaletteEditorDisplayNative;
     /** @type {number} */
     #currentColourIndex = 0;
     /** @type {EventDispatcher} */
     #dispatcher;
-    /** @type {PaletteList} */
-    #paletteList;
 
 
     /**
@@ -94,6 +96,15 @@ export default class PaletteEditor {
             };
             this.#dispatcher.dispatch(EVENT_PaletteSystemChanged, args);
         };
+
+        this.#tbPaletteEditorDisplayNative = this.#element.querySelector('#tbPaletteEditorDisplayNative');
+        this.#tbPaletteEditorDisplayNative.onchange = () => {
+            /** @type {PaletteEditorDisplayNativeEventArgs} */
+            const args = {
+                displayNativeEnabled: this.#tbPaletteEditorDisplayNative.checked
+            };
+            this.#dispatcher.dispatch(EVENT_RequestDisplayNativeChange, args);
+        };
     }
 
 
@@ -112,14 +123,13 @@ export default class PaletteEditor {
             if (typeof state.selectedPaletteIndex === 'number') {
                 this.#tbPaletteSelect.selectedIndex = state.selectedPaletteIndex;
             }
+            if (typeof state.displayNative === 'boolean') {
+                this.#tbPaletteEditorDisplayNative.checked = state.displayNative;
+            }
             if (paletteList) {
                 const selectedPalette = paletteList.getPalette(this.#tbPaletteSelect.selectedIndex);
                 this.#setPalette(selectedPalette);
             }
-            // if (this.#paletteList) {
-            //     const selectedPalette = this.#paletteList.getPalette(this.#tbPaletteSelect.selectedIndex);
-            //     this.#setPalette(selectedPalette);
-            // }
             if (typeof state.selectedColourIndex === 'number' && state.selectedColourIndex >= 0 && state.selectedColourIndex < 16) {
                 this.#currentColourIndex = state.selectedColourIndex;
                 this.#selectPaletteColour(state.selectedColourIndex);
@@ -183,6 +193,14 @@ export default class PaletteEditor {
      */
     addHandlerRequestSystemChange(callback) {
         this.#dispatcher.on(EVENT_PaletteSystemChanged, callback);
+    }
+
+    /**
+     * User changes the display native option.
+     * @param {PaletteEditorDisplayNativeCallback} callback - Callback function.
+     */
+    addHandlerRequestNativeChange(callback) {
+        this.#dispatcher.on(EVENT_RequestDisplayNativeChange, callback);
     }
 
     /**
@@ -320,8 +338,13 @@ export default class PaletteEditor {
         const paletteButtons = this.#paletteButtons;
         for (let i = 0; i < 16; i++) {
             if (i < palette.getColours().length) {
+                const displayNative = this.#tbPaletteEditorDisplayNative.checked;
                 const c = palette.getColour(i);
-                paletteButtons[i].style.backgroundColor = ColourUtil.toHex(c.r, c.g, c.b);
+                if (displayNative) {
+                    paletteButtons[i].style.backgroundColor = ColourUtil.toNativeHex(palette.system, c.r, c.g, c.b);
+                } else {
+                    paletteButtons[i].style.backgroundColor = ColourUtil.toHex(c.r, c.g, c.b);
+                }
             } else {
                 paletteButtons[i].style.backgroundColor = null;
             }
@@ -376,6 +399,7 @@ export default class PaletteEditor {
  * @property {number?} selectedPaletteIndex - Sets the selected palette index.
  * @property {number?} selectedColourIndex - Sets the selected colour index.
  * @property {number?} highlightedColourIndex - Sets the selected colour index.
+ * @property {boolean?} displayNative - Should the palette editor display native colours?
  */
 
 /**
@@ -450,5 +474,18 @@ export default class PaletteEditor {
  * @typedef PaletteEditorTitleEventArgs
  * @type {object}
  * @property {number} title - Palette title.
+ * @exports 
+ */
+
+/**
+ * Event callback with new display native setting.
+ * @callback PaletteEditorDisplayNativeCallback
+ * @param {PaletteEditorDisplayNativeEventArgs} args - Arguments.
+ * @exports
+ */
+/**
+ * @typedef PaletteEditorDisplayNativeEventArgs
+ * @type {object}
+ * @property {boolean} displayNativeEnabled - Whether to display native colours or not.
  * @exports 
  */

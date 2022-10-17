@@ -137,3 +137,7 @@ body {
 
 .sms-tile-toolbar {
 }
+
+.sms-colour-picker .sms-colour-preview {
+    min-width: 100px;
+}

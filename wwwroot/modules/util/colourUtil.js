@@ -1,8 +1,10 @@
+import PaletteColour from './../models/paletteColour.js';
+
 const hexRegex = /^#([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})$/i;
 
 export default class ColourUtil {
 
-    
+
     /**
      * Converts an RGB value to a hexadecimal colour code.
      * @param {number} r - Red value.
@@ -39,9 +41,9 @@ export default class ColourUtil {
      * @param {string} hex - Hexadecimal colour code.
      * @returns {string}
      */
-    static getNativeColourFromHex(system, hex) {
+    static getNativeHexFromHex(system, hex) {
         const rgb = this.rgbFromHex(hex);
-        return this.getNativeColour(system, rgb.r, rgb.g, rgb.b);
+        return this.toNativeHex(system, rgb.r, rgb.g, rgb.b);
     }
 
     /**
@@ -52,7 +54,7 @@ export default class ColourUtil {
      * @param {number} b - Blue value.
      * @returns {string}
      */
-     static getNativeColour(system, r, g, b) {
+    static getNativeColour(system, r, g, b) {
         if (r < 0 || r > 255) throw new Error('Invalid value for red.');
         if (g < 0 || g > 255) throw new Error('Invalid value for green.');
         if (b < 0 || b > 255) throw new Error('Invalid value for blue.');
@@ -67,6 +69,30 @@ export default class ColourUtil {
             b = Math.round(15 / 255 * b) << 8;
             return (r | g | b).toString(16).padStart(3, '0');
         } else throw new Error('System was not valid.');
+    }
+
+    /**
+     * Converts a hexadecimal colour string to the native binary format for the given system.
+     * @param {string} system - System to get the native colour for, either 'ms' or 'gg'.
+     * @param {PaletteColour} colour - Palette colour to convert.
+     * @returns {string}
+     */
+    static toNativeHex(system, r, g, b) {
+        if (r < 0 || r > 255) throw new Error('Invalid value for red.');
+        if (g < 0 || g > 255) throw new Error('Invalid value for green.');
+        if (b < 0 || b > 255) throw new Error('Invalid value for blue.');
+        if (system === 'ms') {
+            r = Math.round(3 / 255 * r) * 85;
+            g = Math.round(3 / 255 * g) * 85;
+            b = Math.round(3 / 255 * b) * 85;
+            return this.toHex(r, g, b);
+        } else if (system === 'gg') {
+            r = Math.round(15 / 255 * r) * 17;
+            g = Math.round(15 / 255 * g) * 17;
+            b = Math.round(15 / 255 * b) * 17;
+            return this.toHex(r, g, b);
+        } else throw new Error('System was not valid.');
+
     }
 
     // /**
@@ -94,7 +120,7 @@ export default class ColourUtil {
     //     return '$' + result.toUpperCase();
     // }
 
-    
+
 }
 
 /**
