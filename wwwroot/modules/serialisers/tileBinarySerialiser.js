@@ -1,7 +1,38 @@
 import Tile from '../models/tile.js';
+import TileSet from '../models/tileSet.js';
 
 
 export default class TileBinarySerialiser {
+
+
+    /**
+     * Serialises the tile set to a planar byte array.
+     * @param {TileSet} tileSet - Tile set to serialise.
+     */
+     static serialise(tileSet) {
+        const byteLength = tileSet.length * 64;
+        const result = new Uint8ClampedArray(byteLength);
+        let index = 0;
+        tileSet.getTiles().forEach(tile => {
+            for (let row = 0; row < 8; row++) {
+                const encoded = [0, 0, 0, 0];
+                for (let col = 0; col < 8; col++) {
+                    const px = tile.readAt((row * 8) + col);
+                    const shift = 7 - col;
+                    encoded[0] = encoded[0] | (((px & masks[7]) >> 0) << shift);
+                    encoded[1] = encoded[1] | (((px & masks[6]) >> 1) << shift);
+                    encoded[2] = encoded[2] | (((px & masks[5]) >> 2) << shift);
+                    encoded[3] = encoded[3] | (((px & masks[4]) >> 3) << shift);
+                }
+                for (let e = 0; e < encoded.length; e++) {
+                    result[index] = encoded[e];
+                    index++;
+                }
+            }
+        });
+
+        return result;
+    }
 
 
     /**

@@ -2,6 +2,7 @@ import TileSet from "../models/tileSet.js";
 import PaletteList from "../models/paletteList.js";
 import ColourUtil from "../util/colourUtil.js";
 import Project from "../models/project.js";
+import TileBinarySerialiser from "./tileBinarySerialiser.js";
 
 export default class ProjectAssemblySerialiser {
 
@@ -28,7 +29,8 @@ export default class ProjectAssemblySerialiser {
         palettes.getPalettes().forEach((p, i, a) => {
             const num = i.toString().padStart(2, '0');
             const sys = p.system === 'gg' ? 'Game Gear' : p.system === 'ms' ? 'Master System' : 'Unknown';
-            message.push(`; Palette ${num} - ${sys}`);
+            const title = p.title ? ` - ${p.title}` : '';
+            message.push(`; Palette ${num} - ${sys}${title}`);
             if (p.system === 'gg') {
                 const colourMessage = ['.dw'];
                 p.getColours().forEach(c => {
@@ -55,27 +57,19 @@ export default class ProjectAssemblySerialiser {
      */
     static #exportTiles(tileSet) {
         const message = ['; TILES'];
-
-        tileSet.getTiles().forEach((tile, idx, a) => {
-            message.push(`; Tile index $${idx.toString(16).padStart(3, 0)}`);
+        const encoded = TileBinarySerialiser.serialise(tileSet);
+        for (let i = 0; i < tileSet.length; i++) {
+            message.push(`; Tile index $${i.toString(16).padStart(3, 0)}`);
             const tileMessage = ['.db'];
-            for (let row = 0; row < 8; row++) {
-                const encoded = [0, 0, 0, 0];
-                for (let col = 0; col < 8; col++) {
-                    const px = tile.readAt((row * 8) + col);
-                    const shift = 7 - col;
-                    encoded[0] = encoded[0] | (((px & masks[7]) >> 0) << shift);
-                    encoded[1] = encoded[1] | (((px & masks[6]) >> 1) << shift);
-                    encoded[2] = encoded[2] | (((px & masks[5]) >> 2) << shift);
-                    encoded[3] = encoded[3] | (((px & masks[4]) >> 3) << shift);
-                }
-                for (let e = 0; e < encoded.length; e++) {
-                    tileMessage.push('$' + encoded[e].toString(16).padStart(8, '0').substring(6).toUpperCase());
+            const tileStartIndex = i * 64;
+            for (let t = tileStartIndex; t < tileStartIndex + 64; t += 4) {
+                const bytes = encoded.slice(t, t + 4);
+                for (let b = 0; b < bytes.length; b++) {
+                    tileMessage.push('$' + bytes[b].toString(16).padStart(8, '0').substring(6).toUpperCase());
                 }
             }
             message.push(tileMessage.join(' '));
-        });
-
+        }
         return message.join('\r\n');
     }
 
