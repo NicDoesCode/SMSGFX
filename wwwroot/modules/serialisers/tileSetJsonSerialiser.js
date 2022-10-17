@@ -1,6 +1,7 @@
 import TileSet from "../models/tileSet.js";
 import TileSetFactory from "../factory/tileSetFactory.js";
 import TileFactory from "../factory/tileFactory.js";
+import TileUtil from "../util/tileUtil.js";
 
 export default class TileSetJsonSerialiser {
 
@@ -13,22 +14,6 @@ export default class TileSetJsonSerialiser {
     static serialise(tileSet) {
         const result = TileSetJsonSerialiser.toSerialisable(tileSet);
         return JSON.stringify(result);
-    }
-
-    /**
-     * Converts the tile to a hex encoded string.
-     * @param {Tile} tile - The tile that we are encoding.
-     * @returns {string}
-     */
-     static #toHex(tile) {
-        let result = '';
-        const tileData = tile.readAll();
-        for (let i = 0; i < tileData.length; i++) {
-            let byteAsString = tileData[i].toString(16);
-            if (byteAsString.length % 2 !== 0) result += '0';
-            result += byteAsString;
-        }
-        return result;
     }
 
     /**
@@ -53,7 +38,7 @@ export default class TileSetJsonSerialiser {
         if (!tileSet || typeof tileSet.getPixelAt !== 'function') throw new Error('Please pass a tile set.');
         return {
             tileWidth: tileSet.tileWidth,
-            tilesAsHex: tileSet.getTiles().map(t => TileSetJsonSerialiser.#toHex(t))
+            tilesAsHex: tileSet.getTiles().map(t => TileUtil.toHex(t))
         };
     }
 

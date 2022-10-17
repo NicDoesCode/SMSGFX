@@ -1,5 +1,5 @@
 import Tile from "../models/tile.js";
-import TileBinarySerialiser from "../serialisers/tileBinarySerialiser.js";
+import TileUtil from "../util/tileUtil.js";
 
 export default class TileFactory {
 
@@ -52,6 +52,16 @@ export default class TileFactory {
             dataIndex++;
         }
         return tile;
+    }
+
+    /**
+     * Creates a deep clone of the given tile.
+     * @param {Tile} tile - Tile object to create a deep clone of.
+     * @returns {Tile}
+     */
+     static clone(tile) {
+        const hex = TileUtil.toHex(tile);
+        return TileFactory.fromHex(hex);
     }
 
 

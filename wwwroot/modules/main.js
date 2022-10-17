@@ -93,6 +93,9 @@ function wireUpEventHandlers() {
     tileEditor.addHandlerRequestRemoveTile(handleTileEditorRequestRemoveTile);
     tileEditor.addHandlerRequestInsertTileBefore(handleTileEditorRequestInsertTileBefore);
     tileEditor.addHandlerRequestInsertTileAfter(handleTileEditorRequestInsertTileAfter);
+    tileEditor.addHandlerRequestCloneTile(handleTileEditorRequestCloneTile);
+    tileEditor.addHandlerRequestMoveTileLeft(handleTileEditorMoveTileLeft);
+    tileEditor.addHandlerRequestMoveTileRight(handleTileEditorMoveTileRight);
 
     paletteDialogue.addHandlerOnConfirm(handleImportPaletteModalDialogueOnConfirm);
 
@@ -517,6 +520,67 @@ function handleTileEditorRequestInsertTileAfter(args) {
     tileEditor.setState({
         tileSet: tileSet
     });
+}
+
+/** @param {import("./ui/tileEditor.js").TileEditorTileEventArgs} args */
+function handleTileEditorRequestCloneTile(args) {
+    addUndoState();
+
+    const project = state.project;
+    const tileSet = getTileSet();
+    const tile = tileSet.getTile(args.tileIndex);
+    const clonedTile = TileFactory.clone(tile);
+
+    tileSet.insertTileAt(clonedTile, args.tileIndex + 1);
+
+    state.setProject(project);
+    state.saveToLocalStorage();
+
+    tileEditor.setState({
+        tileSet: tileSet
+    });
+}
+
+/** @param {import("./ui/tileEditor.js").TileEditorTileEventArgs} args */
+function handleTileEditorMoveTileLeft(args) {
+    if (args.tileIndex > 0) {
+        addUndoState();
+
+        const project = state.project;
+        const tileSet = getTileSet();
+        const tile = tileSet.getTile(args.tileIndex);
+
+        tileSet.removeTile(args.tileIndex);
+        tileSet.insertTileAt(tile, args.tileIndex - 1);
+
+        state.setProject(project);
+        state.saveToLocalStorage();
+
+        tileEditor.setState({
+            tileSet: tileSet
+        });
+    }
+}
+
+/** @param {import("./ui/tileEditor.js").TileEditorTileEventArgs} args */
+function handleTileEditorMoveTileRight(args) {
+    const tileSet = getTileSet();
+    if (args.tileIndex < tileSet.length - 1) {
+        addUndoState();
+
+        const project = state.project;
+        const tile = tileSet.getTile(args.tileIndex);
+
+        tileSet.removeTile(args.tileIndex);
+        tileSet.insertTileAt(tile, args.tileIndex + 1);
+
+        state.setProject(project);
+        state.saveToLocalStorage();
+
+        tileEditor.setState({
+            tileSet: tileSet
+        });
+    }
 }
 
 

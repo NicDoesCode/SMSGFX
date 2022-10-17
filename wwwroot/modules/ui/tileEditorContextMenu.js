@@ -3,6 +3,9 @@ import EventDispatcher from "../components/eventDispatcher.js";
 const EVENT_RequestRemoveTile = 'EVENT_RequestRemoveTile';
 const EVENT_RequestInsertTileBefore = 'EVENT_RequestInsertTileBefore';
 const EVENT_RequestInsertTileAfter = 'EVENT_RequestInsertTileAfter';
+const EVENT_RequestCloneTile = 'EVENT_RequestCloneTile';
+const EVENT_RequestMoveTileLeft = 'EVENT_RequestMoveTileLeft';
+const EVENT_RequestMoveTileRight = 'EVENT_RequestMoveTileRight';
 
 export default class TileEditorContextMenu {
 
@@ -23,6 +26,9 @@ export default class TileEditorContextMenu {
         this.#element.querySelector('button[data-command=remove]').onclick = (event) => this.#handleTileContext(event);
         this.#element.querySelector('button[data-command=insert-before]').onclick = (event) => this.#handleTileContext(event);
         this.#element.querySelector('button[data-command=insert-after]').onclick = (event) => this.#handleTileContext(event);
+        this.#element.querySelector('button[data-command=clone]').onclick = (event) => this.#handleTileContext(event);
+        this.#element.querySelector('button[data-command=move-left]').onclick = (event) => this.#handleTileContext(event);
+        this.#element.querySelector('button[data-command=move-right]').onclick = (event) => this.#handleTileContext(event);
     }
 
 
@@ -77,6 +83,30 @@ export default class TileEditorContextMenu {
         this.#dispatcher.on(EVENT_RequestInsertTileAfter, callback);
     }
 
+    /**
+     * Request to clone a tile in a tile set.
+     * @param {TileEditorContextMenuPixelCallback} callback - Callback function.
+     */
+     addHandlerRequestCloneTile(callback) {
+        this.#dispatcher.on(EVENT_RequestCloneTile, callback);
+    }
+
+    /**
+     * Request to swap the position with the tile to the right in the tile set.
+     * @param {TileEditorContextMenuPixelCallback} callback - Callback function.
+     */
+     addHandlerRequestMoveTileLeft(callback) {
+        this.#dispatcher.on(EVENT_RequestMoveTileLeft, callback);
+    }
+
+    /**
+     * Request to swap the position with the tile to the left in the tile set.
+     * @param {TileEditorContextMenuPixelCallback} callback - Callback function.
+     */
+     addHandlerRequestMoveTileRight(callback) {
+        this.#dispatcher.on(EVENT_RequestMoveTileRight, callback);
+    }
+
 
     /**
      * @param {MouseEvent} event 
@@ -94,6 +124,12 @@ export default class TileEditorContextMenu {
             this.#dispatcher.dispatch(EVENT_RequestInsertTileBefore, args);
         } else if (command === 'insert-after') {
             this.#dispatcher.dispatch(EVENT_RequestInsertTileAfter, args);
+        } else if (command === 'clone') {
+            this.#dispatcher.dispatch(EVENT_RequestCloneTile, args);
+        } else if (command === 'move-left') {
+            this.#dispatcher.dispatch(EVENT_RequestMoveTileLeft, args);
+        } else if (command === 'move-right') {
+            this.#dispatcher.dispatch(EVENT_RequestMoveTileRight, args);
         }
     }
 

@@ -12,6 +12,9 @@ const EVENT_PixelMouseUp = 'EVENT_PixelMouseUp';
 const EVENT_RequestRemoveTile = 'EVENT_RequestRemoveTile';
 const EVENT_RequestInsertTileBefore = 'EVENT_RequestInsertTileBefore';
 const EVENT_RequestInsertTileAfter = 'EVENT_RequestInsertTileAfter';
+const EVENT_RequestCloneTile = 'EVENT_RequestCloneTile';
+const EVENT_RequestMoveTileLeft = 'EVENT_RequestMoveTileLeft';
+const EVENT_RequestMoveTileRight = 'EVENT_RequestMoveTileRight';
 
 export default class TileEditor {
 
@@ -53,9 +56,12 @@ export default class TileEditor {
         this.#tbCanvas.oncontextmenu = (e) => this.#handleCanvasContextMenu(e);
 
         this.#tileEditorContextMenu = new TileEditorContextMenu(element.querySelector('#tbTileEditorMenu'));
-        this.#tileEditorContextMenu.addHandlerRequestRemoveTile((args) => this.#handleTileEditorContextMenuRequestRemoveTile(args));
-        this.#tileEditorContextMenu.addHandlerRequestInsertTileBefore((args) => this.#handleTileEditorContextMenuRequestInsertTileBefore(args));
-        this.#tileEditorContextMenu.addHandlerRequestInsertTileAfter((args) => this.#handleTileEditorContextMenuRequestInsertTileAfter(args));
+        this.#tileEditorContextMenu.addHandlerRequestRemoveTile((args) => this.#bubbleContextEvent(EVENT_RequestRemoveTile, args));
+        this.#tileEditorContextMenu.addHandlerRequestInsertTileBefore((args) => this.#bubbleContextEvent(EVENT_RequestInsertTileBefore, args));
+        this.#tileEditorContextMenu.addHandlerRequestInsertTileAfter((args) => this.#bubbleContextEvent(EVENT_RequestInsertTileAfter, args));
+        this.#tileEditorContextMenu.addHandlerRequestCloneTile((args) => this.#bubbleContextEvent(EVENT_RequestCloneTile, args));
+        this.#tileEditorContextMenu.addHandlerRequestMoveTileLeft((args) => this.#bubbleContextEvent(EVENT_RequestMoveTileLeft, args));
+        this.#tileEditorContextMenu.addHandlerRequestMoveTileRight((args) => this.#bubbleContextEvent(EVENT_RequestMoveTileRight, args));
     }
 
 
@@ -158,6 +164,30 @@ export default class TileEditor {
         this.#dispatcher.on(EVENT_RequestInsertTileAfter, callback);
     }
 
+    /**
+     * Request to clone a tile in a tile set.
+     * @param {TileEditorTileCallback} callback - Callback function.
+     */
+    addHandlerRequestCloneTile(callback) {
+        this.#dispatcher.on(EVENT_RequestCloneTile, callback);
+    }
+
+    /**
+     * Request to swap the position with the tile to the right in the tile set.
+     * @param {TileEditorTileCallback} callback - Callback function.
+     */
+    addHandlerRequestMoveTileLeft(callback) {
+        this.#dispatcher.on(EVENT_RequestMoveTileLeft, callback);
+    }
+
+    /**
+     * Request to swap the position with the tile to the left in the tile set.
+     * @param {TileEditorTileCallback} callback - Callback function.
+     */
+    addHandlerRequestMoveTileRight(callback) {
+        this.#dispatcher.on(EVENT_RequestMoveTileRight, callback);
+    }
+
 
     /** @param {MouseEvent} event */
     #handleCanvasMouseMove(event) {
@@ -212,8 +242,11 @@ export default class TileEditor {
         return false;
     }
 
-    /** @param {import('./tileEditorContextMenu').TileEditorContextMenuPixelEventArgs} args */
-    #handleTileEditorContextMenuRequestRemoveTile(args) {
+    /** 
+     * @param {string} string 
+     * @param {import('./tileEditorContextMenu').TileEditorContextMenuPixelEventArgs} args 
+     * */
+    #bubbleContextEvent(eventName, args) {
         // Get the tile index
         const tile = this.#tileSet.getTileByCoordinate(args.x, args.y);
         const tileIndex = this.#tileSet.getTileIndex(tile);
@@ -221,31 +254,7 @@ export default class TileEditor {
         /** @type {TileEditorTileEventArgs} */
         const tileArgs = { tileIndex: tileIndex };
 
-        this.#dispatcher.dispatch(EVENT_RequestRemoveTile, tileArgs);
-    }
-
-    /** @param {import('./tileEditorContextMenu').TileEditorContextMenuPixelEventArgs} args */
-    #handleTileEditorContextMenuRequestInsertTileBefore(args) {
-        // Get the tile index
-        const tile = this.#tileSet.getTileByCoordinate(args.x, args.y);
-        const tileIndex = this.#tileSet.getTileIndex(tile);
-
-        /** @type {TileEditorTileEventArgs} */
-        const tileArgs = { tileIndex: tileIndex };
-
-        this.#dispatcher.dispatch(EVENT_RequestInsertTileBefore, tileArgs);
-    }
-
-    /** @param {import('./tileEditorContextMenu').TileEditorContextMenuPixelEventArgs} args */
-    #handleTileEditorContextMenuRequestInsertTileAfter(args) {
-        // Get the tile index
-        const tile = this.#tileSet.getTileByCoordinate(args.x, args.y);
-        const tileIndex = this.#tileSet.getTileIndex(tile);
-
-        /** @type {TileEditorTileEventArgs} */
-        const tileArgs = { tileIndex: tileIndex };
-
-        this.#dispatcher.dispatch(EVENT_RequestInsertTileAfter, tileArgs);
+        this.#dispatcher.dispatch(eventName, tileArgs);
     }
 
 
