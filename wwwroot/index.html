@@ -113,7 +113,8 @@
                                 <div class="form-check form-switch ms-2">
                                     <input class="form-check-input" type="checkbox" role="switch"
                                         id="tbPaletteEditorDisplayNative" checked>
-                                    <label class="form-check-label" for="tbPaletteEditorDisplayNative"><small>Display as native</small></label>
+                                    <label class="form-check-label" for="tbPaletteEditorDisplayNative"><small>Display as
+                                            native</small></label>
                                 </div>
                                 <p><small class="text-muted"><small>Single click to select.<br>Click again to
                                             edit.</small></small></p>
@@ -233,30 +234,50 @@
                             <!-- Tile editor context menu -->
                             <div id="tbTileEditorMenu" class="dropdown" style="position: absolute">
                                 <button id="btnTileEditorMenu" class="btn btn-secondary dropdown-toggle visually-hidden"
-                                    style="position: absolute; z-index: 100; width: 200px" type="button"
+                                    style="position: absolute; z-index: 100; width: 250px" type="button"
                                     data-bs-toggle="dropdown" aria-expanded="false">
                                     Dropdown button
                                 </button>
                                 <ul id="tbTileEditorMenuDropDown" class="dropdown-menu" style="font-size: 0.75em;">
-                                    <li><button class="dropdown-item" data-command="insert-before">Insert tile
-                                            before</button>
+                                    <li class="pb-2">
+                                        <div class="btn-toolbar justify-content-between ps-3 pe-3 m-0" role="toolbar">
+                                            <div class="input-group">
+                                                <label class="form-label mt-2">Mirror tile</label>
+                                            </div>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button class="btn btn-outline-secondary" data-command="mirror-horizontal"><i class="bi bi-vr"></i></button>
+                                                <button class="btn btn-outline-secondary" data-command="mirror-vertical"><i class="bi bi-hr"></i></button>
+                                            </div>
+                                        </div>
                                     </li>
-                                    <li><button class="dropdown-item" data-command="insert-after">Insert tile
-                                            after</button>
+                                    <li class="pb-2">
+                                        <div class="btn-toolbar justify-content-between ps-3 pe-3 m-0" role="toolbar"
+                                            aria-label="Toolbar with button groups">
+                                            <div class="input-group">
+                                                <label class="form-label mt-2">Insert tile</label>
+                                            </div>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button class="btn btn-outline-secondary" data-command="insert-before"><i class="bi bi-arrow-bar-left"></i></button>
+                                                <button class="btn btn-outline-secondary" data-command="insert-after"><i class="bi bi-arrow-bar-right"></i></button>
+                                            </div>
+                                        </div>
                                     </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
+                                    <li class="pb-2">
+                                        <div class="btn-toolbar justify-content-between ps-3 pe-3 m-0" role="toolbar"
+                                            aria-label="Toolbar with button groups">
+                                            <div class="input-group">
+                                                <label class="form-label mt-2">Move tile</label>
+                                            </div>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button class="btn btn-outline-secondary" data-command="move-left"><i class="bi bi-arrow-left"></i></button>
+                                                <button class="btn btn-outline-secondary" data-command="move-right"><i class="bi bi-arrow-right"></i></button>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li class="pb-2">
                                         <button class="dropdown-item" data-command="clone">Clone tile</button>
                                     </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <button class="dropdown-item" data-command="move-left">Move tile left</button>
-                                    </li>
-                                    <li>
-                                        <button class="dropdown-item" data-command="move-right">Move tile right</button>
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
+                                    <li class="pb-2">
                                         <button class="dropdown-item" data-command="remove">Remove this tile</button>
                                     </li>
                                 </ul>

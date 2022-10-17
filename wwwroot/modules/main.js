@@ -21,6 +21,7 @@ import TileSet from "./models/tileSet.js";
 import UndoManager from "./components/undoManager.js";
 import ProjectFactory from "./factory/projectFactory.js";
 import PaletteListFactory from "./factory/paletteListFactory.js";
+import TileUtil from "./util/tileUtil.js";
 
 
 const undoManager = new UndoManager(50);
@@ -96,6 +97,8 @@ function wireUpEventHandlers() {
     tileEditor.addHandlerRequestCloneTile(handleTileEditorRequestCloneTile);
     tileEditor.addHandlerRequestMoveTileLeft(handleTileEditorMoveTileLeft);
     tileEditor.addHandlerRequestMoveTileRight(handleTileEditorMoveTileRight);
+    tileEditor.addHandlerRequestMirrorTileHorizontal(handleTileEditorMirrorTileHorizontal);
+    tileEditor.addHandlerRequestMirrorTileVertical(handleTileEditorMirrorTileVertical);
 
     paletteDialogue.addHandlerOnConfirm(handleImportPaletteModalDialogueOnConfirm);
 
@@ -581,6 +584,49 @@ function handleTileEditorMoveTileRight(args) {
             tileSet: tileSet
         });
     }
+}
+
+/** @param {import("./ui/tileEditor.js").TileEditorTileEventArgs} args */
+function handleTileEditorMirrorTileHorizontal(args) {
+    mirrorTile('h', args.tileIndex);
+}
+
+/** @param {import("./ui/tileEditor.js").TileEditorTileEventArgs} args */
+function handleTileEditorMirrorTileVertical(args) {
+    mirrorTile('v', args.tileIndex);
+}
+
+/**
+ * Mirror a tile
+ * @param {string} way - Either 'h' or 'v'.
+ * @param {number} tileIndex - Tile index.
+ */
+function mirrorTile(way, tileIndex) {
+    if (!way || !['h', 'v'].includes(way)) throw new Error('Please specify horizontal "h" or vertical "v".');
+
+    addUndoState();
+
+    const project = state.project;
+    const tileSet = getTileSet();
+    const tile = tileSet.getTile(tileIndex);
+
+    /** @type {Tile} */
+    let mirrored;
+    if (way === 'h') {
+        mirrored = TileUtil.mirrorHorizontal(tile);
+    } else {
+        mirrored = TileUtil.mirrorVertical(tile);
+    }
+
+    tileSet.removeTile(tileIndex);
+    tileSet.insertTileAt(mirrored, tileIndex);
+
+    state.setProject(project);
+    state.saveToLocalStorage();
+
+    tileEditor.setState({
+        tileSet: tileSet
+    });
 }
 
 

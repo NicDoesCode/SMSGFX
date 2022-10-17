@@ -6,6 +6,8 @@ const EVENT_RequestInsertTileAfter = 'EVENT_RequestInsertTileAfter';
 const EVENT_RequestCloneTile = 'EVENT_RequestCloneTile';
 const EVENT_RequestMoveTileLeft = 'EVENT_RequestMoveTileLeft';
 const EVENT_RequestMoveTileRight = 'EVENT_RequestMoveTileRight';
+const EVENT_RequestMirrorHorizontal = 'EVENT_RequestMirrorHorizontal';
+const EVENT_RequestMirrorVertical = 'EVENT_RequestMirrorVertical';
 
 export default class TileEditorContextMenu {
 
@@ -29,6 +31,8 @@ export default class TileEditorContextMenu {
         this.#element.querySelector('button[data-command=clone]').onclick = (event) => this.#handleTileContext(event);
         this.#element.querySelector('button[data-command=move-left]').onclick = (event) => this.#handleTileContext(event);
         this.#element.querySelector('button[data-command=move-right]').onclick = (event) => this.#handleTileContext(event);
+        this.#element.querySelector('button[data-command=mirror-horizontal]').onclick = (event) => this.#handleTileContext(event);
+        this.#element.querySelector('button[data-command=mirror-vertical]').onclick = (event) => this.#handleTileContext(event);
     }
 
 
@@ -107,6 +111,22 @@ export default class TileEditorContextMenu {
         this.#dispatcher.on(EVENT_RequestMoveTileRight, callback);
     }
 
+    /**
+     * Request to horizontally mirror the tile.
+     * @param {TileEditorContextMenuPixelCallback} callback - Callback function.
+     */
+     addHandlerRequestMirrorTileHorizontal(callback) {
+        this.#dispatcher.on(EVENT_RequestMirrorHorizontal, callback);
+    }
+
+    /**
+     * Request to vertically mirror the tile.
+     * @param {TileEditorContextMenuPixelCallback} callback - Callback function.
+     */
+     addHandlerRequestMirrorTileVertical(callback) {
+        this.#dispatcher.on(EVENT_RequestMirrorVertical, callback);
+    }
+
 
     /**
      * @param {MouseEvent} event 
@@ -117,7 +137,7 @@ export default class TileEditorContextMenu {
         const args = JSON.parse(this.#btnTileEditorMenu.getAttribute('data-tile-set-coords'));
 
         // Get the command and act on it
-        const command = event.target.getAttribute('data-command');
+        const command = event.currentTarget.getAttribute('data-command');
         if (command === 'remove') {
             this.#dispatcher.dispatch(EVENT_RequestRemoveTile, args);
         } else if (command === 'insert-before') {
@@ -130,6 +150,10 @@ export default class TileEditorContextMenu {
             this.#dispatcher.dispatch(EVENT_RequestMoveTileLeft, args);
         } else if (command === 'move-right') {
             this.#dispatcher.dispatch(EVENT_RequestMoveTileRight, args);
+        } else if (command === 'mirror-horizontal') {
+            this.#dispatcher.dispatch(EVENT_RequestMirrorHorizontal, args);
+        } else if (command === 'mirror-vertical') {
+            this.#dispatcher.dispatch(EVENT_RequestMirrorVertical, args);
         }
     }
 

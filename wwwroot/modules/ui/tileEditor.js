@@ -15,6 +15,8 @@ const EVENT_RequestInsertTileAfter = 'EVENT_RequestInsertTileAfter';
 const EVENT_RequestCloneTile = 'EVENT_RequestCloneTile';
 const EVENT_RequestMoveTileLeft = 'EVENT_RequestMoveTileLeft';
 const EVENT_RequestMoveTileRight = 'EVENT_RequestMoveTileRight';
+const EVENT_RequestMirrorHorizontal = 'EVENT_RequestMirrorHorizontal';
+const EVENT_RequestMirrorVertical = 'EVENT_RequestMirrorVertical';
 
 export default class TileEditor {
 
@@ -62,6 +64,8 @@ export default class TileEditor {
         this.#tileEditorContextMenu.addHandlerRequestCloneTile((args) => this.#bubbleContextEvent(EVENT_RequestCloneTile, args));
         this.#tileEditorContextMenu.addHandlerRequestMoveTileLeft((args) => this.#bubbleContextEvent(EVENT_RequestMoveTileLeft, args));
         this.#tileEditorContextMenu.addHandlerRequestMoveTileRight((args) => this.#bubbleContextEvent(EVENT_RequestMoveTileRight, args));
+        this.#tileEditorContextMenu.addHandlerRequestMirrorTileHorizontal((args) => this.#bubbleContextEvent(EVENT_RequestMirrorHorizontal, args));
+        this.#tileEditorContextMenu.addHandlerRequestMirrorTileVertical((args) => this.#bubbleContextEvent(EVENT_RequestMirrorVertical, args));
     }
 
 
@@ -186,6 +190,22 @@ export default class TileEditor {
      */
     addHandlerRequestMoveTileRight(callback) {
         this.#dispatcher.on(EVENT_RequestMoveTileRight, callback);
+    }
+
+    /**
+     * Request to horizontally mirror the tile.
+     * @param {TileEditorTileCallback} callback - Callback function.
+     */
+     addHandlerRequestMirrorTileHorizontal(callback) {
+        this.#dispatcher.on(EVENT_RequestMirrorHorizontal, callback);
+    }
+
+    /**
+     * Request to vertically mirror the tile.
+     * @param {TileEditorTileCallback} callback - Callback function.
+     */
+     addHandlerRequestMirrorTileVertical(callback) {
+        this.#dispatcher.on(EVENT_RequestMirrorVertical, callback);
     }
 
 
