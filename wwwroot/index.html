@@ -19,7 +19,7 @@
     <div class="sms-container">
 
         <div id="tbHeaderBar" class="sms-header-bar">
-            <div class="navbar navbar-light bg-light">
+            <div class="sms-navbar navbar navbar-light bg-white">
                 <form id="tbHeaderForm" class="container-fluid">
                     <div class="col">
                         <span class="navbar-brand mb-0 h1">
@@ -61,104 +61,174 @@
             <!-- Palette card -->
             <div id="tbPaletteEditor" class="sms-content-col sms-left">
                 <!-- Palette editor : header -->
-                <div class="input-group input-group-sm rounded-top">
+                <div class="input-group input-group-sm">
                     <span class="input-group-text form-control">Palette</span>
                     <button id="btnNewPalette" class="btn btn-outline-secondary" title="Create a new palette.">
                         <i class="bi bi-plus-lg"></i>
                     </button>
-                    <button id="btnImportPaletteFromCode" class="btn btn-outline-secondary"
-                        title="Import a palette from your assembly code.">
-                        <i class="bi bi-box-arrow-in-down"></i>
-                    </button>
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                        aria-expanded="false"></button>
+                    <ul class="dropdown-menu dropdown-menu-end sms-dropdown-menu">
+                        <li>
+                            <button id="btnImportPaletteFromCode" class="dropdown-item"
+                                title="Import a palette from your assembly code.">
+                                <i class="bi bi-box-arrow-in-down"></i> Import from code
+                            </button>
+                        </li>
+                        <li>
+                            <button id="btnRemovePalette" class="dropdown-item">
+                                <i class="bi bi bi-trash-fill"></i> Remove selected
+                            </button>
+                        </li>
+                    </ul>
                 </div>
                 <!-- End: Palette editor : header -->
-                <div class="sms-palette card mt-2">
-                    <div class="card-body p-2">
-                        <!-- Palette editor : palette select and title -->
-                        <div class="row mb-2 mt-0 pt-0">
-                            <div class="col">
-                                <select id="tbPaletteSelect" class="form-select d-none">
-                                </select>
-                                <div class="input-group input-group-sm">
-                                    <input id="tbPaletteTitle" type="text" class="form-control" aria-label="Enter name"
-                                        list="tbPaletteSelectx">
-                                    <button id="btnPaletteSelectDropDown"
-                                        class="btn btn-outline-secondary dropdown-toggle" type="button"
-                                        data-bs-toggle="dropdown" aria-expanded="false"></button>
-                                    <ul id="tbPaletteSelectDropDown" class="dropdown-menu dropdown-menu-end"
-                                        style="font-size: 0.75em;">
-                                    </ul>
-                                </div>
-                            </div>
+                <div class="sms-palette sms-smaller-font card mt-2">
+                    <!-- Palette editor : palette select and title -->
+                    <div class="card-header">
+                        <select id="tbPaletteSelect" class="form-select d-none">
+                        </select>
+                        <div class="input-group input-group-sm">
+                            <input id="tbPaletteTitle" type="text" class="form-control" aria-label="Enter name"
+                                list="tbPaletteSelect">
+                            <button id="btnPaletteSelectDropDown" class="btn btn-outline-secondary dropdown-toggle"
+                                type="button" data-bs-toggle="dropdown" aria-expanded="false"></button>
+                            <ul id="tbPaletteSelectDropDown" class="sms-dropdown-menu dropdown-menu dropdown-menu-end">
+                            </ul>
                         </div>
-                        <!-- End: Palette editor : palette select and title -->
+                    </div>
+                    <!-- End: Palette editor : palette select and title -->
+                    <div class="card-body p-2">
+                        <select id="tbPaletteSystemSelect" class="form-select form-select-sm visually-hidden">
+                            <option value="ms">Master System</option>
+                            <option value="gg">Game Gear</option>
+                        </select>
                         <div class="row mb-2">
                             <div class="col">
-                                <p class="text-muted m-0"><small>Target system</small></p>
-                                <select id="tbPaletteSystemSelect" class="form-select form-select-sm">
-                                    <option value="ms">Master System</option>
-                                    <option value="gg">Game Gear</option>
-                                </select>
+                                <ul class="nav nav-pills nav-fill">
+                                    <li class="nav-item">
+                                        <button id="btnPaletteTargetMasterSystem" class="nav-link"
+                                            title="This Palette is for Sega Master System.">
+                                            <img src="./assets/image/master-system-console.svg"
+                                                alt="Sega Master System." class="sms-console-icon" />
+                                        </button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button id="btnPaletteTargetGameGear" class="nav-link"
+                                            title="This palette is for Sega Game Gear.">
+                                            <img src="./assets/image/game-gear-console.svg" alt="Sega Game Gear."
+                                                class="sms-console-icon" />
+                                        </button>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                         <!-- Palette editor : colours -->
                         <div class="row">
                             <div class="col">
-                                <p class="text-muted m-0"><small>Colours</small></p>
                                 <div class="sms-palette-colours table-responsive table-borderless" id="tbPalette">
                                     <table class="table table-sm m-0">
                                         <tbody>
                                         </tbody>
                                     </table>
                                 </div>
-                                <div class="form-check form-switch ms-2">
-                                    <input class="form-check-input" type="checkbox" role="switch"
-                                        id="tbPaletteEditorDisplayNative" checked>
-                                    <label class="form-check-label" for="tbPaletteEditorDisplayNative"><small>Display as
-                                            native</small></label>
-                                </div>
-                                <p><small class="text-muted"><small>Single click to select.<br>Click again to
-                                            edit.</small></small></p>
                             </div>
                         </div>
                         <!-- End: Palette editor : colours -->
-                        <!-- Palette editor : colours -->
                         <div class="row">
                             <div class="col">
-                                <div class="d-grid gap-2">
-                                    <button id="btnRemovePalette" class="btn btn-outline-secondary btn-sm">
-                                        <i class="bi bi bi-trash-fill"></i> Remove palette
-                                    </button>
+                                <div class="form-check form-switch ms-2 mt-2">
+                                    <input class="form-check-input" type="checkbox" role="switch"
+                                        id="tbPaletteEditorDisplayNative" checked>
+                                    <label class="form-check-label" for="tbPaletteEditorDisplayNative">
+                                        <small>Emulate system colours</small>
+                                    </label>
                                 </div>
                             </div>
                         </div>
-                        <!-- End: Palette editor : colours -->
                     </div>
                 </div>
+                <!-- Palette editor : colour toolbox -->
+                <div id="tbColourToolbox" class="card mt-2 sms-smaller-font">
+                    <div class="card-header">
+                        <p class="mb-1">Customise colour slot</p>
+                        <ul class="nav nav-tabs card-header-tabs" data-colour-toolbox-tabs>
+                            <li class="nav-item" data-colour-toolbox-tab="rgb">
+                                <a class="nav-link p-1 ps-2 pe-2" aria-current="page" href="#">RGB</a>
+                            </li>
+                            <li class="nav-item" data-colour-toolbox-tab="sms">
+                                <a class="nav-link p-1 ps-2 pe-2" href="#">SMS Colours</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body p-2">
+                        <div class="sms-colour-toolbox">
+                            <div id="pnlColourToolboxRGB" class="container visually-hidden"
+                                data-colour-toolbox-tab-content="rgb">
+                                <div class="row">
+                                    <div class="col-2 pe-1">
+                                        R
+                                    </div>
+                                    <div class="col-7 p-0">
+                                        <input id="tbColourToolboxRedSlider" type="range" class="form-range" min="0"
+                                            max="255" step="17">
+                                    </div>
+                                    <div class="col-3 ps-1">
+                                        <input id="tbColourToolboxRed" type="text" class="form-control form-control-sm">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-2 pe-1">
+                                        G
+                                    </div>
+                                    <div class="col-7 p-0">
+                                        <input id="tbColourToolboxGreenSlider" type="range" class="form-range" min="0"
+                                            max="255" step="17">
+                                    </div>
+                                    <div class="col-3 ps-1">
+                                        <input id="tbColourToolboxGreen" type="text"
+                                            class="form-control form-control-sm">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-2 pe-1">
+                                        B
+                                    </div>
+                                    <div class="col-7 p-0">
+                                        <input id="tbColourToolboxBlueSlider" type="range" class="form-range" min="0"
+                                            max="255" step="17">
+                                    </div>
+                                    <div class="col-3 ps-1">
+                                        <input id="tbColourToolboxBlue" type="text"
+                                            class="form-control form-control-sm">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-3 pe-1">
+                                        HEX
+                                    </div>
+                                    <div class="col-6 p-0">
+                                        <input id="tbColourToolboxHex" type="text" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-3 ps-1">
+                                        <input id="btnColourToolboxPick" type="color"
+                                            class="form-control form-control-sm p-0">
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="pnlColourToolboxSMS" class="container visually-hidden mb-2"
+                                data-colour-toolbox-tab-content="sms">
+                                <div id="tbSMSColourBox" class="sms-colour-box">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- End: Palette editor : colour toolbox -->
             </div>
 
             <div class="sms-content-col sms-right">
                 <div class="sms-rows">
-                    <!-- <div class="sms-row">
-                        <!- - Tab bar - ->
-                        <div class="container-fluid p-0 m-0 mt-3">
-                            <ul class="nav nav-tabs">
-                                <li class="nav-item">
-                                    <a class="nav-link active" aria-current="page" href="#">Tiles</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" aria-current="page" href="#">Set 1</a>
-                                </li>
-                                <li class="nav-item">
-                                    <button class="btn btn-secondary" aria-current="page" href="#"
-                                        title="Add new tile set.">
-                                        <i class="bi bi-plus-lg"></i> Tile set
-                                    </button>
-                                </li>
-                            </ul>
-                        </div>
-                        <!- - End: Tab bar - ->
-                    </div> -->
                     <div class="sms-row">
                         <!-- Toolbar -->
                         <div id="tbTileEditorToolbar" class="sms-tile-toolbar container-fluid p-0 m-0 pt-3 pb-2">

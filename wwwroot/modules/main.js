@@ -2,6 +2,7 @@ import State from "./state.js";
 import AssemblyUtil from "./util/assemblyUtil.js";
 import TileSetColourFillUtil from "./util/tileSetColourFillUtil.js";
 import ColourPickerDialogue from "./ui/colourPickerDialogue.js";
+import ColourPickerToolbox from "./ui/colourPickerToolbox.js";
 import PaletteModalDialogue from "./ui/paletteImportModalDialogue.js";
 import TileSetImportModalDialogue from "./ui/tileSetImportModalDialogue.js";
 import ExportModalDialogue from "./ui/exportModalDialogue.js";
@@ -28,6 +29,7 @@ const paletteDialogue = new PaletteModalDialogue(document.getElementById('tbPale
 const tileDialogue = new TileSetImportModalDialogue(document.getElementById('tbTileDialogue'));
 const exportDialogue = new ExportModalDialogue(document.getElementById('tbExportDialogue'));
 const colourPickerDialogue = new ColourPickerDialogue(document.getElementById('tbColourPickerDialogue'));
+const colourPickerToolbox = new ColourPickerToolbox(document.getElementById('tbColourToolbox'));
 const paletteEditor = new PaletteEditor(document.getElementById('tbPaletteEditor'));
 const tileEditor = new TileEditor(document.getElementById('tbTileEditor'));
 const tileEditorToolbar = new TileEditorToolbar(document.getElementById('tbTileEditorToolbar'));
@@ -47,6 +49,8 @@ const instanceState = {
     tool: null,
     /** @type {number} */
     colourIndex: 0,
+    /** @type {string} */
+    colourToolboxTab: null,
     /** @type {boolean} */
     undoDisabled: false,
     lastTileMapPx: {
@@ -76,7 +80,7 @@ function wireUpEventHandlers() {
     paletteEditor.addHandlerRequestSystemChange(handlePaletteEditorRequestSystemChange);
     paletteEditor.addHandlerRequestNativeChange(handlePaletteEditorRequestNativeChange);
     paletteEditor.addHandlerRequestColourIndexChange(handlePaletteEditorRequestColourIndexChange);
-    paletteEditor.addHandlerRequestColourEdit(handlePaletteEditorRequestColourEdit);
+    paletteEditor.addHandlerRequestColourIndexEdit(handlePaletteEditorRequestColourIndexEdit);
 
     tileEditorToolbar.addHandlerRequestAddTile(handleTileEditorToolbarRequestAddTile);
     tileEditorToolbar.addHandlerRequestImportTileSetFromCode(handleTileEditorToolbarRequestImportTileSetFromCode);
@@ -104,8 +108,10 @@ function wireUpEventHandlers() {
     colourPickerDialogue.addHandlerOnConfirm(handleColourPickerConfirm);
     colourPickerDialogue.addHandlerOnCancel(handleColourPickerCancel);
 
-    tileDialogue.addHandlerOnConfirm(handleImportTileSet);
+    colourPickerToolbox.addHandlerRequestTabChange(handleColourPickerToolboxTabChange);
+    colourPickerToolbox.addHandlerRequestColourChange(handleColourPickerToolboxColourChange);
 
+    tileDialogue.addHandlerOnConfirm(handleImportTileSet);
 }
 
 
@@ -315,11 +321,17 @@ function handlePaletteEditorRequestColourIndexChange(args) {
             selectedColourIndex: args.colourIndex
         });
         instanceState.colourIndex = args.colourIndex;
+        const colour = getPalette().getColour(instanceState.colourIndex);
+        colourPickerToolbox.setState({
+            r: colour.r,
+            g: colour.g,
+            b: colour.b
+        });
     }
 }
 
 /** @param {import('./ui/paletteEditor').PaletteEditorColourIndexEventArgs} args */
-function handlePaletteEditorRequestColourEdit(args) {
+function handlePaletteEditorRequestColourIndexEdit(args) {
     const palette = state.project.paletteList.getPalette(args.paletteIndex);
     colourPickerDialogue.show(palette, args.colourIndex);
 }
@@ -743,6 +755,42 @@ function handleColourPickerCancel(args) {
 
 
 /**
+ * New tab selected values from the colour toolbox.
+ * @param {import('./colourPickerToolbox.js').ColourPickerToolboxTabEventArgs} args - Event args.
+ */
+function handleColourPickerToolboxTabChange(args) {
+    colourPickerToolbox.setState({
+        showTab: args.tab
+    });
+}
+
+
+/**
+ * New RGB values from the colour toolbox received, bubble them up.
+ * @param {import('./colourPickerToolbox.js').ColourPickerToolboxColourEventArgs} args - Event args.
+ */
+function handleColourPickerToolboxColourChange(args) {
+    addUndoState();
+
+    const project = state.project;
+    const palette = getPalette();
+
+    const newColour = PaletteColourFactory.create(args.r, args.g, args.b);
+    palette.setColour(instanceState.colourIndex, newColour);
+
+    state.setProject(project);
+    state.saveToLocalStorage();
+
+    paletteEditor.setState({
+        paletteList: state.paletteList
+    });
+    tileEditor.setState({
+        palette: palette
+    });
+}
+
+
+/**
  * Import tile set from assembly dialogue is confirmed.
  * @param {import('./ui/tileSetImportModalDialogue.js').TileSetImportModalDialogueConfirmEventArgs} args - Arguments.
  */
@@ -910,6 +958,7 @@ function addUndoState() {
 $(() => {
 
     instanceState.tool = 'pencil';
+    instanceState.colourToolboxTab = 'rgb';
 
     wireUpEventHandlers();
 
@@ -921,6 +970,7 @@ $(() => {
 
     const palette = getPalette();
     const tileSet = getTileSet();
+    const colour = palette.getColour(instanceState.colourIndex);
 
     headerBar.setState({
         projectTitle: state.project.title
@@ -931,6 +981,12 @@ $(() => {
         lastPaletteInputSystem: getUIState().importPaletteSystem,
         selectedColourIndex: 0,
         displayNative: getUIState().displayNativeColour
+    });
+    colourPickerToolbox.setState({
+        showTab: instanceState.colourToolboxTab,
+        r: colour.r,
+        g: colour.g,
+        b: colour.b
     });
     tileEditorToolbar.setState({
         tileWidth: tileSet.tileWidth,

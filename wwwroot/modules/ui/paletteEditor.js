@@ -2,16 +2,15 @@ import Palette from "../models/palette.js";
 import ColourUtil from "../util/colourUtil.js";
 import EventDispatcher from "../components/eventDispatcher.js";
 import PaletteList from "../models/paletteList.js";
-import PaletteColourFactory from "../factory/paletteColourFactory.js";
 
 const EVENT_NewPalette = 'EVENT_NewPalette';
 const EVENT_ImportPaletteFromCode = 'EVENT_ImportPaletteFromCode';
 const EVENT_PaletteDelete = 'EVENT_PaletteDelete';
 const EVENT_PaletteChanged = 'EVENT_PaletteChanged';
 const EVENT_PaletteSystemChanged = 'EVENT_PaletteSystemChanged';
-const EVENT_ColourSelected = 'EVENT_ColourSelected';
-const EVENT_ColourEdit = 'EVENT_ColourEdit';
-const EVENT_RequestTitleChange = 'EVENT_TitleChanged';
+const EVENT_RequestColourIndexChange = 'EVENT_RequestColourIndexChange';
+const EVENT_RequestColourIndexEdit = 'EVENT_RequestColourIndexEdit';
+const EVENT_RequestTitleChange = 'EVENT_RequestTitleChange';
 const EVENT_RequestDisplayNativeChange = 'EVENT_RequestDisplayNativeChange';
 
 export default class PaletteEditor {
@@ -39,6 +38,10 @@ export default class PaletteEditor {
     #tbPaletteSystemSelect;
     /** @type {HTMLInputElement} */
     #tbPaletteEditorDisplayNative;
+    /** @type {HTMLButtonElement} */
+    #btnPaletteTargetMasterSystem;
+    /** @type {HTMLButtonElement} */
+    #btnPaletteTargetGameGear;
     /** @type {number} */
     #currentColourIndex = 0;
     /** @type {EventDispatcher} */
@@ -52,7 +55,7 @@ export default class PaletteEditor {
     constructor(element) {
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
-        this.#createPaletteButtons();
+        this.#createPaletteColourIndexButtons();
 
         this.#btnNewPalette = this.#element.querySelector('#btnNewPalette');
         this.#btnNewPalette.onclick = () => this.#dispatcher.dispatch(EVENT_NewPalette, {});
@@ -97,6 +100,18 @@ export default class PaletteEditor {
             this.#dispatcher.dispatch(EVENT_PaletteSystemChanged, args);
         };
 
+        this.#btnPaletteTargetMasterSystem = this.#element.querySelector('#btnPaletteTargetMasterSystem');
+        this.#btnPaletteTargetMasterSystem.onclick = () => {
+            this.#tbPaletteSystemSelect.value = 'ms';
+            this.#tbPaletteSystemSelect.onchange();
+        }
+
+        this.#btnPaletteTargetGameGear = this.#element.querySelector('#btnPaletteTargetGameGear');
+        this.#btnPaletteTargetGameGear.onclick = () => {
+            this.#tbPaletteSystemSelect.value = 'gg';
+            this.#tbPaletteSystemSelect.onchange();
+        }
+
         this.#tbPaletteEditorDisplayNative = this.#element.querySelector('#tbPaletteEditorDisplayNative');
         this.#tbPaletteEditorDisplayNative.onchange = () => {
             /** @type {PaletteEditorDisplayNativeEventArgs} */
@@ -106,7 +121,6 @@ export default class PaletteEditor {
             this.#dispatcher.dispatch(EVENT_RequestDisplayNativeChange, args);
         };
     }
-
 
     /**
      * Sets the state of the object.
@@ -145,10 +159,11 @@ export default class PaletteEditor {
             }
             if (typeof state.selectedSystem === 'string') {
                 this.#tbPaletteSystemSelect.value = state.selectedSystem;
+                this.#updateSystemSelectVirtualList(state.selectedSystem);
             }
             // Refresh the virtual list if needed
             if (updateVirtualList) {
-                this.#updateVirtualList();
+                this.#updatePaletteSelectVirtualList();
             }
         }
     }
@@ -211,19 +226,39 @@ export default class PaletteEditor {
     }
 
     /**
-     * User changes the selected colour.
+     * Request to change the selected colour index within the palette.
      * @param {PaletteEditorColourIndexCallback} callback - Callback function.
      */
     addHandlerRequestColourIndexChange(callback) {
-        this.#dispatcher.on(EVENT_ColourSelected, callback);
+        this.#dispatcher.on(EVENT_RequestColourIndexChange, callback);
     }
 
     /**
-     * User wants to edit the selected colour.
+     * Request to edit a colour index with in the palette.
      * @param {PaletteEditorColourIndexCallback} callback - Callback function.
      */
-    addHandlerRequestColourEdit(callback) {
-        this.#dispatcher.on(EVENT_ColourEdit, callback);
+    addHandlerRequestColourIndexEdit(callback) {
+        this.#dispatcher.on(EVENT_RequestColourIndexEdit, callback);
+    }
+
+
+    /**
+     * Handles colour click event, when the colour is not already selected we will select it
+     * otherwise we will edit it.
+     * @param {number} colourIndex Index of the colour that was clicked.
+     */
+    #handlePaletteColourButtonClicked(colourIndex) {
+        /** @type {PaletteEditorColourIndexEventArgs} */
+        const args = {
+            paletteIndex: this.#tbPaletteSelect.selectedIndex,
+            colourIndex: colourIndex
+        }
+        if (this.#currentColourIndex !== colourIndex) {
+            this.#currentColourIndex = colourIndex;
+            this.#dispatcher.dispatch(EVENT_RequestColourIndexChange, args);
+        } else {
+            this.#dispatcher.dispatch(EVENT_RequestColourIndexEdit, args);
+        }
     }
 
 
@@ -248,13 +283,13 @@ export default class PaletteEditor {
         if (this.#tbPaletteSelect.selectedIndex === -1) {
             this.#tbPaletteSelect.selectedIndex = 0;
         }
-        this.#updateVirtualList();
+        this.#updatePaletteSelectVirtualList();
     }
 
     /**
      * Updates the fake dropdown list to mirror the real one.
      */
-    #updateVirtualList() {
+    #updatePaletteSelectVirtualList() {
         while (this.#tbPaletteSelectDropDown.childNodes.length > 0) {
             this.#tbPaletteSelectDropDown.childNodes.item(0).remove();
         }
@@ -277,60 +312,18 @@ export default class PaletteEditor {
         });
     }
 
-    #createPaletteButtons() {
-
-        /** @type {HTMLTableElement} */
-        const table = this.#element.querySelector('#tbPalette');
-        /** @type {HTMLTableSectionElement} */
-        const tbody = table.querySelector('tbody');
-
-        let tr, td;
-        for (let i = 0; i < 16; i++) {
-
-            if (i % 4 === 0) {
-                tr = document.createElement('tr');
-                tbody.appendChild(tr);
-            }
-
-            // Colour button
-            td = document.createElement('td');
-            td.setAttribute('data-colour-index', i.toString());
-            td.classList.add('text-center');
-            tr.appendChild(td);
-
-            const btnColour = document.createElement('button');
-            btnColour.classList.add('btn', 'btn-sm', 'btn-outline-secondary', 'position-relative', 'sms-palette-button');
-            btnColour.setAttribute('data-colour-index', i.toString());
-            btnColour.onclick = () => this.#handleColourClicked(i);
-            td.appendChild(btnColour);
-
-            const lblContent = document.createElement('span');
-            lblContent.classList.add('position-absolute', 'translate-middle', 'badge');
-            lblContent.innerHTML = `#${i}`;
-            btnColour.appendChild(lblContent);
-
-            this.#paletteCells.push(td);
-            this.#paletteButtons.push(btnColour);
-        }
-
-    }
-
     /**
-     * Handles colour click event, when the colour is not already selected we will select it
-     * otherwise we will edit it.
-     * @param {number} colourIndex Index of the colour that was clicked.
+     * Updates the Master System and Game Gear palette select buttons to refelect the drop down.
+     * @param {string} system - System to select.
      */
-    #handleColourClicked(colourIndex) {
-        /** @type {PaletteEditorColourIndexEventArgs} */
-        const args = {
-            paletteIndex: this.#tbPaletteSelect.selectedIndex,
-            colourIndex: colourIndex
-        }
-        if (this.#currentColourIndex !== colourIndex) {
-            this.#currentColourIndex = colourIndex;
-            this.#dispatcher.dispatch(EVENT_ColourSelected, args);
-        } else {
-            this.#dispatcher.dispatch(EVENT_ColourEdit, args);
+    #updateSystemSelectVirtualList(system) {
+        this.#btnPaletteTargetMasterSystem.classList.remove('active');
+        this.#btnPaletteTargetGameGear.classList.remove('active');
+        if (system === 'ms') {
+            this.#btnPaletteTargetMasterSystem.classList.add('active');
+
+        } else if (system === 'gg') {
+            this.#btnPaletteTargetGameGear.classList.add('active');
         }
     }
 
@@ -355,6 +348,45 @@ export default class PaletteEditor {
         }
         this.#tbPaletteTitle.value = palette.title;
         this.#tbPaletteSystemSelect.value = palette.system;
+        this.#updateSystemSelectVirtualList(palette.system);
+    }
+
+    #createPaletteColourIndexButtons() {
+
+        /** @type {HTMLTableElement} */
+        const table = this.#element.querySelector('#tbPalette');
+        /** @type {HTMLTableSectionElement} */
+        const tbody = table.querySelector('tbody');
+
+        let tr, td;
+        for (let i = 0; i < 16; i++) {
+
+            if (i % 4 === 0) {
+                tr = document.createElement('tr');
+                tbody.appendChild(tr);
+            }
+
+            // Colour button
+            td = document.createElement('td');
+            td.setAttribute('data-colour-index', i.toString());
+            td.classList.add('text-center');
+            tr.appendChild(td);
+
+            const btnColour = document.createElement('button');
+            btnColour.classList.add('btn', 'btn-sm', 'btn-outline-secondary', 'position-relative', 'sms-palette-button');
+            btnColour.setAttribute('data-colour-index', i.toString());
+            btnColour.onclick = () => this.#handlePaletteColourButtonClicked(i);
+            td.appendChild(btnColour);
+
+            const lblContent = document.createElement('span');
+            lblContent.classList.add('position-absolute', 'translate-middle', 'badge');
+            lblContent.innerHTML = `#${i}`;
+            btnColour.appendChild(lblContent);
+
+            this.#paletteCells.push(td);
+            this.#paletteButtons.push(btnColour);
+        }
+
     }
 
     /**
@@ -367,11 +399,9 @@ export default class PaletteEditor {
             if (index === paletteIndex) {
                 if (!cell.classList.contains('table-secondary')) {
                     cell.classList.add('sms-highlight');
-                    // cell.classList.add('table-secondary');
                 }
             } else {
                 cell.classList.remove('sms-highlight');
-                // cell.classList.remove('table-secondary');
             }
         });
     }
@@ -381,11 +411,9 @@ export default class PaletteEditor {
             if (index !== null && index === colourIndex) {
                 if (!cell.classList.contains('table-dark')) {
                     cell.classList.add('sms-selected');
-                    // cell.classList.add('table-dark');
                 }
             } else {
                 cell.classList.remove('sms-selected');
-                // cell.classList.remove('table-dark');
             }
         });
     }

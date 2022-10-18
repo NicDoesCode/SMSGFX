@@ -1,7 +1,19 @@
-body {
+body {}
+
+.sms-container .sms-smaller-font,
+.sms-container .sms-smaller-font.input-group-text,
+.sms-container .sms-smaller-font input,
+.sms-container .sms-smaller-font select {
+    font-size: 10pt;
 }
 
-.sms-container {
+.sms-container .sms-dropdown-menu {
+    font-size: 10pt;
+}
+
+.sms-container .sms-dropdown-menu li i.bi {
+    font-size: 1.25em;
+    margin-right: 4px;
 }
 
 .sms-container .sms-header-bar {
@@ -11,17 +23,24 @@ body {
     z-index: 20;
 }
 
-.sms-container .sms-header-bar .navbar-brand {
+.sms-console-icon {
+    width: 60px;
+    height: auto;
+}
+
+.sms-container .sms-header-bar .sms-navbar .navbar-brand {
     position: relative;
     display: inline-block;
     margin-left: 4px;
     font-size: 25px;
     text-shadow: 0px 0px 2px #FFFFFF, 1px 1px 5px #555555;
 }
-.sms-container .sms-header-bar .navbar-brand img {
+
+.sms-container .sms-header-bar .sms-navbar .navbar-brand img {
     float: left;
     margin: 5px 10px 0 5px;
 }
+
 .sms-container .sms-content {
     position: absolute;
     top: 0;
@@ -74,6 +93,7 @@ body {
     border-radius: 2px;
     border: 1px solid #FFFFFF;
 }
+
 .sms-palette .sms-palette-colours button.sms-palette-button {
     width: 38px;
     height: 40px;
@@ -81,6 +101,7 @@ body {
     padding: 0;
     margin: 0;
 }
+
 .sms-palette .sms-palette-colours button.sms-palette-button span {
     left: 18px;
     top: 4px;
@@ -90,8 +111,9 @@ body {
     border-bottom-right-radius: 0;
     background-color: #222222;
 }
-.sms-palette .sms-palette-colours td.sms-selected {
-}
+
+.sms-palette .sms-palette-colours td.sms-selected {}
+
 .sms-palette .sms-palette-colours td.sms-selected button.sms-palette-button {
     background-color: #888888;
     border-radius: 5px;
@@ -101,15 +123,40 @@ body {
     height: 32px;
     box-shadow: 0px 0px 2px 2px #000000;
 }
+
 .sms-palette .sms-palette-colours td.sms-selected button.sms-palette-button span {
     left: 15px;
     top: 1px;
     background-color: #FFFFFF;
     color: #000000;
 }
+
 .sms-palette .sms-palette-colours td.sms-highlight button {
     box-shadow: 0px 0px 6px 2px #444444;
 }
+
+/* Colour toolbox */
+.sms-container .sms-colour-toolbox input[type=text] {
+    font-size: 7pt;
+}
+
+.sms-container .sms-colour-toolbox .sms-colour-box {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.sms-container .sms-colour-toolbox .sms-colour-box button {
+    width: 12.5%;
+    box-sizing: border-box;
+    height: 20px;
+    border: 1px solid #FFFFFF;
+}
+
+.sms-container .sms-colour-toolbox .sms-colour-box button:hover {
+    border: 1px solid #666666;
+}
+
 
 .sms-canvas-container {
     display: flex;
@@ -135,8 +182,7 @@ body {
     box-shadow: 0 0 10px #555555;
 }
 
-.sms-tile-toolbar {
-}
+.sms-tile-toolbar {}
 
 .sms-colour-picker .sms-colour-preview {
     min-width: 100px;

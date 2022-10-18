@@ -86,15 +86,6 @@ export default class TileEditorToolbar {
 
 
     /**
-     * @typedef {object} TileEditorToolbarState
-     * @property {number?} tileWidth - Tile width to display.
-     * @property {string?} selectedTool - Currently selected tool.
-     * @property {number?} scale - New scale level.
-     * @property {boolean?} undoEnabled - Is the user able to undo?
-     * @property {boolean?} redoEnabled - Is the user able to redo?
-     * @exports 
-     */
-    /**
      * Sets the state of the tile editor.
      * @param {TileEditorToolbarState} state - State object.
      */
@@ -255,6 +246,17 @@ export default class TileEditorToolbar {
 
 
 }
+
+
+/**
+ * @typedef {object} TileEditorToolbarState
+ * @property {number?} tileWidth - Tile width to display.
+ * @property {string?} selectedTool - Currently selected tool.
+ * @property {number?} scale - New scale level.
+ * @property {boolean?} undoEnabled - Is the user able to undo?
+ * @property {boolean?} redoEnabled - Is the user able to redo?
+ * @exports 
+ */
 
 /**
  * Tile editor toolbar event callback.
