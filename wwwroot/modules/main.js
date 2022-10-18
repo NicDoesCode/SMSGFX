@@ -127,30 +127,25 @@ function handleHeaderBarRequestProjectLoad(args) {
                 addUndoState();
 
                 state.setProject(project);
-
-                headerBar.setState(project);
-
-                // Refresh
-                const tileSet = project.tileSet;
-                const palette = project.paletteList.getPalette(0);
+                state.persistentUIState.paletteIndex = 0;
 
                 // Set state
                 headerBar.setState({
                     projectTitle: project.title
                 });
                 paletteEditor.setState({
-                    paletteList: state.paletteList,
-                    selectedPaletteIndex: 0,
+                    paletteList: getPaletteList(),
+                    selectedPaletteIndex: getUIState().paletteIndex,
                     selectedColourIndex: 0,
                     highlightedColourIndex: -1,
                     displayNative: getUIState().displayNativeColour
                 });
                 tileEditorToolbar.setState({
-                    tileWidth: tileSet.tileWidth
+                    tileWidth: getTileSet().tileWidth
                 });
                 tileEditor.setState({
-                    palette: palette,
-                    tileSet: tileSet,
+                    palette: getPalette(),
+                    tileSet: getTileSet(),
                     displayNative: getUIState().displayNativeColour
                 });
             });
@@ -912,7 +907,7 @@ function addUndoState() {
    Initilisation
 */
 
-$(async () => {
+$(() => {
 
     instanceState.tool = 'pencil';
 
@@ -924,30 +919,30 @@ $(async () => {
     createDefaultProjectIfNoneExists();
     checkPersistentUIValues();
 
-    const palette = state.project.paletteList.getPalette(state.persistentUIState.paletteIndex);
-    const tileSet = state.tileSet;
+    const palette = getPalette();
+    const tileSet = getTileSet();
 
     headerBar.setState({
         projectTitle: state.project.title
     });
     paletteEditor.setState({
-        paletteList: state.project.paletteList,
-        selectedPaletteIndex: state.persistentUIState.paletteIndex,
-        lastPaletteInputSystem: state.persistentUIState.importPaletteSystem,
+        paletteList: getPaletteList(),
+        selectedPaletteIndex: getUIState().paletteIndex,
+        lastPaletteInputSystem: getUIState().importPaletteSystem,
         selectedColourIndex: 0,
         displayNative: getUIState().displayNativeColour
     });
     tileEditorToolbar.setState({
         tileWidth: tileSet.tileWidth,
         selectedTool: instanceState.tool,
-        scale: state.persistentUIState.scale,
+        scale: getUIState().scale,
         undoEnabled: undoManager.canUndo,
         redoEnabled: undoManager.canRedo
     });
     tileEditor.setState({
         palette: palette,
         tileSet: tileSet,
-        scale: state.persistentUIState.scale,
+        scale: getUIState().scale,
         displayNative: getUIState().displayNativeColour
     });
 

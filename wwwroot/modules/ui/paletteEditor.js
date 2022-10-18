@@ -116,12 +116,15 @@ export default class PaletteEditor {
         if (state) {
             /** @type {PaletteList} */
             let paletteList;
+            let updateVirtualList = false;
             if (state.paletteList && typeof state.paletteList.getPalettes === 'function') {
                 paletteList = state.paletteList;
                 this.#refreshPaletteSelectList(state.paletteList);
+                updateVirtualList = true;
             }
             if (typeof state.selectedPaletteIndex === 'number') {
                 this.#tbPaletteSelect.selectedIndex = state.selectedPaletteIndex;
+                updateVirtualList = true;
             }
             if (typeof state.displayNative === 'boolean') {
                 this.#tbPaletteEditorDisplayNative.checked = state.displayNative;
@@ -142,6 +145,10 @@ export default class PaletteEditor {
             }
             if (typeof state.selectedSystem === 'string') {
                 this.#tbPaletteSystemSelect.value = state.selectedSystem;
+            }
+            // Refresh the virtual list if needed
+            if (updateVirtualList) {
+                this.#updateVirtualList();
             }
         }
     }
@@ -241,36 +248,33 @@ export default class PaletteEditor {
         if (this.#tbPaletteSelect.selectedIndex === -1) {
             this.#tbPaletteSelect.selectedIndex = 0;
         }
-        this.#updateVirtualList(paletteList);
+        this.#updateVirtualList();
     }
 
     /**
      * Updates the fake dropdown list to mirror the real one.
-     * @param {PaletteList} paletteList
      */
-    #updateVirtualList(paletteList) {
+    #updateVirtualList() {
         while (this.#tbPaletteSelectDropDown.childNodes.length > 0) {
             this.#tbPaletteSelectDropDown.childNodes.item(0).remove();
         }
-        if (paletteList) {
-            paletteList.getPalettes().forEach((p, index) => {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = '#';
-                a.classList.add('dropdown-item');
-                if (index === this.#tbPaletteSelect.selectedIndex) {
-                    a.classList.add('active');
-                } else {
-                    a.onclick = () => {
-                        this.#tbPaletteSelect.selectedIndex = index;
-                        this.#tbPaletteSelect.onchange();
-                    };
-                }
-                a.innerText = `#${index} | ${p.title}`;
-                li.appendChild(a);
-                this.#tbPaletteSelectDropDown.appendChild(li);
-            });
-        }
+        this.#tbPaletteSelect.querySelectorAll('option').forEach((option, index) => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = '#';
+            a.classList.add('dropdown-item');
+            if (index === this.#tbPaletteSelect.selectedIndex) {
+                a.classList.add('active');
+            } else {
+                a.onclick = () => {
+                    this.#tbPaletteSelect.selectedIndex = index;
+                    this.#tbPaletteSelect.onchange();
+                };
+            }
+            a.innerHTML = option.innerHTML;
+            li.appendChild(a);
+            this.#tbPaletteSelectDropDown.appendChild(li);
+        });
     }
 
     #createPaletteButtons() {
