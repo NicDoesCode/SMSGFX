@@ -6,6 +6,13 @@ export default class CanvasManager {
 
 
     /**
+     * Gets whether the canvas manager can draw an image (has a tile set and palette).
+     */
+    get canDraw() {
+        return this.tileSet && this.palette;
+    }
+
+    /**
      * Gets or sets the tile set to draw.
      */
     get tileSet() {

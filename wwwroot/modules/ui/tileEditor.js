@@ -196,7 +196,7 @@ export default class TileEditor {
      * Request to horizontally mirror the tile.
      * @param {TileEditorTileCallback} callback - Callback function.
      */
-     addHandlerRequestMirrorTileHorizontal(callback) {
+    addHandlerRequestMirrorTileHorizontal(callback) {
         this.#dispatcher.on(EVENT_RequestMirrorHorizontal, callback);
     }
 
@@ -204,21 +204,25 @@ export default class TileEditor {
      * Request to vertically mirror the tile.
      * @param {TileEditorTileCallback} callback - Callback function.
      */
-     addHandlerRequestMirrorTileVertical(callback) {
+    addHandlerRequestMirrorTileVertical(callback) {
         this.#dispatcher.on(EVENT_RequestMirrorVertical, callback);
     }
 
 
     /** @param {MouseEvent} event */
     #handleCanvasMouseMove(event) {
-        const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(event.clientX, event.clientY);
-        const lastCoords = this.#lastCoords;
-        if (!lastCoords || lastCoords.x !== coords.x || lastCoords.y !== coords.y) {
-            /** @type {TileEditorPixelEventArgs} */
-            const args = { x: coords.x, y: coords.y, mouseIsDown: this.#canvasMouseIsDown };
-            this.#dispatcher.dispatch(EVENT_PixelMouseOver, args);
-            this.#lastCoords = coords;
-            this.#canvasManager.drawUI(this.#tbCanvas, coords.x, coords.y);
+        if (this.#tileSet) {
+            const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(event.clientX, event.clientY);
+            const lastCoords = this.#lastCoords;
+            if (!lastCoords || lastCoords.x !== coords.x || lastCoords.y !== coords.y) {
+                /** @type {TileEditorPixelEventArgs} */
+                const args = { x: coords.x, y: coords.y, mouseIsDown: this.#canvasMouseIsDown };
+                this.#dispatcher.dispatch(EVENT_PixelMouseOver, args);
+                this.#lastCoords = coords;
+                if (this.#canvasManager.canDraw) {
+                    this.#canvasManager.drawUI(this.#tbCanvas, coords.x, coords.y);
+                }
+            }
         }
     }
 

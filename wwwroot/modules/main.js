@@ -16,8 +16,6 @@ import TileFactory from "./factory/tileFactory.js";
 import TileSetFactory from "./factory/tileSetFactory.js";
 import ProjectAssemblySerialiser from "./serialisers/projectAssemblySerialiser.js";
 import PaletteColourFactory from "./factory/paletteColourFactory.js";
-import Palette from "./models/palette.js";
-import TileSet from "./models/tileSet.js";
 import UndoManager from "./components/undoManager.js";
 import ProjectFactory from "./factory/projectFactory.js";
 import PaletteListFactory from "./factory/paletteListFactory.js";
