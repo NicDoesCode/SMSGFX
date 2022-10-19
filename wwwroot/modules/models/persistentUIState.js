@@ -42,7 +42,7 @@ export default class PersistentUIState {
     }
 
     /**
-     * Zoom level.
+     * Scale level.
      */
     get scale() {
         return this.#scale;

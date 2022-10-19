@@ -8,8 +8,10 @@ export default class TileFactory {
      * Creates a new instance of a tile object.
      * @returns {Tile}
      */
-     static create() {
-        return new Tile();
+    static create() {
+        const tileDataArray = new Uint8ClampedArray(64);
+        tileDataArray.fill(15, 0, tileDataArray.length);
+        return TileFactory.fromArray(tileDataArray);
     }
 
     /**
@@ -36,7 +38,7 @@ export default class TileFactory {
      * @param {number} [sourceLength=null] Optional. Number of items to read, if the end of the array is reached then reading will stop.
      * @returns {Tile}
      */
-     static fromArray(sourceArray, sourceIndex, sourceLength) {
+    static fromArray(sourceArray, sourceIndex, sourceLength) {
         if (!sourceArray) throw new Error('Source array was not valid.');
         if (!sourceIndex) sourceIndex = 0;
         if (sourceIndex >= sourceArray.length) throw new Error('The index exceeds the bounds of the source array.');
@@ -44,7 +46,7 @@ export default class TileFactory {
         if (!sourceLength) sourceLength = 64;
         if (sourceLength < 0 || sourceLength > 64) throw new Error('Length must be between 0 and 64.');
 
-        const tile = TileFactory.create();
+        const tile = new Tile();
         const sourceStopIndex = sourceIndex + sourceLength;
         let dataIndex = 0;
         for (let i = sourceIndex; i < sourceArray.length && i < sourceStopIndex; i++) {
@@ -59,7 +61,7 @@ export default class TileFactory {
      * @param {Tile} tile - Tile object to create a deep clone of.
      * @returns {Tile}
      */
-     static clone(tile) {
+    static clone(tile) {
         const hex = TileUtil.toHex(tile);
         return TileFactory.fromHex(hex);
     }

@@ -22,7 +22,6 @@ import UndoManager from "./components/undoManager.js";
 import ProjectFactory from "./factory/projectFactory.js";
 import PaletteListFactory from "./factory/paletteListFactory.js";
 import TileUtil from "./util/tileUtil.js";
-import TileBinarySerialiser from "./serialisers/tileBinarySerialiser.js";
 
 
 const undoManager = new UndoManager(50);
@@ -107,7 +106,7 @@ function wireUpEventHandlers() {
     tileEditorToolbar.addHandlerRequestRedo(handleTileEditorToolbarRequestRedo);
     tileEditorToolbar.addHandlerRequestToolChange(handleTileEditorToolbarRequestToolChange);
     tileEditorToolbar.addHandlerRequestTileWidthChange(handleTileEditorToolbarRequestTileWidthChange);
-    tileEditorToolbar.addHandlerRequestZoomChange(handleTileEditorToolbarRequestZoomChange);
+    tileEditorToolbar.addHandlerRequestScaleChange(handleTileEditorToolbarRequestScaleChange);
 
     tileContextToolbar.addHandlerOnButtonCommand(handleTileContextToolbarOnButtonCommand);
 
@@ -123,6 +122,219 @@ function wireUpEventHandlers() {
     tileDialogue.addHandlerOnConfirm(handleImportTileSet);
 }
 
+function createKeyEventListeners() {
+    document.addEventListener('keydown', (keyEvent) => {
+        // console.log('keydown', keyEvent);
+        if (keyEvent.target === document.body) {
+            let handled = false;
+            if (keyEvent.ctrlKey) {
+                // Ctrl
+
+                if (keyEvent.key === 'E') { // Plus shift (capital letter)
+                    // Export
+                    exportProjectToAssembly();
+                    handled = true;
+                } else if (keyEvent.key === 'o') {
+                    // Import project
+                    importProjectFromJson();
+                    handled = true;
+                } else if (keyEvent.key === 's') {
+                    // Export project
+                    exportProjectToJson();
+                    handled = true;
+                }
+
+            }
+            if (handled) {
+                keyEvent.preventDefault();
+                keyEvent.stopImmediatePropagation();
+            }
+        }
+    });
+
+    document.addEventListener('keyup', (keyEvent) => {
+        // console.log('keyup', keyEvent);
+        if (keyEvent.target === document.body) {
+            let handled = false;
+            if (keyEvent.ctrlKey && keyEvent.altKey) {
+                // Ctrl + alt
+
+                if (keyEvent.key === 'p') { 
+                    // New palette
+                    newPalette();
+                    handled = true;
+                } else if (keyEvent.key === 'e') { 
+                    // New tile
+                    newTile();
+                    handled = true;
+                }
+
+            } else if (keyEvent.altKey) {
+                // Alt key only
+
+                if (keyEvent.key === '=' || keyEvent.key === '+') {
+                    // Increase viewport scale
+                    increaseScale();
+                    handled = true;
+                } else if (keyEvent.key === '-') {
+                    // Decrease viewport scale
+                    decreaseScale();
+                    handled = true;
+                } else if (keyEvent.key === 'ArrowDown') {
+                    // Lower palette
+                    selectPaletteIndex(getUIState().paletteIndex + 1);
+                    handled = true;
+                } else if (keyEvent.key === 'ArrowUp') {
+                    // Higher palette
+                    selectPaletteIndex(getUIState().paletteIndex - 1);
+                    handled = true;
+                } else if (keyEvent.key === 'ArrowLeft') {
+                    // Lower palette
+                    selectColourIndex(instanceState.colourIndex - 1);
+                    handled = true;
+                } else if (keyEvent.key === 'ArrowRight') {
+                    // Higher palette
+                    selectColourIndex(instanceState.colourIndex + 1);
+                    handled = true;
+                }
+
+            } else if (keyEvent.ctrlKey) {
+                // Ctrl key only
+
+                if (keyEvent.key === 'N') {
+                    // Export
+                    newProject();
+                    handled = true;
+                } else if (keyEvent.key === 'x') {
+                    // Cut tile
+                    if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
+                        cutTileToClipboardAt(instanceState.tileIndex);
+                        handled = true;
+                    }
+                } else if (keyEvent.key === 'c') {
+                    // Copy tile
+                    if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
+                        copyTileToClipboardAt(instanceState.tileIndex);
+                        handled = true;
+                    }
+                } else if (keyEvent.key === 'v') {
+                    // Paste tile
+                    if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
+                        pasteTileAt(instanceState.tileIndex);
+                        handled = true;
+                    }
+                } else if (keyEvent.key === 'd') {
+                    // Clone tile
+                    if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
+                        cloneTileAt(instanceState.tileIndex);
+                        handled = true;
+                    }
+                } else if (keyEvent.key === 'z') {
+                    // Undo
+                    undoOrRedo('u');
+                    handled = true;
+                } else if (keyEvent.key === 'y') {
+                    // Redo
+                    undoOrRedo('r');
+                    handled = true;
+                } else if (keyEvent.key === '[') {
+                    // Mirror horizontal
+                    if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
+                        mirrorHorizontal(instanceState.tileIndex);
+                        handled = true;
+                    }
+                } else if (keyEvent.key === ']') {
+                    // Mirror Vertical
+                    if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
+                        mirrorVertical(instanceState.tileIndex);
+                        handled = true;
+                    }
+                } else if (keyEvent.key === 'ArrowLeft') {
+                    // Move tile left
+                    if (instanceState.tileIndex > 0 && instanceState.tileIndex < getTileSet().length) {
+                        swapTilesAt(instanceState.tileIndex - 1, instanceState.tileIndex);
+                        handled = true;
+                    }
+                } else if (keyEvent.key === 'ArrowRight') {
+                    // Move tile right
+                    if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length - 1) {
+                        swapTilesAt(instanceState.tileIndex, instanceState.tileIndex + 1);
+                        handled = true;
+                    }
+                } else if (keyEvent.key === 'ArrowUp') {
+                    // Move tile up
+                    const proposedIndex = instanceState.tileIndex - getTileSet().tileWidth;
+                    if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
+                        swapTilesAt(proposedIndex, instanceState.tileIndex);
+                        handled = true;
+                    }
+                } else if (keyEvent.key === 'ArrowDown') {
+                    // Move tile down
+                    const proposedIndex = instanceState.tileIndex + getTileSet().tileWidth;
+                    if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
+                        swapTilesAt(instanceState.tileIndex, proposedIndex);
+                        handled = true;
+                    }
+                }
+
+            } else {
+                // No modifier key
+
+                if (keyEvent.key === 'f' || keyEvent.key === 'b') {
+                    // Select fill tool
+                    selectTileEditorToolbarTool(TileEditorToolbar.Tools.bucket);
+                    handled = true;
+                } else if (keyEvent.key === 's') {
+                    // Select selection tool
+                    selectTileEditorToolbarTool(TileEditorToolbar.Tools.select);
+                    handled = true;
+                } else if (keyEvent.key === 'p') {
+                    // Select pencil tool
+                    selectTileEditorToolbarTool(TileEditorToolbar.Tools.pencil);
+                    handled = true;
+                } else if (keyEvent.key === 'Delete') {
+                    // Delete any selected tile
+                    if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
+                        removeTileAt(instanceState.tileIndex);
+                        handled = true;
+                    }
+                } else if (keyEvent.key === 'ArrowLeft') {
+                    // Move selection tile left
+                    if (instanceState.tileIndex > 0 && instanceState.tileIndex < getTileSet().length) {
+                        selectTile(instanceState.tileIndex - 1);
+                        handled = true;
+                    }
+                } else if (keyEvent.key === 'ArrowRight') {
+                    // Move selection tile right
+                    if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length - 1) {
+                        selectTile(instanceState.tileIndex + 1);
+                        handled = true;
+                    }
+                } else if (keyEvent.key === 'ArrowUp') {
+                    // Move selection tile up
+                    const proposedIndex = instanceState.tileIndex - getTileSet().tileWidth;
+                    if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
+                        selectTile(proposedIndex);
+                        handled = true;
+                    }
+                } else if (keyEvent.key === 'ArrowDown') {
+                    // Move selection tile down
+                    const proposedIndex = instanceState.tileIndex + getTileSet().tileWidth;
+                    if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
+                        selectTile(proposedIndex);
+                        handled = true;
+                    }
+                }
+
+            }
+            if (handled) {
+                keyEvent.preventDefault();
+                keyEvent.stopImmediatePropagation();
+            }
+        }
+    });
+}
+
 
 /** @param {import('./ui/headerBar.js').HeaderBarProjectTitleChangeEventArgs} args */
 function handleHeaderBarRequestProjectTitleChange(args) {
@@ -132,78 +344,23 @@ function handleHeaderBarRequestProjectTitleChange(args) {
 
 /** @param {import('./ui/headerBar.js').HeaderBarCallback} args */
 function handleHeaderBarRequestProjectLoad(args) {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'application/json';
-    input.onchange = () => {
-        if (input.files.length > 0) {
-            // Load the project from the file
-            ProjectUtil.loadFromBlob(input.files[0]).then(project => {
-                addUndoState();
-
-                state.setProject(project);
-                state.persistentUIState.paletteIndex = 0;
-
-                // Set state
-                headerBar.setState({
-                    projectTitle: project.title
-                });
-                paletteEditor.setState({
-                    paletteList: getPaletteList(),
-                    selectedPaletteIndex: getUIState().paletteIndex,
-                    selectedColourIndex: 0,
-                    highlightedColourIndex: -1,
-                    displayNative: getUIState().displayNativeColour
-                });
-                tileEditorToolbar.setState({
-                    tileWidth: getTileSet().tileWidth
-                });
-                tileEditor.setState({
-                    palette: getPalette(),
-                    tileSet: getTileSet(),
-                    displayNative: getUIState().displayNativeColour
-                });
-            });
-        }
-    }
-    input.click();
+    importProjectFromJson();
 }
 
 /** @param {import('./ui/headerBar.js').HeaderBarCallback} args */
 function handleHeaderBarRequestProjectSave(args) {
-    ProjectUtil.saveToFile(state.project);
+    exportProjectToJson();
 }
 
 /** @param {import('./ui/headerBar.js').HeaderBarCallback} args */
 function handleHeaderBarRequestCodeExport(args) {
-    const code = ProjectAssemblySerialiser.serialise(state.project);
-    exportDialogue.show(code);
+    exportProjectToAssembly();
 }
 
 
 /** @param {import('./ui/paletteEditor').PaletteEditorCallback} args */
 function handlePaletteEditorRequestNewPalette(args) {
-    addUndoState();
-
-    const project = state.project;
-    const paletteList = project.paletteList;
-    const palette = PaletteFactory.createNewStandardColourPalette('New palette', 'ms');
-    paletteList.addPalette(palette);
-    state.setProject(project);
-
-    const selectedPaletteIndex = state.paletteList.length - 1;
-
-    // Update state
-    state.persistentUIState.paletteIndex = selectedPaletteIndex;
-    paletteEditor.setState({
-        paletteList: state.project.paletteList,
-        selectedPaletteIndex: selectedPaletteIndex
-    });
-    tileEditor.setState({
-        palette: state.project.paletteList.getPalette(selectedPaletteIndex)
-    });
-
-    state.saveToLocalStorage();
+    newPalette();
 }
 /** @param {import('./ui/paletteEditor').PaletteEditorCallback} args */
 function handlePaletteEditorRequestImportPaletteFromCode(args) {
@@ -214,18 +371,7 @@ function handlePaletteEditorRequestImportPaletteFromCode(args) {
 
 /** @param {import('./ui/paletteEditor').PaletteEditorPaletteChangeEventArgs} args */
 function handlePaletteEditorRequestSelectedPaletteChange(args) {
-
-    const palette = state.paletteList.getPalette(args.paletteIndex);
-    paletteEditor.setState({
-        paletteList: state.paletteList,
-        selectedPaletteIndex: args.paletteIndex
-    });
-    tileEditor.setState({
-        palette: palette
-    });
-
-    state.persistentUIState.paletteIndex = args.paletteIndex;
-    state.saveToLocalStorage();
+    selectPaletteIndex(args.paletteIndex);
 }
 
 /** @param {import('./ui/paletteEditor').PaletteEditorPaletteEventArgs} args */
@@ -348,20 +494,7 @@ function handlePaletteEditorRequestColourIndexEdit(args) {
 
 /** @param {import('./ui/tileEditorToolbar').TileEditorToolbarCallback} args */
 function handleTileEditorToolbarRequestAddTile(args) {
-    const tileSet = getTileSet();
-    if (tileSet) {
-        addUndoState();
-
-        const tileDataArray = new Uint8ClampedArray(64);
-        tileDataArray.fill(15, 0, tileDataArray.length);
-        tileSet.addTile(TileFactory.fromArray(tileDataArray));
-
-        state.saveToLocalStorage();
-        tileEditor.setState({
-            tileSet: tileSet,
-            palette: getPalette()
-        });
-    }
+    newTile();
 }
 
 /** @param {import('./ui/tileEditorToolbar').TileEditorToolbarCallback} args */
@@ -371,80 +504,17 @@ function handleTileEditorToolbarRequestImportTileSetFromCode(args) {
 
 /** @param {import('./ui/tileEditorToolbar').TileEditorToolbarCallback} args */
 function handleTileEditorToolbarRequestUndo(args) {
-    if (undoManager.canUndo) {
-        // Set project state
-        const currentProject = state.project;
-        const undoneProject = undoManager.undo(currentProject);
-        state.setProject(undoneProject);
-
-        // Set UI state
-        headerBar.setState({
-            projectTitle: state.project.title
-        });
-        tileEditorToolbar.setState({
-            undoEnabled: undoManager.canUndo,
-            redoEnabled: undoManager.canRedo
-        });
-        tileEditor.setState({
-            tileSet: getTileSet(),
-            palette: getPalette()
-        });
-        paletteEditor.setState({
-            paletteList: state.paletteList
-        });
-    }
-    tileEditorToolbar.setState({
-        undoEnabled: undoManager.canUndo,
-        redoEnabled: undoManager.canRedo
-    });
+    undoOrRedo('u');
 }
 
 /** @param {import('./ui/tileEditorToolbar').TileEditorToolbarCallback} args */
 function handleTileEditorToolbarRequestRedo(args) {
-    if (undoManager.canRedo) {
-        // Set project state
-        const currentProject = state.project;
-        const redoneProject = undoManager.redo(currentProject);
-        state.setProject(redoneProject);
-
-        // Set UI state
-        headerBar.setState({
-            projectTitle: state.project.title
-        });
-        tileEditorToolbar.setState({
-            tileWidth: getTileSet().tileWidth,
-            undoEnabled: undoManager.canUndo,
-            redoEnabled: undoManager.canRedo
-        });
-        tileEditor.setState({
-            tileSet: getTileSet(),
-            palette: getPalette()
-        });
-        paletteEditor.setState({
-            paletteList: state.paletteList
-        });
-    }
-    tileEditorToolbar.setState({
-        undoEnabled: undoManager.canUndo,
-        redoEnabled: undoManager.canRedo
-    });
+    undoOrRedo('r');
 }
 
 /** @param {import('./ui/tileEditorToolbar.js').TileEditorToolbarUIEventArgs} args */
 function handleTileEditorToolbarRequestToolChange(args) {
-    instanceState.tool = args.tool;
-    if (args.tool !== TileEditorToolbar.Tools.select) {
-        instanceState.tileIndex = -1;
-        tileEditor.setState({
-            selectedTileIndex: instanceState.tileIndex
-        });
-    }
-    tileContextToolbar.setState({
-        visible: args.tool === TileEditorToolbar.Tools.select
-    });
-    tileEditorToolbar.setState({
-        selectedTool: args.tool
-    });
+    selectTileEditorToolbarTool(args.tool);
 }
 
 /** @param {import('./ui/tileEditorToolbar.js').TileEditorToolbarUIEventArgs} args */
@@ -457,12 +527,8 @@ function handleTileEditorToolbarRequestTileWidthChange(args) {
 }
 
 /** @param {import('./ui/tileEditorToolbar.js').TileEditorToolbarUIEventArgs} args */
-function handleTileEditorToolbarRequestZoomChange(args) {
-    tileEditor.setState({
-        scale: args.zoom
-    });
-    state.persistentUIState.scale = args.zoom;
-    state.saveToLocalStorage();
+function handleTileEditorToolbarRequestScaleChange(args) {
+    setScale(args.scale);
 }
 
 
@@ -800,6 +866,28 @@ function createDefaultProjectIfNoneExists() {
     }
 }
 
+/**
+ * Creates a default project file.
+ * @returns {Project}
+ */
+function createEmptyProject() {
+    const project = ProjectFactory.create('New project');
+
+    // Create a default tile set
+    project.tileSet = TileSetFactory.create();
+    project.tileSet.tileWidth = 8;
+    for (let i = 0; i < 64; i++) {
+        project.tileSet.addTile(TileFactory.create());
+    }
+
+    // Create a default palette for Game Gear and Master System
+    project.paletteList = PaletteListFactory.create();
+    project.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('Default Master System', 'ms'));
+    project.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('Default Game Gear', 'gg'));
+
+    return project;
+}
+
 function checkPersistentUIValues() {
     let dirty = false;
     if (state.persistentUIState.paletteIndex < 0 || state.persistentUIState.paletteIndex >= state.project.paletteList.length) {
@@ -870,18 +958,8 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
     if (tool !== null && colourIndex >= 0 && colourIndex < 16) {
 
         if (tool === 'select') {
-            const selectedTileIndex = getTileSet().getTileIndexByCoordinate(imageX, imageY);
-            if (selectedTileIndex !== instanceState.tileIndex) {
-                instanceState.tileIndex = selectedTileIndex;
-            } else {
-                instanceState.tileIndex = -1;
-            }
-            tileContextToolbar.setState({
-                visible: instanceState.tileIndex !== -1
-            });
-            tileEditor.setState({
-                selectedTileIndex: instanceState.tileIndex
-            });
+            const tileIndex = getTileSet().getTileIndexByCoordinate(imageX, imageY);
+            selectTile(tileIndex);
         } else if (tool === 'pencil') {
             const lastPx = instanceState.lastTileMapPx;
             if (imageX !== lastPx.x || imageY !== lastPx.y) {
@@ -911,6 +989,196 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
 
     }
 
+}
+
+/**
+ * Selects a tile at a given index.
+ * @param {number} index - Tile index to insert.
+ */
+function selectTile(index) {
+    if (index < 0 || index > getTileSet().length) return;
+
+    if (index !== instanceState.tileIndex) {
+        instanceState.tileIndex = index;
+    } else {
+        instanceState.tileIndex = -1;
+    }
+    tileContextToolbar.setState({
+        visible: instanceState.tileIndex !== -1
+    });
+    tileEditor.setState({
+        selectedTileIndex: instanceState.tileIndex
+    });
+}
+
+/**
+ * Creates a new palette.
+ */
+function newPalette() {
+    addUndoState();
+
+    const newPalette = PaletteFactory.createNewStandardColourPalette('New palette', 'ms');
+    getPaletteList().addPalette(newPalette);
+
+    state.setProject(getProject());
+    state.saveToLocalStorage();
+
+    const selectedPaletteIndex = getPaletteList().length - 1;
+
+    // Update state
+    state.persistentUIState.paletteIndex = selectedPaletteIndex;
+    paletteEditor.setState({
+        paletteList: getPaletteList(),
+        selectedPaletteIndex: selectedPaletteIndex
+    });
+    tileEditor.setState({
+        palette: getPaletteList().getPalette(selectedPaletteIndex)
+    });
+}
+
+/**
+ * Creates a new tile.
+ */
+function newTile() {
+    if (getTileSet()) {
+        addUndoState();
+
+        const newTile = TileFactory.create();
+        getTileSet().addTile(newTile);
+
+        state.setProject(getProject());
+        state.saveToLocalStorage();
+
+        tileEditor.setState({
+            tileSet: getTileSet(),
+            palette: getPalette()
+        });
+    }
+}
+
+/**
+ * Imports the project from a JSON file.
+ */
+function newProject() {
+    addUndoState();
+
+    state.setProject(createEmptyProject());
+    getUIState().paletteIndex = 0;
+    state.saveToLocalStorage();
+
+    instanceState.tileIndex = -1;
+    instanceState.colourIndex = 0;
+
+    paletteEditor.setState({
+        paletteList: getPaletteList(),
+        selectedColourIndex: instanceState.colourIndex,
+        selectedPaletteIndex: getUIState().paletteIndex
+    });
+    tileEditorToolbar.setState({
+        tileWidth: getTileSet().tileWidth
+    });
+    tileEditor.setState({
+        palette: getPalette(),
+        tileSet: getTileSet(),
+        selectedTileIndex: instanceState.tileIndex
+    });
+}
+
+/**
+ * Imports the project from a JSON file.
+ */
+function importProjectFromJson() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.onchange = () => {
+        if (input.files.length > 0) {
+            // Load the project from the file
+            ProjectUtil.loadFromBlob(input.files[0]).then(project => {
+                addUndoState();
+
+                state.setProject(project);
+                state.persistentUIState.paletteIndex = 0;
+
+                // Set state
+                headerBar.setState({
+                    projectTitle: project.title
+                });
+                paletteEditor.setState({
+                    paletteList: getPaletteList(),
+                    selectedPaletteIndex: getUIState().paletteIndex,
+                    selectedColourIndex: 0,
+                    highlightedColourIndex: -1,
+                    displayNative: getUIState().displayNativeColour
+                });
+                tileEditorToolbar.setState({
+                    tileWidth: getTileSet().tileWidth
+                });
+                tileEditor.setState({
+                    palette: getPalette(),
+                    tileSet: getTileSet(),
+                    displayNative: getUIState().displayNativeColour
+                });
+            });
+        }
+    }
+    input.click();
+}
+
+/**
+ * Exports the project to a JSON file.
+ */
+function exportProjectToJson() {
+    ProjectUtil.saveToFile(state.project);
+}
+
+/**
+ * Shows the export to assembly dialogue.
+ */
+function exportProjectToAssembly() {
+    const code = ProjectAssemblySerialiser.serialise(getProject());
+    exportDialogue.show(code);
+}
+
+/**
+ * Performs an undo or redo operation.
+ * @param {string} undoOrRedo - Either 'u' for undo or 'r' for redo.
+ */
+function undoOrRedo(undoOrRedo) {
+    if (typeof undoOrRedo !== 'string' || !['u', 'r'].includes(undoOrRedo)) return;
+
+    const sanityCheck = undoOrRedo === 'u' ? undoManager.canUndo : undoManager.canRedo;
+    if (sanityCheck) {
+        // Set project state
+        if (undoOrRedo === 'u') {
+            const retrievedProjectState = undoManager.undo(getProject());
+            state.setProject(retrievedProjectState);
+        } else {
+            const retrievedProjectState = undoManager.redo(getProject());
+            state.setProject(retrievedProjectState);
+        }
+
+        // Set UI state
+        headerBar.setState({
+            projectTitle: getProject().title
+        });
+        tileEditorToolbar.setState({
+            tileWidth: getTileSet().tileWidth,
+            undoEnabled: undoManager.canUndo,
+            redoEnabled: undoManager.canRedo
+        });
+        tileEditor.setState({
+            tileSet: getTileSet(),
+            palette: getPalette()
+        });
+        paletteEditor.setState({
+            paletteList: getPaletteList()
+        });
+    }
+    tileEditorToolbar.setState({
+        undoEnabled: undoManager.canUndo,
+        redoEnabled: undoManager.canRedo
+    });
 }
 
 function addUndoState() {
@@ -1158,6 +1426,103 @@ function swapTilesAt(tileAIndex, tileBIndex) {
     });
 }
 
+/**
+ * Selects a tool on the tile editor toolbar.
+ * @param {string} tool - Name of the tool to select.
+ */
+function selectTileEditorToolbarTool(tool) {
+    if (TileEditorToolbar.Tools[tool]) {
+        instanceState.tool = tool;
+        if (tool !== TileEditorToolbar.Tools.select) {
+            instanceState.tileIndex = -1;
+            tileEditor.setState({
+                selectedTileIndex: instanceState.tileIndex
+            });
+        }
+        tileContextToolbar.setState({
+            visible: tool === TileEditorToolbar.Tools.select
+        });
+        tileEditorToolbar.setState({
+            selectedTool: tool
+        });
+    }
+}
+
+/**
+ * Sets the image scale level on the tile editor.
+ * @param {number} scale - Must be in allowed scale levels.
+ */
+function setScale(scale) {
+    if (typeof scale !== 'number') return;
+    if (!TileEditorToolbar.scales.includes(scale)) return;
+
+    getUIState().scale = scale;
+    state.saveToLocalStorage();
+
+    tileEditorToolbar.setState({
+        scale: scale
+    });
+    tileEditor.setState({
+        scale: scale
+    });
+}
+
+/**
+ * Selects a tool on the tile editor toolbar.
+ * @param {string} tool - Name of the tool to select.
+ */
+function increaseScale() {
+    const scaleIndex = TileEditorToolbar.scales.indexOf(getUIState().scale);
+    if (scaleIndex >= TileEditorToolbar.scales.length - 1) return;
+
+    let newScale = TileEditorToolbar.scales[scaleIndex + 1];
+    setScale(newScale);
+}
+
+/**
+ * Selects a tool on the tile editor toolbar.
+ * @param {string} tool - Name of the tool to select.
+ */
+function decreaseScale() {
+    const scaleIndex = TileEditorToolbar.scales.indexOf(getUIState().scale);
+    if (scaleIndex <= 0) return;
+
+    let newScale = TileEditorToolbar.scales[scaleIndex - 1];
+    setScale(newScale);
+}
+
+/**
+ * Selects a given palette.
+ * @param {number} index - Palette index in the palette list.
+ */
+function selectPaletteIndex(index) {
+    if (index < 0 || index >= getPaletteList().length) return;
+
+    state.persistentUIState.paletteIndex = index;
+    state.saveToLocalStorage();
+
+    paletteEditor.setState({
+        paletteList: getPaletteList(),
+        selectedPaletteIndex: index
+    });
+    tileEditor.setState({
+        palette: getPalette()
+    });
+}
+
+/**
+ * Selects a given colour by index.
+ * @param {number} index - Colour index, 0 to 15.
+ */
+function selectColourIndex(index) {
+    if (index < 0 || index >= 16) return;
+
+    instanceState.colourIndex = index;
+
+    paletteEditor.setState({
+        selectedColourIndex: instanceState.colourIndex
+    });
+}
 
 
 
@@ -1171,6 +1536,7 @@ $(() => {
     instanceState.colourToolboxTab = 'rgb';
 
     wireUpEventHandlers();
+    createKeyEventListeners();
 
     // Load and set state
     state.loadFromLocalStorage();

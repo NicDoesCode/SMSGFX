@@ -4,11 +4,12 @@ const EVENT_RequestAddTile = 'EVENT_RequestAddTile';
 const EVENT_RequestImportTileSet = 'EVENT_RequestImportTileSet';
 const EVENT_RequestToolChange = 'EVENT_RequestToolChange';
 const EVENT_RequestTileWidthChange = 'EVENT_RequestTileWidthChange';
-const EVENT_RequestZoomChange = 'EVENT_RequestZoomChange';
+const EVENT_RequestScaleChange = 'EVENT_RequestScaleChange';
 const EVENT_RequestUndo = 'EVENT_RequestUndo';
 const EVENT_RequestRedo = 'EVENT_RequestRedo';
 
 const tools = { select: 'select', pencil: 'pencil', bucket: 'bucket' };
+const scales = [ 1, 2, 5, 10, 15, 20, 50 ];
 
 export default class TileEditorToolbar {
 
@@ -17,9 +18,13 @@ export default class TileEditorToolbar {
         return tools;
     }
 
+    static get scales() {
+        return scales;
+    }
+
 
     /**
-     * Gets the current pixel zoom value.
+     * Gets the current pixel scale value.
      */
     get #scaleValue() {
         return parseInt(this.#tbTileSetScale.value);
@@ -53,7 +58,7 @@ export default class TileEditorToolbar {
     #btnToolUndo;
     /** @type {HTMLButtonElement} */
     #btnToolRedo;
-    #lastZoom = 1;
+    #lastScale = 1;
     #dispatcher;
 
 
@@ -75,7 +80,7 @@ export default class TileEditorToolbar {
         this.#tbTileSetWidth.onchange = (e) => this.#handleTileSetWidthChange(e);
 
         this.#tbTileSetScale = this.#element.querySelector('#tbTileSetScale');
-        this.#tbTileSetScale.onchange = (e) => this.#handleZoomChange(e);
+        this.#tbTileSetScale.onchange = (e) => this.#handleScaleChange(e);
 
         this.#btnToolUndo = this.#element.querySelector('#btnToolUndo');
         this.#btnToolUndo.onclick = (e) => this.#handleToolUndoClick(e);
@@ -172,11 +177,11 @@ export default class TileEditorToolbar {
     }
 
     /**
-     * Triggered when zoom level is changed.
+     * Triggered when scale level is changed.
      * @param {TileEditorToolbarUICallback} callback - Callback function.
      */
-    addHandlerRequestZoomChange(callback) {
-        this.#dispatcher.on(EVENT_RequestZoomChange, callback);
+    addHandlerRequestScaleChange(callback) {
+        this.#dispatcher.on(EVENT_RequestScaleChange, callback);
     }
 
 
@@ -222,13 +227,13 @@ export default class TileEditorToolbar {
         }
     }
 
-    #handleZoomChange(event) {
-        const newZoom = this.#scaleValue;
-        if (newZoom !== this.#lastZoom) {
+    #handleScaleChange(event) {
+        const newScale = this.#scaleValue;
+        if (newScale !== this.#lastScale) {
             /** @type {TileEditorToolbarUIEventArgs} */
-            const args = { zoom: newZoom };
-            this.#dispatcher.dispatch(EVENT_RequestZoomChange, args);
-            this.#lastZoom = newZoom;
+            const args = { scale: newScale };
+            this.#dispatcher.dispatch(EVENT_RequestScaleChange, args);
+            this.#lastScale = newScale;
         }
     }
 
@@ -277,7 +282,7 @@ export default class TileEditorToolbar {
  * @typedef {object} TileEditorToolbarUIEventArgs
  * @property {string} tool - Current selected tool.
  * @property {number} tileWidth - Current tile width.
- * @property {number} zoom - Current zoom value.
+ * @property {number} scale - Current sale value.
  * @exports
  */
 
