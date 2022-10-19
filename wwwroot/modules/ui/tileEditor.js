@@ -311,7 +311,7 @@ export default class TileEditor {
  * @typedef {object} TileEditorState
  * @property {TileSet?} tileSet - Tile set that will be drawn, passing this will trigger a redraw.
  * @property {Palette?} palette - Palette to use for drawing, passing this will trigger a redraw.
- * @property {number?} scale - Current zoom level.
+ * @property {number?} scale - Current scale level.
  * @property {boolean?} displayNative - Should the tile editor display native colours?
  * @property {number?} selectedTileIndex - Currently selected tile index.
  * @exports 
