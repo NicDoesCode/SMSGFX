@@ -159,11 +159,11 @@ function createKeyEventListeners() {
             if (keyEvent.ctrlKey && keyEvent.altKey) {
                 // Ctrl + alt
 
-                if (keyEvent.key === 'p') { // Plus shift 
+                if (keyEvent.key === 'p') { 
                     // New palette
                     newPalette();
                     handled = true;
-                } else if (keyEvent.key === 'e') { // Plus shift 
+                } else if (keyEvent.key === 'e') { 
                     // New tile
                     newTile();
                     handled = true;
