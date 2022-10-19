@@ -8,9 +8,14 @@ const EVENT_RequestZoomChange = 'EVENT_RequestZoomChange';
 const EVENT_RequestUndo = 'EVENT_RequestUndo';
 const EVENT_RequestRedo = 'EVENT_RequestRedo';
 
-const tools = ['pencil', 'bucket'];
+const tools = { select: 'select', pencil: 'pencil', bucket: 'bucket' };
 
 export default class TileEditorToolbar {
+
+
+    static get Tools() {
+        return tools;
+    }
 
 
     /**
@@ -94,7 +99,7 @@ export default class TileEditorToolbar {
             if (typeof state.tileWidth === 'number') {
                 this.#tileWidth = state.tileWidth;
             }
-            if (typeof state.selectedTool === 'string' && tools.includes(state.selectedTool)) {
+            if (typeof state.selectedTool === 'string') {
                 this.#highlightTool(state.selectedTool);
             }
             if (typeof state.scale === 'number') {
@@ -237,11 +242,9 @@ export default class TileEditorToolbar {
 
     /** @param {string} tool */
     #handleToolChanged(event, tool) {
-        if (tool && tools.includes(tool)) {
-            /** @type {TileEditorToolbarUIEventArgs} */
-            const args = { tool: tool };
-            this.#dispatcher.dispatch(EVENT_RequestToolChange, args);
-        }
+        /** @type {TileEditorToolbarUIEventArgs} */
+        const args = { tool: tool };
+        this.#dispatcher.dispatch(EVENT_RequestToolChange, args);
     }
 
 

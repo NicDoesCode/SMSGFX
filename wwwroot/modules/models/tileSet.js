@@ -209,31 +209,35 @@ export default class TileSet {
     }
 
     /**
-     * Sets the coordinate to read from.
-     * @param {number} x X coordinate in the tile set.
-     * @param {number} y Y coordinate in the tile set.
-     * @returns {Tile}
+     * Gets the tile at a given X and Y coordinate, or null if out of range.
+     * @param {number} x - X coordinate in the tile set.
+     * @param {number} y - Y coordinate in the tile set.
+     * @returns {number?}
+     */
+    getTileIndexByCoordinate(x, y) {
+        const numAcrossXAxis = (x - (x % 8)) / 8;
+        const numAcrossYAxis = (y - (y % 8)) / 8;
+        const tileIndex = (numAcrossYAxis * this.#tileWidth) + numAcrossXAxis;
+
+        if (tileIndex >= 0 && tileIndex < this.length) {
+            return tileIndex;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Gets a tile that corresponds with a given X and Y coordinate, null if out of range.
+     * @param {number} x - X coordinate in the tile set.
+     * @param {number} y - Y coordinate in the tile set.
+     * @returns {Tile?}
      */
     getTileByCoordinate(x, y) {
-
-        // if (!(x >= 1 && x <= this.#pxPerRow)) throw new Error(`X coordinate must be between 1 and ${this.#pxPerRow}.`);
-        // if (!(y >= 1 && y <= this.#heightPx)) throw new Error(`Y coordinate must be between 1 and ${this.#heightPx}.`);
-
-        // Work out the amount of pixels counting horizontally from the top left corner, counting across and then down
-        // From that, use the basis of 64 px per tile to get the tile index
-        const xTileIndex = (x - (x % 8)) / 8;
-        const yTileIndex = (y - (y % 8)) / 8;
-        const tileIndex = (yTileIndex * this.#tileWidth) + xTileIndex;
-
-        // Return the tile
-        if (tileIndex >= 0 && tileIndex < this.length) {
-            // Our tile map contains tiles for this
+        const tileIndex = this.getTileIndexByCoordinate(x, y);
+        if (tileIndex !== null) {
             return this.getTile(tileIndex);
-        } else if (tileIndex >= 0 && tileIndex < this.#tileWidth * this.#totalRows) {
-            // There may not be enough tiles so just return a blank one
-            return TileFactory.create();
         } else {
-            throw new Error(`There was an error when returning tile for coordinate of ${x},${y}.`);
+            return null;
         }
     }
 
@@ -271,7 +275,7 @@ export default class TileSet {
         // Get the tile number
         const tileX = (x - (x % 8)) / 8;
         const tileY = (y - (y % 8)) / 8;
-        const tileNum = tileY * this.tileWidth + tileX;
+        const tileNum = (tileY * this.tileWidth) + tileX;
 
         // Work out the coordinates and byte number within the tile itself
         x = x % 8;
@@ -293,7 +297,7 @@ export default class TileSet {
         // Get the tile number
         const tileX = (x - (x % 8)) / 8;
         const tileY = (y - (y % 8)) / 8;
-        const tileNum = tileY * this.tileWidth + tileX;
+        const tileNum = (tileY * this.tileWidth) + tileX;
 
         // Work out the coordinates and byte number within the tile itself
         x = x % 8;
