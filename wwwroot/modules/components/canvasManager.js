@@ -49,9 +49,24 @@ export default class CanvasManager {
         }
     }
 
+    /**
+     * Gets or sets the selected index of a tile, -1 means no selection.
+     */
+    get selectedTileIndex() {
+        return this.#selectedTileIndex;
+    }
+    set selectedTileIndex(value) {
+        if (value != this.#selectedTileIndex) {
+            if (this.#tileSet && this.tileSet.length > 0 && value >= 0 && value < this.tileSet.length) {
+                this.#selectedTileIndex = value;
 
-    /** @type {HTMLCanvasElement} */
-    #exportCanvas;
+            } else {
+                this.#selectedTileIndex = -1;
+            }
+        }
+    }
+
+
     /** @type {HTMLCanvasElement} */
     #baseCanvas;
     /** @type {CanvasRenderingContext2D} */
@@ -64,6 +79,8 @@ export default class CanvasManager {
     #palette = null;
     /** @type {number} */
     #scale = 10;
+    /** @type {number} */
+    #selectedTileIndex = -1;
 
 
     /**
@@ -72,7 +89,6 @@ export default class CanvasManager {
      * @param {Palette} [palette] Colour palette to use.
      */
     constructor(tileSet, palette) {
-        this.#exportCanvas = document.createElement('canvas');
         this.#baseCanvas = document.createElement('canvas');
         this.#baseCtx = this.#baseCanvas.getContext('2d');
         if (tileSet) this.#tileSet = tileSet;
@@ -152,7 +168,7 @@ export default class CanvasManager {
 
         const pxSize = this.scale;
 
-        let coords = {
+        const coords = {
             x: mouseX, y: mouseY,
             pxX: mouseX * pxSize,
             pxY: mouseY * pxSize,
@@ -178,6 +194,22 @@ export default class CanvasManager {
         // Highlight the entire tile
         ctx.strokeStyle = 'grey';
         ctx.strokeRect(coords.tileX, coords.tileY, (8 * pxSize), (8 * pxSize));
+
+        // Highlight selected tile
+        if (this.selectedTileIndex >= 0 && this.selectedTileIndex < this.tileSet.length) {
+            const selCol = this.selectedTileIndex % this.tileSet.tileWidth;
+            const selRow = Math.floor(this.selectedTileIndex / this.tileSet.tileWidth);
+            const tileX = 8 * selCol * pxSize;
+            const tileY = 8 * selRow * pxSize;
+
+            // Highlight the pixel
+            ctx.strokeStyle = 'black';
+            ctx.strokeRect(tileX, tileY, (8 * pxSize), (8 * pxSize));
+            ctx.strokeStyle = 'yellow';
+            ctx.setLineDash([2, 2]);
+            ctx.strokeRect(tileX, tileY, (8 * pxSize), (8 * pxSize));
+            ctx.setLineDash([]);
+        }
     }
 
 

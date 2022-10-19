@@ -105,6 +105,11 @@ export default class TileEditor {
             this.#displayNative = state.displayNative;
             dirty = true;
         }
+        // Selected tile index?
+        if (typeof state.selectedTileIndex === 'number') {
+            this.#canvasManager.selectedTileIndex = state.selectedTileIndex;
+            dirty = true;
+        }
         // Refresh image?
         if (dirty && this.#palette && this.#tileSet) {
             let palette = !this.#displayNative ? this.#palette : PaletteFactory.convertToNative(this.#palette);
@@ -308,6 +313,7 @@ export default class TileEditor {
  * @property {Palette?} palette - Palette to use for drawing, passing this will trigger a redraw.
  * @property {number?} scale - Current zoom level.
  * @property {boolean?} displayNative - Should the tile editor display native colours?
+ * @property {number?} selectedTileIndex - Currently selected tile index.
  * @exports 
  */
 

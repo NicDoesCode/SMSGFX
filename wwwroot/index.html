@@ -230,7 +230,7 @@
             <div class="sms-content-col sms-right">
                 <div class="sms-rows">
                     <div class="sms-row">
-                        <!-- Toolbar -->
+                        <!-- Tile editor toolbar -->
                         <div id="tbTileEditorToolbar" class="sms-tile-toolbar container-fluid p-0 m-0 pt-3 pb-2">
                             <div class="row align-items-center p-0 m-0">
                                 <div class="col-auto ms-0 ps-0 pe-0">
@@ -260,6 +260,10 @@
                                 <div class="col-auto pe-0">
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text">Tools</span>
+                                        <button id="btnToolSelection" class="btn btn-outline-secondary"
+                                            data-tool-button="select" title="Select tool.">
+                                            <i class="bi bi-cursor"></i>
+                                        </button>
                                         <button id="btnToolPencil" class="btn btn-outline-secondary"
                                             data-tool-button="pencil" title="Pencil tool.">
                                             <i class="bi bi-pencil-fill"></i>
@@ -294,7 +298,90 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- End: Toolbar -->
+                        <!-- End: Tile editor toolbar -->
+                    </div>
+                    <div id="pnlTileContextToolbar" class="sms-row">
+                        <!-- Tile context toolbar -->
+                        <div id="tbTileContextToolbar" class="sms-tile-toolbar container-fluid p-0 m-0 visually-hidden">
+                            <div class="row align-items-center p-0 m-0">
+                                <div class="col-auto ms-0 ps-0 pe-0">
+                                    <div class="input-group input-group-sm p-0 m-0 pb-2">
+                                        <span class="input-group-text fw-bolder">Select tool</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto pe-0 p-1">
+                                    <div class="input-group input-group-sm p-0 m-0 pb-2">
+                                        <button class="btn btn-outline-secondary" title="Cut tile." data-command="cut">
+                                            <i class="bi bi-scissors"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary" title="Copy tile."
+                                            data-command="copy">
+                                            <i class="bi bi-files"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary" title="Paste tile."
+                                            data-command="paste">
+                                            <i class="bi bi-clipboard"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-auto pe-0 p-1">
+                                    <div class="input-group input-group-sm p-0 m-0 pb-2">
+                                        <button class="btn btn-outline-secondary" title="Clone tile."
+                                            data-command="clone">
+                                            <i class="bi bi-file-earmark-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-auto pe-0 p-1">
+                                    <div class="input-group input-group-sm p-0 m-0 pb-2">
+                                        <button class="btn btn-outline-secondary" title="Remove tile."
+                                            data-command="remove">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-auto pe-0">
+                                    <div class="input-group input-group-sm p-0 m-0 pb-2">
+                                        <span class="input-group-text">Move</span>
+                                        <button class="btn btn-outline-secondary" title="Move tile to left."
+                                            data-command="moveLeft">
+                                            <i class="bi bi-arrow-left"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary" title="Move tile to right."
+                                            data-command="moveRight">
+                                            <i class="bi bi-arrow-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-auto pe-0">
+                                    <div class="input-group input-group-sm p-0 m-0 pb-2">
+                                        <span class="input-group-text">Mirror</span>
+                                        <button class="btn btn-outline-secondary" title="Mirror tile horizontally."
+                                            data-command="mirrorHorizontal">
+                                            <i class="bi bi-vr"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary" title="Mirror tile vertically."
+                                            data-command="mirrorVertical">
+                                            <i class="bi bi-hr"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-auto pe-0">
+                                    <div class="input-group input-group-sm p-0 m-0 pb-2">
+                                        <span class="input-group-text">Insert</span>
+                                        <button class="btn btn-outline-secondary" title="Insert new tile before selected."
+                                            data-command="insertBefore">
+                                            <i class="bi bi-arrow-bar-left"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary" title="Insert new tile after selected."
+                                            data-command="insertAfter">
+                                            <i class="bi bi-arrow-bar-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- End: Tile context toolbar -->
                     </div>
                     <div class="sms-row sms-grow">
                         <!-- Tile editor -->
@@ -356,7 +443,8 @@
                                         <button class="dropdown-item" data-command="clone">Clone tile</button>
                                     </li>
                                     <li class="pb-2">
-                                        <button class="dropdown-item" data-command="remove">Remove this tile</button>
+                                        <button class="dropdown-item" data-command="remove">Remove this
+                                            tile</button>
                                     </li>
                                 </ul>
                             </div>
@@ -519,7 +607,8 @@
                                 <li class="sms-colour-preview list-group-item w-auto" data-colour-preview="selected">
                                 </li>
                                 <li class="list-group-item">Native</li>
-                                <li class="sms-colour-preview list-group-item w-auto" data-colour-preview="native"></li>
+                                <li class="sms-colour-preview list-group-item w-auto" data-colour-preview="native">
+                                </li>
                             </ul>
                         </div>
                     </div>

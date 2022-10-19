@@ -6,6 +6,22 @@ export default class TileSetBinarySerialiser {
 
 
     /**
+     * Serialises the tile set to a planar byte array.
+     * @param {TileSet} tileSet - Tile set to serialise.
+     */
+     static serialise(tileSet) {
+        const byteLength = tileSet.length * 64;
+        const result = new Uint8ClampedArray(byteLength);
+        tileSet.getTiles().forEach((tile, index) => {
+            const resultArrayOffset = index * 64;
+            const tileAsBinary = TileBinarySerialiser.serialise(tile);
+            result.set(tileAsBinary, resultArrayOffset);
+        });
+        return result;
+    }
+
+
+    /**
      * Parses the tile data in planar format.
      * @param {Uint8ClampedArray} array - Array or tile data in planar format.
      * @returns {TileSet}

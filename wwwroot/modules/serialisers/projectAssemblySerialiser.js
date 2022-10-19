@@ -2,7 +2,7 @@ import TileSet from "../models/tileSet.js";
 import PaletteList from "../models/paletteList.js";
 import ColourUtil from "../util/colourUtil.js";
 import Project from "../models/project.js";
-import TileBinarySerialiser from "./tileBinarySerialiser.js";
+import TileSetBinarySerialiser from "./tileSetBinarySerialiser.js";
 
 export default class ProjectAssemblySerialiser {
 
@@ -57,7 +57,7 @@ export default class ProjectAssemblySerialiser {
      */
     static #exportTiles(tileSet) {
         const message = ['; TILES'];
-        const encoded = TileBinarySerialiser.serialise(tileSet);
+        const encoded = TileSetBinarySerialiser.serialise(tileSet);
         for (let i = 0; i < tileSet.length; i++) {
             message.push(`; Tile index $${i.toString(16).padStart(3, 0)}`);
             const tileMessage = ['.db'];
