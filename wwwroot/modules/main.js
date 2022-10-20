@@ -22,6 +22,7 @@ import UndoManager from "./components/undoManager.js";
 import ProjectFactory from "./factory/projectFactory.js";
 import PaletteListFactory from "./factory/paletteListFactory.js";
 import TileUtil from "./util/tileUtil.js";
+import ImageUtil from "./util/imageUtil.js";
 
 
 const undoManager = new UndoManager(50);
@@ -1577,5 +1578,11 @@ $(() => {
         scale: getUIState().scale,
         displayNative: getUIState().displayNativeColour
     });
+
+    setTimeout(async () => {
+        const iu = new ImageUtil();
+        const result = await iu.doIt();
+        console.log('doIt() result', result);
+    }, 1000);
 
 });
