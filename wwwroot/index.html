@@ -240,6 +240,10 @@
                                             title="Add a new tile to the end of the set.">
                                             <i class="bi bi-plus-lg"></i>
                                         </button>
+                                        <button id="btnImageImport" class="btn btn-outline-secondary"
+                                            title="Import an image as a tile map.">
+                                            <i class="bi bi-card-image"></i>
+                                        </button>
                                         <button id="btnTilesImport" class="btn btn-outline-secondary"
                                             title="Import tiles from your code.">
                                             <i class="bi bi-box-arrow-in-down"></i>
@@ -369,12 +373,12 @@
                                 <div class="col-auto pe-0">
                                     <div class="input-group input-group-sm p-0 m-0 pb-2">
                                         <span class="input-group-text">Insert</span>
-                                        <button class="btn btn-outline-secondary" title="Insert new tile before selected."
-                                            data-command="insertBefore">
+                                        <button class="btn btn-outline-secondary"
+                                            title="Insert new tile before selected." data-command="insertBefore">
                                             <i class="bi bi-arrow-bar-left"></i>
                                         </button>
-                                        <button class="btn btn-outline-secondary" title="Insert new tile after selected."
-                                            data-command="insertAfter">
+                                        <button class="btn btn-outline-secondary"
+                                            title="Insert new tile after selected." data-command="insertAfter">
                                             <i class="bi bi-arrow-bar-right"></i>
                                         </button>
                                     </div>
@@ -534,6 +538,7 @@
         </div>
     </div>
 
+    <!-- Colour picker modal -->
     <div id="tbColourPickerDialogue" class="sms-colour-picker modal fade" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -621,6 +626,50 @@
             </div>
         </div>
     </div>
+    <!-- End: Colour picker modal -->
+
+    <!-- Import image modal -->
+    <div class="modal fade" data-smsgfx-component-id="import-image-modal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Import an image</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Import an image into your project.</p>
+                    <div class="row g-3">
+                        <div class="col-auto">
+                            <input data-smsgfx-id="file-input" type="file" class="form-control" />
+                        </div>
+                        <div class="col-auto">
+                            <select data-smsgfx-id="selected-system" class="form-select">
+                                <option value="ms" selected>Master System</option>
+                                <option value="gg">Game Gear</option>
+                            </select>
+                        </div>
+                        <div class="col-auto">
+                            <button data-smsgfx-id="preview" type="button" class="btn btn-primary">Preview</button>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-2">
+                        <div class="col col-6">
+                            <p>Original</p>
+                            <canvas data-smsgfx-id="import-original"></canvas>
+                        </div>
+                        <div class="col col-6">
+                            <p>Preview</p>
+                            <canvas data-smsgfx-id="import-preview"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End: Import image modal -->
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">

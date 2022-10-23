@@ -99,7 +99,7 @@ export default class ColourUtil {
      * Gets a Master System colour palette.
      * @returns {Colour[]}
      */
-    static getMasterSystemPalette() {
+    static getFullMasterSystemPalette() {
         if (!masterSystemPalette) {
             masterSystemPalette = [];
             const colourShades = [0, 85, 170, 255];
@@ -118,7 +118,7 @@ export default class ColourUtil {
      * Gets a Game Gear colour palette.
      * @returns {Colour[]}
      */
-     static getGameGearPalette() {
+     static getFullGameGearPalette() {
         if (!gameGearPalette) {
             gameGearPalette = [];
             const colourShades = [0, 15, 31, 47, 63, 79, 95, 111, 127, 143, 159, 175, 191, 207, 223, 239, 255];

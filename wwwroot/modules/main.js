@@ -23,6 +23,7 @@ import ProjectFactory from "./factory/projectFactory.js";
 import PaletteListFactory from "./factory/paletteListFactory.js";
 import TileUtil from "./util/tileUtil.js";
 import ImageUtil from "./util/imageUtil.js";
+import ImportImageModalDialogue from "./ui/importImageModalDialogue.js";
 
 
 const undoManager = new UndoManager(50);
@@ -37,6 +38,7 @@ const tileEditor = new TileEditor(document.getElementById('tbTileEditor'));
 const tileEditorToolbar = new TileEditorToolbar(document.getElementById('tbTileEditorToolbar'));
 const tileContextToolbar = new TileContextToolbar(document.getElementById('tbTileContextToolbar'));
 const headerBar = new HeaderBar(document.getElementById('tbHeaderBar'));
+const importImageModalDialogue = new ImportImageModalDialogue(document.querySelector('[data-smsgfx-component-id=import-image-modal]'));
 
 
 
@@ -102,6 +104,7 @@ function wireUpEventHandlers() {
     tileEditor.addHandlerRequestMirrorTileVertical(handleTileEditorMirrorTileVertical);
 
     tileEditorToolbar.addHandlerRequestAddTile(handleTileEditorToolbarRequestAddTile);
+    tileEditorToolbar.addHandlerRequestImportImage(handleTileEditorToolbarRequestImportImage);
     tileEditorToolbar.addHandlerRequestImportTileSetFromCode(handleTileEditorToolbarRequestImportTileSetFromCode);
     tileEditorToolbar.addHandlerRequestUndo(handleTileEditorToolbarRequestUndo);
     tileEditorToolbar.addHandlerRequestRedo(handleTileEditorToolbarRequestRedo);
@@ -496,6 +499,11 @@ function handlePaletteEditorRequestColourIndexEdit(args) {
 /** @param {import('./ui/tileEditorToolbar').TileEditorToolbarCallback} args */
 function handleTileEditorToolbarRequestAddTile(args) {
     newTile();
+}
+
+/** @param {import('./ui/tileEditorToolbar').TileEditorToolbarCallback} args */
+function handleTileEditorToolbarRequestImportImage(args) {
+    importImageModalDialogue.show();
 }
 
 /** @param {import('./ui/tileEditorToolbar').TileEditorToolbarCallback} args */
@@ -1578,11 +1586,4 @@ $(() => {
         scale: getUIState().scale,
         displayNative: getUIState().displayNativeColour
     });
-
-    setTimeout(async () => {
-        const iu = new ImageUtil();
-        const result = await iu.doIt();
-        console.log('doIt() result', result);
-    }, 1000);
-
 });
