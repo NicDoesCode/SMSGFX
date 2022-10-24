@@ -630,38 +630,160 @@
 
     <!-- Import image modal -->
     <div class="modal fade" data-smsgfx-component-id="import-image-modal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Import an image</h5>
+                    <h5 class="modal-title">Import an image into your project</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Import an image into your project.</p>
-                    <div class="row g-3">
-                        <div class="col-auto">
-                            <input data-smsgfx-id="file-input" type="file" class="form-control" />
-                        </div>
-                        <div class="col-auto">
-                            <select data-smsgfx-id="selected-system" class="form-select">
-                                <option value="ms" selected>Master System</option>
-                                <option value="gg">Game Gear</option>
-                            </select>
-                        </div>
-                        <div class="col-auto">
-                            <button data-smsgfx-id="preview" type="button" class="btn btn-primary">Preview</button>
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col col-3 p-0">
+                                <!-- Inputs -->
+                                <h6 class="mb-2">Input</h6>
+                                <button data-smsgfx-id="import-file-button" type="button"
+                                    class="btn btn-sm btn-secondary">Load file</button>
+                                <button data-smsgfx-id="import-clipboard-button" type="button"
+                                    class="btn btn-sm btn-secondary">From clipboard</button>
+                                <input data-smsgfx-id="import-file" type="file"
+                                    class="form-control form-control-sm visually-hidden" />
+                                <h6 class="mt-4 mb-2">Output</h6>
+                                <div class="mb-2">
+                                    <label class="form-label form-label-sm m-0">Palette</label>
+                                    <select data-smsgfx-id="import-palette-select" class="form-select form-select-sm">
+                                        <option value="ms" selected>Create new Master System palette</option>
+                                        <option value="gg">Create new Game Gear palette</option>
+                                    </select>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label form-label-sm m-0">Output dimensions</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text" style="width: 85px">Width</span>
+                                        <input data-smsgfx-id="import-width" type="text" class="form-control" />
+                                        <input data-smsgfx-id="import-width-percent" type="text"
+                                            class="form-control visually-hidden" />
+                                        <select data-smsgfx-id="import-unit-width" class="form-select">
+                                            <option value="px" selected>px</option>
+                                            <option value="%">%</option>
+                                        </select>
+                                    </div>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text" style="width: 85px">Height</span>
+                                        <input data-smsgfx-id="import-height" type="text" class="form-control" />
+                                        <input data-smsgfx-id="import-height-percent" type="text"
+                                            class="form-control visually-hidden" />
+                                        <select data-smsgfx-id="import-unit-height" class="form-select">
+                                            <option value="px" selected>px</option>
+                                            <option value="%">%</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-check form-check-sm">
+                                        <input data-smsgfx-id="import-ratio-lock" class="form-check-input"
+                                            type="checkbox" value="" id="importImageDialogueLockAspect"
+                                            checked="checked">
+                                        <label class="form-check-label" for="importImageDialogueLockAspect">
+                                            <small>Lock aspect ratio</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label form-label-sm m-0">Tile offset origin</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text" style="width: 85px">Top</span>
+                                        <input data-smsgfx-id="offset-top" type="number" class="form-control" />
+                                        <span class="input-group-text" style="width: 60px">px</span>
+                                    </div>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text" style="width: 85px">Left</span>
+                                        <input data-smsgfx-id="offset-left" type="number" class="form-control" />
+                                        <span class="input-group-text" style="width: 60px">px</span>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label form-label-sm m-0">Number of tiles</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text" style="width: 85px">Wide</span>
+                                        <input data-smsgfx-id="tiles-wide" type="number" class="form-control" />
+                                        <span class="input-group-text" style="width: 60px">tiles</span>
+                                    </div>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text" style="width: 85px">High</span>
+                                        <input data-smsgfx-id="tiles-high" type="number" class="form-control" />
+                                        <span class="input-group-text" style="width: 60px">tiles</span>
+                                    </div>
+                                    <div class="form-check form-check-sm">
+                                        <input data-smsgfx-id="preview-display-tiles" class="form-check-input"
+                                            type="checkbox" value="" id="importImageDialogueDisplayTiles"
+                                            checked="checked">
+                                        <label class="form-check-label" for="importImageDialogueDisplayTiles">
+                                            <small>Display tiles on preview</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                <label class="form-label form-label-sm m-0">Preview</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text" style="width: 85px">Scale</span>
+                                    <select data-smsgfx-id="preview-scale" class="form-select">
+                                        <option value="1" selected>1:1</option>
+                                        <option value="2">2:1</option>
+                                        <option value="5">5:1</option>
+                                        <option value="10">10:1</option>
+                                        <option value="15">15:1</option>
+                                        <option value="20">20:1</option>
+                                    </select>
+                                    <button data-smsgfx-id="preview-button" type="button"
+                                        class="btn btn-sm btn-primary">Update preview</button>
+                                </div>
+                                <div class="input-group input-group-sm">
+                                    <button data-smsgfx-id="import-button" type="button"
+                                        class="btn btn-sm btn-primary">Import</button>
+                                </div>
+                                <div>
+                                    <code data-smsgfx-id="label-original-dimensions">...</code>
+                                    <code data-smsgfx-id="label-total-tiles">...</code>
+                                </div>
+                                <!-- End: Inputs -->
+                            </div>
+                            <div class="col col-9 p-0">
+
+                                <div class="container-fluid">
+                                    <!-- Button row -->
+                                    <div class="row">
+                                        <div class="col">
+                                            <nav class="mb-2">
+                                                <div class="nav nav-tabs" role="tablist">
+                                                    <button class="nav-link active"
+                                                        aria-current="page">Original</button>
+                                                    <button class="nav-link">Preview</button>
+                                                    <button class="nav-link">Split</button>
+                                                </div>
+                                            </nav>
+                                            <div class="tab-content">
+                                                <div data-smsgfx-content="preview-original">
+                                                    <!-- Original image -->
+                                                    <canvas data-smsgfx-id="import-original" width="775" height="500"
+                                                        class="d-inline-block"
+                                                        style="border: 1px solid #AAAAAA"></canvas>
+                                                    <!-- End: Original image -->
+                                                </div>
+                                                <div data-smsgfx-content="preview-imported">
+                                                    <!-- Preview image -->
+                                                    <canvas data-smsgfx-id="import-preview" width="775" height="500"
+                                                        class="d-inline-block"
+                                                        style="border: 1px solid #AAAAAA"></canvas>
+                                                    <!-- End: Preview image -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- End: Button row -->
+                                </div>
+
+                            </div>
                         </div>
                     </div>
-                    <div class="row g-3 mt-2">
-                        <div class="col col-6">
-                            <p>Original</p>
-                            <canvas data-smsgfx-id="import-original"></canvas>
-                        </div>
-                        <div class="col col-6">
-                            <p>Preview</p>
-                            <canvas data-smsgfx-id="import-preview"></canvas>
-                        </div>
-                    </div>
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

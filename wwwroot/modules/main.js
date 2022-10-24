@@ -503,6 +503,9 @@ function handleTileEditorToolbarRequestAddTile(args) {
 
 /** @param {import('./ui/tileEditorToolbar').TileEditorToolbarCallback} args */
 function handleTileEditorToolbarRequestImportImage(args) {
+    importImageModalDialogue.setState({
+        paletteList: getPaletteList()
+    });
     importImageModalDialogue.show();
 }
 

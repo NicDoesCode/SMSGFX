@@ -1,4 +1,10 @@
+import Palette from "../models/palette.js";
+import Project from "../models/project.js";
+import PaletteFactory from "../factory/paletteFactory.js";
+import ProjectFactory from "../factory/projectFactory.js";
 import ColourUtil from "./colourUtil.js";
+import TileSetFactory from "../factory/tileSetFactory.js";
+import PaletteListFactory from "../factory/paletteListFactory.js";
 
 export default class ImageUtil {
 
@@ -7,13 +13,117 @@ export default class ImageUtil {
      * Displays an image on a canvas element.
      * @param {HTMLCanvasElement} canvas - Canvas element to display the image on.
      * @param {HTMLImageElement} image - Image to display.
+     * @param {ImageDisplayParams?} params - Optional parameters.
      */
-    static displayImageOnCanvas(canvas, image) {
+    static displayImageOnCanvas(canvas, image, params) {
         if (!canvas) throw new Error('Canvas must be set.');
         const context = canvas.getContext('2d');
-        canvas.width = image.width;
-        canvas.height = image.height;
-        context.drawImage(image, 0, 0);
+
+
+        // const canvasBounds = canvas.getBoundingClientRect();
+        // console.log('displayImageOnCanvas', canvasBounds, canvas.width, canvas.height, canvas);
+        // canvas.width = canvasBounds.width;
+        // canvas.height = canvasBounds.height;
+
+        // Determine preview image scale W & H
+        let drawScale, drawW, drawH;
+        drawScale = params?.scale ?? 1;
+        drawW = image.width * drawScale;
+        drawH = image.height * drawScale;
+
+        // if (image.width < canvas.width && image.height < canvas.height) {
+        //     drawScale = 1;
+        //     drawW = image.width;
+        //     drawH = image.height;
+
+        // } else {
+        //     drawScale = 1 / image.width * canvas.width;
+        //     drawW = canvas.width;
+        //     drawH = Math.floor(image.height * drawScale);
+
+        //     if (drawH > canvas.height) {
+        //         drawScale = 1 / image.height * canvas.height;
+        //         drawW = Math.floor(image.width * drawScale);
+        //         drawH = canvas.height;
+        //     }
+        // }
+
+        // Fill background
+        context.fillStyle = '#DDDDDD';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Background blank area lines
+        context.strokeStyle = '#CCCCCC';
+        context.beginPath();
+        const largestDimension = Math.max(canvas.width, canvas.height);
+        for (let t = 0; t <= largestDimension; t += 4) {
+            context.moveTo(t, 0);
+            context.lineTo(0, t);
+            context.moveTo(largestDimension, largestDimension - t);
+            context.lineTo(largestDimension - t, largestDimension);
+        }
+        context.stroke();
+
+        // Draw image image with a border
+        let drawX = (canvas.width - drawW) / 2;
+        let drawY = (canvas.height - drawH) / 2;
+        context.strokeStyle = '#555555';
+        context.strokeRect(drawX - 1, drawY - 1, drawW + 2, drawH + 2);
+        context.imageSmoothingEnabled = false;
+        context.drawImage(image, drawX, drawY, drawW, drawH);
+
+        // Draw tile spec?
+        if (params?.tiles) {
+            const tileWidth = 8 * drawScale;
+            const tiles = params.tiles;
+            let tileOffsetX = drawX + (tiles.offsetX * drawScale);
+            let tileOffsetY = drawY + (tiles.offsetY * drawScale);
+            for (let y = 0; y < tiles.tilesHigh; y++) {
+                const thisTileOffsetY = tileOffsetY + (y * tileWidth);
+                for (let x = 0; x < tiles.tilesWide; x++) {
+                    const thisTileOffsetX = tileOffsetX + (x * tileWidth);
+                    context.strokeStyle = 'rgba(0, 0, 0, 0.25)';
+                    context.strokeRect(thisTileOffsetX, thisTileOffsetY, tileWidth, tileWidth);
+                    context.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+                    context.strokeRect(thisTileOffsetX + 1, thisTileOffsetY + 1, tileWidth, tileWidth);
+                }
+            }
+        }
+
+        // Draw grid lines
+        // context.strokeStyle = 'rgba(0, 0, 0, 0.25)';
+        // context.beginPath();
+        // for (let x = 0; x < image.width; x += 8) {
+        //     const lineX = drawX + (drawScale * x);
+        //     context.moveTo(lineX, drawY);
+        //     context.lineTo(lineX, drawY + drawH);
+        // }
+        // for (let y = 0; y < image.height; y += 8) {
+        //     const lineY = drawY + (drawScale * y);
+        //     context.moveTo(drawX, lineY);
+        //     context.lineTo(drawX + drawW, lineY);
+        // }
+        // context.stroke();
+    }
+
+    /**
+     * Gets a new image using a colour palette.
+     * @param {ColourMatch} palette - Palette of colours.
+     * @param {HTMLImageElement} image - Image to display.
+     * @returns {HTMLImageElement}
+     */
+    static async resizeImageAsync(image, width, height) {
+        return await new Promise(async (resolve, reject) => {
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+
+            const context = canvas.getContext('2d');
+            context.imageSmoothingEnabled = false;
+            context.drawImage(image, 0, 0, width, height);
+
+            resolve(await canvasToImageAsync(canvas));
+        });
     }
 
     /**
@@ -23,11 +133,11 @@ export default class ImageUtil {
      * @returns {HTMLImageElement}
      */
     static async getImageFromPaletteAsync(palette, image) {
-        return await new Promise((resolve, reject) => {
+        return await new Promise(async (resolve, reject) => {
             const canvas = document.createElement('canvas');
             canvas.width = image.width;
             canvas.height = image.height;
-            const ctx = canvas.getContext('2d');
+            const context = canvas.getContext('2d');
 
             const imageData = ImageUtil.extractImageData(image);
 
@@ -44,7 +154,7 @@ export default class ImageUtil {
             console.log('getImageFromPalette palette', palette);
             console.log('getImageFromPalette hexLookup', hexLookup);
 
-            let x = 0, y = 0;
+            let x = 0, y = -1;
             for (let i = 0; i < imageData.data.length; i += 4) {
 
                 // Move to next vertical line at end of horizontal line 
@@ -56,28 +166,110 @@ export default class ImageUtil {
                 // Fill the pixel based on image in hex lookup
                 const pixel = getPixelValue(imageData.data, i);
                 if (hexLookup[pixel.hex]) {
-                    ctx.fillStyle = hexLookup[pixel.hex];
+                    context.fillStyle = hexLookup[pixel.hex];
                 } else {
-                    ctx.fillStyle = 'yellow';
+                    context.fillStyle = 'yellow';
                 }
-                ctx.fillRect(x, y, 1, 1);
+                context.fillRect(x, y, 1, 1);
 
                 x++;
             }
 
-            const dataUrl = canvas.toDataURL();
-            const previewImage = new Image();
-            previewImage.onload = () => {
-                resolve(previewImage);
-            };
-            previewImage.src = dataUrl;
+            resolve(await canvasToImageAsync(canvas));
         });
+    }
+
+    /**
+     * Creates a tile preview image data object from a canvas element.
+     * @param {HTMLImageElement} image - Source image to create the preview from.
+     * @returns {ImageData}
+     */
+    static async createTilePreviewImageAsync(image) {
+        return new Promise(async (resolve, reject) => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 8 * Math.ceil(image.width / 8);
+            canvas.height = 8 * Math.ceil(image.height / 8);
+
+            const context = canvas.getContext('2d');
+            context.imageSmoothingEnabled = false;
+            context.drawImage(image, 0, 0);
+
+            context.strokeStyle = '#AAAAAA';
+            for (let w = 0; w < image.width; w += 8) {
+                context.moveTo(w, 0);
+                context.lineTo(w, image.height);
+            }
+            for (let h = 0; h < image.height; h += 8) {
+                context.moveTo(0, h);
+                context.lineTo(image.width, h);
+            }
+            context.stroke();
+
+            resolve(await canvasToImageAsync(canvas));
+            // return context.getImageData(0, 0, canvas.width, canvas.height);
+        });
+    }
+
+    /**
+     * Creates a tile preview image data object from a canvas element.
+     * @param {HTMLImageElement} image - Source image to create the preview from.
+     * @returns {ImageData}
+     */
+    static async drawPreviewToCanvas(image) {
+        return new Promise(async (resolve, reject) => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 8 * Math.ceil(image.width / 8);
+            canvas.height = 8 * Math.ceil(image.height / 8);
+
+            const context = canvas.getContext('2d');
+            context.imageSmoothingEnabled = false;
+            context.drawImage(image, 0, 0);
+
+            context.strokeStyle = '#AAAAAA';
+            for (let w = 0; w < image.width; w += 8) {
+                context.moveTo(w, 0);
+                context.lineTo(w, image.height);
+            }
+            for (let h = 0; h < image.height; h += 8) {
+                context.moveTo(0, h);
+                context.lineTo(image.width, h);
+            }
+            context.stroke();
+
+            resolve(await canvasToImageAsync(canvas));
+            // return context.getImageData(0, 0, canvas.width, canvas.height);
+        });
+    }
+
+    /**
+     * Creates a tile preview image data object from a canvas element.
+     * @param {HTMLImageElement} image - Source image to create the preview from.
+     * @returns {ImageData}
+     */
+    static async drawPreviewOntoCanvasAsync(image, outputCanvas) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 8 * Math.ceil(image.width / 8);
+        canvas.height = 8 * Math.ceil(image.height / 8);
+
+        const context = canvas.getContext('2d');
+        context.imageSmoothingEnabled = false;
+        context.drawImage(image, 0, 0);
+
+        context.strokeStyle = '#AAAAAA';
+        for (let w = 0; w < image.width; w += 8) {
+            context.strokeRect(w, 0, w, image.height);
+        }
+        for (let h = 0; h < image.height; h += 8) {
+            context.strokeRect(h, 0, h, image.width);
+        }
+
+        return context.getImageData(0, 0, canvas.width, canvas.height);
     }
 
     /**
      * Creates an image data object from a canvas element.
      * @param {HTMLImageElement} image - Input image.
-     * @returns {ImageData}
+     * @returns {globalThis.ImageData}
      */
     static extractImageData(image) {
         const canvas = document.createElement('canvas');
@@ -85,6 +277,7 @@ export default class ImageUtil {
         canvas.height = image.height;
 
         const context = canvas.getContext('2d');
+        context.imageSmoothingEnabled = false;
         context.drawImage(image, 0, 0);
 
         return context.getImageData(0, 0, canvas.width, canvas.height);
@@ -112,6 +305,45 @@ export default class ImageUtil {
             reader.readAsDataURL(file);
         });
     }
+
+
+    /**
+     * Matches colours to a given Palette.
+     * @param {HTMLImageElement} image - Input image.
+     * @param {Palette} palette - Palette containing the colours.
+     * @returns {ColourMatch[]}
+     */
+    static async matchToPaletteAsync(image, palette) {
+        return await new Promise((resolve, reject) => {
+            const matchedColours = ImageUtil.matchToPalette(image, palette);
+            resolve(matchedColours);
+        });
+    }
+
+    /**
+     * Matches colours to a given Palette.
+     * @param {HTMLImageElement} image - Input image.
+     * @param {Palette} palette - Palette containing the colours.
+     * @returns {ColourMatch[]}
+     */
+    static matchToPalette(image, palette) {
+
+        /** @type {Colour[]} */
+        const colours = [];
+        palette.getColours().forEach(paletteColour => {
+            colours.push({
+                r: paletteColour.r, g: paletteColour.g, b: paletteColour.b,
+                hex: ColourUtil.toHex(paletteColour.r, paletteColour.g, paletteColour.b)
+            });
+        });
+
+        const foundImageColoursDict = extractUniqueColours(image);
+        const foundImageColours = Object.values(foundImageColoursDict).sort((a, b) => a.count > b.count);
+
+        const matchedColours = matchColours(colours, foundImageColours);
+        return matchedColours.matches;
+    }
+
 
     /**
      * Extracts a 16 colour native system palette from an image.
@@ -171,6 +403,136 @@ export default class ImageUtil {
         return matchedColours.matches;
     }
 
+
+    /**
+     * Matches all colours on an image to the closest one in a array of colours.
+     * @param {HTMLImageElement} image - Input image.
+     * @param {Colour[]} colours - Array of colours to match to.
+     * @returns {ColourMatch[]}
+     */
+    static reduceImageColoursToList(image, colours) {
+
+        const foundImageColoursDict = extractUniqueColours(image);
+        const foundImageColours = Object.values(foundImageColoursDict).sort((a, b) => a.count < b.count);
+        let matchedColours = matchColours(colours, foundImageColours);
+
+        console.log('extractNativePaletteFromImage, matched colours', matchedColours);
+
+        // Reduce the matched colours to a 16 colour palette
+        let matchRangeFactor = 0;
+        while (matchedColours.matches.length > 16) {
+            matchRangeFactor += 4;
+            matchedColours = groupSimilarColours2(matchedColours.matches, matchRangeFactor);
+        }
+
+        console.log('extractNativePaletteFromImage, reduced colours', matchedColours);
+
+        return matchedColours.matches;
+    }
+
+
+    /**
+     * Converts an image and palette to a new project.
+     * @param {HTMLImageElement} image - Image to convert.
+     * @param {ColourMatch[]} palette - Palette of colours to use.
+     * @param {ImageImportParams} params - Parameters.
+     * @returns {Project}
+     */
+    static imageToProject(image, palette, params) {
+
+        const paletteToIndex = {};
+        palette.forEach((p, index) => {
+            paletteToIndex[p.hex] = index;
+        });
+
+        /** @type {TileSpec} */
+        const tiles = params?.tiles ?? {
+            offsetX: 0, offsetY: 0,
+            tilesWide: Math.ceil(image.width / 8),
+            tilesHigh: Math.ceil(image.height / 8)
+        };
+
+        // Get virtual array
+        const width = tiles.tilesWide * 8;
+        const height = tiles.tilesHigh * 8;
+        const virtualData = new Uint8ClampedArray(width * height);
+        const imageData = this.extractImageData(image);
+        const pxPerTileRow = tiles.tilesWide * 64;
+
+        const emptyStartPixels = tiles.offsetX < 0 ? tiles.offsetX : 0;
+        const emptyEndPixels = tiles.offsetX + width > image.width ? (tiles.offsetX + width) - image.width : 0;
+        const neededXPixelsFromImage = width - emptyStartPixels - emptyEndPixels;
+
+        let virtualY = 0;
+        for (let y = tiles.offsetY; y < height; y++) {
+            // Is y inside image?
+            if (y >= 0 && y < image.height) {
+                const imageDataOffset = y * image.width;
+                const imageDataData = imageData.data.slice(imageDataOffset * 4, (imageDataOffset + neededXPixelsFromImage) * 4);
+                let virtualX = emptyStartPixels;
+                let virtualOffset = (virtualY * width) + virtualX;
+                for (let offset = 0; offset < imageDataData.length; offset += 4) {
+
+                    const pixelValue = getPixelValue(imageDataData, offset);
+                    const matchedPaletteIndex = paletteToIndex[pixelValue.hex];
+
+                    const tileRow = Math.floor(virtualY / 8);
+                    const tileCol = Math.floor(virtualX / 8);
+                    const tileNum = (tileRow * tiles.tilesWide) + tileCol;
+                    const tileOffset = tileNum * 64;
+
+                    const thisTileRow = virtualY % 8;
+                    const thisTileCol = virtualX % 8;
+                    const thisTileOffset = (thisTileRow * 8) + thisTileCol;
+
+                    const tileMapVirtualOffset = tileOffset + thisTileOffset;
+
+                    // const tileOffset = virtualOffset % 64; // Offset witin the tile
+                    // const tileNum = (virtualOffset - tileOffset) / 64;
+                    // const tileMapVirtualOffset = (tileNum * 64) + tileOffset;
+
+                    // const virtualTileNum = Math.floor(virtualX / 8);
+                    // const virtualTileOffset = (virtualTileNum * 64) + (virtualX % 64);
+                    virtualData[tileMapVirtualOffset] = matchedPaletteIndex;
+                    // virtualData[virtualOffset] = 16;
+                    virtualX++;
+                    virtualOffset++;
+                }
+            }
+            virtualY++;
+        }
+        const tileSet = TileSetFactory.fromArray(virtualData);
+        tileSet.tileWidth = tiles.tilesWide;
+
+        // Write tiles
+        const system = params?.system ?? 'ms';
+        const projectPalette = PaletteFactory.create('Imported palette', system);
+        palette.forEach((p, index) => {
+            projectPalette.setColour(index, {
+                r: p.r, g: p.g, b: p.b
+            })
+        });
+        for (let i = 0; i < 16; i++) {
+            if (!projectPalette.getColour(i)) {
+                projectPalette.setColour(i, { r: 0, g: 0, b: 0 });
+            }
+        }
+        const paletteList = PaletteListFactory.create([projectPalette]);
+
+        const projectName = params?.projectName ?? 'Imported image';
+
+        const project = ProjectFactory.create(projectName, tileSet, paletteList);
+        return project;
+    }
+
+
+}
+
+class ImageData {
+
+    #imageData;
+    #width;
+    #height;
 
 }
 
@@ -355,11 +717,21 @@ function groupSimilarColours2(coloursToGroup, matchRangeFactor) {
 // }
 
 
-
-
-
-
-
+/**
+ * Creates an image from a canvas object.
+ * @param {HTMLCanvasElement} canvas - Inoput canvas to make the image from.
+ * @returns {HTMLImageElement}
+ */
+async function canvasToImageAsync(canvas) {
+    return new Promise((resolve, reject) => {
+        const dataUrl = canvas.toDataURL();
+        const result = new Image();
+        result.onload = () => {
+            resolve(result);
+        };
+        result.src = dataUrl;
+    });
+}
 
 /**
  * Extracts all unique colours from an image.
@@ -469,6 +841,27 @@ function getSimilaritry(colour, range) {
     });
     return score / 3;
 }
+
+/**
+ * @typedef {object} ImageDisplayParams
+ * @property {TileSpec?} tiles
+ * @property {number?} scale
+ */
+
+/**
+ * @typedef {object} ImageImportParams
+ * @property {TileSpec?} tiles
+ * @property {string?} projectName
+ * @property {string?} system
+ */
+
+/**
+ * @typedef {object} TileSpec
+ * @property {number} offsetX
+ * @property {number} offsetY
+ * @property {number} tilesWide
+ * @property {number} tilesHigh
+ */
 
 /** 
  * @typedef {object} Colour 
