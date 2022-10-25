@@ -291,8 +291,17 @@ export default class ImageUtil {
     static async fileInputToImageAsync(fileInput) {
         if (!fileInput) throw new Error('File input must be set.');
         if (fileInput.files.length === 0) throw new Error('File input had no files.');
+        return await this.fileToImageAsync(fileInput.files[0]);
+    }
+
+    /**
+     * Reads an image from a file.
+     * @param {File} file - The file to read.
+     * @returns {HTMLImageElement}
+     */
+     static async fileToImageAsync(file) {
+        if (!file) throw new Error('File must be set.');
         return await new Promise((resolve, reject) => {
-            const file = fileInput.files[0];
             const reader = new FileReader();
             reader.onload = () => {
                 const dataUrl = reader.result;

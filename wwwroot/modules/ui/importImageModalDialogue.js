@@ -65,6 +65,8 @@ export default class ImportImageModalDialogue extends ModalDialogue {
     #originalImage = null;
     /** @type {HTMLImageElement} */
     #previewImage = null;
+    /** @type {string} */
+    #fileName = null;
 
 
     /**
@@ -74,10 +76,7 @@ export default class ImportImageModalDialogue extends ModalDialogue {
     constructor(element) {
         super(element);
 
-        element.addEventListener('keyup', (keyEvent) => {
-            console.log('keyup', keyEvent);
-            keyEvent.preventDefault();
-        });
+        element.addEventListener('paste', (clipboardEvent) => this.#handleFilePasteEvent(clipboardEvent));
 
         this.#btnImportFile = element.querySelector('[data-smsgfx-id=import-file-button]');
         this.#btnImportFile.onclick = () => this.#tbImportFile.click();
@@ -300,36 +299,31 @@ export default class ImportImageModalDialogue extends ModalDialogue {
         this.#updateOriginalImageDisplayAsync();
     }
 
+    /**
+     * Handles when a user pastes a file.
+     * @param {ClipboardEvent} clipboardEvent - Clipboard event that occurred.
+     */
+    async #handleFilePasteEvent(clipboardEvent) {
+        if (clipboardEvent?.clipboardData?.files.length > 0) {
+            this.#tbImportFile.setAttribute('disabled', '');
+            this.#btnPreview.setAttribute('disabled', '');
+
+            const file = clipboardEvent?.clipboardData?.files[0];
+            await this.#loadFile(file);
+            this.#fileName = file.name;
+
+            this.#btnPreview.removeAttribute('disabled');
+            this.#tbImportFile.removeAttribute('disabled');
+        }
+    }
+
     async #handleFileInputChangeEvent() {
         if (this.#tbImportFile.files.length > 0) {
             this.#tbImportFile.setAttribute('disabled', '');
             this.#btnPreview.setAttribute('disabled', '');
 
-            this.#originalImage = await ImageUtil.fileInputToImageAsync(this.#tbImportFile);
-            // ImageUtil.displayImageOnCanvas(this.#tbCanvasOriginal, this.#originalImage);
-
-            this.#lblOriginalDimensons.innerText = `${this.#originalImage.width}x${this.#originalImage.height}`;
-
-            const wTiles = Math.ceil(this.#originalImage.width / 8);
-            const hTiles = Math.ceil(this.#originalImage.height / 8);
-            const totalTiles = wTiles * hTiles;
-
-            this.#tbImportWidth.value = this.#originalImage.width;
-            this.#tbImportWidthPercent.value = 100;
-            this.#tbImportHeight.value = this.#originalImage.height;
-            this.#tbImportHeightPercent.value = 100;
-
-            this.#tbOffsetTop.value = 0;
-            this.#tbOffsetLeft.value = 0;
-            this.#tbTilesWide.value = wTiles;
-            this.#tbTilesHigh.value = hTiles;
-
-            this.#lblTotalTiles.innerText = totalTiles;
-            resetCanvas(this.#tbCanvasPreview);
-
-            this.#updateOriginalImageDisplayAsync();
-            this.#previewImage = new Image(this.#originalImage.width, this.#originalImage.height);
-            ImageUtil.displayImageOnCanvas(this.#tbCanvasPreview, this.#previewImage);
+            await this.#loadFile(this.#tbImportFile.files[0]);
+            this.#fileName = this.#tbImportFile.files[0].name;
 
             this.#btnPreview.removeAttribute('disabled');
             this.#tbImportFile.removeAttribute('disabled');
@@ -342,7 +336,7 @@ export default class ImportImageModalDialogue extends ModalDialogue {
     }
 
     async #handlePreviewClick() {
-        if (this.#tbImportFile.files.length > 0) {
+        if (this.#originalImage) {
             this.#tbImportFile.setAttribute('disabled', '');
             this.#btnPreview.setAttribute('disabled', '');
 
@@ -352,7 +346,6 @@ export default class ImportImageModalDialogue extends ModalDialogue {
             const previewTiles = this.#tbPreviewTileDisplay.checked;
 
             const originalImage = await ImageUtil.resizeImageAsync(this.#originalImage, width, height);
-            // const originalImage = await ImageUtil.fileInputToImageAsync(this.#tbImportFile);
 
             /** @type {ColourMatch[]} */
             let importColours;
@@ -366,12 +359,8 @@ export default class ImportImageModalDialogue extends ModalDialogue {
                 importColours = await ImageUtil.matchToPaletteAsync(originalImage, palette);
             }
 
-            // const newPalette = await ImageUtil.extractNativePaletteFromImageAsync(originalImage, selectedImportColours);
             const colourReducedImage = await ImageUtil.getImageFromPaletteAsync(importColours, originalImage);
             const previewImage = colourReducedImage;
-            // const previewImage = await ImageUtil.createTilePreviewImageAsync(colourReducedImage);
-
-            // ImageUtil.displayImageOnCanvas(this.#tbCanvasPreview, previewImage);
 
             /** @type {import("../util/imageUtil.js").ImageDisplayParams} */
             const tiles = {
@@ -393,7 +382,7 @@ export default class ImportImageModalDialogue extends ModalDialogue {
 
 
     async #handleImportClick() {
-        if (this.#tbImportFile.files.length > 0) {
+        if (this.#originalImage) {
             this.#tbImportFile.setAttribute('disabled', '');
             this.#btnPreview.setAttribute('disabled', '');
 
@@ -421,7 +410,7 @@ export default class ImportImageModalDialogue extends ModalDialogue {
 
             /** @type {import("../util/imageUtil.js").ImageImportParams} */
             const params = {
-                projectName: this.#tbImportFile.files[0].name,
+                projectName: this.#fileName ?? 'Imported image',
                 system: system,
                 tiles: {
                     offsetX: parseInt(this.#tbOffsetLeft.value),
@@ -465,6 +454,37 @@ export default class ImportImageModalDialogue extends ModalDialogue {
         });
     }
 
+    /**
+     * Loads a file into the canvas.
+     * @param {File} file - File to load.
+     */
+    async #loadFile(file) {
+        if (!file) throw new Error('There was no file.')
+
+        this.#originalImage = await ImageUtil.fileToImageAsync(file);
+        this.#lblOriginalDimensons.innerText = `${this.#originalImage.width}x${this.#originalImage.height}`;
+
+        const wTiles = Math.ceil(this.#originalImage.width / 8);
+        const hTiles = Math.ceil(this.#originalImage.height / 8);
+        const totalTiles = wTiles * hTiles;
+
+        this.#tbImportWidth.value = this.#originalImage.width;
+        this.#tbImportWidthPercent.value = 100;
+        this.#tbImportHeight.value = this.#originalImage.height;
+        this.#tbImportHeightPercent.value = 100;
+
+        this.#tbOffsetTop.value = 0;
+        this.#tbOffsetLeft.value = 0;
+        this.#tbTilesWide.value = wTiles;
+        this.#tbTilesHigh.value = hTiles;
+
+        this.#lblTotalTiles.innerText = totalTiles;
+        resetCanvas(this.#tbCanvasPreview);
+
+        this.#updateOriginalImageDisplayAsync();
+        this.#previewImage = new Image(this.#originalImage.width, this.#originalImage.height);
+        ImageUtil.displayImageOnCanvas(this.#tbCanvasPreview, this.#previewImage);
+    }
 
 }
 
