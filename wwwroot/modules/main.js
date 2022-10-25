@@ -124,9 +124,26 @@ function wireUpEventHandlers() {
     colourPickerToolbox.addHandlerRequestColourChange(handleColourPickerToolboxColourChange);
 
     tileDialogue.addHandlerOnConfirm(handleImportTileSet);
+
+    importImageModalDialogue.addHandlerOnConfirm(handleImageImportModalOnConfirm)
 }
 
-function createKeyEventListeners() {
+function createEventListeners() {
+
+    document.addEventListener('paste', (clipboardEvent) => {
+        if (clipboardEvent.clipboardData?.files?.length > 0) {
+            const targetTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/gif', 'image/svg+xml'];
+            const file = clipboardEvent.clipboardData.files[0];
+            if (targetTypes.includes(file.type)) {
+                importImageModalDialogue.setState({
+                    paletteList: getPaletteList(),
+                    file: file
+                });
+                importImageModalDialogue.show();
+            }
+        }
+    });
+
     document.addEventListener('keydown', (keyEvent) => {
         // console.log('keydown', keyEvent);
         if (keyEvent.target === document.body) {
@@ -163,11 +180,11 @@ function createKeyEventListeners() {
             if (keyEvent.ctrlKey && keyEvent.altKey) {
                 // Ctrl + alt
 
-                if (keyEvent.key === 'p') { 
+                if (keyEvent.key === 'p') {
                     // New palette
                     newPalette();
                     handled = true;
-                } else if (keyEvent.key === 'e') { 
+                } else if (keyEvent.key === 'e') {
                     // New tile
                     newTile();
                     handled = true;
@@ -841,6 +858,49 @@ function handleImportTileSet(args) {
     tileEditor.setState({
         tileSet: tileSet
     });
+}
+
+
+/**
+ * Import image dialogue is confirmed.
+ * @param {import('./ui/importImageModalDialogue').ImportProjectModelConfirmEventArgs} args - Arguments.
+ */
+function handleImageImportModalOnConfirm(args) {
+    if (args.createNew) {
+        const paletteList = PaletteListFactory.create([args.palette]);
+        const project = ProjectFactory.create(args.title, args.tileSet, paletteList);
+        state.setProject(project);
+        state.saveToLocalStorage();
+    } else {
+        const paletteList = getPaletteList();
+        paletteList.addPalette(args.palette);
+        const tileSet = getTileSet();
+        args.tileSet.getTiles().forEach(tile => {
+            tileSet.addTile(tile);
+        });
+    }
+
+    getUIState().paletteIndex = getPaletteList().length - 1;
+
+    state.setProject(getProject());
+    state.saveToLocalStorage();
+
+    paletteEditor.setState({
+        paletteList: getPaletteList(),
+        selectedPaletteIndex: getPaletteList().length - 1
+    });
+    tileEditorToolbar.setState({
+        tileWidth: getTileSet().tileWidth
+    });
+    tileEditor.setState({
+        palette: getPalette(),
+        tileSet: getTileSet()
+    });
+    headerBar.setState({
+        projectTitle: getProject().title
+    });
+
+    importImageModalDialogue.hide();
 }
 
 
@@ -1548,7 +1608,7 @@ $(() => {
     instanceState.colourToolboxTab = 'rgb';
 
     wireUpEventHandlers();
-    createKeyEventListeners();
+    createEventListeners();
 
     // Load and set state
     state.loadFromLocalStorage();

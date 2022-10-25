@@ -1,13 +1,20 @@
 import EventDispatcher from "../components/eventDispatcher.js";
 
-const EVENT_OnShow = 'EVENT_OnShow';
-const EVENT_OnShown = 'EVENT_OnShown';
-const EVENT_OnHide = 'EVENT_OnHide';
-const EVENT_OnHidden = 'EVENT_OnHidden';
-const EVENT_OnConfirm = 'EVENT_OnConfirm';
-const EVENT_OnCancel = 'EVENT_OnCancel';
+const events = {
+    onShow: 'onShow',
+    onShown: 'onShown',
+    onHide: 'onHide',
+    onHidden: 'onHidden',
+    onConfirm: 'onConfirm',
+    onCancel: 'onCancel'
+};
 
 export default class ModalDialogue {
+
+
+    get events() {
+        return events;
+    }
 
 
     /** @type {HTMLDivElement} */
@@ -27,17 +34,17 @@ export default class ModalDialogue {
         this.#bootstrapModal = bootstrap.Modal.getOrCreateInstance(this.#element);
 
         this.#element.querySelectorAll('[data-button-type="confirm"]').forEach(button => {
-            button.onclick = () => this.#dispatcher.dispatch(EVENT_OnConfirm, {});
+            button.onclick = () => this.#dispatcher.dispatch(events.onConfirm, {});
         });
 
         this.#element.querySelectorAll('[data-button-type="cancel"]').forEach(button => {
-            button.onclick = () => this.#dispatcher.dispatch(EVENT_OnCancel, {});
+            button.onclick = () => this.#dispatcher.dispatch(events.onCancel, {});
         });
 
-        this.#element.addEventListener('show.bs.modal', () => this.#dispatcher.dispatch(EVENT_OnShow, {}));
-        this.#element.addEventListener('shown.bs.modal', () => this.#dispatcher.dispatch(EVENT_OnShown, {}));
-        this.#element.addEventListener('hide.bs.modal', () => this.#dispatcher.dispatch(EVENT_OnHide, {}));
-        this.#element.addEventListener('hidden.bs.modal', () => this.#dispatcher.dispatch(EVENT_OnHidden, {}));
+        this.#element.addEventListener('show.bs.modal', () => this.#dispatcher.dispatch(events.onShow, {}));
+        this.#element.addEventListener('shown.bs.modal', () => this.#dispatcher.dispatch(events.onShown, {}));
+        this.#element.addEventListener('hide.bs.modal', () => this.#dispatcher.dispatch(events.onHide, {}));
+        this.#element.addEventListener('hidden.bs.modal', () => this.#dispatcher.dispatch(events.onHidden, {}));
     }
 
 
@@ -61,47 +68,47 @@ export default class ModalDialogue {
      * @param {function} callback - Callback function to execute.
      */
     addHandlerOnShow(callback) {
-        this.#dispatcher.on(EVENT_OnShow, callback)
+        this.#dispatcher.on(events.onShow, callback)
     }
 
     /**
      * This event is fired when the modal has been made visible to the user (will wait for CSS transitions to complete). If caused by a click, the clicked element is available as the relatedTarget property of the event.
      * @param {function} callback - Callback function to execute.
      */
-     addHandlerOnShown(callback) {
-        this.#dispatcher.on(EVENT_OnShown, callback)
+    addHandlerOnShown(callback) {
+        this.#dispatcher.on(events.onShown, callback)
     }
 
     /**
      * This event is fired immediately when the hide instance method has been called.
      * @param {function} callback - Callback function to execute.
      */
-     addHandlerOnHide(callback) {
-        this.#dispatcher.on(EVENT_OnHide, callback)
+    addHandlerOnHide(callback) {
+        this.#dispatcher.on(events.onHide, callback)
     }
 
     /**
      * This event is fired when the modal has finished being hidden from the user (will wait for CSS transitions to complete).
      * @param {function} callback - Callback function to execute.
      */
-     addHandlerOnHidden(callback) {
-        this.#dispatcher.on(EVENT_OnHidden, callback)
+    addHandlerOnHidden(callback) {
+        this.#dispatcher.on(events.onHidden, callback)
     }
 
     /**
      * Event is called when the dialogue is confirmed (for example user clicks the OK button).
      * @param {function} callback - Callback function to execute.
      */
-     addHandlerOnConfirm(callback) {
-        this.#dispatcher.on(EVENT_OnConfirm, callback)
+    addHandlerOnConfirm(callback) {
+        this.#dispatcher.on(events.onConfirm, callback)
     }
 
     /**
      * Event is called when the dialogue is cancelled.
      * @param {function} callback - Callback function to execute.
      */
-     addHandlerOnCancel(callback) {
-        this.#dispatcher.on(EVENT_OnCancel, callback)
+    addHandlerOnCancel(callback) {
+        this.#dispatcher.on(events.onCancel, callback)
     }
 
 

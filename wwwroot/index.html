@@ -630,7 +630,7 @@
 
     <!-- Import image modal -->
     <div class="modal fade" data-smsgfx-component-id="import-image-modal" tabindex="-1">
-        <div class="modal-dialog modal-xl">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Import an image into your project</h5>
@@ -643,9 +643,9 @@
                                 <!-- Inputs -->
                                 <h6 class="mb-2">Input</h6>
                                 <button data-smsgfx-id="import-file-button" type="button"
-                                    class="btn btn-sm btn-secondary">Load file</button>
+                                    class="btn btn-sm btn-secondary">Load image from a file</button>
                                 <button data-smsgfx-id="import-clipboard-button" type="button"
-                                    class="btn btn-sm btn-secondary">From clipboard</button>
+                                    class="btn btn-sm btn-secondary visually-hidden">From clipboard</button>
                                 <input data-smsgfx-id="import-file" type="file"
                                     class="form-control form-control-sm visually-hidden" />
                                 <h6 class="mt-4 mb-2">Output</h6>
@@ -667,6 +667,10 @@
                                             <option value="px" selected>px</option>
                                             <option value="%">%</option>
                                         </select>
+                                        <button data-smsgfx-id="import-width-revert" type="button"
+                                            class="btn btn-outline-secondary">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        </button>
                                     </div>
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text" style="width: 85px">Height</span>
@@ -677,6 +681,10 @@
                                             <option value="px" selected>px</option>
                                             <option value="%">%</option>
                                         </select>
+                                        <button data-smsgfx-id="import-height-revert" type="button"
+                                            class="btn btn-outline-secondary">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        </button>
                                     </div>
                                     <div class="form-check form-check-sm">
                                         <input data-smsgfx-id="import-ratio-lock" class="form-check-input"
@@ -712,14 +720,6 @@
                                         <input data-smsgfx-id="tiles-high" type="number" class="form-control" />
                                         <span class="input-group-text" style="width: 60px">tiles</span>
                                     </div>
-                                    <div class="form-check form-check-sm">
-                                        <input data-smsgfx-id="preview-display-tiles" class="form-check-input"
-                                            type="checkbox" value="" id="importImageDialogueDisplayTiles"
-                                            checked="checked">
-                                        <label class="form-check-label" for="importImageDialogueDisplayTiles">
-                                            <small>Display tiles on preview</small>
-                                        </label>
-                                    </div>
                                 </div>
                                 <label class="form-label form-label-sm m-0">Preview</label>
                                 <div class="input-group input-group-sm">
@@ -732,18 +732,16 @@
                                         <option value="15">15:1</option>
                                         <option value="20">20:1</option>
                                     </select>
-                                    <button data-smsgfx-id="preview-button" type="button"
-                                        class="btn btn-sm btn-primary">Update preview</button>
                                 </div>
-                                <div class="input-group input-group-sm">
-                                    <button data-smsgfx-id="import-button" type="button"
-                                        class="btn btn-sm btn-primary">Import</button>
+                                <div class="form-check form-check-sm">
+                                    <input data-smsgfx-id="preview-display-tiles" class="form-check-input"
+                                        type="checkbox" value="" id="importImageDialogueDisplayTiles"
+                                        checked="checked">
+                                    <label class="form-check-label" for="importImageDialogueDisplayTiles">
+                                        <small>Preview tiles</small>
+                                    </label>
                                 </div>
-                                <div>
-                                    <code data-smsgfx-id="label-original-dimensions">...</code>
-                                    <code data-smsgfx-id="label-total-tiles">...</code>
-                                </div>
-                                <!-- End: Inputs -->
+                            <!-- End: Inputs -->
                             </div>
                             <div class="col col-9 p-0">
 
@@ -753,23 +751,28 @@
                                         <div class="col">
                                             <nav class="mb-2">
                                                 <div class="nav nav-tabs" role="tablist">
-                                                    <button class="nav-link active"
-                                                        aria-current="page">Original</button>
-                                                    <button class="nav-link">Preview</button>
-                                                    <button class="nav-link">Split</button>
+                                                    <button data-smsgfx-type="preview-tab"
+                                                        data-smsgfx-value="preview-mode-original"
+                                                        class="nav-link active" aria-current="page">Original</button>
+                                                    <button data-smsgfx-type="preview-tab"
+                                                        data-smsgfx-value="preview-mode-preview"
+                                                        class="nav-link">Preview</button>
+                                                    <button data-smsgfx-type="preview-tab"
+                                                        data-smsgfx-value="preview-mode-split"
+                                                        class="nav-link">Split</button>
                                                 </div>
                                             </nav>
                                             <div class="tab-content">
-                                                <div data-smsgfx-content="preview-original">
+                                                <div data-smsgfx-id="container-canvas-source" class="d-inline-block">
                                                     <!-- Original image -->
-                                                    <canvas data-smsgfx-id="import-original" width="775" height="500"
+                                                    <canvas data-smsgfx-id="canvas-source" width="800" height="600"
                                                         class="d-inline-block"
                                                         style="border: 1px solid #AAAAAA"></canvas>
                                                     <!-- End: Original image -->
                                                 </div>
-                                                <div data-smsgfx-content="preview-imported">
+                                                <div data-smsgfx-id="container-canvas-preview" class="d-inline-block">
                                                     <!-- Preview image -->
-                                                    <canvas data-smsgfx-id="import-preview" width="775" height="500"
+                                                    <canvas data-smsgfx-id="canvas-preview" width="800" height="600"
                                                         class="d-inline-block"
                                                         style="border: 1px solid #AAAAAA"></canvas>
                                                     <!-- End: Preview image -->
@@ -786,7 +789,12 @@
 
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button data-smsgfx-id="import-button" type="button" class="btn btn-sm btn-primary">Import</button>
+                    <button data-smsgfx-id="button-import-as-new-project" type="button" class="btn btn-primary">Import
+                        as new project</button>
+                    <button data-smsgfx-id="button-import-into-existing-project" type="button"
+                        class="btn btn-primary">Import into existing project</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 </div>
             </div>
         </div>

@@ -1,15 +1,13 @@
-import ProjectUtil from "../util/projectUtil.js";
-import Palette from "../models/palette.js";
 import PaletteList from "../models/paletteList.js";
 import ImageUtil from "../util/imageUtil.js";
 import ModalDialogue from "./modalDialogue.js";
+import EventDispatcher from "../components/eventDispatcher.js";
+import TileSet from "../models/tileSet.js";
+
+const EVENT_SourceImageUpdated = 'EVENT_SourceImageUpdated';
+const EVENT_PreviewImageUpdated = 'EVENT_PreviewImageUpdated';
 
 export default class ImportImageModalDialogue extends ModalDialogue {
-
-
-    get #aspectRatioLocked() {
-        return this.#tbImportRatioLock.checked;
-    }
 
 
     /** @type {HTMLButtonElement} */
@@ -26,12 +24,16 @@ export default class ImportImageModalDialogue extends ModalDialogue {
     #tbImportWidthPercent;
     /** @type {HTMLSelectElement} */
     #tbImportWidthUnit;
+    /** @type {HTMLButtonElement} */
+    #btnImportWidthRevert;
     /** @type {HTMLInputElement} */
     #tbImportHeight;
     /** @type {HTMLInputElement} */
     #tbImportHeightPercent;
     /** @type {HTMLSelectElement} */
     #tbImportHeightUnit;
+    /** @type {HTMLButtonElement} */
+    #btnImportHeightRevert;
     /** @type {HTMLInputElement} */
     #tbImportRatioLock;
     /** @type {HTMLInputElement} */
@@ -47,26 +49,31 @@ export default class ImportImageModalDialogue extends ModalDialogue {
     /** @type {HTMLSelectElement} */
     #tbPreviewScale;
     /** @type {HTMLButtonElement} */
-    #btnPreview;
-    /** @type {HTMLButtonElement} */
     #btnImport;
-    /** @type {HTMLElement} */
-    #lblOriginalDimensons;
-    /** @type {HTMLElement} */
-    #lblTotalTiles;
+    /** @type {HTMLButtonElement} */
+    #btnImportAsNew;
+    /** @type {HTMLButtonElement} */
+    #btnImportIntoExisting;
     /** @type {HTMLCanvasElement} */
-    #tbCanvasOriginal;
+    #tbCanvasSource;
     /** @type {HTMLCanvasElement} */
     #tbCanvasPreview;
 
     /** @type {PaletteList} */
     #paletteList = null;
     /** @type {HTMLImageElement} */
-    #originalImage = null;
+    #sourceImage = null;
     /** @type {HTMLImageElement} */
     #previewImage = null;
+    /** @type {import("../util/imageUtil.js").ColourMatch[]} */
+    #previewColours = null;
     /** @type {string} */
     #fileName = null;
+
+    /** @type {HTMLElement} */
+    #element;
+    /** @type {EventDispatcher} */
+    #dispatcher;
 
 
     /**
@@ -75,19 +82,23 @@ export default class ImportImageModalDialogue extends ModalDialogue {
      */
     constructor(element) {
         super(element);
+        this.#element = element;
 
-        element.addEventListener('paste', (clipboardEvent) => this.#handleFilePasteEvent(clipboardEvent));
+        this.#dispatcher = new EventDispatcher();
+        this.#dispatcher.on(EVENT_SourceImageUpdated, () => this.#handleSourceImageUpdatedAsync());
+        this.#dispatcher.on(EVENT_PreviewImageUpdated, () => this.#handlePreviewImageUpdatedAsync());
 
         this.#btnImportFile = element.querySelector('[data-smsgfx-id=import-file-button]');
         this.#btnImportFile.onclick = () => this.#tbImportFile.click();
 
         this.#tbImportFile = element.querySelector('[data-smsgfx-id=import-file]');
-        this.#tbImportFile.onchange = () => this.#handleFileInputChangeEvent();
+        this.#tbImportFile.onchange = async () => await this.#handleFileInputChangeEvent();
 
         this.#btnImportClipboard = element.querySelector('[data-smsgfx-id=import-clipboard-button]');
         this.#btnImportClipboard.onclick = () => this.#handleImportClipboardClick();
 
         this.#tbImportPaletteSelect = element.querySelector('[data-smsgfx-id=import-palette-select]');
+        this.#tbImportPaletteSelect.onchange = () => this.#handleImportPaletteSelectChange();
 
         this.#tbImportWidth = element.querySelector('[data-smsgfx-id=import-width]');
         this.#tbImportWidth.onchange = () => this.#handleDimensionPxChange('w');
@@ -95,6 +106,8 @@ export default class ImportImageModalDialogue extends ModalDialogue {
         this.#tbImportWidthPercent.onchange = () => this.#handleDimensionPercentChange('w');
         this.#tbImportWidthUnit = element.querySelector('[data-smsgfx-id=import-unit-width]');
         this.#tbImportWidthUnit.onchange = () => this.#handleDimensionUnitChange('w');
+        this.#btnImportWidthRevert = element.querySelector('[data-smsgfx-id=import-width-revert]');
+        this.#btnImportWidthRevert.onclick = () => this.#handleDimensionRevert('w');
 
         this.#tbImportHeight = element.querySelector('[data-smsgfx-id=import-height]');
         this.#tbImportHeight.onchange = () => this.#handleDimensionPxChange('h');
@@ -102,6 +115,8 @@ export default class ImportImageModalDialogue extends ModalDialogue {
         this.#tbImportHeightPercent.onchange = () => this.#handleDimensionPercentChange('h');
         this.#tbImportHeightUnit = element.querySelector('[data-smsgfx-id=import-unit-height]');
         this.#tbImportHeightUnit.onchange = () => this.#handleDimensionUnitChange('h');
+        this.#btnImportHeightRevert = element.querySelector('[data-smsgfx-id=import-height-revert]');
+        this.#btnImportHeightRevert.onclick = () => this.#handleDimensionRevert('h');
 
         this.#tbImportRatioLock = element.querySelector('[data-smsgfx-id=import-ratio-lock]');
 
@@ -120,19 +135,20 @@ export default class ImportImageModalDialogue extends ModalDialogue {
         this.#tbPreviewScale = element.querySelector('[data-smsgfx-id=preview-scale]');
         this.#tbPreviewScale.onchange = () => this.#handlePreviewScaleChange(this.#tbPreviewScale);
 
-        this.#btnPreview = element.querySelector('[data-smsgfx-id=preview-button]');
-        this.#btnPreview.onclick = async () => await this.#handlePreviewClick();
-
         this.#btnImport = element.querySelector('[data-smsgfx-id=import-button]');
         this.#btnImport.onclick = async () => await this.#handleImportClick();
 
-        this.#lblOriginalDimensons = element.querySelector('[data-smsgfx-id=label-original-dimensions]');
+        this.#btnImportAsNew = element.querySelector('[data-smsgfx-id=button-import-as-new-project]');
+        this.#btnImportAsNew.onclick = async () => await this.#handleImportClick('new');
 
-        this.#lblTotalTiles = element.querySelector('[data-smsgfx-id=label-total-tiles]');
+        this.#btnImportIntoExisting = element.querySelector('[data-smsgfx-id=button-import-into-existing-project]');
+        this.#btnImportIntoExisting.onclick = async () => await this.#handleImportClick('existing');
 
-        this.#tbCanvasOriginal = element.querySelector('[data-smsgfx-id=import-original]');
+        this.#tbCanvasSource = element.querySelector('[data-smsgfx-id=canvas-source]');
 
-        this.#tbCanvasPreview = element.querySelector('[data-smsgfx-id=import-preview]');
+        this.#tbCanvasPreview = element.querySelector('[data-smsgfx-id=canvas-preview]');
+
+        this.#wireUpTabs();
     }
 
 
@@ -161,98 +177,234 @@ export default class ImportImageModalDialogue extends ModalDialogue {
                 this.#tbImportPaletteSelect.onchange();
             }
         }
+        if (state?.file) {
+            this.#loadSourceImageFileAsync(state?.file);
+        }
+
+        this.#updateInputEnabledState();
     }
 
 
     show() {
         super.show();
-        this.reset();
+        this.#reset();
     }
 
-    reset() {
-        this.#lblOriginalDimensons.innerText = `...`;
-        this.#lblTotalTiles.innerText = `...`;
-        this.#tbImportFile.value = null;
-        resetCanvas(this.#tbCanvasOriginal);
+
+    /**
+     * Callback for when the dialogue is confirmed.
+     * @param {ImportProjectModelConfirmCallback} callback - Callback to use.
+     */
+    addHandlerOnConfirm(callback) {
+        this.#dispatcher.on(super.events.onConfirm, callback);
+    }
+
+
+    /**
+     * Triggers the on confirm event.
+     * @param {ImportProjectModelConfirmEventArgs} args - Arguments.
+     */
+    #triggerOnConfirm(args) {
+        this.#dispatcher.dispatch(super.events.onConfirm, args);
+    }
+
+
+    #reset() {
+        this.#resetSource();
+        this.#resetPreviewImage();
+        resetCanvas(this.#tbCanvasSource);
         resetCanvas(this.#tbCanvasPreview);
+        this.#updateInputEnabledState();
     }
 
-    resetPreview() {
+    #resetSource() {
+        this.#sourceImage = null;
+        this.#tbImportWidth.value = '';
+        this.#tbImportHeight.value = '';
+    }
 
+    #resetPreviewImage() {
+        this.#previewImage = null;
+        this.#previewColours = null;
+    }
+
+    #updateInputEnabledState() {
+        const disabledState = !this.#sourceImageIsSet();
+        this.#tbImportPaletteSelect.disabled = disabledState;
+        this.#tbImportWidth.disabled = disabledState;
+        this.#tbImportWidthPercent.disabled = disabledState;
+        this.#tbImportWidthUnit.disabled = disabledState;
+        this.#btnImportWidthRevert.disabled = disabledState;
+        this.#tbImportHeight.disabled = disabledState;
+        this.#tbImportHeightPercent.disabled = disabledState;
+        this.#tbImportHeightUnit.disabled = disabledState;
+        this.#btnImportHeightRevert.disabled = disabledState;
+        this.#tbImportRatioLock.disabled = disabledState;
+        this.#tbOffsetTop.disabled = disabledState;
+        this.#tbOffsetLeft.disabled = disabledState;
+        this.#tbTilesHigh.disabled = disabledState;
+        this.#tbTilesWide.disabled = disabledState;
+        this.#tbPreviewTileDisplay.disabled = disabledState;
+        this.#tbPreviewScale.disabled = disabledState;
+
+        const previewDisabledState = !this.#sourceImageIsSet() || !this.#previewImageIsSet();
+        this.#btnImport.disabled = previewDisabledState;
+        this.#btnImportAsNew.disabled = previewDisabledState;
+        this.#btnImportIntoExisting.disabled = previewDisabledState;
+    }
+
+    #recalculateTileAndOriginInputs(width, height) {
+        if (this.#sourceImageIsSet()) {
+            const wTiles = Math.ceil(width / 8);
+            const hTiles = Math.ceil(height / 8);
+
+            this.#tbImportWidth.value = width;
+            this.#tbImportWidthPercent.value = 100;
+            this.#tbImportWidthUnit.selectedIndex = 0;
+            this.#tbImportHeight.value = height;
+            this.#tbImportHeightPercent.value = 100;
+            this.#tbImportHeightUnit.selectedIndex = 0;
+
+            this.#tbOffsetTop.value = 0;
+            this.#tbOffsetLeft.value = 0;
+            this.#tbTilesWide.value = wTiles;
+            this.#tbTilesHigh.value = hTiles;
+        }
     }
 
 
-    #handleDimensionPxChange(dimension) {
-        if (!dimension || !['w', 'h'].includes(dimension)) throw new Error('Invalid dimension.');
-        if (!this.#originalImage) throw new Error('No image loaded.');
-
-        const inputPx = dimension === 'w' ? this.#tbImportWidth : this.#tbImportHeight;
-        const inputPercent = dimension === 'w' ? this.#tbImportWidthPercent : this.#tbImportHeightPercent;
-
-        // Error check
-        inputPx.classList.remove('is-invalid');
-        inputPercent.classList.remove('is-invalid');
-
-        const value = parseInt(inputPx.value);
-
-        if (isNaN(value) || value < 1 || value > 10000) {
-            inputPx.classList.add('is-invalid');
-            inputPercent.classList.add('is-invalid');
-            throw new Error('Invalid pixel dimension entered.');
-        }
-
-        // Set percentage value
-        const percentage = (1 / this.#originalImage.width) * value;
-        inputPercent.value = Math.round(percentage * 100);
-
-        // Set other value if aspect locked
-        if (this.#tbImportRatioLock.checked) {
-            const antiInputPx = dimension === 'w' ? this.#tbImportHeight : this.#tbImportWidth;
-            const antiInputPercent = dimension === 'w' ? this.#tbImportHeightPercent : this.#tbImportWidthPercent;
-            const antiInputAxisPx = dimension === 'w' ? this.#originalImage.height : this.#originalImage.width;
-
-            antiInputPx.value = Math.round(antiInputAxisPx * percentage);
-            antiInputPercent.value = Math.round(percentage * 100);
-        }
-
-        this.#updateOriginalImageDisplayAsync();
+    #wireUpTabs() {
+        const pnlSource = this.#element.querySelector('[data-smsgfx-id=container-canvas-source]');
+        const pnlPreview = this.#element.querySelector('[data-smsgfx-id=container-canvas-preview]');
+        const tabs = this.#element.querySelectorAll('[data-smsgfx-type=preview-tab]');
+        tabs.forEach(tab => {
+            const value = tab.getAttribute('data-smsgfx-value');
+            tab.onclick = () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                [pnlSource, pnlPreview].forEach(p => p.classList.remove('visually-hidden'));
+                if (value === 'preview-mode-original') {
+                    this.#tbCanvasSource.width = 800;
+                    this.#tbCanvasPreview.width = 800;
+                    pnlSource.classList.remove('visually-hidden');
+                    pnlPreview.classList.add('visually-hidden');
+                } else if (value === 'preview-mode-preview') {
+                    this.#tbCanvasSource.width = 800;
+                    this.#tbCanvasPreview.width = 800;
+                    pnlSource.classList.add('visually-hidden');
+                    pnlPreview.classList.remove('visually-hidden');
+                } else if (value === 'preview-mode-split') {
+                    this.#tbCanvasSource.width = 395;
+                    this.#tbCanvasPreview.width = 395;
+                    pnlSource.classList.remove('visually-hidden');
+                    pnlPreview.classList.remove('visually-hidden');
+                }
+                this.#renderSourceImageAsync();
+                this.#renderPreviewImageAsync();
+            };
+        });
+        this.#element.querySelector('[data-smsgfx-type=preview-tab][data-smsgfx-value=preview-mode-split]').click();
     }
 
-    #handleDimensionPercentChange(dimension) {
-        if (!dimension || !['w', 'h'].includes(dimension)) throw new Error('Invalid dimension.');
-        if (!this.#originalImage) throw new Error('No image loaded.');
 
-        const inputPx = dimension === 'w' ? this.#tbImportWidth : this.#tbImportHeight;
-        const inputPercent = dimension === 'w' ? this.#tbImportWidthPercent : this.#tbImportHeightPercent;
-
-        // Error check
-        inputPx.classList.remove('is-invalid');
-        inputPercent.classList.remove('is-invalid');
-
-        const value = parseInt(inputPercent.value);
-
-        if (isNaN(value) || value < 1 || value > 1000) {
-            inputPx.classList.add('is-invalid');
-            inputPercent.classList.add('is-invalid');
-            throw new Error('Invalid percentage entered.');
+    async #handleImportPaletteSelectChange() {
+        if (this.#sourceImageIsSet()) {
+            this.#resetPreviewImage();
+            await this.#updatePreviewImageAsync();
         }
+    }
 
-        // Set px value
-        const percentage = 1 / 100 * value;
-        const axisPx = dimension === 'w' ? this.#originalImage.width : this.#originalImage.height;
-        inputPx.value = Math.round(axisPx * percentage);
+    async #handleDimensionPxChange(dimension) {
+        if (this.#sourceImageIsSet()) {
+            if (!dimension || !['w', 'h'].includes(dimension)) throw new Error('Invalid dimension.');
+            if (!this.#sourceImage) throw new Error('No image loaded.');
 
-        // Set other value if aspect locked
-        if (this.#tbImportRatioLock.checked) {
-            const antiInputPx = dimension === 'w' ? this.#tbImportHeight : this.#tbImportWidth;
-            const antiInputPercent = dimension === 'w' ? this.#tbImportHeightPercent : this.#tbImportWidthPercent;
-            const antiAxisPx = dimension === 'w' ? this.#originalImage.height : this.#originalImage.width;
+            this.#previewImage = null;
 
-            antiInputPx.value = Math.round(antiAxisPx * percentage);
-            antiInputPercent.value = value;
+            const inputPx = dimension === 'w' ? this.#tbImportWidth : this.#tbImportHeight;
+            const inputPercent = dimension === 'w' ? this.#tbImportWidthPercent : this.#tbImportHeightPercent;
+
+            // Error check
+            inputPx.classList.remove('is-invalid');
+            inputPercent.classList.remove('is-invalid');
+
+            const value = parseInt(inputPx.value);
+
+            if (isNaN(value) || value < 1 || value > 10000) {
+                inputPx.classList.add('is-invalid');
+                inputPercent.classList.add('is-invalid');
+                throw new Error('Invalid pixel dimension entered.');
+            }
+
+            // Set percentage value
+            const percentage = (1 / this.#sourceImage.width) * value;
+            inputPercent.value = Math.round(percentage * 100);
+
+            // Set other value if aspect locked
+            if (this.#tbImportRatioLock.checked) {
+                const antiInputPx = dimension === 'w' ? this.#tbImportHeight : this.#tbImportWidth;
+                const antiInputPercent = dimension === 'w' ? this.#tbImportHeightPercent : this.#tbImportWidthPercent;
+                const antiInputAxisPx = dimension === 'w' ? this.#sourceImage.height : this.#sourceImage.width;
+
+                antiInputPx.value = Math.round(antiInputAxisPx * percentage);
+                antiInputPercent.value = Math.round(percentage * 100);
+            }
+
+            const width = parseInt(this.#tbImportWidth.value);
+            const height = parseInt(this.#tbImportHeight.value);
+            this.#recalculateTileAndOriginInputs(width, height);
+
+            this.#resetPreviewImage();
+            await this.#renderSourceImageAsync();
+            await this.#updatePreviewImageAsync();
         }
+    }
 
-        this.#updateOriginalImageDisplayAsync();
+    async #handleDimensionPercentChange(dimension) {
+        if (this.#sourceImageIsSet()) {
+            if (!dimension || !['w', 'h'].includes(dimension)) throw new Error('Invalid dimension.');
+            if (!this.#sourceImage) throw new Error('No image loaded.');
+
+            this.#previewImage = null;
+
+            const inputPx = dimension === 'w' ? this.#tbImportWidth : this.#tbImportHeight;
+            const inputPercent = dimension === 'w' ? this.#tbImportWidthPercent : this.#tbImportHeightPercent;
+
+            // Error check
+            inputPx.classList.remove('is-invalid');
+            inputPercent.classList.remove('is-invalid');
+
+            const value = parseInt(inputPercent.value);
+
+            if (isNaN(value) || value < 1 || value > 1000) {
+                inputPx.classList.add('is-invalid');
+                inputPercent.classList.add('is-invalid');
+                throw new Error('Invalid percentage entered.');
+            }
+
+            // Set px value
+            const percentage = 1 / 100 * value;
+            const axisPx = dimension === 'w' ? this.#sourceImage.width : this.#sourceImage.height;
+            inputPx.value = Math.round(axisPx * percentage);
+
+            // Set other value if aspect locked
+            if (this.#tbImportRatioLock.checked) {
+                const antiInputPx = dimension === 'w' ? this.#tbImportHeight : this.#tbImportWidth;
+                const antiInputPercent = dimension === 'w' ? this.#tbImportHeightPercent : this.#tbImportWidthPercent;
+                const antiAxisPx = dimension === 'w' ? this.#sourceImage.height : this.#sourceImage.width;
+
+                antiInputPx.value = Math.round(antiAxisPx * percentage);
+                antiInputPercent.value = value;
+            }
+
+            const width = parseInt(this.#tbImportWidth.value);
+            const height = parseInt(this.#tbImportHeight.value);
+            this.#recalculateTileAndOriginInputs(width, height);
+
+            this.#resetPreviewImage();
+            await this.#renderSourceImageAsync();
+            await this.#updatePreviewImageAsync();
+        }
     }
 
     #handleDimensionUnitChange(dimension) {
@@ -269,147 +421,104 @@ export default class ImportImageModalDialogue extends ModalDialogue {
         }
     }
 
-    #handleOffsetOrTileChange(sender) {
-        const top = parseInt(this.#tbOffsetTop.value);
-        const left = parseInt(this.#tbOffsetLeft.value);
-        const wide = parseInt(this.#tbTilesWide.value);
-        const high = parseInt(this.#tbTilesHigh.value);
-
-        const inputs = [this.#tbOffsetTop, this.#tbOffsetLeft, this.#tbTilesWide, this.#tbTilesHigh];
-
-        inputs.forEach(input => input.classList.remove('is-invalid'));
-
-        if (isNaN(top) || isNaN(left) || isNaN(wide) || isNaN(high)) {
-            inputs.forEach(input => input.classList.add('is-invalid'));
-            return;
-        }
-        if (wide < 1 || high < 1) {
-            inputs.forEach(input => input.classList.add('is-invalid'));
-            return;
-        }
-
-        this.#updateOriginalImageDisplayAsync();
+    async #handleDimensionRevert(dimension) {
+        const percent = dimension === 'w' ? this.#tbImportWidthPercent : this.#tbImportHeightPercent;
+        percent.value = 100;
+        await this.#handleDimensionPercentChange(dimension);
     }
 
-    #handlePreviewTileDisplayChange(sender) {
-        this.#updateOriginalImageDisplayAsync();
-    }
+    async #handleOffsetOrTileChange(sender) {
+        if (this.#sourceImageIsSet()) {
+            const top = parseInt(this.#tbOffsetTop.value);
+            const left = parseInt(this.#tbOffsetLeft.value);
+            const wide = parseInt(this.#tbTilesWide.value);
+            const high = parseInt(this.#tbTilesHigh.value);
 
-    #handlePreviewScaleChange(sender) {
-        this.#updateOriginalImageDisplayAsync();
-    }
+            const inputs = [this.#tbOffsetTop, this.#tbOffsetLeft, this.#tbTilesWide, this.#tbTilesHigh];
 
-    /**
-     * Handles when a user pastes a file.
-     * @param {ClipboardEvent} clipboardEvent - Clipboard event that occurred.
-     */
-    async #handleFilePasteEvent(clipboardEvent) {
-        if (clipboardEvent?.clipboardData?.files.length > 0) {
-            this.#tbImportFile.setAttribute('disabled', '');
-            this.#btnPreview.setAttribute('disabled', '');
+            inputs.forEach(input => input.classList.remove('is-invalid'));
 
-            const file = clipboardEvent?.clipboardData?.files[0];
-            await this.#loadFile(file);
-            this.#fileName = file.name;
+            if (isNaN(top) || isNaN(left) || isNaN(wide) || isNaN(high)) {
+                inputs.forEach(input => input.classList.add('is-invalid'));
+                return;
+            }
+            if (wide < 1 || high < 1) {
+                inputs.forEach(input => input.classList.add('is-invalid'));
+                return;
+            }
 
-            this.#btnPreview.removeAttribute('disabled');
-            this.#tbImportFile.removeAttribute('disabled');
+            await this.#renderSourceImageAsync();
+            await this.#renderPreviewImageAsync();
         }
     }
+
+    async #handlePreviewTileDisplayChange(sender) {
+        if (this.#sourceImageIsSet()) {
+            await this.#renderSourceImageAsync();
+            await this.#renderPreviewImageAsync();
+        }
+    }
+
+    async #handlePreviewScaleChange(sender) {
+        if (this.#sourceImageIsSet()) {
+            await this.#renderSourceImageAsync();
+            await this.#renderPreviewImageAsync();
+        }
+    }
+
+    // /**
+    //  * Handles when a user pastes a file.
+    //  * @param {ClipboardEvent} clipboardEvent - Clipboard event that occurred.
+    //  */
+    // async #handleFilePasteEvent(clipboardEvent) {
+    //     if (clipboardEvent?.clipboardData?.files.length > 0) {
+    //         this.#tbImportFile.setAttribute('disabled', '');
+    //         this.#btnPreview.setAttribute('disabled', '');
+
+    //         const file = clipboardEvent?.clipboardData?.files[0];
+    //         await this.#loadSourceImageFileAsync(file);
+    //         this.#fileName = file.name;
+
+    //         this.#btnPreview.removeAttribute('disabled');
+    //         this.#tbImportFile.removeAttribute('disabled');
+    //     }
+    // }
 
     async #handleFileInputChangeEvent() {
         if (this.#tbImportFile.files.length > 0) {
-            this.#tbImportFile.setAttribute('disabled', '');
-            this.#btnPreview.setAttribute('disabled', '');
-
-            await this.#loadFile(this.#tbImportFile.files[0]);
-            this.#fileName = this.#tbImportFile.files[0].name;
-
-            this.#btnPreview.removeAttribute('disabled');
-            this.#tbImportFile.removeAttribute('disabled');
+            this.#reset();
+            this.#updateInputEnabledState();
+            await this.#loadSourceImageFileAsync(this.#tbImportFile.files[0]);
+            await this.#updatePreviewImageAsync();
         }
     }
 
     async #handleImportClipboardClick() {
+        // TODO - Only works outside Firefox
         const data = await navigator.clipboard.read();
         console.log(data);
     }
 
-    async #handlePreviewClick() {
-        if (this.#originalImage) {
-            this.#tbImportFile.setAttribute('disabled', '');
-            this.#btnPreview.setAttribute('disabled', '');
 
-            const width = parseInt(this.#tbImportWidth.value);
-            const height = parseInt(this.#tbImportHeight.value);
-            const scale = parseInt(this.#tbPreviewScale.value);
-            const previewTiles = this.#tbPreviewTileDisplay.checked;
+    /**
+     * Handle the import button click.
+     * @param {string?} mode - Import mode, either 'new' or 'existing', when omitted, new is assumed.
+     */
+    async #handleImportClick(mode) {
+        if (this.#sourceImageIsSet() && this.#previewImageIsSet()) {
 
-            const originalImage = await ImageUtil.resizeImageAsync(this.#originalImage, width, height);
+            const previewImage = this.#previewImage;
+            const previewColours = this.#previewColours;
 
-            /** @type {ColourMatch[]} */
-            let importColours;
-            const selectedImportColours = this.#tbImportPaletteSelect.value;
-            if (['ms', 'gg'].includes(selectedImportColours)) {
-                importColours = await ImageUtil.extractNativePaletteFromImageAsync(originalImage, selectedImportColours);
-            } else {
-                const option = this.#tbImportPaletteSelect.selectedOptions.item(0);
-                const paletteIndex = parseInt(option.getAttribute('data-smsgft-palette-index'));
-                const palette = this.#paletteList.getPalette(paletteIndex);
-                importColours = await ImageUtil.matchToPaletteAsync(originalImage, palette);
-            }
-
-            const colourReducedImage = await ImageUtil.getImageFromPaletteAsync(importColours, originalImage);
-            const previewImage = colourReducedImage;
-
-            /** @type {import("../util/imageUtil.js").ImageDisplayParams} */
-            const tiles = {
-                offsetX: parseInt(this.#tbOffsetLeft.value),
-                offsetY: parseInt(this.#tbOffsetTop.value),
-                tilesWide: parseInt(this.#tbTilesWide.value),
-                tilesHigh: parseInt(this.#tbTilesHigh.value)
-            };
-
-            ImageUtil.displayImageOnCanvas(this.#tbCanvasPreview, previewImage, {
-                scale: scale,
-                tiles: previewTiles ? tiles : null
-            });
-
-            this.#btnPreview.removeAttribute('disabled');
-            this.#tbImportFile.removeAttribute('disabled');
-        }
-    }
-
-
-    async #handleImportClick() {
-        if (this.#originalImage) {
-            this.#tbImportFile.setAttribute('disabled', '');
-            this.#btnPreview.setAttribute('disabled', '');
-
-            const width = parseInt(this.#tbImportWidth.value);
-            const height = parseInt(this.#tbImportHeight.value);
-
-            const originalImage = await ImageUtil.resizeImageAsync(this.#originalImage, width, height);
-            let system = 'ms';
-
-            /** @type {ColourMatch[]} */
-            let importColours;
-            const selectedImportColours = this.#tbImportPaletteSelect.value;
-            if (['ms', 'gg'].includes(selectedImportColours)) {
-                system = selectedImportColours;
-                importColours = await ImageUtil.extractNativePaletteFromImageAsync(originalImage, selectedImportColours);
-            } else {
+            let system = this.#tbImportPaletteSelect.value;
+            if (system !== 'ms' && system !== 'gg') {
                 const option = this.#tbImportPaletteSelect.selectedOptions.item(0);
                 const paletteIndex = parseInt(option.getAttribute('data-smsgft-palette-index'));
                 const palette = this.#paletteList.getPalette(paletteIndex);
                 system = palette.system;
-                importColours = await ImageUtil.matchToPaletteAsync(originalImage, palette);
             }
 
-            const colourReducedImage = await ImageUtil.getImageFromPaletteAsync(importColours, originalImage);
-
-            /** @type {import("../util/imageUtil.js").ImageImportParams} */
-            const params = {
+            const project = ImageUtil.imageToProject(previewImage, previewColours, {
                 projectName: this.#fileName ?? 'Imported image',
                 system: system,
                 tiles: {
@@ -418,73 +527,138 @@ export default class ImportImageModalDialogue extends ModalDialogue {
                     tilesWide: parseInt(this.#tbTilesWide.value),
                     tilesHigh: parseInt(this.#tbTilesHigh.value)
                 }
-            };
+            });
 
-            const project = ImageUtil.imageToProject(colourReducedImage, importColours, params);
-            ProjectUtil.saveToFile(project);
-
-            console.log(project);
-
-            this.#btnPreview.removeAttribute('disabled');
-            this.#tbImportFile.removeAttribute('disabled');
+            this.#triggerOnConfirm({
+                createNew: mode === 'new',
+                title: project.title,
+                tileSet: project.tileSet,
+                palette: project.paletteList.getPalette(0)
+            });
         }
     }
 
-
-    async #updateOriginalImageDisplayAsync() {
-
-        const width = parseInt(this.#tbImportWidth.value);
-        const height = parseInt(this.#tbImportHeight.value);
-        const scale = parseInt(this.#tbPreviewScale.value);
-        const previewTiles = this.#tbPreviewTileDisplay.checked;
-
-        const resizedImage = await ImageUtil.resizeImageAsync(this.#originalImage, width, height);
-
-        /** @type {import("../util/imageUtil.js").ImageDisplayParams} */
-        const tiles = {
-            offsetX: parseInt(this.#tbOffsetLeft.value),
-            offsetY: parseInt(this.#tbOffsetTop.value),
-            tilesWide: parseInt(this.#tbTilesWide.value),
-            tilesHigh: parseInt(this.#tbTilesHigh.value)
-        };
-
-        ImageUtil.displayImageOnCanvas(this.#tbCanvasOriginal, resizedImage, {
-            scale: scale,
-            tiles: previewTiles ? tiles : null
-        });
-    }
 
     /**
      * Loads a file into the canvas.
      * @param {File} file - File to load.
      */
-    async #loadFile(file) {
+    async #loadSourceImageFileAsync(file) {
         if (!file) throw new Error('There was no file.')
 
-        this.#originalImage = await ImageUtil.fileToImageAsync(file);
-        this.#lblOriginalDimensons.innerText = `${this.#originalImage.width}x${this.#originalImage.height}`;
+        this.#resetSource();
+        this.#resetPreviewImage();
 
-        const wTiles = Math.ceil(this.#originalImage.width / 8);
-        const hTiles = Math.ceil(this.#originalImage.height / 8);
-        const totalTiles = wTiles * hTiles;
-
-        this.#tbImportWidth.value = this.#originalImage.width;
-        this.#tbImportWidthPercent.value = 100;
-        this.#tbImportHeight.value = this.#originalImage.height;
-        this.#tbImportHeightPercent.value = 100;
-
-        this.#tbOffsetTop.value = 0;
-        this.#tbOffsetLeft.value = 0;
-        this.#tbTilesWide.value = wTiles;
-        this.#tbTilesHigh.value = hTiles;
-
-        this.#lblTotalTiles.innerText = totalTiles;
-        resetCanvas(this.#tbCanvasPreview);
-
-        this.#updateOriginalImageDisplayAsync();
-        this.#previewImage = new Image(this.#originalImage.width, this.#originalImage.height);
-        ImageUtil.displayImageOnCanvas(this.#tbCanvasPreview, this.#previewImage);
+        this.#sourceImage = await ImageUtil.fileToImageAsync(file);
+        this.#dispatcher.dispatch(EVENT_SourceImageUpdated, {});
+        await this.#updatePreviewImageAsync();
     }
+
+    /**
+     * When the source image is updated display it and update the form accordinlgly.
+     */
+    async #handleSourceImageUpdatedAsync() {
+        if (this.#sourceImageIsSet()) {
+            const width = parseInt(this.#tbImportWidth.value);
+            const height = parseInt(this.#tbImportHeight.value);
+            if (isNaN(width) || isNaN(height)) {
+                this.#recalculateTileAndOriginInputs(this.#sourceImage.width, this.#sourceImage.height);
+            }
+            resetCanvas(this.#tbCanvasPreview);
+            await this.#renderSourceImageAsync();
+        }
+        this.#updateInputEnabledState();
+    }
+
+    /**
+     * When the preview image is updated display it and update the form accordinlgly.
+     */
+    async #handlePreviewImageUpdatedAsync() {
+        await this.#renderPreviewImageAsync();
+        this.#updateInputEnabledState();
+    }
+
+
+    #previewUpdateQueued = false;
+    #previewIsUpdating = false;
+
+    #sourceImageIsSet = () => this.#sourceImage ? true : false;
+    #previewImageIsSet = () => this.#previewImage && this.#previewColours ? true : false;
+    #previewImageRequiresUpdate = () => this.#previewUpdateQueued || !this.#previewImageIsSet() ? true : false;
+
+    async #updatePreviewImageAsync() {
+        if (this.#previewIsUpdating) {
+            this.#previewUpdateQueued = true;
+            return;
+        }
+        while (this.#sourceImageIsSet && this.#previewImageRequiresUpdate()) {
+            this.#previewIsUpdating = true;
+            this.#previewUpdateQueued = false;
+
+            const width = parseInt(this.#tbImportWidth.value);
+            const height = parseInt(this.#tbImportHeight.value);
+
+            const sourceImage = await ImageUtil.resizeImageAsync(this.#sourceImage, width, height);
+
+            /** @type {ColourMatch[]} */
+            let extractedColours;
+            const selectedImportColours = this.#tbImportPaletteSelect.value;
+            if (['ms', 'gg'].includes(selectedImportColours)) {
+                extractedColours = await ImageUtil.extractNativePaletteFromImageAsync(sourceImage, selectedImportColours);
+            } else {
+                const option = this.#tbImportPaletteSelect.selectedOptions.item(0);
+                const paletteIndex = parseInt(option.getAttribute('data-smsgft-palette-index'));
+                const palette = this.#paletteList.getPalette(paletteIndex);
+                extractedColours = await ImageUtil.matchToPaletteAsync(sourceImage, palette);
+            }
+
+            this.#previewImage = await ImageUtil.getImageFromPaletteAsync(extractedColours, sourceImage);
+            this.#previewColours = extractedColours;
+
+            this.#dispatcher.dispatch(EVENT_PreviewImageUpdated, {});
+        }
+        this.#previewIsUpdating = false;
+    }
+
+    async #renderSourceImageAsync() {
+        if (this.#sourceImageIsSet()) {
+            const width = parseInt(this.#tbImportWidth.value);
+            const height = parseInt(this.#tbImportHeight.value);
+            const scale = parseInt(this.#tbPreviewScale.value);
+            const shouldDisplayTiles = this.#tbPreviewTileDisplay.checked;
+
+            const resizedImage = await ImageUtil.resizeImageAsync(this.#sourceImage, width, height);
+
+            /** @type {import("../util/imageUtil.js").TileSpec} */
+            const params = shouldDisplayTiles ? {
+                offsetX: parseInt(this.#tbOffsetLeft.value),
+                offsetY: parseInt(this.#tbOffsetTop.value),
+                tilesWide: parseInt(this.#tbTilesWide.value),
+                tilesHigh: parseInt(this.#tbTilesHigh.value)
+            } : null;
+
+            ImageUtil.displayImageOnCanvas(this.#tbCanvasSource, resizedImage, { scale: scale, tiles: params });
+        }
+    }
+
+    async #renderPreviewImageAsync() {
+        if (this.#previewImageIsSet()) {
+            const image = this.#previewImage;
+            const scale = parseInt(this.#tbPreviewScale.value);
+            const shouldDisplayTiles = this.#tbPreviewTileDisplay.checked;
+
+            /** @type {import("../util/imageUtil.js").TileSpec} */
+            const params = shouldDisplayTiles ? {
+                offsetX: parseInt(this.#tbOffsetLeft.value),
+                offsetY: parseInt(this.#tbOffsetTop.value),
+                tilesWide: parseInt(this.#tbTilesWide.value),
+                tilesHigh: parseInt(this.#tbTilesHigh.value)
+            } : null;
+
+            ImageUtil.displayImageOnCanvas(this.#tbCanvasPreview, image, { scale: scale, tiles: params });
+        }
+    }
+
 
 }
 
@@ -500,5 +674,21 @@ function resetCanvas(canvas) {
  * Import image modal state object.
  * @typedef {object} ImportImageModalState
  * @property {PaletteList?} paletteList - List of palettes to make available for import.
+ * @property {File?} file - File containing an image to be shown.
  */
 
+
+/**
+ * Callback for when the user clicks one of the import buttons from the import modal.
+ * @callback ImportProjectModelConfirmCallback
+ * @param {ImportProjectModelConfirmEventArgs} args - Arguments.
+ * @exports
+ */
+/**
+ * @typedef {object} ImportProjectModelConfirmEventArgs
+ * @property {boolean} createNew - When true we're creating a new project, otherwise we'll add to existing.
+ * @property {string} title - Title of the project.
+ * @property {TileSet} tileSet - Derrived tile set from the import operation.
+ * @property {Palette} palette - Derrived colour palette from the import operation.
+ * @exports 
+ */
