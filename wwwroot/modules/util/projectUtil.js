@@ -19,7 +19,7 @@ export default class ProjectUtil {
 
         const serialisedData = ProjectJsonSerialiser.serialise(project, true);
 
-        const file = new File([seri38alisedData], fileName, { type: 'application/json' });
+        const file = new File([serialisedData], fileName, { type: 'application/json' });
         const url = URL.createObjectURL(file);
         const a = document.createElement('a');
         a.href = url;

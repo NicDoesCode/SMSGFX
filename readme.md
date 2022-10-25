@@ -29,6 +29,13 @@ To use the Configuration for a local Node.js Express based server the following 
 1. Run the following from a terminal from the project root folder:<br />`node app.js`
 2. Browse to http://localhost:8080/index.html.
 
+## To host a local HTTPS server
+For this you will require OpenSSL to be installed. 
+1. Navigate to the project root folder in a terminal window.
+2. Run the command '`openssl req -nodes -new -x509 -keyout cert/server.key -out cert/server.cert`' to create the certificate.
+   * Make sure you set the common name to '`localhost`'.
+3. The files '`cert/server.key` and `cert/server.cert` will be created, the `app.js` file will detect these files and automatically create a HTTPS server for you next time that you run it.
+
 
 # Keyboard shortcuts
 

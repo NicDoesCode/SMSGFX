@@ -74,6 +74,11 @@ export default class ImportImageModalDialogue extends ModalDialogue {
     constructor(element) {
         super(element);
 
+        element.addEventListener('keyup', (keyEvent) => {
+            console.log('keyup', keyEvent);
+            keyEvent.preventDefault();
+        });
+
         this.#btnImportFile = element.querySelector('[data-smsgfx-id=import-file-button]');
         this.#btnImportFile.onclick = () => this.#tbImportFile.click();
 
@@ -81,6 +86,7 @@ export default class ImportImageModalDialogue extends ModalDialogue {
         this.#tbImportFile.onchange = () => this.#handleFileInputChangeEvent();
 
         this.#btnImportClipboard = element.querySelector('[data-smsgfx-id=import-clipboard-button]');
+        this.#btnImportClipboard.onclick = () => this.#handleImportClipboardClick();
 
         this.#tbImportPaletteSelect = element.querySelector('[data-smsgfx-id=import-palette-select]');
 
@@ -328,6 +334,11 @@ export default class ImportImageModalDialogue extends ModalDialogue {
             this.#btnPreview.removeAttribute('disabled');
             this.#tbImportFile.removeAttribute('disabled');
         }
+    }
+
+    async #handleImportClipboardClick() {
+        const data = await navigator.clipboard.read();
+        console.log(data);
     }
 
     async #handlePreviewClick() {
