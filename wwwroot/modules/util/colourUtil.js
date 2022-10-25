@@ -95,6 +95,44 @@ export default class ColourUtil {
 
     }
 
+    /**
+     * Gets a Master System colour palette.
+     * @returns {Colour[]}
+     */
+    static getFullMasterSystemPalette() {
+        if (!masterSystemPalette) {
+            masterSystemPalette = [];
+            const colourShades = [0, 85, 170, 255];
+            colourShades.forEach(b => {
+                colourShades.forEach(g => {
+                    colourShades.forEach(r => {
+                        masterSystemPalette.push({ r, g, b });
+                    });
+                });
+            });
+        }
+        return masterSystemPalette;
+    }
+
+    /**
+     * Gets a Game Gear colour palette.
+     * @returns {Colour[]}
+     */
+     static getFullGameGearPalette() {
+        if (!gameGearPalette) {
+            gameGearPalette = [];
+            const colourShades = [0, 15, 31, 47, 63, 79, 95, 111, 127, 143, 159, 175, 191, 207, 223, 239, 255];
+            colourShades.forEach(b => {
+                colourShades.forEach(g => {
+                    colourShades.forEach(r => {
+                        gameGearPalette.push({ r, g, b });
+                    });
+                });
+            });
+        }
+        return gameGearPalette;
+    }
+
     // /**
     //  * 
     //  * @param {import("./palette.js").PaletteColour} value 
@@ -122,6 +160,12 @@ export default class ColourUtil {
 
 
 }
+
+/** @type {Colour[]} */
+let masterSystemPalette = null;
+
+/** @type {Colour[]} */
+let gameGearPalette = null;
 
 /**
  * @typedef ColourInformation

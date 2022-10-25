@@ -22,6 +22,8 @@ import UndoManager from "./components/undoManager.js";
 import ProjectFactory from "./factory/projectFactory.js";
 import PaletteListFactory from "./factory/paletteListFactory.js";
 import TileUtil from "./util/tileUtil.js";
+import ImageUtil from "./util/imageUtil.js";
+import ImportImageModalDialogue from "./ui/importImageModalDialogue.js";
 
 
 const undoManager = new UndoManager(50);
@@ -36,6 +38,7 @@ const tileEditor = new TileEditor(document.getElementById('tbTileEditor'));
 const tileEditorToolbar = new TileEditorToolbar(document.getElementById('tbTileEditorToolbar'));
 const tileContextToolbar = new TileContextToolbar(document.getElementById('tbTileContextToolbar'));
 const headerBar = new HeaderBar(document.getElementById('tbHeaderBar'));
+const importImageModalDialogue = new ImportImageModalDialogue(document.querySelector('[data-smsgfx-component-id=import-image-modal]'));
 
 
 
@@ -101,6 +104,7 @@ function wireUpEventHandlers() {
     tileEditor.addHandlerRequestMirrorTileVertical(handleTileEditorMirrorTileVertical);
 
     tileEditorToolbar.addHandlerRequestAddTile(handleTileEditorToolbarRequestAddTile);
+    tileEditorToolbar.addHandlerRequestImportImage(handleTileEditorToolbarRequestImportImage);
     tileEditorToolbar.addHandlerRequestImportTileSetFromCode(handleTileEditorToolbarRequestImportTileSetFromCode);
     tileEditorToolbar.addHandlerRequestUndo(handleTileEditorToolbarRequestUndo);
     tileEditorToolbar.addHandlerRequestRedo(handleTileEditorToolbarRequestRedo);
@@ -120,9 +124,26 @@ function wireUpEventHandlers() {
     colourPickerToolbox.addHandlerRequestColourChange(handleColourPickerToolboxColourChange);
 
     tileDialogue.addHandlerOnConfirm(handleImportTileSet);
+
+    importImageModalDialogue.addHandlerOnConfirm(handleImageImportModalOnConfirm)
 }
 
-function createKeyEventListeners() {
+function createEventListeners() {
+
+    document.addEventListener('paste', (clipboardEvent) => {
+        if (clipboardEvent.clipboardData?.files?.length > 0) {
+            const targetTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/gif', 'image/svg+xml'];
+            const file = clipboardEvent.clipboardData.files[0];
+            if (targetTypes.includes(file.type)) {
+                importImageModalDialogue.setState({
+                    paletteList: getPaletteList(),
+                    file: file
+                });
+                importImageModalDialogue.show();
+            }
+        }
+    });
+
     document.addEventListener('keydown', (keyEvent) => {
         // console.log('keydown', keyEvent);
         if (keyEvent.target === document.body) {
@@ -159,11 +180,11 @@ function createKeyEventListeners() {
             if (keyEvent.ctrlKey && keyEvent.altKey) {
                 // Ctrl + alt
 
-                if (keyEvent.key === 'p') { 
+                if (keyEvent.key === 'p') {
                     // New palette
                     newPalette();
                     handled = true;
-                } else if (keyEvent.key === 'e') { 
+                } else if (keyEvent.key === 'e') {
                     // New tile
                     newTile();
                     handled = true;
@@ -498,6 +519,14 @@ function handleTileEditorToolbarRequestAddTile(args) {
 }
 
 /** @param {import('./ui/tileEditorToolbar').TileEditorToolbarCallback} args */
+function handleTileEditorToolbarRequestImportImage(args) {
+    importImageModalDialogue.setState({
+        paletteList: getPaletteList()
+    });
+    importImageModalDialogue.show();
+}
+
+/** @param {import('./ui/tileEditorToolbar').TileEditorToolbarCallback} args */
 function handleTileEditorToolbarRequestImportTileSetFromCode(args) {
     tileDialogue.show(state.persistentUIState.importTileAssemblyCode);
 }
@@ -829,6 +858,51 @@ function handleImportTileSet(args) {
     tileEditor.setState({
         tileSet: tileSet
     });
+}
+
+
+/**
+ * Import image dialogue is confirmed.
+ * @param {import('./ui/importImageModalDialogue').ImportProjectModelConfirmEventArgs} args - Arguments.
+ */
+function handleImageImportModalOnConfirm(args) {
+    addUndoState();
+    
+    if (args.createNew) {
+        const paletteList = PaletteListFactory.create([args.palette]);
+        const project = ProjectFactory.create(args.title, args.tileSet, paletteList);
+        state.setProject(project);
+        state.saveToLocalStorage();
+    } else {
+        const paletteList = getPaletteList();
+        paletteList.addPalette(args.palette);
+        const tileSet = getTileSet();
+        args.tileSet.getTiles().forEach(tile => {
+            tileSet.addTile(tile);
+        });
+    }
+
+    getUIState().paletteIndex = getPaletteList().length - 1;
+
+    state.setProject(getProject());
+    state.saveToLocalStorage();
+
+    paletteEditor.setState({
+        paletteList: getPaletteList(),
+        selectedPaletteIndex: getPaletteList().length - 1
+    });
+    tileEditorToolbar.setState({
+        tileWidth: getTileSet().tileWidth
+    });
+    tileEditor.setState({
+        palette: getPalette(),
+        tileSet: getTileSet()
+    });
+    headerBar.setState({
+        projectTitle: getProject().title
+    });
+
+    importImageModalDialogue.hide();
 }
 
 
@@ -1536,7 +1610,7 @@ $(() => {
     instanceState.colourToolboxTab = 'rgb';
 
     wireUpEventHandlers();
-    createKeyEventListeners();
+    createEventListeners();
 
     // Load and set state
     state.loadFromLocalStorage();
@@ -1577,5 +1651,4 @@ $(() => {
         scale: getUIState().scale,
         displayNative: getUIState().displayNativeColour
     });
-
 });

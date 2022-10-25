@@ -2,6 +2,7 @@ import EventDispatcher from "../components/eventDispatcher.js";
 
 const EVENT_RequestAddTile = 'EVENT_RequestAddTile';
 const EVENT_RequestImportTileSet = 'EVENT_RequestImportTileSet';
+const EVENT_RequestImportImage = 'EVENT_RequestImportImage';
 const EVENT_RequestToolChange = 'EVENT_RequestToolChange';
 const EVENT_RequestTileWidthChange = 'EVENT_RequestTileWidthChange';
 const EVENT_RequestScaleChange = 'EVENT_RequestScaleChange';
@@ -50,7 +51,9 @@ export default class TileEditorToolbar {
     #btnTilesAddTile;
     /** @type {HTMLButtonElement} */
     #btnTilesImport;
-    /** @type {HTMLInputElement} */
+     /** @type {HTMLButtonElement} */
+    #btnImageImport;
+   /** @type {HTMLInputElement} */
     #tbTileSetWidth;
     /** @type {HTMLSelectElement} */
     #tbTileSetScale;
@@ -72,6 +75,9 @@ export default class TileEditorToolbar {
 
         this.#btnTilesAddTile = this.#element.querySelector('#btnTilesAddTile');
         this.#btnTilesAddTile.onclick = (e) => this.#handleRequestAddTile(e);
+
+        this.#btnImageImport = this.#element.querySelector('#btnImageImport');
+        this.#btnImageImport.onclick = (e) => this.#handleRequestImportImage(e);
 
         this.#btnTilesImport = this.#element.querySelector('#btnTilesImport');
         this.#btnTilesImport.onclick = (e) => this.#handleRequestImportTilesFromCode(e);
@@ -134,6 +140,14 @@ export default class TileEditorToolbar {
      */
     addHandlerRequestAddTile(callback) {
         this.#dispatcher.on(EVENT_RequestAddTile, callback);
+    }
+
+    /**
+     * Triggered when import tile set from code is requested.
+     * @param {TileEditorToolbarCallback} callback - Callback function.
+     */
+    addHandlerRequestImportImage(callback) {
+        this.#dispatcher.on(EVENT_RequestImportImage, callback);
     }
 
     /**
@@ -209,6 +223,10 @@ export default class TileEditorToolbar {
 
     #handleRequestAddTile(event) {
         this.#dispatcher.dispatch(EVENT_RequestAddTile, {});
+    }
+
+    #handleRequestImportImage(event) {
+        this.#dispatcher.dispatch(EVENT_RequestImportImage, {});
     }
 
     #handleRequestImportTilesFromCode(event) {

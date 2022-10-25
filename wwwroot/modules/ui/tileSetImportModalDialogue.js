@@ -21,7 +21,7 @@ export default class TileSetImportModalDialogue extends ModalDialogue {
      * Shows the dialogue with assembly data.
      * @param {string} tileSetData - The WLA-DLX assembly code that contains the tiles.
      */
-     show(tileSetData) {
+    show(tileSetData) {
         this.#tbTileSetData.value = tileSetData;
         super.show();
     }
