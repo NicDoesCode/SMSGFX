@@ -866,6 +866,8 @@ function handleImportTileSet(args) {
  * @param {import('./ui/importImageModalDialogue').ImportProjectModelConfirmEventArgs} args - Arguments.
  */
 function handleImageImportModalOnConfirm(args) {
+    addUndoState();
+    
     if (args.createNew) {
         const paletteList = PaletteListFactory.create([args.palette]);
         const project = ProjectFactory.create(args.title, args.tileSet, paletteList);

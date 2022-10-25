@@ -19,34 +19,11 @@ export default class ImageUtil {
         if (!canvas) throw new Error('Canvas must be set.');
         const context = canvas.getContext('2d');
 
-
-        // const canvasBounds = canvas.getBoundingClientRect();
-        // console.log('displayImageOnCanvas', canvasBounds, canvas.width, canvas.height, canvas);
-        // canvas.width = canvasBounds.width;
-        // canvas.height = canvasBounds.height;
-
         // Determine preview image scale W & H
         let drawScale, drawW, drawH;
         drawScale = params?.scale ?? 1;
         drawW = image.width * drawScale;
         drawH = image.height * drawScale;
-
-        // if (image.width < canvas.width && image.height < canvas.height) {
-        //     drawScale = 1;
-        //     drawW = image.width;
-        //     drawH = image.height;
-
-        // } else {
-        //     drawScale = 1 / image.width * canvas.width;
-        //     drawW = canvas.width;
-        //     drawH = Math.floor(image.height * drawScale);
-
-        //     if (drawH > canvas.height) {
-        //         drawScale = 1 / image.height * canvas.height;
-        //         drawW = Math.floor(image.width * drawScale);
-        //         drawH = canvas.height;
-        //     }
-        // }
 
         // Fill background
         context.fillStyle = '#DDDDDD';
@@ -89,21 +66,6 @@ export default class ImageUtil {
                 }
             }
         }
-
-        // Draw grid lines
-        // context.strokeStyle = 'rgba(0, 0, 0, 0.25)';
-        // context.beginPath();
-        // for (let x = 0; x < image.width; x += 8) {
-        //     const lineX = drawX + (drawScale * x);
-        //     context.moveTo(lineX, drawY);
-        //     context.lineTo(lineX, drawY + drawH);
-        // }
-        // for (let y = 0; y < image.height; y += 8) {
-        //     const lineY = drawY + (drawScale * y);
-        //     context.moveTo(drawX, lineY);
-        //     context.lineTo(drawX + drawW, lineY);
-        // }
-        // context.stroke();
     }
 
     /**
@@ -403,7 +365,7 @@ export default class ImageUtil {
             let matchRangeFactor = 0;
             while (matchedColours.matches.length > 16) {
                 matchRangeFactor += 16;
-                matchedColours = groupSimilarColours2(matchedColours.matches, matchRangeFactor);
+                matchedColours = groupSimilarColours(matchedColours.matches, matchRangeFactor);
             }
         }
 
@@ -431,7 +393,7 @@ export default class ImageUtil {
         let matchRangeFactor = 0;
         while (matchedColours.matches.length > 16) {
             matchRangeFactor += 4;
-            matchedColours = groupSimilarColours2(matchedColours.matches, matchRangeFactor);
+            matchedColours = groupSimilarColours(matchedColours.matches, matchRangeFactor);
         }
 
         console.log('extractNativePaletteFromImage, reduced colours', matchedColours);
@@ -466,7 +428,6 @@ export default class ImageUtil {
         const height = tiles.tilesHigh * 8;
         const virtualData = new Uint8ClampedArray(width * height);
         const imageData = this.extractImageData(image);
-        const pxPerTileRow = tiles.tilesWide * 64;
 
         const emptyStartPixels = tiles.offsetX < 0 ? tiles.offsetX : 0;
         const emptyEndPixels = tiles.offsetX + width > image.width ? (tiles.offsetX + width) - image.width : 0;
@@ -496,14 +457,7 @@ export default class ImageUtil {
 
                     const tileMapVirtualOffset = tileOffset + thisTileOffset;
 
-                    // const tileOffset = virtualOffset % 64; // Offset witin the tile
-                    // const tileNum = (virtualOffset - tileOffset) / 64;
-                    // const tileMapVirtualOffset = (tileNum * 64) + tileOffset;
-
-                    // const virtualTileNum = Math.floor(virtualX / 8);
-                    // const virtualTileOffset = (virtualTileNum * 64) + (virtualX % 64);
                     virtualData[tileMapVirtualOffset] = matchedPaletteIndex;
-                    // virtualData[virtualOffset] = 16;
                     virtualX++;
                     virtualOffset++;
                 }
@@ -536,15 +490,6 @@ export default class ImageUtil {
 
 
 }
-
-class ImageData {
-
-    #imageData;
-    #width;
-    #height;
-
-}
-
 
 
 /**
@@ -600,6 +545,62 @@ function matchColours(sourceList, coloursToMatch) {
     return matched;
 }
 
+// /**
+//  * Takes an input list of colour matches and reduces by grouping colours with other similar colours.
+//  * @param {ColourMatch[]} coloursToGroup - Input list of colours to match.
+//  * @param {number} matchRangeFactor - Match sensitivity, value between 1 and 255, colours with an R, G, and B value that all fall withing this range will be grouped.
+//  * @returns {ColourMapping}
+//  */
+// function groupSimilarColours(coloursToGroup, matchRangeFactor) {
+//     /** @type {ColourMapping} */
+//     const result = { hexLookup: {}, matches: [] };
+
+//     /** @type {ColourMatch[]} */
+//     const coloursMostUsedToLeast = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => b.count > a.count);
+
+//     for (let a = coloursMostUsedToLeast.length; a > 0; a--) {
+//         const lessPopularColour = coloursMostUsedToLeast[a - 1];
+//         if (!result.hexLookup[lessPopularColour.hex]) {
+
+//             // Attempt to match this colour to a more popular one, loop backwards, 
+//             // starting with most popular and checking lesser and lesser colours
+//             // Also quit looping if the colour in question appears in the hex lookup
+//             const matchRange = createMatchRange(lessPopularColour, matchRangeFactor);
+//             for (let i = 0; !result.hexLookup[lessPopularColour.hex] && i < coloursMostUsedToLeast.length; i++) {
+//                 const morePopularColour = coloursMostUsedToLeast[i];
+
+//                 // If we're not comparing the same colour, and this base colour is similar, then merge 
+//                 // the compare colour with the base colour
+//                 if (morePopularColour.hex !== lessPopularColour.hex) {
+//                     if (isSimilar(morePopularColour, matchRange)) {
+//                         // Found a better match, merge this colour with the more popular colour
+//                         if (!result.hexLookup[morePopularColour.hex]) {
+//                             result.hexLookup[morePopularColour.hex] = morePopularColour.hex;
+//                             morePopularColour.matchedColours.forEach(m => result.hexLookup[m] = morePopularColour.hex);
+//                             result.matches.push(morePopularColour);
+//                         }
+//                         result.hexLookup[lessPopularColour.hex] = morePopularColour.hex;
+//                         lessPopularColour.matchedColours.forEach(m => result.hexLookup[m] = morePopularColour.hex);
+//                         morePopularColour.count += lessPopularColour.count;
+//                         morePopularColour.matchedColours = morePopularColour.matchedColours.concat(lessPopularColour.matchedColours);
+//                     }
+//                 }
+
+//             }
+//             // If the colour wasn't matched to any more popular colour, 
+//             // then it survives and is added to the result
+//             if (!result.hexLookup[lessPopularColour.hex]) {
+//                 result.hexLookup[lessPopularColour.hex] = lessPopularColour.hex;
+//                 lessPopularColour.matchedColours.forEach(m => result.hexLookup[m] = lessPopularColour.hex);
+//                 result.matches.push(lessPopularColour);
+//             }
+//         }
+
+//     }
+
+//     return result;
+// }
+
 /**
  * Takes an input list of colour matches and reduces by grouping colours with other similar colours.
  * @param {ColourMatch[]} coloursToGroup - Input list of colours to match.
@@ -607,62 +608,6 @@ function matchColours(sourceList, coloursToMatch) {
  * @returns {ColourMapping}
  */
 function groupSimilarColours(coloursToGroup, matchRangeFactor) {
-    /** @type {ColourMapping} */
-    const result = { hexLookup: {}, matches: [] };
-
-    /** @type {ColourMatch[]} */
-    const coloursMostUsedToLeast = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => b.count > a.count);
-
-    for (let a = coloursMostUsedToLeast.length; a > 0; a--) {
-        const lessPopularColour = coloursMostUsedToLeast[a - 1];
-        if (!result.hexLookup[lessPopularColour.hex]) {
-
-            // Attempt to match this colour to a more popular one, loop backwards, 
-            // starting with most popular and checking lesser and lesser colours
-            // Also quit looping if the colour in question appears in the hex lookup
-            const matchRange = createMatchRange(lessPopularColour, matchRangeFactor);
-            for (let i = 0; !result.hexLookup[lessPopularColour.hex] && i < coloursMostUsedToLeast.length; i++) {
-                const morePopularColour = coloursMostUsedToLeast[i];
-
-                // If we're not comparing the same colour, and this base colour is similar, then merge 
-                // the compare colour with the base colour
-                if (morePopularColour.hex !== lessPopularColour.hex) {
-                    if (isSimilar(morePopularColour, matchRange)) {
-                        // Found a better match, merge this colour with the more popular colour
-                        if (!result.hexLookup[morePopularColour.hex]) {
-                            result.hexLookup[morePopularColour.hex] = morePopularColour.hex;
-                            morePopularColour.matchedColours.forEach(m => result.hexLookup[m] = morePopularColour.hex);
-                            result.matches.push(morePopularColour);
-                        }
-                        result.hexLookup[lessPopularColour.hex] = morePopularColour.hex;
-                        lessPopularColour.matchedColours.forEach(m => result.hexLookup[m] = morePopularColour.hex);
-                        morePopularColour.count += lessPopularColour.count;
-                        morePopularColour.matchedColours = morePopularColour.matchedColours.concat(lessPopularColour.matchedColours);
-                    }
-                }
-
-            }
-            // If the colour wasn't matched to any more popular colour, 
-            // then it survives and is added to the result
-            if (!result.hexLookup[lessPopularColour.hex]) {
-                result.hexLookup[lessPopularColour.hex] = lessPopularColour.hex;
-                lessPopularColour.matchedColours.forEach(m => result.hexLookup[m] = lessPopularColour.hex);
-                result.matches.push(lessPopularColour);
-            }
-        }
-
-    }
-
-    return result;
-}
-
-/**
- * Takes an input list of colour matches and reduces by grouping colours with other similar colours.
- * @param {ColourMatch[]} coloursToGroup - Input list of colours to match.
- * @param {number} matchRangeFactor - Match sensitivity, value between 1 and 255, colours with an R, G, and B value that all fall withing this range will be grouped.
- * @returns {ColourMapping}
- */
-function groupSimilarColours2(coloursToGroup, matchRangeFactor) {
     /** @type {ColourMapping} */
     const result = { hexLookup: {}, matches: [] };
 
@@ -704,26 +649,6 @@ function groupSimilarColours2(coloursToGroup, matchRangeFactor) {
 
     return result;
 }
-
-// /**
-//  * Eliminates colours with the lowest count.
-//  * @param {ColourMapping} input - List to process.
-//  * @param {ColourMapping} input - List to process.
-//  * @returns {ColourMapping}
-//  */
-// eliminateColoursWithLowCount(input, minAmount) {
-//     /** @type {ColourMapping} */
-//     const result = { hexLookup: {}, matches: [] };
-
-//     /** @type {ColourMatch[]} */
-//     const culledColours = [];
-
-//     input.matches.forEach(c => {
-//         if (c.count < minAmount) {
-//             culledColours.push(culledColours);
-//         }
-//     });
-// }
 
 
 /**
@@ -826,13 +751,6 @@ function isSimilar(colour, range) {
         (colour.g >= range.gLow && colour.g <= range.gHigh) &&
         (colour.b >= range.bLow && colour.b <= range.bHigh)
         ;
-    // if (colour.r < range.rLow || colour.r > range.rHigh) return false;
-    // if (colour.g < range.gLow || colour.g > range.gHigh) return false;
-    // if (colour.b < range.bLow || colour.b > range.bHigh) return false;
-    return true;
-    // return colour.r >= range.rLow && colour.r <= range.rHigh &&
-    //     colour.g >= range.gLow && colour.g <= range.gHigh &&
-    //     colour.b >= range.bLow && colour.b <= range.bHigh;
 }
 
 /**
@@ -850,6 +768,7 @@ function getSimilaritry(colour, range) {
     });
     return score / 3;
 }
+
 
 /**
  * @typedef {object} ImageDisplayParams
