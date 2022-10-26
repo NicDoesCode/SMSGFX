@@ -49,8 +49,6 @@ export default class ImportImageModalDialogue extends ModalDialogue {
     /** @type {HTMLSelectElement} */
     #tbPreviewScale;
     /** @type {HTMLButtonElement} */
-    #btnImport;
-    /** @type {HTMLButtonElement} */
     #btnImportAsNew;
     /** @type {HTMLButtonElement} */
     #btnImportIntoExisting;
@@ -134,9 +132,6 @@ export default class ImportImageModalDialogue extends ModalDialogue {
 
         this.#tbPreviewScale = element.querySelector('[data-smsgfx-id=preview-scale]');
         this.#tbPreviewScale.onchange = () => this.#handlePreviewScaleChange(this.#tbPreviewScale);
-
-        this.#btnImport = element.querySelector('[data-smsgfx-id=import-button]');
-        this.#btnImport.onclick = async () => await this.#handleImportClick();
 
         this.#btnImportAsNew = element.querySelector('[data-smsgfx-id=button-import-as-new-project]');
         this.#btnImportAsNew.onclick = async () => await this.#handleImportClick('new');
@@ -248,9 +243,19 @@ export default class ImportImageModalDialogue extends ModalDialogue {
         this.#tbPreviewScale.disabled = disabledState;
 
         const previewDisabledState = !this.#sourceImageIsSet() || !this.#previewImageIsSet();
-        this.#btnImport.disabled = previewDisabledState;
         this.#btnImportAsNew.disabled = previewDisabledState;
         this.#btnImportIntoExisting.disabled = previewDisabledState;
+
+        this.#tbImportWidth.classList.remove('text-bg-warning');
+        this.#tbImportHeight.classList.remove('text-bg-warning');
+        this.#tbImportWidthPercent.classList.remove('text-bg-warning');
+        this.#tbImportHeightPercent.classList.remove('text-bg-warning');
+        if (parseInt(this.#tbImportWidth.value) > 128 || parseInt(this.#tbImportHeight.value) > 128) {
+            this.#tbImportWidth.classList.add('text-bg-warning');
+            this.#tbImportHeight.classList.add('text-bg-warning');
+            this.#tbImportWidthPercent.classList.add('text-bg-warning');
+            this.#tbImportHeightPercent.classList.add('text-bg-warning');
+        }
     }
 
     #recalculateTileAndOriginInputs(width, height) {
@@ -606,7 +611,7 @@ export default class ImportImageModalDialogue extends ModalDialogue {
 
             console.log(`updatePreviewImageAsync: Before extract colours, lap: ${(Date.now() - lastTime)}ms, total: ${(Date.now() - startTime)}ms.`); // TMP 
             lastTime = Date.now(); // TMP 
-  
+
             /** @type {ColourMatch[]} */
             let extractedColours;
             const selectedImportColours = this.#tbImportPaletteSelect.value;
@@ -622,11 +627,11 @@ export default class ImportImageModalDialogue extends ModalDialogue {
             console.log(`updatePreviewImageAsync: Before make preview, lap: ${(Date.now() - lastTime)}ms, total: ${(Date.now() - startTime)}ms.`); // TMP 
             lastTime = Date.now(); // TMP 
 
-            this.#previewImage = await ImageUtil.getImageFromPaletteAsync(extractedColours, sourceImage);
+            this.#previewImage = await ImageUtil.renderImageFromPaletteAsync(extractedColours, sourceImage);
             this.#previewColours = extractedColours;
 
             this.#dispatcher.dispatch(EVENT_PreviewImageUpdated, {});
-      
+
             console.log(`updatePreviewImageAsync: End: ${(Date.now() - lastTime)}ms, total: ${(Date.now() - startTime)}ms.`); // TMP 
         }
         this.#previewIsUpdating = false;

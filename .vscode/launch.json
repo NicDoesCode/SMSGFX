@@ -12,7 +12,13 @@
             "url": "http://localhost:8080/index.html",
             "webRoot": "${workspaceFolder}/wwwroot",
             "profile": "debug",
-            "keepProfileChanges": true
+            "keepProfileChanges": true,
+            "pathMappings": [
+                {
+                    "url": "http://localhost:8080",
+                    "path": "${workspaceFolder}/wwwroot"
+                }
+            ]
         },
         {
             "type": "firefox",

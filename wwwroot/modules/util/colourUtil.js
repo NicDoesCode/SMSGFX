@@ -97,7 +97,7 @@ export default class ColourUtil {
 
     /**
      * Gets a Master System colour palette.
-     * @returns {Colour[]}
+     * @returns {ColourInformation[]}
      */
     static getFullMasterSystemPalette() {
         if (!masterSystemPalette) {
@@ -116,7 +116,7 @@ export default class ColourUtil {
 
     /**
      * Gets a Game Gear colour palette.
-     * @returns {Colour[]}
+     * @returns {ColourInformation[]}
      */
      static getFullGameGearPalette() {
         if (!gameGearPalette) {
@@ -161,10 +161,10 @@ export default class ColourUtil {
 
 }
 
-/** @type {Colour[]} */
+/** @type {ColourInformation[]} */
 let masterSystemPalette = null;
 
-/** @type {Colour[]} */
+/** @type {ColourInformation[]} */
 let gameGearPalette = null;
 
 /**
