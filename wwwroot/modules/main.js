@@ -1194,6 +1194,9 @@ function newProject() {
     instanceState.tileIndex = -1;
     instanceState.colourIndex = 0;
 
+    headerBar.setState({
+        projectTitle: getProject().title
+    });
     paletteEditor.setState({
         paletteList: getPaletteList(),
         selectedColourIndex: instanceState.colourIndex,
