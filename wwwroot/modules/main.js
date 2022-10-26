@@ -24,6 +24,7 @@ import PaletteListFactory from "./factory/paletteListFactory.js";
 import TileUtil from "./util/tileUtil.js";
 import ImageUtil from "./util/imageUtil.js";
 import ImportImageModalDialogue from "./ui/importImageModalDialogue.js";
+import PencilContextToolbar from "./ui/pencilContextToolbar.js";
 
 
 const undoManager = new UndoManager(50);
@@ -37,6 +38,7 @@ const paletteEditor = new PaletteEditor(document.getElementById('tbPaletteEditor
 const tileEditor = new TileEditor(document.getElementById('tbTileEditor'));
 const tileEditorToolbar = new TileEditorToolbar(document.getElementById('tbTileEditorToolbar'));
 const tileContextToolbar = new TileContextToolbar(document.getElementById('tbTileContextToolbar'));
+const pencilContextToolbar = new PencilContextToolbar(document.querySelector('[data-smsgfx-component-id=pencil-tool-context-toolbar]'));
 const headerBar = new HeaderBar(document.getElementById('tbHeaderBar'));
 const importImageModalDialogue = new ImportImageModalDialogue(document.querySelector('[data-smsgfx-component-id=import-image-modal]'));
 
@@ -64,7 +66,9 @@ const instanceState = {
     undoDisabled: false,
     lastTileMapPx: {
         x: -1, y: -1
-    }
+    },
+    /** @type {number} */
+    pencilSize: 1
 };
 
 
@@ -94,6 +98,7 @@ function wireUpEventHandlers() {
     tileEditor.addHandlerPixelMouseOver(handleTileEditorPixelMouseOver);
     tileEditor.addHandlerPixelMouseDown(handleTileEditorPixelMouseDown);
     tileEditor.addHandlerPixelMouseUp(handleTileEditorPixelMouseUp);
+    tileEditor.addHandlerRequestSelectTile(handleTileEditorRequestSelectTile);
     tileEditor.addHandlerRequestRemoveTile(handleTileEditorRequestRemoveTile);
     tileEditor.addHandlerRequestInsertTileBefore(handleTileEditorRequestInsertTileBefore);
     tileEditor.addHandlerRequestInsertTileAfter(handleTileEditorRequestInsertTileAfter);
@@ -114,6 +119,8 @@ function wireUpEventHandlers() {
 
     tileContextToolbar.addHandlerOnButtonCommand(handleTileContextToolbarOnButtonCommand);
 
+    pencilContextToolbar.addHandlerOnButtonCommand(handlePencilContextToolbarOnButtonCommand);
+
     paletteDialogue.addHandlerOnConfirm(handleImportPaletteModalDialogueOnConfirm);
 
     colourPickerDialogue.addHandlerOnChange(handleColourPickerChange);
@@ -131,6 +138,7 @@ function wireUpEventHandlers() {
 function createEventListeners() {
 
     document.addEventListener('paste', (clipboardEvent) => {
+        console.log('paste', clipboardEvent);
         if (clipboardEvent.clipboardData?.files?.length > 0) {
             const targetTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/gif', 'image/svg+xml'];
             const file = clipboardEvent.clipboardData.files[0];
@@ -141,6 +149,13 @@ function createEventListeners() {
                 });
                 importImageModalDialogue.show();
             }
+        } else {
+            // navigator.permissions.query({name: 'clipboard-read', allowWithoutGesture: false }).then(status => {
+            // console.log(status);
+            // });
+            let paste = (clipboardEvent.clipboardData || window.clipboardData).getData('text');
+            console.log(paste);
+            // navigator.clipboard.readText().then(t => console.log(t));
         }
     });
 
@@ -605,6 +620,20 @@ function handleTileContextToolbarOnButtonCommand(args) {
     }
 }
 
+/** @param {import('./ui/pencilContextToolbar').PencilContextToolbarEventArgs} args */
+function handlePencilContextToolbarOnButtonCommand(args) {
+    if (args?.command === PencilContextToolbar.Commands.brushSize) {
+        if (args.brushSize && args.brushSize >= 1 && args.brushSize <= 5) {
+            instanceState.pencilSize = args.brushSize;
+            pencilContextToolbar.setState({
+                brushSize: instanceState.pencilSize
+            });
+            tileEditor.setState({
+                cursorSize: instanceState.pencilSize
+            });
+        }
+    }
+}
 
 /** @param {import("./ui/tileEditor.js").TileEditorPixelEventArgs} args */
 function handleTileEditorPixelMouseOver(args) {
@@ -616,9 +645,11 @@ function handleTileEditorPixelMouseOver(args) {
 
     // Show the palette colour
     const pixel = tileSet.getPixelAt(args.x, args.y);
-    paletteEditor.setState({
-        highlightedColourIndex: pixel
-    });
+    if (pixel !== null) {
+        paletteEditor.setState({
+            highlightedColourIndex: pixel
+        });
+    }
 }
 
 /** @param {import("./ui/tileEditor.js").TileEditorPixelEventArgs} args */
@@ -630,6 +661,11 @@ function handleTileEditorPixelMouseDown(args) {
 function handleTileEditorPixelMouseUp(args) {
     state.saveToLocalStorage();
     instanceState.undoDisabled = false;
+}
+
+/** @param {import("./ui/tileEditor.js").TileEditorTileEventArgs} args */
+function handleTileEditorRequestSelectTile(args) {
+    selectTile(args.tileIndex);
 }
 
 /** @param {import("./ui/tileEditor.js").TileEditorTileEventArgs} args */
@@ -867,7 +903,7 @@ function handleImportTileSet(args) {
  */
 function handleImageImportModalOnConfirm(args) {
     addUndoState();
-    
+
     if (args.createNew) {
         const paletteList = PaletteListFactory.create([args.palette]);
         const project = ProjectFactory.create(args.title, args.tileSet, paletteList);
@@ -1047,7 +1083,23 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
 
                 // Show the palette colour
                 const tileSet = getTileSet();
-                tileSet.setPixelAt(imageX, imageY, colourIndex);
+
+                const size = instanceState.pencilSize;
+                if (size > 0) {
+                    const startX = imageX - Math.floor(size / 2);
+                    const startY = imageY - Math.floor(size / 2);
+                    const endX = imageX + Math.ceil(size / 2);
+                    const endY = imageY + Math.ceil(size / 2);
+                    for (let yPx = startY; yPx < endY; yPx++) {
+                        const xLeft = (size > 3 && (yPx === startY || yPx === endY - 1)) ? startX + 1 : startX;
+                        const xRight = (size > 3 && (yPx === startY || yPx === endY - 1)) ? endX - 1 : endX;
+                        for (let xPx = xLeft; xPx < xRight; xPx++) {
+                            tileSet.setPixelAt(xPx, yPx, colourIndex);
+                        }
+                    }
+                } else {
+                    tileSet.setPixelAt(imageX, imageY, colourIndex);
+                }
 
                 // Update the UI
                 tileEditor.setState({ tileSet: tileSet });
@@ -1077,9 +1129,6 @@ function selectTile(index) {
     } else {
         instanceState.tileIndex = -1;
     }
-    tileContextToolbar.setState({
-        visible: instanceState.tileIndex !== -1
-    });
     tileEditor.setState({
         selectedTileIndex: instanceState.tileIndex
     });
@@ -1265,15 +1314,15 @@ function addUndoState() {
 /**
  * Mirror a tile at a given index.
  * @param {string} way - Either 'h' or 'v'.
- * @param {number} tileIndex - Tile index.
+ * @param {number} index - Tile index.
  */
-function mirrorTileAt(way, tileIndex) {
+function mirrorTileAt(way, index) {
     if (index < 0 || index > getTileSet().length) return;
     if (!way || !['h', 'v'].includes(way)) throw new Error('Please specify horizontal "h" or vertical "v".');
 
     addUndoState();
 
-    const tile = getTileSet().getTile(tileIndex);
+    const tile = getTileSet().getTile(index);
 
     /** @type {Tile} */
     let mirroredTile;
@@ -1283,8 +1332,8 @@ function mirrorTileAt(way, tileIndex) {
         mirroredTile = TileUtil.mirrorVertical(tile);
     }
 
-    getTileSet().removeTile(tileIndex);
-    getTileSet().insertTileAt(mirroredTile, tileIndex);
+    getTileSet().removeTile(index);
+    getTileSet().insertTileAt(mirroredTile, index);
 
     state.setProject(getProject());
     state.saveToLocalStorage();
@@ -1362,10 +1411,10 @@ function cutTileToClipboardAt(index) {
 function copyTileToClipboardAt(index) {
     if (index < 0 || index >= getTileSet().length) return;
 
-    addUndoState();
-
     const tile = getTileSet().getTile(index);
     instanceState.tileClipboard = TileUtil.toHex(tile);
+
+    navigator.clipboard.writeText(TileUtil.toHex(tile));
 
     state.setProject(getProject());
     state.saveToLocalStorage();
@@ -1516,6 +1565,9 @@ function selectTileEditorToolbarTool(tool) {
         tileContextToolbar.setState({
             visible: tool === TileEditorToolbar.Tools.select
         });
+        pencilContextToolbar.setState({
+            visible: tool === TileEditorToolbar.Tools.pencil
+        });
         tileEditorToolbar.setState({
             selectedTool: tool
         });
@@ -1649,6 +1701,11 @@ $(() => {
         palette: palette,
         tileSet: tileSet,
         scale: getUIState().scale,
-        displayNative: getUIState().displayNativeColour
+        displayNative: getUIState().displayNativeColour,
+        cursorSize: instanceState.pencilSize
+    });
+    pencilContextToolbar.setState({
+        visible: instanceState.tool === TileEditorToolbar.Tools.pencil,
+        brushSize: instanceState.pencilSize
     });
 });

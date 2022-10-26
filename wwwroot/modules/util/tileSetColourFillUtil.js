@@ -16,6 +16,8 @@ export default class TileSetColourFillUtil {
         if (x < 0 || x >= w || y < 0 || y >= h) throw 'Invalid origin coordinates.';
 
         const originColour = tileSet.getPixelAt(x, y);
+        if (originColour === null) return;
+
         const props = { tileSet, w, h, originColour };
 
         if (pxIsInsideImageAndMatchesOriginColour(x, y, props)) {
@@ -99,6 +101,8 @@ function pxIsInsideImageAndMatchesOriginColour(x, y, props) {
     if (x < 0 || x >= props.w) {
         return false;
     } else if (y < 0 || y >= props.h) {
+        return false;
+    } else if (props.tileSet.getPixelAt(x, y) === null) {
         return false;
     } else if (props.tileSet.getPixelAt(x, y) !== props.originColour) {
         return false;

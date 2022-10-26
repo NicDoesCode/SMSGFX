@@ -9,6 +9,7 @@ import TileEditorContextMenu from "./tileEditorContextMenu.js";
 const EVENT_PixelMouseOver = 'EVENT_PixelMouseOver';
 const EVENT_PixelMouseDown = 'EVENT_PixelMouseDown';
 const EVENT_PixelMouseUp = 'EVENT_PixelMouseUp';
+const EVENT_RequestSelectTile = 'EVENT_RequestSelectTile';
 const EVENT_RequestRemoveTile = 'EVENT_RequestRemoveTile';
 const EVENT_RequestInsertTileBefore = 'EVENT_RequestInsertTileBefore';
 const EVENT_RequestInsertTileAfter = 'EVENT_RequestInsertTileAfter';
@@ -110,6 +111,12 @@ export default class TileEditor {
             this.#canvasManager.selectedTileIndex = state.selectedTileIndex;
             dirty = true;
         }
+        // Cursor size
+        if (typeof state?.cursorSize === 'number') {
+            if (state.cursorSize > 0 && state.cursorSize < 10) {
+                this.#canvasManager.cursorSize = state.cursorSize;
+            }
+        }
         // Refresh image?
         if (dirty && this.#palette && this.#tileSet) {
             let palette = !this.#displayNative ? this.#palette : PaletteFactory.convertToNative(this.#palette);
@@ -147,6 +154,14 @@ export default class TileEditor {
      */
     addHandlerPixelMouseUp(callback) {
         this.#dispatcher.on(EVENT_PixelMouseUp, callback);
+    }
+
+    /**
+     * Request a tile be selected.
+     * @param {TileEditorTileCallback} callback - Callback function.
+     */
+    addHandlerRequestSelectTile(callback) {
+        this.#dispatcher.on(EVENT_RequestSelectTile, callback);
     }
 
     /**
@@ -221,7 +236,13 @@ export default class TileEditor {
             const lastCoords = this.#lastCoords;
             if (!lastCoords || lastCoords.x !== coords.x || lastCoords.y !== coords.y) {
                 /** @type {TileEditorPixelEventArgs} */
-                const args = { x: coords.x, y: coords.y, mouseIsDown: this.#canvasMouseIsDown };
+                const args = {
+                    x: coords.x, y: coords.y,
+                    mouseIsDown: this.#canvasMouseIsDown,
+                    isPrimaryButton: event.button === 0,
+                    isSecondaryButton: event.button === 2,
+                    isAuxButton: event.button === 1
+                };
                 this.#dispatcher.dispatch(EVENT_PixelMouseOver, args);
                 this.#lastCoords = coords;
                 if (this.#canvasManager.canDraw) {
@@ -237,7 +258,13 @@ export default class TileEditor {
             this.#canvasMouseIsDown = true;
             const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(event.clientX, event.clientY);
             /** @type {TileEditorPixelEventArgs} */
-            const args = { x: coords.x, y: coords.y, mouseIsDown: this.#canvasMouseIsDown };
+            const args = {
+                x: coords.x, y: coords.y,
+                mouseIsDown: this.#canvasMouseIsDown,
+                isPrimaryButton: event.button === 0,
+                isSecondaryButton: event.button === 2,
+                isAuxButton: event.button === 1
+            };
             this.#dispatcher.dispatch(EVENT_PixelMouseDown, args);
         }
     }
@@ -247,7 +274,13 @@ export default class TileEditor {
         this.#canvasMouseIsDown = false;
         const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(event.clientX, event.clientY);
         /** @type {TileEditorPixelEventArgs} */
-        const args = { x: coords.x, y: coords.y, mouseIsDown: this.#canvasMouseIsDown };
+        const args = {
+            x: coords.x, y: coords.y,
+            mouseIsDown: this.#canvasMouseIsDown,
+            isPrimaryButton: event.button === 0,
+            isSecondaryButton: event.button === 2,
+            isAuxButton: event.button === 1
+        };
         this.#dispatcher.dispatch(EVENT_PixelMouseUp, args);
     }
 
@@ -267,6 +300,15 @@ export default class TileEditor {
     /** @param {MouseEvent} event */
     #handleCanvasContextMenu(event) {
         const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(event.clientX, event.clientY);
+
+        // Get the tile index
+        const tile = this.#tileSet.getTileByCoordinate(coords.x, coords.y);
+        const tileIndex = this.#tileSet.getTileIndex(tile);
+
+        /** @type {TileEditorTileEventArgs} */
+        const tileArgs = { tileIndex: tileIndex };
+
+        this.#dispatcher.dispatch(EVENT_RequestSelectTile, tileArgs);
         this.#tileEditorContextMenu.show(event.clientX, event.clientY, coords.x, coords.y);
         return false;
     }
@@ -314,6 +356,7 @@ export default class TileEditor {
  * @property {number?} scale - Current scale level.
  * @property {boolean?} displayNative - Should the tile editor display native colours?
  * @property {number?} selectedTileIndex - Currently selected tile index.
+ * @property {number?} cursorSize - Size of the cursor in px.
  * @exports 
  */
 
@@ -335,6 +378,9 @@ export default class TileEditor {
  * @property {number} x - X tile map pixel thats selected.
  * @property {number} y - Y tile map pixel thats selected.
  * @property {boolean} mouseIsDown - True when the mouse is down, otherwise false.
+ * @property {boolean} isPrimaryButton - True when the mouse button is the secondary one, otherwise false.
+ * @property {boolean} isSecondaryButton - True when the mouse button is the secondary one, otherwise false.
+ * @property {boolean} isAuxButton - True when the mouse button is the auxiliary one (mouse wheel), otherwise false.
  * @exports
  */
 

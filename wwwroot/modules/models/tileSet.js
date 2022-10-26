@@ -268,7 +268,7 @@ export default class TileSet {
      * Gets the pixel value at the given coordinate.
      * @param {number} x X coordinate in the tile set.
      * @param {number} y Y coordinate in the tile set.
-     * @returns {number}
+     * @returns {number|null}
      */
     getPixelAt(x, y) {
 
@@ -276,6 +276,8 @@ export default class TileSet {
         const tileX = (x - (x % 8)) / 8;
         const tileY = (y - (y % 8)) / 8;
         const tileNum = (tileY * this.tileWidth) + tileX;
+
+        if (tileNum >= this.length) return null;
 
         // Work out the coordinates and byte number within the tile itself
         x = x % 8;
@@ -294,10 +296,15 @@ export default class TileSet {
     setPixelAt(x, y, paletteIndex) {
         if (paletteIndex < 0 || paletteIndex > 15) throw new Error('setPixelAt: Palette index must be between 0 and 15.');
 
+        if (x < 0 || x > this.tileWidth * 8 - 1) return;
+        if (y < 0 || y > this.tileWidth * 8 - 1) return;
+
         // Get the tile number
         const tileX = (x - (x % 8)) / 8;
         const tileY = (y - (y % 8)) / 8;
         const tileNum = (tileY * this.tileWidth) + tileX;
+
+        if (tileNum >= this.length) return;
 
         // Work out the coordinates and byte number within the tile itself
         x = x % 8;

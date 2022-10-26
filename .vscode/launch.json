@@ -5,10 +5,10 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Launch Firefox (HTTP)",
             "type": "firefox",
             "request": "launch",
             "reAttach": true,
-            "name": "Launch Firefox",
             "url": "http://localhost:8080/index.html",
             "webRoot": "${workspaceFolder}/wwwroot",
             "profile": "debug",
@@ -21,10 +21,33 @@
             ]
         },
         {
+            "name": "Launch Firefox (HTTPS)",
+            "type": "firefox",
+            "request": "launch",
+            "reAttach": true,
+            "url": "https://localhost:8443/index.html",
+            "webRoot": "${workspaceFolder}/wwwroot",
+            "profile": "debug",
+            "keepProfileChanges": true,
+            "pathMappings": [
+                {
+                    "url": "https://localhost:8443",
+                    "path": "${workspaceFolder}/wwwroot"
+                }
+            ]
+        },
+        {
+            "name": "Attach Firefox (HTTP)",
             "type": "firefox",
             "request": "attach",
-            "name": "Attach Firefox",
             "url": "http://localhost:8080/index.html",
+            "webRoot": "${workspaceFolder}/wwwroot"
+        },
+        {
+            "name": "Attach Firefox (HTTPS)",
+            "type": "firefox",
+            "request": "attach",
+            "url": "https://localhost:8443/index.html",
             "webRoot": "${workspaceFolder}/wwwroot"
         }
     ]

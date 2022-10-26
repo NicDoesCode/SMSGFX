@@ -500,8 +500,8 @@ export default class ImportImageModalDialogue extends ModalDialogue {
 
     async #handleImportClipboardClick() {
         // TODO - Only works outside Firefox
-        const data = await navigator.clipboard.read();
-        console.log(data);
+        // const data = await navigator.clipboard.read();
+        // console.log(data);
     }
 
 
@@ -597,10 +597,6 @@ export default class ImportImageModalDialogue extends ModalDialogue {
             return;
         }
         while (this.#sourceImageIsSet && this.#previewImageRequiresUpdate()) {
-            const startTime = Date.now(); // TMP
-            let lastTime = Date.now(); // TMP
-            console.log(`updatePreviewImageAsync: Start.`); // TMP 
-
             this.#previewIsUpdating = true;
             this.#previewUpdateQueued = false;
 
@@ -608,9 +604,6 @@ export default class ImportImageModalDialogue extends ModalDialogue {
             const height = parseInt(this.#tbImportHeight.value);
 
             const sourceImage = await ImageUtil.resizeImageAsync(this.#sourceImage, width, height);
-
-            console.log(`updatePreviewImageAsync: Before extract colours, lap: ${(Date.now() - lastTime)}ms, total: ${(Date.now() - startTime)}ms.`); // TMP 
-            lastTime = Date.now(); // TMP 
 
             /** @type {ColourMatch[]} */
             let extractedColours;
@@ -624,15 +617,10 @@ export default class ImportImageModalDialogue extends ModalDialogue {
                 extractedColours = await ImageUtil.matchToPaletteAsync(sourceImage, palette);
             }
 
-            console.log(`updatePreviewImageAsync: Before make preview, lap: ${(Date.now() - lastTime)}ms, total: ${(Date.now() - startTime)}ms.`); // TMP 
-            lastTime = Date.now(); // TMP 
-
             this.#previewImage = await ImageUtil.renderImageFromPaletteAsync(extractedColours, sourceImage);
             this.#previewColours = extractedColours;
 
             this.#dispatcher.dispatch(EVENT_PreviewImageUpdated, {});
-
-            console.log(`updatePreviewImageAsync: End: ${(Date.now() - lastTime)}ms, total: ${(Date.now() - startTime)}ms.`); // TMP 
         }
         this.#previewIsUpdating = false;
     }

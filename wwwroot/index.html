@@ -66,21 +66,10 @@
                     <button id="btnNewPalette" class="btn btn-outline-secondary" title="Create a new palette.">
                         <i class="bi bi-plus-lg"></i>
                     </button>
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                        aria-expanded="false"></button>
-                    <ul class="dropdown-menu dropdown-menu-end sms-dropdown-menu">
-                        <li>
-                            <button id="btnImportPaletteFromCode" class="dropdown-item"
-                                title="Import a palette from your assembly code.">
-                                <i class="bi bi-box-arrow-in-down"></i> Import from code
-                            </button>
-                        </li>
-                        <li>
-                            <button id="btnRemovePalette" class="dropdown-item">
-                                <i class="bi bi bi-trash-fill"></i> Remove selected
-                            </button>
-                        </li>
-                    </ul>
+                    <button id="btnImportPaletteFromCode" class="btn btn-outline-secondary"
+                        title="Import a palette from your assembly code.">
+                        <i class="bi bi-box-arrow-in-down"></i>
+                    </button>
                 </div>
                 <!-- End: Palette editor : header -->
                 <div class="sms-palette sms-smaller-font card mt-2">
@@ -121,6 +110,7 @@
                                         </button>
                                     </li>
                                 </ul>
+                                <hr>
                             </div>
                         </div>
                         <!-- Palette editor : colours -->
@@ -144,6 +134,14 @@
                                         <small>Emulate system colours</small>
                                     </label>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col text-center">
+                                <hr>
+                                <button id="btnRemovePalette" class="btn btn-sm btn-outline-secondary sms-smaller-font">
+                                    <i class="bi bi bi-trash-fill"></i> Remove this palette
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -265,7 +263,7 @@
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text">Tools</span>
                                         <button id="btnToolSelection" class="btn btn-outline-secondary"
-                                            data-tool-button="select" title="Select tool.">
+                                            data-tool-button="select" title="Tile tool.">
                                             <i class="bi bi-cursor"></i>
                                         </button>
                                         <button id="btnToolPencil" class="btn btn-outline-secondary"
@@ -304,13 +302,13 @@
                         </div>
                         <!-- End: Tile editor toolbar -->
                     </div>
-                    <div id="pnlTileContextToolbar" class="sms-row">
+                    <div id="tbTileContextToolbar" class="sms-row visually-hidden">
                         <!-- Tile context toolbar -->
-                        <div id="tbTileContextToolbar" class="sms-tile-toolbar container-fluid p-0 m-0 visually-hidden">
+                        <div class="sms-tile-toolbar container-fluid p-0 m-0">
                             <div class="row align-items-center p-0 m-0">
                                 <div class="col-auto ms-0 ps-0 pe-0">
                                     <div class="input-group input-group-sm p-0 m-0 pb-2">
-                                        <span class="input-group-text fw-bolder">Select tool</span>
+                                        <span class="input-group-text fw-bolder">Tile tool</span>
                                     </div>
                                 </div>
                                 <div class="col-auto pe-0 p-1">
@@ -380,6 +378,44 @@
                                         <button class="btn btn-outline-secondary"
                                             title="Insert new tile after selected." data-command="insertAfter">
                                             <i class="bi bi-arrow-bar-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- End: Tile context toolbar -->
+                    </div>
+                    <div data-smsgfx-component-id="pencil-tool-context-toolbar" class="sms-row visually-hidden">
+                        <!-- Tile context toolbar -->
+                        <div class="sms-tile-toolbar container-fluid p-0 m-0">
+                            <div class="row align-items-center p-0 m-0">
+                                <div class="col-auto ms-0 ps-0 pe-0">
+                                    <div class="input-group input-group-sm p-0 m-0 pb-2">
+                                        <span class="input-group-text fw-bolder">Pencil tool</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto pe-0">
+                                    <div class="input-group input-group-sm p-0 m-0 pb-2">
+                                        <span class="input-group-text">Brush size</span>
+                                        <button class="btn btn-outline-secondary" style="min-width: 30px" title="1px brush size."
+                                            data-command="brush-size" data-brush-size="1">
+                                            <img src="./assets/image/icon-brush-01.png" alt="Brush size 1px.">
+                                        </button>
+                                        <button class="btn btn-outline-secondary" style="min-width: 30px" title="2px brush size."
+                                            data-command="brush-size" data-brush-size="2">
+                                            <img src="./assets/image/icon-brush-02.png" alt="Brush size 2px.">
+                                        </button>
+                                        <button class="btn btn-outline-secondary" style="min-width: 30px" title="3px brush size."
+                                            data-command="brush-size" data-brush-size="3">
+                                            <img src="./assets/image/icon-brush-03.png" alt="Brush size 3px.">
+                                        </button>
+                                        <button class="btn btn-outline-secondary" style="min-width: 30px" title="4px brush size."
+                                            data-command="brush-size" data-brush-size="4">
+                                            <img src="./assets/image/icon-brush-04.png" alt="Brush size 4px.">
+                                        </button>
+                                        <button class="btn btn-outline-secondary" style="min-width: 30px" title="5px brush size."
+                                            data-command="brush-size" data-brush-size="5">
+                                            <img src="./assets/image/icon-brush-05.png" alt="Brush size 5px.">
                                         </button>
                                     </div>
                                 </div>

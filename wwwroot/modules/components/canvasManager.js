@@ -66,6 +66,17 @@ export default class CanvasManager {
         }
     }
 
+    /**
+     * Gets or sets the cursor size between 1 and 50 tiles.
+     */
+    get cursorSize() {
+        return this.#cursorSize;
+    }
+    set cursorSize(value) {
+        if (value < 1 || value > 50) throw new Error('Cursor size must be between 1 and 50.');
+        this.#cursorSize = value;
+    }
+
 
     /** @type {HTMLCanvasElement} */
     #baseCanvas;
@@ -81,6 +92,7 @@ export default class CanvasManager {
     #scale = 10;
     /** @type {number} */
     #selectedTileIndex = -1;
+    #cursorSize = 1;
 
 
     /**
@@ -187,13 +199,33 @@ export default class CanvasManager {
         ctx.drawImage(baseCanvas, 0, 0);
         ctx.moveTo(0, 0);
 
-        // Highlight the pixel
-        ctx.strokeStyle = 'black';
-        ctx.strokeRect(coords.pxX, coords.pxY, pxSize, pxSize);
-
         // Highlight the entire tile
         ctx.strokeStyle = 'grey';
         ctx.strokeRect(coords.tileX, coords.tileY, (8 * pxSize), (8 * pxSize));
+
+        // Draw the cursor
+        ctx.strokeStyle = 'black';
+        const startX = coords.pxX - (pxSize * Math.floor(this.#cursorSize / 2));
+        const startY = coords.pxY - (pxSize * Math.floor(this.#cursorSize / 2));
+        if (this.#cursorSize < 4) {
+            ctx.strokeRect(startX, startY, pxSize * this.#cursorSize, pxSize * this.#cursorSize);
+        } else {
+            ctx.beginPath();
+            ctx.moveTo(startX, startY + pxSize);                                  // .
+            ctx.lineTo(startX + pxSize, startY + pxSize);                         // _
+            ctx.lineTo(startX + pxSize, startY);                                  // _|
+            ctx.lineTo(startX + (pxSize * this.cursorSize - pxSize), startY);          // _|---
+            ctx.lineTo(startX + (pxSize * this.cursorSize - pxSize), startY + pxSize); // _|---|
+            ctx.lineTo(startX + (pxSize * this.cursorSize), startY + pxSize);     // _|---|_
+            ctx.lineTo(startX + (pxSize * this.cursorSize), startY + (pxSize * this.cursorSize - pxSize)); // Right border
+            ctx.lineTo(startX + (pxSize * this.cursorSize - pxSize), startY + (pxSize * this.cursorSize - pxSize)); //        -
+            ctx.lineTo(startX + (pxSize * this.cursorSize - pxSize), startY + (pxSize * this.cursorSize));     //       |-
+            ctx.lineTo(startX + pxSize, startY + (pxSize * this.cursorSize));                             //    ___|-
+            ctx.lineTo(startX + pxSize, startY + (pxSize * this.cursorSize - pxSize));                         //   |___|-
+            ctx.lineTo(startX, startY + (pxSize * this.cursorSize - pxSize));                                  //  -|___|-
+            ctx.lineTo(startX, startY + pxSize); // Left border
+            ctx.stroke();
+        }
 
         // Highlight selected tile
         if (this.selectedTileIndex >= 0 && this.selectedTileIndex < this.tileSet.length) {
