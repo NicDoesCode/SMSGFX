@@ -1,7 +1,6 @@
 import Project from "../models/project.js";
 import ProjectJsonSerialiser from "../serialisers/projectJsonSerialiser.js";
-
-const fileNameRegex = /[^A-z0-9-]/g;
+import FileUtil from "./fileUtil.js";
 
 export default class ProjectUtil {
 
@@ -14,7 +13,7 @@ export default class ProjectUtil {
         const theDate = new Date();
         const fileDate = moment(theDate).format('YYYY-MM-DD-HHmmss');
         const title = project.title ? project.title : 'project';
-        const fileTitle = title.replaceAll(fileNameRegex, '_');
+        const fileTitle = FileUtil.getCleanFileName(title);
         const fileName = `smsgfx-${fileTitle}-${fileDate}.json`;
 
         const serialisedData = ProjectJsonSerialiser.serialise(project, true);

@@ -25,6 +25,7 @@ import TileUtil from "./util/tileUtil.js";
 import ImageUtil from "./util/imageUtil.js";
 import ImportImageModalDialogue from "./ui/importImageModalDialogue.js";
 import PencilContextToolbar from "./ui/pencilContextToolbar.js";
+import FileUtil from "./util/fileUtil.js";
 
 
 const undoManager = new UndoManager(50);
@@ -379,8 +380,10 @@ function handleHeaderBarOnCommand(args) {
         importProjectFromJson();
     } else if (args.command === HeaderBar.Commands.projectSave) {
         exportProjectToJson();
-    } else if (args.command === HeaderBar.Commands.codeExport) {
+    } else if (args.command === HeaderBar.Commands.exportCode) {
         exportProjectToAssembly();
+    } else if (args.command === HeaderBar.Commands.exportImage) {
+        exportImage();
     }
 }
 
@@ -1266,6 +1269,21 @@ function exportProjectToJson() {
 function exportProjectToAssembly() {
     const code = ProjectAssemblySerialiser.serialise(getProject());
     exportDialogue.show(code);
+}
+
+/**
+ * Exports tileset to an image.
+ */
+function exportImage() {
+    const fileName = getProject().title && getProject().title.length > 0 ? getProject().title : 'image';
+    const fileNameClean = FileUtil.getCleanFileName(fileName);
+    const fullFileName = `${fileNameClean}.png`;
+    const dataUrl = tileEditor.toDataUrl();
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = fullFileName;
+    a.click();
+    a.remove();
 }
 
 /**

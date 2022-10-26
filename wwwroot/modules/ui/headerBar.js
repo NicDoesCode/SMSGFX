@@ -7,7 +7,8 @@ const commands = {
     projectNew: 'projectNew',
     projectLoad: 'projectLoad',
     projectSave: 'projectSave',
-    codeExport: 'codeExport'
+    exportCode: 'exportCode',
+    exportImage: 'exportImage'
 }
 
 export default class HeaderBar {
@@ -29,7 +30,9 @@ export default class HeaderBar {
     /** @type {HTMLButtonElement} */
     #btnProjectSave;
     /** @type {HTMLButtonElement} */
-    #btnCodeExport;
+    #btnExportCode;
+    /** @type {HTMLButtonElement} */
+    #btnExportImage;
     /** @type {EventDispatcher} */
     #dispatcher;
 
@@ -80,10 +83,17 @@ export default class HeaderBar {
             this.#dispatcher.dispatch(EVENT_OnCommand, args);
         };
 
-        this.#btnCodeExport = this.#element.querySelector('[data-smsgfx-id=button-code-export]');
-        this.#btnCodeExport.onclick = () => {
+        this.#btnExportCode = this.#element.querySelector('[data-smsgfx-id=button-export-code]');
+        this.#btnExportCode.onclick = () => {
             /** @type {HeaderBarCommandEventArgs} */
-            const args = { command: commands.codeExport }
+            const args = { command: commands.exportCode }
+            this.#dispatcher.dispatch(EVENT_OnCommand, args);
+        };
+
+        this.#btnExportImage = this.#element.querySelector('[data-smsgfx-id=button-export-image]');
+        this.#btnExportImage.onclick = () => {
+            /** @type {HeaderBarCommandEventArgs} */
+            const args = { command: commands.exportImage }
             this.#dispatcher.dispatch(EVENT_OnCommand, args);
         };
     }

@@ -116,6 +116,14 @@ export default class CanvasManager {
     }
 
     /**
+     * Returns a bitmap that represents the tile set as a PNG data URL.
+     */
+    toDataURL() {
+        return this.#baseCanvas.toDataURL('image/png');
+    }
+
+    
+    /**
      * Draws a tile set and then returns the image as a base 64 URL.
      */
     #refreshBaseImage() {

@@ -131,6 +131,13 @@ export default class TileEditor {
         }
     }
 
+    /**
+     * Returns a bitmap that represents the tile set as a PNG data URL.
+     */
+    toDataUrl() {
+        return this.#canvasManager.toDataURL();
+    }
+
 
     /**
      * Mouse moves over a tile set pixel.
