@@ -6,6 +6,7 @@ import PaletteList from "../models/paletteList.js";
 const EVENT_NewPalette = 'EVENT_NewPalette';
 const EVENT_ImportPaletteFromCode = 'EVENT_ImportPaletteFromCode';
 const EVENT_PaletteDelete = 'EVENT_PaletteDelete';
+const EVENT_PaletteClone = 'EVENT_PaletteClone';
 const EVENT_PaletteChanged = 'EVENT_PaletteChanged';
 const EVENT_PaletteSystemChanged = 'EVENT_PaletteSystemChanged';
 const EVENT_RequestColourIndexChange = 'EVENT_RequestColourIndexChange';
@@ -26,6 +27,8 @@ export default class PaletteEditor {
     #btnNewPalette;
     /** @type {HTMLButtonElement} */
     #btnImportPaletteFromCode;
+    /** @type {HTMLButtonElement} */
+    #btnClonePalette;
     /** @type {HTMLButtonElement} */
     #btnRemovePalette;
     /** @type {HTMLSelectElement} */
@@ -63,11 +66,25 @@ export default class PaletteEditor {
         this.#btnImportPaletteFromCode = this.#element.querySelector('#btnImportPaletteFromCode');
         this.#btnImportPaletteFromCode.onclick = () => this.#dispatcher.dispatch(EVENT_ImportPaletteFromCode, {});
 
+        this.#btnClonePalette = this.#element.querySelector('#btnClonePalette');
+        this.#btnClonePalette.onclick = () => {
+            /** @type {PaletteEditorPaletteEventArgs} */
+            const args = { paletteIndex: this.#tbPaletteSelect.selectedIndex };
+            this.#dispatcher.dispatch(EVENT_PaletteClone, args);
+        };
+
         this.#btnRemovePalette = this.#element.querySelector('#btnRemovePalette');
         this.#btnRemovePalette.onclick = () => {
             /** @type {PaletteEditorPaletteEventArgs} */
             const args = { paletteIndex: this.#tbPaletteSelect.selectedIndex };
             this.#dispatcher.dispatch(EVENT_PaletteDelete, args);
+        };
+
+        this.#btnClonePalette = this.#element.querySelector('#btnClonePalette');
+        this.#btnClonePalette.onclick = () => {
+            /** @type {PaletteEditorPaletteEventArgs} */
+            const args = { paletteIndex: this.#tbPaletteSelect.selectedIndex };
+            this.#dispatcher.dispatch(EVENT_PaletteClone, args);
         };
 
         this.#tbPaletteSelect = this.#element.querySelector('#tbPaletteSelect');
@@ -183,6 +200,14 @@ export default class PaletteEditor {
      */
     addHandlerRequestImportPaletteFromCode(callback) {
         this.#dispatcher.on(EVENT_ImportPaletteFromCode, callback);
+    }
+
+    /**
+     * User requests to clone a palette.
+     * @param {PaletteEditorPaletteCallback} callback - Callback function.
+     */
+    addHandlerRequestClonePalette(callback) {
+        this.#dispatcher.on(EVENT_PaletteClone, callback);
     }
 
     /**

@@ -69,7 +69,10 @@ const instanceState = {
         x: -1, y: -1
     },
     /** @type {number} */
-    pencilSize: 1
+    pencilSize: 1,
+    ctrlIsDown: false,
+    shiftIsDown: false,
+    altIsDown: false
 };
 
 
@@ -86,6 +89,7 @@ function wireUpEventHandlers() {
     paletteEditor.addHandlerRequestNewPalette(handlePaletteEditorRequestNewPalette);
     paletteEditor.addHandlerRequestImportPaletteFromCode(handlePaletteEditorRequestImportPaletteFromCode);
     paletteEditor.addHandlerRequestSelectedPaletteChange(handlePaletteEditorRequestSelectedPaletteChange);
+    paletteEditor.addHandlerRequestClonePalette(handlePaletteEditorRequestClonePalette);
     paletteEditor.addHandlerRequestDeletePalette(handlePaletteEditorRequestDeletePalette);
     paletteEditor.addHandlerRequestTitleChange(handlePaletteEditorRequestTitleChange);
     paletteEditor.addHandlerRequestSystemChange(handlePaletteEditorRequestSystemChange);
@@ -136,7 +140,6 @@ function wireUpEventHandlers() {
 function createEventListeners() {
 
     document.addEventListener('paste', (clipboardEvent) => {
-        console.log('paste', clipboardEvent);
         if (clipboardEvent.clipboardData?.files?.length > 0) {
             const targetTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/gif', 'image/svg+xml'];
             const file = clipboardEvent.clipboardData.files[0];
@@ -148,17 +151,25 @@ function createEventListeners() {
                 importImageModalDialogue.show();
             }
         } else {
-            // navigator.permissions.query({name: 'clipboard-read', allowWithoutGesture: false }).then(status => {
-            // console.log(status);
-            // });
-            let paste = (clipboardEvent.clipboardData || window.clipboardData).getData('text');
-            console.log(paste);
-            // navigator.clipboard.readText().then(t => console.log(t));
+            /** @type {string} */
+            let pasteData = (clipboardEvent.clipboardData || window.clipboardData).getData('text');
+            if (typeof pasteData === 'string' && pasteData.length === 128 && /^[0-9a-f]+$/i.test(pasteData)) {
+                if (instanceState.tileIndex < 0 || instanceState.tileIndex >= getTileSet().length) {
+                    instanceState.tileIndex = getTileSet().length;
+                }
+                instanceState.tileClipboard = pasteData;
+                pasteTileAt(instanceState.tileIndex);
+            }
         }
     });
 
     document.addEventListener('keydown', (keyEvent) => {
         // console.log('keydown', keyEvent);
+
+        instanceState.ctrlIsDown = keyEvent.ctrlKey;
+        instanceState.altIsDown = keyEvent.altKey;
+        instanceState.shiftIsDown = keyEvent.shiftKey;
+
         if (keyEvent.target === document.body) {
             let handled = false;
             if (keyEvent.ctrlKey) {
@@ -188,6 +199,11 @@ function createEventListeners() {
 
     document.addEventListener('keyup', (keyEvent) => {
         // console.log('keyup', keyEvent);
+
+        instanceState.ctrlIsDown = keyEvent.ctrlKey;
+        instanceState.altIsDown = keyEvent.altKey;
+        instanceState.shiftIsDown = keyEvent.shiftKey;
+
         if (keyEvent.target === document.body) {
             let handled = false;
             if (keyEvent.ctrlKey && keyEvent.altKey) {
@@ -402,6 +418,33 @@ function handlePaletteEditorRequestImportPaletteFromCode(args) {
 /** @param {import('./ui/paletteEditor').PaletteEditorPaletteChangeEventArgs} args */
 function handlePaletteEditorRequestSelectedPaletteChange(args) {
     selectPaletteIndex(args.paletteIndex);
+}
+
+/** @param {import('./ui/paletteEditor').PaletteEditorPaletteEventArgs} args */
+function handlePaletteEditorRequestClonePalette(args) {
+    const paletteIndex = args.paletteIndex;
+    if (paletteIndex >= 0 && paletteIndex < state.paletteList.length) {
+
+        addUndoState();
+
+        const newPalette = PaletteFactory.clone(getPalette());
+        newPalette.title += ' (copy)';
+
+        getPaletteList().addPalette(newPalette);
+
+        const newPaletteIndex = getPaletteList().length - 1;
+
+        paletteEditor.setState({
+            paletteList: state.paletteList,
+            selectedPaletteIndex: newPaletteIndex
+        });
+        tileEditor.setState({
+            palette: getPalette()
+        });
+
+        getUIState().paletteIndex = newPaletteIndex;
+        state.saveToLocalStorage();
+    }
 }
 
 /** @param {import('./ui/paletteEditor').PaletteEditorPaletteEventArgs} args */
@@ -1065,38 +1108,47 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
             const tileIndex = getTileSet().getTileIndexByCoordinate(imageX, imageY);
             selectTile(tileIndex);
         } else if (tool === 'pencil') {
-            const lastPx = instanceState.lastTileMapPx;
-            if (imageX !== lastPx.x || imageY !== lastPx.y) {
-                addUndoState();
-                if (!instanceState.undoDisabled) {
-                    instanceState.undoDisabled = true;
+            if (instanceState.ctrlIsDown) {
+                // CTRL down, set colour
+                const colourIndex = getTileSet().getPixelAt(imageX, imageY);
+                if (typeof colourIndex === 'number') {
+                    selectColourIndex(colourIndex);
                 }
-
-                instanceState.lastTileMapPx.x = imageX;
-                instanceState.lastTileMapPx.y = imageY;
-
-                // Show the palette colour
-                const tileSet = getTileSet();
-
-                const size = instanceState.pencilSize;
-                if (size > 0) {
-                    const startX = imageX - Math.floor(size / 2);
-                    const startY = imageY - Math.floor(size / 2);
-                    const endX = imageX + Math.ceil(size / 2);
-                    const endY = imageY + Math.ceil(size / 2);
-                    for (let yPx = startY; yPx < endY; yPx++) {
-                        const xLeft = (size > 3 && (yPx === startY || yPx === endY - 1)) ? startX + 1 : startX;
-                        const xRight = (size > 3 && (yPx === startY || yPx === endY - 1)) ? endX - 1 : endX;
-                        for (let xPx = xLeft; xPx < xRight; xPx++) {
-                            tileSet.setPixelAt(xPx, yPx, colourIndex);
-                        }
+            } else {
+                // CTRL not down, so draw pixel
+                const lastPx = instanceState.lastTileMapPx;
+                if (imageX !== lastPx.x || imageY !== lastPx.y) {
+                    addUndoState();
+                    if (!instanceState.undoDisabled) {
+                        instanceState.undoDisabled = true;
                     }
-                } else {
-                    tileSet.setPixelAt(imageX, imageY, colourIndex);
-                }
 
-                // Update the UI
-                tileEditor.setState({ tileSet: tileSet });
+                    instanceState.lastTileMapPx.x = imageX;
+                    instanceState.lastTileMapPx.y = imageY;
+
+                    // Show the palette colour
+                    const tileSet = getTileSet();
+
+                    const size = instanceState.pencilSize;
+                    if (size > 0) {
+                        const startX = imageX - Math.floor(size / 2);
+                        const startY = imageY - Math.floor(size / 2);
+                        const endX = imageX + Math.ceil(size / 2);
+                        const endY = imageY + Math.ceil(size / 2);
+                        for (let yPx = startY; yPx < endY; yPx++) {
+                            const xLeft = (size > 3 && (yPx === startY || yPx === endY - 1)) ? startX + 1 : startX;
+                            const xRight = (size > 3 && (yPx === startY || yPx === endY - 1)) ? endX - 1 : endX;
+                            for (let xPx = xLeft; xPx < xRight; xPx++) {
+                                tileSet.setPixelAt(xPx, yPx, colourIndex);
+                            }
+                        }
+                    } else {
+                        tileSet.setPixelAt(imageX, imageY, colourIndex);
+                    }
+
+                    // Update the UI
+                    tileEditor.setState({ tileSet: tileSet });
+                }
             }
         } else if (tool === 'bucket') {
             addUndoState();
