@@ -113,8 +113,8 @@ export default class ImageUtil {
                 });
             });
 
-            console.log('getImageFromPalette palette', palette);
-            console.log('getImageFromPalette hexLookup', hexLookup);
+            // console.log('getImageFromPalette palette', palette);
+            // console.log('getImageFromPalette hexLookup', hexLookup);
 
             let x = 0, y = -1;
             for (let i = 0; i < imageData.data.length; i += 4) {
@@ -261,7 +261,7 @@ export default class ImageUtil {
      * @param {File} file - The file to read.
      * @returns {HTMLImageElement}
      */
-     static async fileToImageAsync(file) {
+    static async fileToImageAsync(file) {
         if (!file) throw new Error('File must be set.');
         return await new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -336,9 +336,15 @@ export default class ImageUtil {
      * @returns {ColourMatch[]}
      */
     static extractNativePaletteFromImage(image, system) {
+        const startTime = Date.now(); // TMP
+        let lastTime = Date.now(); // TMP
+        console.log(`extractNativePaletteFromImage: start.`); // TMP 
 
         const foundImageColoursDict = extractUniqueColours(image);
         let foundImageColours = Object.values(foundImageColoursDict).sort((a, b) => a.count < b.count);
+
+        console.log(`extractNativePaletteFromImage: extractUniqueColours took: ${(Date.now() - lastTime)}ms, total: ${(Date.now() - startTime)}ms.`); // TMP 
+        lastTime = Date.now(); // TMP 
 
         /** @type {ColourMapping} */
         let matchedColours;
@@ -348,7 +354,10 @@ export default class ImageUtil {
             ColourUtil.getFullMasterSystemPalette();
         matchedColours = matchColours(targetSystemPalette, foundImageColours);
 
-        console.log('extractNativePaletteFromImage, matched colours', matchedColours);
+        console.log(`extractNativePaletteFromImage: matchColours took: ${(Date.now() - lastTime)}ms, total: ${(Date.now() - startTime)}ms.`); // TMP 
+        lastTime = Date.now(); // TMP 
+
+        // console.log('extractNativePaletteFromImage, matched colours', matchedColours);
 
         if (system === 'ms') {
             // When matching for the Master System, create the palette using the most used colours
@@ -369,7 +378,13 @@ export default class ImageUtil {
             }
         }
 
-        console.log('extractNativePaletteFromImage, reduced colours', matchedColours);
+        console.log(`extractNativePaletteFromImage: create palette took: ${(Date.now() - lastTime)}ms, total: ${(Date.now() - startTime)}ms.`); // TMP 
+        lastTime = Date.now(); // TMP 
+
+        // console.log('extractNativePaletteFromImage, reduced colours', matchedColours);
+
+        console.log(`extractNativePaletteFromImage: end: ${(Date.now() - lastTime)}ms, total: ${(Date.now() - startTime)}ms.`); // TMP 
+        lastTime = Date.now(); // TMP 
 
         return matchedColours.matches;
     }
@@ -387,7 +402,7 @@ export default class ImageUtil {
         const foundImageColours = Object.values(foundImageColoursDict).sort((a, b) => a.count < b.count);
         let matchedColours = matchColours(colours, foundImageColours);
 
-        console.log('extractNativePaletteFromImage, matched colours', matchedColours);
+        // console.log('extractNativePaletteFromImage, matched colours', matchedColours);
 
         // Reduce the matched colours to a 16 colour palette
         let matchRangeFactor = 0;
@@ -396,7 +411,7 @@ export default class ImageUtil {
             matchedColours = groupSimilarColours(matchedColours.matches, matchRangeFactor);
         }
 
-        console.log('extractNativePaletteFromImage, reduced colours', matchedColours);
+        // console.log('extractNativePaletteFromImage, reduced colours', matchedColours);
 
         return matchedColours.matches;
     }
@@ -542,7 +557,7 @@ function matchColours(sourceList, coloursToMatch) {
             matchColours = nextBatchOfImageColoursToScan;
         });
     }
-    return matched;
+    return matched; 
 }
 
 // /**
@@ -720,13 +735,41 @@ function getPixelValue(imageData, index) {
     };
 }
 
+const allowedValueLookups = {};
+const colourNames = ['r', 'g', 'b'];
+
 /**
  * @param {ColourMatch} colour 
  * @param {number} range 
  * @returns {ColourRange}
  */
 function createMatchRange(colour, rangeFactor) {
+    // if (!allowedValueLookups[rangeFactor]) allowedValueLookups[rangeFactor] = {};
+    // for (let i = 0; i < colourNames.length; i++) {
+    //     const colourName = colourNames[i];
+    //     const colourValue = colour[colourName];
+    //     if (!allowedValueLookups[rangeFactor][colourValue]) {
+    //         allowedValueLookups[rangeFactor][colourValue] = {};
+    //         const minColourValue = Math.max(colourValue - rangeFactor / 2, 0);
+    //         const maxColourValue = Math.min(colourValue + rangeFactor / 2, 255);
+    //         for (let thisColourValue = minColourValue; thisColourValue <= maxColourValue; thisColourValue++) {
+    //             allowedValueLookups[rangeFactor][colourValue][thisColourValue] = true;
+    //         }
+    //         // console.log(`Added range [${rangeFactor}][${colourValue}]`, allowedValueLookups[rangeFactor][colourValue]); // TMP 
+    //     }
+    // }
+    // const a = new Uint8ClampedArray(6);
+    // a[0] = Math.max(colour.r - rangeFactor / 2, 0);
+    // a[1] = Math.min(colour.r + rangeFactor / 2, 255);
+    // a[2] = Math.max(colour.g - rangeFactor / 2, 0);
+    // a[3] = Math.min(colour.g + rangeFactor / 2, 255);
+    // a[4] = Math.max(colour.b - rangeFactor / 2, 0);
+    // a[5] = Math.min(colour.b + rangeFactor / 2, 255);
     return {
+        // a: a,
+        // lookupR: allowedValueLookups[rangeFactor][colour.r],
+        // lookupG: allowedValueLookups[rangeFactor][colour.g],
+        // lookupB: allowedValueLookups[rangeFactor][colour.b],
         rLow: Math.max(colour.r - rangeFactor / 2, 0),
         gLow: Math.max(colour.g - rangeFactor / 2, 0),
         bLow: Math.max(colour.b - rangeFactor / 2, 0),
@@ -746,6 +789,13 @@ function createMatchRange(colour, rangeFactor) {
  * @returns {boolean}
  */
 function isSimilar(colour, range) {
+    // return true;
+    // return range.lookupR[colour.r] && range.lookupG[colour.g] && range.lookupB[colour.b];
+    // const a = range.a;
+    // return (colour.r >= a[0] && colour.r <= a[1]) &&
+    //     (colour.g >= a[2] && colour.g <= a[3]) &&
+    //     (colour.b >= a[4] && colour.b <= a[5])
+    //     ;
     // TODO - This is horribly slow and I don't know why
     return (colour.r >= range.rLow && colour.r <= range.rHigh) &&
         (colour.g >= range.gLow && colour.g <= range.gHigh) &&

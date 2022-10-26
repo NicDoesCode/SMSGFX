@@ -592,6 +592,10 @@ export default class ImportImageModalDialogue extends ModalDialogue {
             return;
         }
         while (this.#sourceImageIsSet && this.#previewImageRequiresUpdate()) {
+            const startTime = Date.now(); // TMP
+            let lastTime = Date.now(); // TMP
+            console.log(`updatePreviewImageAsync: Start.`); // TMP 
+
             this.#previewIsUpdating = true;
             this.#previewUpdateQueued = false;
 
@@ -600,6 +604,9 @@ export default class ImportImageModalDialogue extends ModalDialogue {
 
             const sourceImage = await ImageUtil.resizeImageAsync(this.#sourceImage, width, height);
 
+            console.log(`updatePreviewImageAsync: Before extract colours, lap: ${(Date.now() - lastTime)}ms, total: ${(Date.now() - startTime)}ms.`); // TMP 
+            lastTime = Date.now(); // TMP 
+  
             /** @type {ColourMatch[]} */
             let extractedColours;
             const selectedImportColours = this.#tbImportPaletteSelect.value;
@@ -612,10 +619,15 @@ export default class ImportImageModalDialogue extends ModalDialogue {
                 extractedColours = await ImageUtil.matchToPaletteAsync(sourceImage, palette);
             }
 
+            console.log(`updatePreviewImageAsync: Before make preview, lap: ${(Date.now() - lastTime)}ms, total: ${(Date.now() - startTime)}ms.`); // TMP 
+            lastTime = Date.now(); // TMP 
+
             this.#previewImage = await ImageUtil.getImageFromPaletteAsync(extractedColours, sourceImage);
             this.#previewColours = extractedColours;
 
             this.#dispatcher.dispatch(EVENT_PreviewImageUpdated, {});
+      
+            console.log(`updatePreviewImageAsync: End: ${(Date.now() - lastTime)}ms, total: ${(Date.now() - startTime)}ms.`); // TMP 
         }
         this.#previewIsUpdating = false;
     }
