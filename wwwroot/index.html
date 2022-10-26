@@ -18,9 +18,9 @@
 
     <div class="sms-container">
 
-        <div id="tbHeaderBar" class="sms-header-bar">
+        <div data-smsgfx-component-id="header-bar" class="sms-header-bar">
             <div class="sms-navbar navbar navbar-light bg-white">
-                <form id="tbHeaderForm" class="container-fluid">
+                <form class="container-fluid">
                     <div class="col">
                         <span class="navbar-brand mb-0 h1">
                             <img src="./assets/image/controller.png" alt=""
@@ -28,25 +28,29 @@
                             <label>SMSGFX</label>
                         </span>
                     </div>
-                    <div class="col-md-auto text-end pe-3">
+                    <div class="col-md-auto text-end pe-2">
                         <div class="input-group input-group-sm">
-                            <span class="input-group-text">Project file</span>
-                            <input id="tbProjectTitle" type="text" class="form-control" placeholder="Project title"
+                            <span class="input-group-text fw-bold">Project title</span>
+                            <input data-smsgfx-id="textbox-project-title" type="text" class="form-control" placeholder="Project title"
                                 aria-label="Project title">
-                            <button id="btnProjectLoad" class="btn btn-outline-secondary" title="Load project."
+                            <button data-smsgfx-id="button-project-new" class="btn btn-outline-secondary" title="Save project."
                                 type="button">
-                                <i class="bi bi-file-earmark-arrow-down-fill"></i> Load
+                                <i class="bi bi-plus-lg"></i> New
                             </button>
-                            <button id="btnProjectSave" class="btn btn-outline-secondary" title="Save project."
+                            <button data-smsgfx-id="button-project-load" class="btn btn-outline-secondary" title="Load project."
                                 type="button">
-                                <i class="bi bi-file-earmark-arrow-up-fill"></i> Save
+                                <i class="bi bi-upload"></i> Load
+                            </button>
+                            <button data-smsgfx-id="button-project-save" class="btn btn-outline-secondary" title="Save project."
+                                type="button">
+                                <i class="bi bi-download"></i> Save
                             </button>
                         </div>
                     </div>
                     <div class="col-md-auto text-end">
                         <div class="input-group input-group-sm">
                             <span class="input-group-text">Code</span>
-                            <button id="btnCodeExport" class="btn btn-outline-secondary" title="Load project."
+                            <button data-smsgfx-id="button-code-export" class="btn btn-outline-secondary" title="Load project."
                                 type="button">
                                 <i class="bi bi-box-arrow-right"></i> Export
                             </button>
@@ -397,24 +401,24 @@
                                 <div class="col-auto pe-0">
                                     <div class="input-group input-group-sm p-0 m-0 pb-2">
                                         <span class="input-group-text">Brush size</span>
-                                        <button class="btn btn-outline-secondary" style="min-width: 30px" title="1px brush size."
-                                            data-command="brush-size" data-brush-size="1">
+                                        <button class="btn btn-outline-secondary" style="min-width: 30px"
+                                            title="1px brush size." data-command="brush-size" data-brush-size="1">
                                             <img src="./assets/image/icon-brush-01.png" alt="Brush size 1px.">
                                         </button>
-                                        <button class="btn btn-outline-secondary" style="min-width: 30px" title="2px brush size."
-                                            data-command="brush-size" data-brush-size="2">
+                                        <button class="btn btn-outline-secondary" style="min-width: 30px"
+                                            title="2px brush size." data-command="brush-size" data-brush-size="2">
                                             <img src="./assets/image/icon-brush-02.png" alt="Brush size 2px.">
                                         </button>
-                                        <button class="btn btn-outline-secondary" style="min-width: 30px" title="3px brush size."
-                                            data-command="brush-size" data-brush-size="3">
+                                        <button class="btn btn-outline-secondary" style="min-width: 30px"
+                                            title="3px brush size." data-command="brush-size" data-brush-size="3">
                                             <img src="./assets/image/icon-brush-03.png" alt="Brush size 3px.">
                                         </button>
-                                        <button class="btn btn-outline-secondary" style="min-width: 30px" title="4px brush size."
-                                            data-command="brush-size" data-brush-size="4">
+                                        <button class="btn btn-outline-secondary" style="min-width: 30px"
+                                            title="4px brush size." data-command="brush-size" data-brush-size="4">
                                             <img src="./assets/image/icon-brush-04.png" alt="Brush size 4px.">
                                         </button>
-                                        <button class="btn btn-outline-secondary" style="min-width: 30px" title="5px brush size."
-                                            data-command="brush-size" data-brush-size="5">
+                                        <button class="btn btn-outline-secondary" style="min-width: 30px"
+                                            title="5px brush size." data-command="brush-size" data-brush-size="5">
                                             <img src="./assets/image/icon-brush-05.png" alt="Brush size 5px.">
                                         </button>
                                     </div>

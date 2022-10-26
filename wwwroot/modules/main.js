@@ -39,7 +39,7 @@ const tileEditor = new TileEditor(document.getElementById('tbTileEditor'));
 const tileEditorToolbar = new TileEditorToolbar(document.getElementById('tbTileEditorToolbar'));
 const tileContextToolbar = new TileContextToolbar(document.getElementById('tbTileContextToolbar'));
 const pencilContextToolbar = new PencilContextToolbar(document.querySelector('[data-smsgfx-component-id=pencil-tool-context-toolbar]'));
-const headerBar = new HeaderBar(document.getElementById('tbHeaderBar'));
+const headerBar = new HeaderBar(document.querySelector('[data-smsgfx-component-id=header-bar]'));
 const importImageModalDialogue = new ImportImageModalDialogue(document.querySelector('[data-smsgfx-component-id=import-image-modal]'));
 
 
@@ -80,10 +80,7 @@ const instanceState = {
 
 function wireUpEventHandlers() {
 
-    headerBar.addHandlerRequestProjectTitleChange(handleHeaderBarRequestProjectTitleChange);
-    headerBar.addHandlerRequestProjectLoad(handleHeaderBarRequestProjectLoad);
-    headerBar.addHandlerRequestProjectSave(handleHeaderBarRequestProjectSave);
-    headerBar.addHandlerRequestCodeExport(handleHeaderBarRequestCodeExport);
+    headerBar.addHandlerOnCommand(handleHeaderBarOnCommand);
 
     paletteEditor.addHandlerRequestNewPalette(handlePaletteEditorRequestNewPalette);
     paletteEditor.addHandlerRequestImportPaletteFromCode(handlePaletteEditorRequestImportPaletteFromCode);
@@ -372,25 +369,19 @@ function createEventListeners() {
 }
 
 
-/** @param {import('./ui/headerBar.js').HeaderBarProjectTitleChangeEventArgs} args */
-function handleHeaderBarRequestProjectTitleChange(args) {
-    addUndoState();
-    state.project.title = args.projectTitle;
-}
-
-/** @param {import('./ui/headerBar.js').HeaderBarCallback} args */
-function handleHeaderBarRequestProjectLoad(args) {
-    importProjectFromJson();
-}
-
-/** @param {import('./ui/headerBar.js').HeaderBarCallback} args */
-function handleHeaderBarRequestProjectSave(args) {
-    exportProjectToJson();
-}
-
-/** @param {import('./ui/headerBar.js').HeaderBarCallback} args */
-function handleHeaderBarRequestCodeExport(args) {
-    exportProjectToAssembly();
+/** @param {import('./ui/headerBar.js').HeaderBarCommandEventArgs} args */
+function handleHeaderBarOnCommand(args) {
+    if (args.command === HeaderBar.Commands.title && args.title) {
+        setProjectTitle(args.title);
+    } else if (args.command === HeaderBar.Commands.projectNew) {
+        newProject();
+    } else if (args.command === HeaderBar.Commands.projectLoad) {
+        importProjectFromJson();
+    } else if (args.command === HeaderBar.Commands.projectSave) {
+        exportProjectToJson();
+    } else if (args.command === HeaderBar.Commands.codeExport) {
+        exportProjectToAssembly();
+    }
 }
 
 
@@ -1177,6 +1168,17 @@ function newTile() {
             palette: getPalette()
         });
     }
+}
+
+/**
+ * Sets the project title.
+ * @argument {string} title - Project title.
+ */
+function setProjectTitle(title) {
+    addUndoState();
+
+    getProject().title = title;
+    state.saveToLocalStorage();
 }
 
 /**
