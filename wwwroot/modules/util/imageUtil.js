@@ -90,31 +90,28 @@ export default class ImageUtil {
 
     /**
      * Gets a new image using a colour palette.
-     * @param {ColourMatch} palette - Palette of colours.
-     * @param {HTMLImageElement} image - Image to display.
+     * @param {ColourMatch} colours - Palette of colours.
+     * @param {HTMLImageElement} sourceImage - Image to display.
      * @returns {HTMLImageElement}
      */
-    static async getImageFromPaletteAsync(palette, image) {
+    static async renderImageFromPaletteAsync(colours, sourceImage) {
         return await new Promise(async (resolve, reject) => {
             const canvas = document.createElement('canvas');
-            canvas.width = image.width;
-            canvas.height = image.height;
+            canvas.width = sourceImage.width;
+            canvas.height = sourceImage.height;
             const context = canvas.getContext('2d');
 
-            const imageData = ImageUtil.extractImageData(image);
+            const imageData = ImageUtil.extractImageData(sourceImage);
 
             // Get a hex colour lookup table from palette data
             /** @type {Object.<string, string>} */
-            const hexLookup = {};
-            palette.forEach(p => {
-                hexLookup[p.hex] = p.hex;
-                p.matchedColours.forEach(m => {
-                    hexLookup[m] = p.hex;
+            const colourHexLookup = {};
+            colours.forEach(colour => {
+                colourHexLookup[colour.hex] = colour.hex;
+                colour.matchedColours.forEach(matchHex => {
+                    colourHexLookup[matchHex] = colour.hex;
                 });
             });
-
-            console.log('getImageFromPalette palette', palette);
-            console.log('getImageFromPalette hexLookup', hexLookup);
 
             let x = 0, y = -1;
             for (let i = 0; i < imageData.data.length; i += 4) {
@@ -127,8 +124,8 @@ export default class ImageUtil {
 
                 // Fill the pixel based on image in hex lookup
                 const pixel = getPixelValue(imageData.data, i);
-                if (hexLookup[pixel.hex]) {
-                    context.fillStyle = hexLookup[pixel.hex];
+                if (colourHexLookup[pixel.hex]) {
+                    context.fillStyle = colourHexLookup[pixel.hex];
                 } else {
                     context.fillStyle = 'yellow';
                 }
@@ -261,7 +258,7 @@ export default class ImageUtil {
      * @param {File} file - The file to read.
      * @returns {HTMLImageElement}
      */
-     static async fileToImageAsync(file) {
+    static async fileToImageAsync(file) {
         if (!file) throw new Error('File must be set.');
         return await new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -337,26 +334,19 @@ export default class ImageUtil {
      */
     static extractNativePaletteFromImage(image, system) {
 
-        const foundImageColoursDict = extractUniqueColours(image);
-        let foundImageColours = Object.values(foundImageColoursDict).sort((a, b) => a.count < b.count);
-
-        /** @type {ColourMapping} */
-        let matchedColours;
-
         const targetSystemPalette = system === 'gg' ?
             ColourUtil.getFullGameGearPalette() :
             ColourUtil.getFullMasterSystemPalette();
-        matchedColours = matchColours(targetSystemPalette, foundImageColours);
 
-        console.log('extractNativePaletteFromImage, matched colours', matchedColours);
+        const foundImageColoursDict = extractUniqueColours(image);
+        let foundImageColours = Object.values(foundImageColoursDict).sort((a, b) => a.count < b.count);
+        let shortenedColours = groupSimilarColours(foundImageColours, 64);
+        let matchedColours = matchColours(targetSystemPalette, shortenedColours.matches);
 
         if (system === 'ms') {
             // When matching for the Master System, create the palette using the most used colours
             if (matchedColours.matches.length > 16) {
-                /** @type {Colour[]} */
-                const mostUsedColours = matchedColours.matches.sort((a, b) => b.count > a.count).slice(0, 16).map(c => {
-                    return { r: c.r, g: c.g, b: c.b, hex: c.hex };
-                });
+                const mostUsedColours = matchedColours.matches.sort((a, b) => b.count > a.count).slice(0, 16);
                 matchedColours = matchColours(mostUsedColours, matchedColours.matches);
             }
         } else {
@@ -368,8 +358,6 @@ export default class ImageUtil {
                 matchedColours = groupSimilarColours(matchedColours.matches, matchRangeFactor);
             }
         }
-
-        console.log('extractNativePaletteFromImage, reduced colours', matchedColours);
 
         return matchedColours.matches;
     }
@@ -387,16 +375,12 @@ export default class ImageUtil {
         const foundImageColours = Object.values(foundImageColoursDict).sort((a, b) => a.count < b.count);
         let matchedColours = matchColours(colours, foundImageColours);
 
-        console.log('extractNativePaletteFromImage, matched colours', matchedColours);
-
         // Reduce the matched colours to a 16 colour palette
         let matchRangeFactor = 0;
         while (matchedColours.matches.length > 16) {
             matchRangeFactor += 4;
             matchedColours = groupSimilarColours(matchedColours.matches, matchRangeFactor);
         }
-
-        console.log('extractNativePaletteFromImage, reduced colours', matchedColours);
 
         return matchedColours.matches;
     }
@@ -493,56 +477,95 @@ export default class ImageUtil {
 
 
 /**
- * Matches an array colours to a list of source colours.
- * @param {Colour[]} sourceList - Array of colour values to match the list to.
+ * Takes an array of colours and matches them to the closest source colour.
+ * @param {Colour[]} sourceColours - Array of colour values to match the list to.
  * @param {ColourMatch[]} coloursToMatch - Array of colours to match to similar ones in the source list.
  * @param {number} rangeFactor 
  * @returns {ColourMapping}
  */
-function matchColours(sourceList, coloursToMatch) {
-    /** @type {ColourMapping} */
-    const matched = { hexLookup: {}, matches: [] };
+function matchColours(sourceColours, coloursToMatch) {
+
+    // Takes an array of colours and maps them to an array of source colours.
+    // A loop takes a source colour and checks all match colours against it.
+    // If there are any match colours that are similar to the source colour, then 
+    // we add the source colour to the output, and map the match colour against it.
+
+    // In the case that no match colours were similar to the source colour, then
+    // the source colour is omitted from the result.
 
     /** @type {ColourMatch[]} */
-    let sourceColours = JSON.parse(JSON.stringify(
-        sourceList.map(p => convertToColourMatch(p))
-    ));
+    const sourceColoursCopy = sourceColours.map(c => convertToColourMatch(JSON.parse(JSON.stringify(c))));
     /** @type {ColourMatch[]} */
-    let matchColours = JSON.parse(JSON.stringify(coloursToMatch));
+    let coloursToMatchDeepCopy = JSON.parse(JSON.stringify(coloursToMatch));
+
+    /** @type {ColourMapping} */
+    const result = { hexLookup: {}, matches: [] };
 
     // Loop till all colours added or our similarity range is at maxiumum
-    let range = 0;
-    while (matchColours.length > 0 && range < 255) {
-        range += 2;
+    const matchRangeStep = 16;
+    let matchRangeFactor = matchRangeStep;
+    while (coloursToMatchDeepCopy.length > 0 && matchRangeFactor < 255) {
+
         // Check each palette colour for matching image colours
-        sourceColours.forEach(sourceC => {
-            const paletteColourRange = createMatchRange(sourceC, range);
-            // With each image colour check to see if it is similar to the palette colour
-            /** @type {ColourMatch[]} */
-            const nextBatchOfImageColoursToScan = [];
-            matchColours.forEach(matchC => {
-                if (isSimilar(matchC, paletteColourRange)) {
-                    // Make sure the palette colour itself is in the lookup list
-                    if (!matched.hexLookup[sourceC.hex]) {
-                        matched.hexLookup[sourceC.hex] = sourceC.hex;
-                        sourceC.matchedColours.forEach(m => matched.hexLookup[m] = sourceC.hex);
-                        matched.matches.push(sourceC);
+        sourceColoursCopy.forEach(sourceColour => {
+
+            if (result.hexLookup[sourceColour.hex]) return; // ?? 
+
+            const matchRange = createMatchRange(sourceColour, matchRangeFactor);
+            const unmatchedColours = [];
+
+            coloursToMatchDeepCopy.forEach(colourToMatch => {
+
+                if (isSimilar(colourToMatch, matchRange)) {
+
+                    result.hexLookup[sourceColour.hex] = sourceColour.hex;
+                    result.matches.push(sourceColour);
+
+                    result.hexLookup[colourToMatch.hex] = sourceColour.hex;
+                    if (!sourceColour.matchedColours.includes(colourToMatch.hex)) {
+                        sourceColour.matchedColours.push(colourToMatch.hex);
                     }
-                    // Associate this colour with the palette colour in the lookup and transfer ownership of any children 
-                    matched.hexLookup[matchC.hex] = sourceC.hex;
-                    matchC.matchedColours.forEach(m => matched.hexLookup[m] = sourceC.hex);
-                    sourceC.matchedColours.push(matchC.hex);
-                    sourceC.matchedColours = sourceC.matchedColours.concat(matchC.matchedColours);
-                    // Append this colour's count and hex as a child of the base colour 
-                    sourceC.count += matchC.count;
+
+                    colourToMatch.matchedColours.forEach(hex => {
+                        result.hexLookup[hex] = sourceColour.hex;
+                        if (!sourceColour.matchedColours.includes(hex)) {
+                            sourceColour.matchedColours.push(hex);
+                        }
+                    });
+
+                    sourceColour.count += colourToMatch.count;
+
                 } else {
-                    nextBatchOfImageColoursToScan.push(matchC);
+                    unmatchedColours.push(colourToMatch);
                 }
+
+                // if (isSimilar(colourToMatch, matchRange)) {
+                //     // Make sure the palette colour itself is in the lookup list
+                //     if (!result.hexLookup[baseColour.hex]) {
+                //         result.hexLookup[baseColour.hex] = baseColour.hex;
+                //         baseColour.matchedColours.forEach(m => result.hexLookup[m] = baseColour.hex);
+                //         result.matches.push(baseColour);
+                //     }
+                //     // Associate this colour with the palette colour in the lookup and transfer ownership of any children 
+                //     result.hexLookup[colourToMatch.hex] = baseColour.hex;
+                //     colourToMatch.matchedColours.forEach(m => result.hexLookup[m] = baseColour.hex);
+                //     baseColour.matchedColours.push(colourToMatch.hex);
+                //     baseColour.matchedColours = baseColour.matchedColours.concat(colourToMatch.matchedColours);
+                //     // Append this colour's count and hex as a child of the base colour 
+                //     baseColour.count += colourToMatch.count;
+                // } else {
+                //     unmatchedColours.push(colourToMatch);
+                // }
+
             });
-            matchColours = nextBatchOfImageColoursToScan;
+            coloursToMatchDeepCopy = unmatchedColours;
+
         });
+
+        matchRangeFactor += matchRangeStep;
     }
-    return matched;
+
+    return result;
 }
 
 // /**
@@ -608,40 +631,53 @@ function matchColours(sourceList, coloursToMatch) {
  * @returns {ColourMapping}
  */
 function groupSimilarColours(coloursToGroup, matchRangeFactor) {
+
     /** @type {ColourMapping} */
     const result = { hexLookup: {}, matches: [] };
 
     /** @type {ColourMatch[]} */
     const baseColours = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => b.count > a.count);
     /** @type {ColourMatch[]} */
-    const compareColours = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => a.count < b.count);
+    let coloursToMatch = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => a.count < b.count);
 
     baseColours.forEach(baseColour => {
 
         // Only if the colour isn't in the lookup table
         if (!result.hexLookup[baseColour.hex]) {
 
-            // By default add this base colour to the lookup table
+            // Add the base colour to the result
             result.hexLookup[baseColour.hex] = baseColour.hex;
-            baseColour.matchedColours.forEach(m => result.hexLookup[m] = baseColour.hex);
+            baseColour.matchedColours.forEach(hex => {
+                result.hexLookup[hex] = baseColour.hex;
+            });
             result.matches.push(baseColour);
 
-            const range = createMatchRange(baseColour, matchRangeFactor);
-            compareColours.forEach(compareColour => {
-                // If comparison colour isn't in lookup table and is similar to the current base colour
-                if (result.hexLookup[compareColour.hex]) return;
-                if (isSimilar(compareColour, range)) {
-                    // Associate this colour with the base colour in the lookup and transfer owership of any children 
-                    result.hexLookup[compareColour.hex] = baseColour.hex;
-                    compareColour.matchedColours.forEach(m => {
-                        result.hexLookup[m] = baseColour.hex;
-                        baseColour.matchedColours.push(m);
+            // Find any similar colours
+            const matchRange = createMatchRange(baseColour, matchRangeFactor);
+            const unmatchedColours = [];
+            coloursToMatch.forEach(colourToMatch => {
+
+                if (isSimilar(colourToMatch, matchRange)) {
+
+                    result.hexLookup[colourToMatch.hex] = baseColour.hex;
+                    if (!baseColour.matchedColours.includes(colourToMatch.hex)) {
+                        baseColour.matchedColours.push(colourToMatch.hex);
+                    }
+                    colourToMatch.matchedColours.forEach(hex => {
+                        result.hexLookup[hex] = baseColour.hex;
+                        if (!baseColour.matchedColours.includes(hex)) {
+                            baseColour.matchedColours.push(hex);
+                        }
                     });
-                    // Append this colours count and hex as a child of the base colour 
-                    baseColour.count += compareColour.count;
-                    baseColour.matchedColours.push(compareColour.hex);
+
+                    baseColour.count += colourToMatch.count;
+
+                } else {
+                    unmatchedColours.push(colourToMatch);
                 }
+
             });
+            coloursToMatch = unmatchedColours;
 
         }
 
@@ -700,7 +736,8 @@ function extractUniqueColours(image) {
 function convertToColourMatch(colour) {
     return {
         r: colour.r, g: colour.g, b: colour.b,
-        count: 0, hex: ColourUtil.toHex(colour.r, colour.g, colour.b),
+        hex: ColourUtil.toHex(colour.r, colour.g, colour.b),
+        count: 0,
         matchedColours: []
     };
 }
@@ -719,6 +756,7 @@ function getPixelValue(imageData, index) {
         hex: ColourUtil.toHex(imageData[index + 0], imageData[index + 1], imageData[index + 2])
     };
 }
+
 
 /**
  * @param {ColourMatch} colour 
@@ -746,7 +784,6 @@ function createMatchRange(colour, rangeFactor) {
  * @returns {boolean}
  */
 function isSimilar(colour, range) {
-    // TODO - This is horribly slow and I don't know why
     return (colour.r >= range.rLow && colour.r <= range.rHigh) &&
         (colour.g >= range.gLow && colour.g <= range.gHigh) &&
         (colour.b >= range.bLow && colour.b <= range.bHigh)
