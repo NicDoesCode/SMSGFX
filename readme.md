@@ -61,6 +61,9 @@ For this you will require OpenSSL to be installed.
 | P | Change to pencil tool. |
 | Alt + plus (+) | Increase image scale / zoom. |
 | Alt + minus (-) | Decrease image scale / zoom. |
+
+### Pencil tool
+| Ctrl + 1 - 5 | Set pencil size. |
 | Ctrl + left click | While the pencil tool is selected this will change to the current colour that the mouse is hovering over. |
 
 ### Palette

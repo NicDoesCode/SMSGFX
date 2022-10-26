@@ -113,7 +113,7 @@ export default class TileEditor {
         }
         // Cursor size
         if (typeof state?.cursorSize === 'number') {
-            if (state.cursorSize > 0 && state.cursorSize < 10) {
+            if (state.cursorSize > 0 && state.cursorSize <= 50) {
                 this.#canvasManager.cursorSize = state.cursorSize;
             }
         }

@@ -287,6 +287,14 @@ function createEventListeners() {
                     // Redo
                     undoOrRedo('r');
                     handled = true;
+                } else if (/^Digit([0-9])$/.test(keyEvent.code)) {
+                    // Brush size
+                    let size = parseInt(/^Digit([0-9])$/.exec(keyEvent.code)[1]);
+                    if (size === 0) size = 10;
+                    if (instanceState.shiftIsDown) size += 10;
+                    console.log('Cursor size ' + size);
+                    setPencilSize(size);
+                    handled = true;
                 } else if (keyEvent.key === '[') {
                     // Mirror horizontal
                     if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
@@ -661,13 +669,7 @@ function handleTileContextToolbarOnButtonCommand(args) {
 function handlePencilContextToolbarOnButtonCommand(args) {
     if (args?.command === PencilContextToolbar.Commands.brushSize) {
         if (args.brushSize && args.brushSize >= 1 && args.brushSize <= 5) {
-            instanceState.pencilSize = args.brushSize;
-            pencilContextToolbar.setState({
-                brushSize: instanceState.pencilSize
-            });
-            tileEditor.setState({
-                cursorSize: instanceState.pencilSize
-            });
+            setPencilSize(args.brushSize);
         }
     }
 }
@@ -1161,6 +1163,22 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
 
     }
 
+}
+
+/**
+ * Sets the pencil size.
+ * @param {number} brushSize - Pencil size, 1 to 5.
+ */
+function setPencilSize(brushSize) {
+    if (brushSize && brushSize >= 1 && brushSize <= 50) {
+        instanceState.pencilSize = brushSize;
+        pencilContextToolbar.setState({
+            brushSize: instanceState.pencilSize
+        });
+        tileEditor.setState({
+            cursorSize: instanceState.pencilSize
+        });
+    }
 }
 
 /**
