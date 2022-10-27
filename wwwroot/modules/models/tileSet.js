@@ -321,4 +321,27 @@ export default class TileSet {
     }
 
 
+    /**
+     * Replaces all instaances of one colour index with another.
+     * @param {number} sourceColourIndex - Colour index to replace, from 0 to 15.
+     * @param {number} targetColourIndex - Colour index to set source to, from 0 to 15.
+     */
+    replaceColourIndex(sourceColourIndex, targetColourIndex) {
+        for (let i = 0; i < this.#tiles.length; i++) {
+            this.#tiles[i].replaceColourIndex(sourceColourIndex, targetColourIndex);
+        }
+    }
+
+    /**
+     * Swaps all instaances of one colour index with another.
+     * @param {number} firstColourIndex - First colour index to swap, from 0 to 15.
+     * @param {number} secondColourIndex - Second colour index to swap, from 0 to 15.
+     */
+    swapColourIndex(firstColourIndex, secondColourIndex) {
+        for (let i = 0; i < this.#tiles.length; i++) {
+            this.#tiles[i].swapColourIndex(firstColourIndex, secondColourIndex);
+        }
+    }
+
+
 }

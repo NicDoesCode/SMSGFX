@@ -16,7 +16,7 @@ export default class TileSetColourFillUtil {
         if (x < 0 || x >= w || y < 0 || y >= h) throw 'Invalid origin coordinates.';
 
         const originColour = tileSet.getPixelAt(x, y);
-        if (originColour === null) return;
+        if (originColour === null || originColour === fillColour) return;
 
         const props = { tileSet, w, h, originColour };
 

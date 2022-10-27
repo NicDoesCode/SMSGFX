@@ -2,6 +2,7 @@ import Palette from "../models/palette.js";
 import ColourUtil from "../util/colourUtil.js";
 import EventDispatcher from "../components/eventDispatcher.js";
 import PaletteList from "../models/paletteList.js";
+import PaletteEditorContextMenu from "./paletteEditorContextMenu.js";
 
 const EVENT_NewPalette = 'EVENT_NewPalette';
 const EVENT_ImportPaletteFromCode = 'EVENT_ImportPaletteFromCode';
@@ -13,6 +14,8 @@ const EVENT_RequestColourIndexChange = 'EVENT_RequestColourIndexChange';
 const EVENT_RequestColourIndexEdit = 'EVENT_RequestColourIndexEdit';
 const EVENT_RequestTitleChange = 'EVENT_RequestTitleChange';
 const EVENT_RequestDisplayNativeChange = 'EVENT_RequestDisplayNativeChange';
+const EVENT_RequestPaletteIndexReplace = 'EVENT_RequestPaletteIndexReplace';
+const EVENT_RequestPaletteIndexSwap = 'EVENT_RequestPaletteIndexSwap';
 
 export default class PaletteEditor {
 
@@ -47,6 +50,8 @@ export default class PaletteEditor {
     #btnPaletteTargetGameGear;
     /** @type {number} */
     #currentColourIndex = 0;
+    /** @type {PaletteEditorContextMenu} */
+    #contextMenu;
     /** @type {EventDispatcher} */
     #dispatcher;
 
@@ -57,7 +62,12 @@ export default class PaletteEditor {
      */
     constructor(element) {
         this.#element = element;
+
         this.#dispatcher = new EventDispatcher();
+
+        this.#contextMenu = new PaletteEditorContextMenu(element.querySelector('[data-smsgfx-component-id=palette-editor-context-menu]'));
+        this.#contextMenu.addHandlerOnCommand((args) => this.#handlePaletteEditorContextMenuOnCommand(args));
+
         this.#createPaletteColourIndexButtons();
 
         this.#btnNewPalette = this.#element.querySelector('#btnNewPalette');
@@ -266,13 +276,55 @@ export default class PaletteEditor {
         this.#dispatcher.on(EVENT_RequestColourIndexEdit, callback);
     }
 
+    /**
+     * Request to swap all instances of one colour index with another and vice versa.
+     * @param {PaletteEditorColourIndexCallback} callback - Callback function.
+     */
+    addHandlerRequestColourIndexSwap(callback) {
+        this.#dispatcher.on(EVENT_RequestPaletteIndexSwap, callback);
+    }
+
+    /**
+     * Request to replace all instances of one colour index with another.
+     * @param {PaletteEditorColourIndexCallback} callback - Callback function.
+     */
+    addHandlerRequestColourIndexReplace(callback) {
+        this.#dispatcher.on(EVENT_RequestPaletteIndexReplace, callback);
+    }
+
+
+    /**
+     * When a command is received from the context menu.
+     * @param {import("./paletteEditorContextMenu.js").PaletteEditorContextMenuCommandEventArgs} args - Arguments.
+     */
+    #handlePaletteEditorContextMenuOnCommand(args) {
+        if (args?.command === PaletteEditorContextMenu.Commands.swapColour) {
+            /** @type {PaletteEditorColourCommandEventArgs} */
+            const eventArgs = {
+                sourceColourIndex: args.sourceColourIndex,
+                targetColourIndex: args.targetColourIndex
+            };
+            this.#dispatcher.dispatch(EVENT_RequestPaletteIndexSwap, eventArgs);
+            this.#contextMenu.setState({ visible: false });
+        } else if (args?.command === PaletteEditorContextMenu.Commands.replaceColour) {
+            /** @type {PaletteEditorColourCommandEventArgs} */
+            const eventArgs = {
+                sourceColourIndex: args.sourceColourIndex,
+                targetColourIndex: args.targetColourIndex
+            };
+            this.#dispatcher.dispatch(EVENT_RequestPaletteIndexReplace, eventArgs);
+            this.#contextMenu.setState({ visible: false });
+        }
+    }
+
 
     /**
      * Handles colour click event, when the colour is not already selected we will select it
      * otherwise we will edit it.
-     * @param {number} colourIndex Index of the colour that was clicked.
+     * @param {number} colourIndex - Index of the colour that was clicked.
+     * @param {MouseEvent} event - Mouse event associated with the click event.
      */
-    #handlePaletteColourButtonClicked(colourIndex) {
+    #handlePaletteColourButtonClicked(colourIndex, event) {
         /** @type {PaletteEditorColourIndexEventArgs} */
         const args = {
             paletteIndex: this.#tbPaletteSelect.selectedIndex,
@@ -284,6 +336,22 @@ export default class PaletteEditor {
         } else {
             this.#dispatcher.dispatch(EVENT_RequestColourIndexEdit, args);
         }
+    }
+
+    /**
+     * Handles colour click event, when the colour is not already selected we will select it
+     * otherwise we will edit it.
+     * @param {number} colourIndex - Index of the colour that was clicked.
+     * @param {MouseEvent} event - Mouse event associated with the click event.
+     */
+    #handlePaletteColourButtonContext(colourIndex, event) {
+        console.log(event);
+        this.#contextMenu.setState({
+            colourIndex: colourIndex,
+            visible: true,
+            position: { x: event.clientX, y: event.clientY }
+        });
+        return false;
     }
 
 
@@ -400,7 +468,8 @@ export default class PaletteEditor {
             const btnColour = document.createElement('button');
             btnColour.classList.add('btn', 'btn-sm', 'btn-outline-secondary', 'position-relative', 'sms-palette-button');
             btnColour.setAttribute('data-colour-index', i.toString());
-            btnColour.onclick = () => this.#handlePaletteColourButtonClicked(i);
+            btnColour.onclick = (event) => this.#handlePaletteColourButtonClicked(i, event);
+            btnColour.oncontextmenu = (event) => this.#handlePaletteColourButtonContext(i, event);
             td.appendChild(btnColour);
 
             const lblContent = document.createElement('span');
@@ -518,6 +587,20 @@ export default class PaletteEditor {
  * @type {object}
  * @property {number} paletteIndex - Palette index.
  * @property {number} colourIndex - Colour index within the palette.
+ * @exports 
+ */
+
+/**
+ * Event callback with colour index.
+ * @callback PaletteEditorColourCommandCallback
+ * @param {PaletteEditorColourCommandEventArgs} args - Arguments.
+ * @exports
+ */
+/**
+ * @typedef PaletteEditorColourCommandEventArgs
+ * @type {object}
+ * @property {number} sourceColourIndex - Source palette colour index from 0 to 15.
+ * @property {number} targetColourIndex - Target palette colour index from 0 to 15.
  * @exports 
  */
 

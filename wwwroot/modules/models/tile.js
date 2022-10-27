@@ -94,5 +94,50 @@ export default class Tile {
     }
 
 
+    /**
+     * Replaces all instaances of one colour index with another.
+     * @param {number} sourceColourIndex - Colour index to replace, from 0 to 15.
+     * @param {number} targetColourIndex - Colour index to set source to, from 0 to 15.
+     */
+    replaceColourIndex(sourceColourIndex, targetColourIndex) {
+        if (typeof sourceColourIndex !== 'number') throw new Error('Invalid source colour index.');
+        if (sourceColourIndex < 0 || sourceColourIndex > 15) throw new Error('Source colour index must be between 0 and 15.');
+        if (typeof targetColourIndex !== 'number') throw new Error('Invalid target colour index.');
+        if (targetColourIndex < 0 || targetColourIndex > 15) throw new Error('Target colour index must be between 0 and 15.');
+      
+        if (sourceColourIndex === targetColourIndex) return;
+        
+        const data = this.#data;
+        for (let i = 0; i < data.length; i++) {
+            if (data[i] === sourceColourIndex) {
+                data[i] = targetColourIndex;
+            }
+        }
+    }
+
+    /**
+     * Swaps all instaances of one colour index with another.
+     * @param {number} firstColourIndex - First colour index to swap, from 0 to 15.
+     * @param {number} secondColourIndex - Second colour index to swap, from 0 to 15.
+     */
+    swapColourIndex(firstColourIndex, secondColourIndex) {
+        if (typeof firstColourIndex !== 'number') throw new Error('Invalid first colour index.');
+        if (firstColourIndex < 0 || firstColourIndex > 15) throw new Error('First colour index must be between 0 and 15.');
+        if (typeof secondColourIndex !== 'number') throw new Error('Invalid second colour index.');
+        if (secondColourIndex < 0 || secondColourIndex > 15) throw new Error('Second colour index must be between 0 and 15.');
+    
+        if (firstColourIndex === secondColourIndex) return;
+        
+        const data = this.#data;
+        for (let i = 0; i < data.length; i++) {
+            if (data[i] === firstColourIndex) {
+                data[i] = secondColourIndex;
+            } else if (data[i] === secondColourIndex) {
+                data[i] = firstColourIndex;
+            }
+        }
+    }
+
+
 }
 

@@ -80,7 +80,7 @@ export default class PencilContextToolbar {
 
 /**
  * @typedef {object} PencilContextToolbarState
- * @property {boolean?} visible - An array of strings containing disabled buttons.
+ * @property {boolean?} visible - Visibility of the toolbar.
  * @property {number?} brushSize - Selected brush size, 1 to 5.
  * @exports
  */

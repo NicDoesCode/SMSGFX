@@ -96,6 +96,8 @@ function wireUpEventHandlers() {
     paletteEditor.addHandlerRequestNativeChange(handlePaletteEditorRequestNativeChange);
     paletteEditor.addHandlerRequestColourIndexChange(handlePaletteEditorRequestColourIndexChange);
     paletteEditor.addHandlerRequestColourIndexEdit(handlePaletteEditorRequestColourIndexEdit);
+    paletteEditor.addHandlerRequestColourIndexSwap(handlePaletteEditorRequestColourIndexSwap);
+    paletteEditor.addHandlerRequestColourIndexReplace(handlePaletteEditorRequestColourIndexReplace);
 
     tileEditor.addHandlerPixelMouseOver(handleTileEditorPixelMouseOver);
     tileEditor.addHandlerPixelMouseDown(handleTileEditorPixelMouseDown);
@@ -166,9 +168,9 @@ function createEventListeners() {
     document.addEventListener('keydown', (keyEvent) => {
         // console.log('keydown', keyEvent);
 
-        instanceState.ctrlIsDown = keyEvent.ctrlKey;
-        instanceState.altIsDown = keyEvent.altKey;
-        instanceState.shiftIsDown = keyEvent.shiftKey;
+        // instanceState.ctrlIsDown = keyEvent.ctrlKey;
+        // instanceState.altIsDown = keyEvent.altKey;
+        // instanceState.shiftIsDown = keyEvent.shiftKey;
 
         if (keyEvent.target === document.body) {
             let handled = false;
@@ -200,9 +202,9 @@ function createEventListeners() {
     document.addEventListener('keyup', (keyEvent) => {
         // console.log('keyup', keyEvent);
 
-        instanceState.ctrlIsDown = keyEvent.ctrlKey;
-        instanceState.altIsDown = keyEvent.altKey;
-        instanceState.shiftIsDown = keyEvent.shiftKey;
+        // instanceState.ctrlIsDown = keyEvent.ctrlKey;
+        // instanceState.altIsDown = keyEvent.altKey;
+        // instanceState.shiftIsDown = keyEvent.shiftKey;
 
         if (keyEvent.target === document.body) {
             let handled = false;
@@ -570,6 +572,43 @@ function handlePaletteEditorRequestColourIndexChange(args) {
 function handlePaletteEditorRequestColourIndexEdit(args) {
     const palette = state.project.paletteList.getPalette(args.paletteIndex);
     colourPickerDialogue.show(palette, args.colourIndex);
+}
+
+/** @param {import('./ui/paletteEditor').PaletteEditorColourCommandEventArgs} args */
+function handlePaletteEditorRequestColourIndexSwap(args) {
+    addUndoState();
+
+    getTileSet().swapColourIndex(args.sourceColourIndex, args.targetColourIndex);
+    
+    const sourceColour = getPalette().getColour(args.sourceColourIndex);
+    const targetColour = getPalette().getColour(args.targetColourIndex);
+
+    getPalette().setColour(args.sourceColourIndex, targetColour);
+    getPalette().setColour(args.targetColourIndex, sourceColour);
+
+    state.saveToLocalStorage();
+
+    tileEditor.setState({
+        palette: getPalette(),
+        tileSet: getTileSet()
+    });
+
+    paletteEditor.setState({
+        paletteList: getPaletteList()
+    });
+}
+
+/** @param {import('./ui/paletteEditor').PaletteEditorColourCommandEventArgs} args */
+function handlePaletteEditorRequestColourIndexReplace(args) {
+    addUndoState();
+
+    getTileSet().replaceColourIndex(args.sourceColourIndex, args.targetColourIndex);
+
+    state.saveToLocalStorage();
+
+    tileEditor.setState({
+        tileSet: getTileSet()
+    });
 }
 
 
