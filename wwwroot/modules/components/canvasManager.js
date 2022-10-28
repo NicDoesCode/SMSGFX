@@ -226,10 +226,10 @@ export default class CanvasManager {
 
         // Draw the cursor
         context.strokeStyle = 'white';
-        this.#drawTool(context, coords, { x: -1, y: -1 });
-        this.#drawTool(context, coords, { x: 1, y: 1 });
+        this.#drawTool(context, coords, 1);
+        // this.#drawTool(context, coords, { x: 1, y: 1 });
         context.strokeStyle = 'black';
-        this.#drawTool(context, coords, { x: 0, y: 0 });
+        this.#drawTool(context, coords, 2);
         // context.strokeStyle = 'black';
         // const startX = coords.pxX - (pxSize * Math.floor(this.#cursorSize / 2));
         // const startY = coords.pxY - (pxSize * Math.floor(this.#cursorSize / 2));
@@ -274,29 +274,30 @@ export default class CanvasManager {
     /**
      * @param {CanvasRenderingContext2D} context 
      * @param {CanvCoords} coords 
-     * @param {{x: number, y: number}} drawOffset 
+     * @param {number} drawOffset 
      */
     #drawTool(context, coords, drawOffset) {
+        const offset = drawOffset;
         const pxSize = coords.pxSize;
-        const startX = (coords.pxX - (pxSize * Math.floor(this.#cursorSize / 2))) + drawOffset.x;
-        const startY = coords.pxY - (pxSize * Math.floor(this.#cursorSize / 2)) + drawOffset.y;
+        const startX = (coords.pxX - (pxSize * Math.floor(this.#cursorSize / 2)));
+        const startY = coords.pxY - (pxSize * Math.floor(this.#cursorSize / 2));
         if (this.#cursorSize < 4) {
-            context.strokeRect(startX, startY, pxSize * this.#cursorSize, pxSize * this.#cursorSize);
+            context.strokeRect(startX - offset, startY - offset, (pxSize * this.#cursorSize) + (offset * 2), (pxSize * this.#cursorSize) + (offset * 2));
         } else {
             context.beginPath();
-            context.moveTo(startX, startY + pxSize);                                  // .
-            context.lineTo(startX + pxSize, startY + pxSize);                         // _
-            context.lineTo(startX + pxSize, startY);                                  // _|
-            context.lineTo(startX + (pxSize * this.cursorSize - pxSize), startY);          // _|---
-            context.lineTo(startX + (pxSize * this.cursorSize - pxSize), startY + pxSize); // _|---|
-            context.lineTo(startX + (pxSize * this.cursorSize), startY + pxSize);     // _|---|_
-            context.lineTo(startX + (pxSize * this.cursorSize), startY + (pxSize * this.cursorSize - pxSize)); // Right border
-            context.lineTo(startX + (pxSize * this.cursorSize - pxSize), startY + (pxSize * this.cursorSize - pxSize)); //        -
-            context.lineTo(startX + (pxSize * this.cursorSize - pxSize), startY + (pxSize * this.cursorSize));     //       |-
-            context.lineTo(startX + pxSize, startY + (pxSize * this.cursorSize));                             //    ___|-
-            context.lineTo(startX + pxSize, startY + (pxSize * this.cursorSize - pxSize));                         //   |___|-
-            context.lineTo(startX, startY + (pxSize * this.cursorSize - pxSize));                                  //  -|___|-
-            context.lineTo(startX, startY + pxSize); // Left border
+            context.moveTo(startX - offset, startY + pxSize - offset);                                  // .
+            context.lineTo(startX + pxSize - offset, startY + pxSize - offset);                         // _
+            context.lineTo(startX + pxSize - offset, startY - offset);                                  // _|
+            context.lineTo(startX + (pxSize * this.cursorSize - pxSize) + offset, startY - offset);          // _|---
+            context.lineTo(startX + (pxSize * this.cursorSize - pxSize) + offset, startY + pxSize - offset); // _|---|
+            context.lineTo(startX + (pxSize * this.cursorSize) + offset, startY + pxSize - offset);     // _|---|_
+            context.lineTo(startX + (pxSize * this.cursorSize) + offset, startY + (pxSize * this.cursorSize - pxSize) + offset); // Right border
+            context.lineTo(startX + (pxSize * this.cursorSize - pxSize) + offset, startY + (pxSize * this.cursorSize - pxSize) + offset); //        -
+            context.lineTo(startX + (pxSize * this.cursorSize - pxSize) + offset, startY + (pxSize * this.cursorSize) + offset);     //       |-
+            context.lineTo(startX + pxSize - offset, startY + (pxSize * this.cursorSize) + offset);                             //    ___|-
+            context.lineTo(startX + pxSize - offset, startY + (pxSize * this.cursorSize - pxSize) + offset);                         //   |___|-
+            context.lineTo(startX - offset, startY + (pxSize * this.cursorSize - pxSize) + offset);                                  //  -|___|-
+            context.lineTo(startX - offset, startY + pxSize + offset); // Left border
             context.stroke();
         }
     }

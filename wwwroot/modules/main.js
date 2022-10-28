@@ -298,7 +298,6 @@ function createEventListeners() {
                     let size = parseInt(/^Digit([0-9])$/.exec(keyEvent.code)[1]);
                     if (size === 0) size = 10;
                     if (keyEvent.shiftKey) size += 10;
-                    console.log('Cursor size ' + size);
                     setPencilSize(size);
                     handled = true;
                 } else if (keyEvent.code === 'BracketLeft') {
@@ -1749,8 +1748,10 @@ function selectTileEditorToolbarTool(tool) {
             selectedTool: tool
         });
         let cursor = 'arrow';
-        if ([t.pencil, t.eyedropper, t.bucket].includes(tool)) {
+        if ([t.eyedropper, t.bucket].includes(tool)) {
             cursor = 'crosshair';
+        } else if (tool === t.pencil) {
+            cursor = 'none';
         }
         tileEditor.setState({
             cursor: cursor
