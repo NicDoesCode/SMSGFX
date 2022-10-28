@@ -22,7 +22,6 @@ import UndoManager from "./components/undoManager.js";
 import ProjectFactory from "./factory/projectFactory.js";
 import PaletteListFactory from "./factory/paletteListFactory.js";
 import TileUtil from "./util/tileUtil.js";
-import ImageUtil from "./util/imageUtil.js";
 import ImportImageModalDialogue from "./ui/importImageModalDialogue.js";
 import PencilContextToolbar from "./ui/pencilContextToolbar.js";
 import FileUtil from "./util/fileUtil.js";
@@ -1718,6 +1717,7 @@ function swapTilesAt(tileAIndex, tileBIndex) {
  */
 function selectTileEditorToolbarTool(tool) {
     if (TileEditorToolbar.Tools[tool]) {
+        const t = TileEditorToolbar.Tools;
         instanceState.tool = tool;
         if (tool !== TileEditorToolbar.Tools.select) {
             instanceState.tileIndex = -1;
@@ -1726,13 +1726,20 @@ function selectTileEditorToolbarTool(tool) {
             });
         }
         tileContextToolbar.setState({
-            visible: tool === TileEditorToolbar.Tools.select
+            visible: tool === t.select
         });
         pencilContextToolbar.setState({
-            visible: tool === TileEditorToolbar.Tools.pencil
+            visible: [t.pencil, t.eyedropper, t.bucket].includes(tool)
         });
         tileEditorToolbar.setState({
             selectedTool: tool
+        });
+        let cursor = 'arrow';
+        if ([t.pencil, t.eyedropper, t.bucket].includes(tool)) {
+            cursor = 'crosshair';
+        }
+        tileEditor.setState({
+            cursor: cursor
         });
     }
 }

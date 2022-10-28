@@ -117,6 +117,10 @@ export default class TileEditor {
                 this.#canvasManager.cursorSize = state.cursorSize;
             }
         }
+        // Cursor type
+        if (typeof state?.cursor === 'string') {
+            this.#tbCanvas.style.cursor = state.cursor;
+        }
         // Refresh image?
         if (dirty && this.#palette && this.#tileSet) {
             let palette = !this.#displayNative ? this.#palette : PaletteFactory.convertToNative(this.#palette);
@@ -364,6 +368,7 @@ export default class TileEditor {
  * @property {boolean?} displayNative - Should the tile editor display native colours?
  * @property {number?} selectedTileIndex - Currently selected tile index.
  * @property {number?} cursorSize - Size of the cursor in px.
+ * @property {string?} cursor - Cursor to use when the mouse hovers over the image editor.
  * @exports 
  */
 
