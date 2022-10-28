@@ -320,7 +320,7 @@
                 <div class="sms-rows">
                     <div class="sms-row">
                         <!-- Tile editor toolbar -->
-                        <div id="tbTileEditorToolbar" class="sms-tile-toolbar container-fluid p-0 m-0 pt-3 pb-2">
+                        <div data-smsgfx-component-id="tile-editor-toolbar" class="sms-tile-toolbar container-fluid p-0 m-0 pt-3 pb-2">
                             <div class="row align-items-center p-0 m-0">
                                 <div class="col-auto ms-0 ps-0 pe-0">
                                     <div class="input-group input-group-sm">
@@ -351,19 +351,23 @@
                                     </div>
                                 </div>
                                 <div class="col-auto pe-0">
-                                    <div class="input-group input-group-sm">
+                                    <div data-smsgfx-component-id="tools" class="input-group input-group-sm">
                                         <span class="input-group-text">Tools</span>
                                         <button id="btnToolSelection" class="btn btn-outline-secondary"
-                                            data-tool-button="select" title="Tile tool.">
+                                            data-tool="select" title="Tile tool.">
                                             <i class="bi bi-cursor"></i>
                                         </button>
                                         <button id="btnToolPencil" class="btn btn-outline-secondary"
-                                            data-tool-button="pencil" title="Pencil tool.">
+                                            data-tool="pencil" title="Pencil tool.">
                                             <i class="bi bi-pencil-fill"></i>
                                         </button>
                                         <button id="btnToolBucket" class="btn btn-outline-secondary"
-                                            data-tool-button="bucket" title="Fill tool.">
+                                            data-tool="bucket" title="Fill tool.">
                                             <i class="bi bi-paint-bucket"></i>
+                                        </button>
+                                        <button id="btnToolBucket" class="btn btn-outline-secondary"
+                                            data-tool="eyedropper" title="Colour select tool.">
+                                            <i class="bi bi-eyedropper"></i>
                                         </button>
                                     </div>
                                 </div>

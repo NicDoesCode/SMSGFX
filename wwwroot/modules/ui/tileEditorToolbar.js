@@ -9,8 +9,8 @@ const EVENT_RequestScaleChange = 'EVENT_RequestScaleChange';
 const EVENT_RequestUndo = 'EVENT_RequestUndo';
 const EVENT_RequestRedo = 'EVENT_RequestRedo';
 
-const tools = { select: 'select', pencil: 'pencil', bucket: 'bucket' };
-const scales = [ 1, 2, 5, 10, 15, 20, 50 ];
+const tools = { select: 'select', pencil: 'pencil', bucket: 'bucket', eyedropper: 'eyedropper' };
+const scales = [1, 2, 5, 10, 15, 20, 50];
 
 export default class TileEditorToolbar {
 
@@ -51,9 +51,9 @@ export default class TileEditorToolbar {
     #btnTilesAddTile;
     /** @type {HTMLButtonElement} */
     #btnTilesImport;
-     /** @type {HTMLButtonElement} */
+    /** @type {HTMLButtonElement} */
     #btnImageImport;
-   /** @type {HTMLInputElement} */
+    /** @type {HTMLInputElement} */
     #tbTileSetWidth;
     /** @type {HTMLSelectElement} */
     #tbTileSetScale;
@@ -94,9 +94,9 @@ export default class TileEditorToolbar {
         this.#btnToolRedo = this.#element.querySelector('#btnToolRedo');
         this.#btnToolRedo.onclick = (e) => this.#handleToolRedoClick(e);
 
-        const toolButtons = this.#element.querySelectorAll('button[data-tool-button]');
+        const toolButtons = this.#element.querySelectorAll('button[data-tool]');
         toolButtons.forEach(toolButton => {
-            toolButton.onclick = (e) => this.#handleToolChanged(e, toolButton.getAttribute('data-tool-button'));
+            toolButton.onclick = (e) => this.#handleToolChanged(e, toolButton.getAttribute('data-tool'));
         });
     }
 
@@ -106,29 +106,27 @@ export default class TileEditorToolbar {
      * @param {TileEditorToolbarState} state - State object.
      */
     setState(state) {
-        if (state) {
-            if (typeof state.tileWidth === 'number') {
-                this.#tileWidth = state.tileWidth;
+        if (typeof state?.tileWidth === 'number') {
+            this.#tileWidth = state.tileWidth;
+        }
+        if (typeof state?.selectedTool === 'string') {
+            this.#highlightTool(state.selectedTool);
+        }
+        if (typeof state?.scale === 'number') {
+            this.#scaleValue = state.scale;
+        }
+        if (typeof state?.undoEnabled === 'boolean' || typeof state?.undoEnabled === 'number') {
+            if (state.undoEnabled) {
+                this.#btnToolUndo.removeAttribute('disabled');
+            } else {
+                this.#btnToolUndo.setAttribute('disabled', 'disabled');
             }
-            if (typeof state.selectedTool === 'string') {
-                this.#highlightTool(state.selectedTool);
-            }
-            if (typeof state.scale === 'number') {
-                this.#scaleValue = state.scale;
-            }
-            if (typeof state.undoEnabled === 'boolean' || typeof state.undoEnabled === 'number') {
-                if (state.undoEnabled) {
-                    this.#btnToolUndo.removeAttribute('disabled');
-                } else {
-                    this.#btnToolUndo.setAttribute('disabled', 'disabled');
-                }
-            }
-            if (typeof state.redoEnabled === 'boolean' || typeof state.redoEnabled === 'number') {
-                if (state.redoEnabled) {
-                    this.#btnToolRedo.removeAttribute('disabled');
-                } else {
-                    this.#btnToolRedo.setAttribute('disabled', 'disabled');
-                }
+        }
+        if (typeof state?.redoEnabled === 'boolean' || typeof state?.redoEnabled === 'number') {
+            if (state.redoEnabled) {
+                this.#btnToolRedo.removeAttribute('disabled');
+            } else {
+                this.#btnToolRedo.setAttribute('disabled', 'disabled');
             }
         }
     }
@@ -200,13 +198,12 @@ export default class TileEditorToolbar {
 
 
     /**
-     * Highlights selected tool.
-     * @param {string} toolName Tool to highlight.
+     * @param {string} toolName
      */
     #highlightTool(toolName) {
-        const buttons = this.#element.querySelectorAll('button[data-tool-button]');
+        const buttons = this.#element.querySelectorAll('button[data-tool]');
         buttons.forEach(button => {
-            if (button.getAttribute('data-tool-button') === toolName) {
+            if (button.getAttribute('data-tool') === toolName) {
                 button.classList.remove('btn-outline-secondary');
                 if (!button.classList.contains('btn-secondary')) {
                     button.classList.add('btn-secondary');

@@ -154,44 +154,42 @@ export default class PaletteEditor {
      * @param {PaletteEditorState} state - State to set.
      */
     setState(state) {
-        if (state) {
-            /** @type {PaletteList} */
-            let paletteList;
-            let updateVirtualList = false;
-            if (state.paletteList && typeof state.paletteList.getPalettes === 'function') {
-                paletteList = state.paletteList;
-                this.#refreshPaletteSelectList(state.paletteList);
-                updateVirtualList = true;
-            }
-            if (typeof state.selectedPaletteIndex === 'number') {
-                this.#tbPaletteSelect.selectedIndex = state.selectedPaletteIndex;
-                updateVirtualList = true;
-            }
-            if (typeof state.displayNative === 'boolean') {
-                this.#tbPaletteEditorDisplayNative.checked = state.displayNative;
-            }
-            if (paletteList) {
-                const selectedPalette = paletteList.getPalette(this.#tbPaletteSelect.selectedIndex);
-                this.#setPalette(selectedPalette);
-            }
-            if (typeof state.selectedColourIndex === 'number' && state.selectedColourIndex >= 0 && state.selectedColourIndex < 16) {
-                this.#currentColourIndex = state.selectedColourIndex;
-                this.#selectPaletteColour(state.selectedColourIndex);
-            }
-            if (typeof state.highlightedColourIndex === 'number' && state.highlightedColourIndex >= 0 && state.highlightedColourIndex < 16) {
-                this.#highlightPaletteColour(state.highlightedColourIndex);
-            }
-            if (typeof state.title === 'string') {
-                this.#tbPaletteTitle.value = state.title;
-            }
-            if (typeof state.selectedSystem === 'string') {
-                this.#tbPaletteSystemSelect.value = state.selectedSystem;
-                this.#updateSystemSelectVirtualList(state.selectedSystem);
-            }
-            // Refresh the virtual list if needed
-            if (updateVirtualList) {
-                this.#updatePaletteSelectVirtualList();
-            }
+        /** @type {PaletteList} */
+        let paletteList;
+        let updateVirtualList = false;
+        if (state?.paletteList && typeof state?.paletteList.getPalettes === 'function') {
+            paletteList = state.paletteList;
+            this.#refreshPaletteSelectList(state.paletteList);
+            updateVirtualList = true;
+        }
+        if (typeof state?.selectedPaletteIndex === 'number') {
+            this.#tbPaletteSelect.selectedIndex = state.selectedPaletteIndex;
+            updateVirtualList = true;
+        }
+        if (typeof state?.displayNative === 'boolean') {
+            this.#tbPaletteEditorDisplayNative.checked = state.displayNative;
+        }
+        if (paletteList) {
+            const selectedPalette = paletteList.getPalette(this.#tbPaletteSelect.selectedIndex);
+            this.#setPalette(selectedPalette);
+        }
+        if (typeof state?.selectedColourIndex === 'number' && state?.selectedColourIndex >= 0 && state?.selectedColourIndex < 16) {
+            this.#currentColourIndex = state.selectedColourIndex;
+            this.#selectPaletteColour(state.selectedColourIndex);
+        }
+        if (typeof state?.highlightedColourIndex === 'number' && state?.highlightedColourIndex >= 0 && state?.highlightedColourIndex < 16) {
+            this.#highlightPaletteColour(state.highlightedColourIndex);
+        }
+        if (typeof state?.title === 'string') {
+            this.#tbPaletteTitle.value = state.title;
+        }
+        if (typeof state?.selectedSystem === 'string') {
+            this.#tbPaletteSystemSelect.value = state.selectedSystem;
+            this.#updateSystemSelectVirtualList(state.selectedSystem);
+        }
+        // Refresh the virtual list if needed
+        if (updateVirtualList) {
+            this.#updatePaletteSelectVirtualList();
         }
     }
 
@@ -484,23 +482,9 @@ export default class PaletteEditor {
     }
 
     /**
-     * Highlights a palette item on the UI.
-     * @param {number} paletteIndex Palette colour index.
+     * @param {number} colourIndex
      */
-    #highlightPaletteColour(paletteIndex) {
-        const paletteCells = this.#paletteCells;
-        paletteCells.forEach((cell, index) => {
-            if (index === paletteIndex) {
-                if (!cell.classList.contains('table-secondary')) {
-                    cell.classList.add('sms-highlight');
-                }
-            } else {
-                cell.classList.remove('sms-highlight');
-            }
-        });
-    }
-
-    #selectPaletteColour(colourIndex) {
+     #selectPaletteColour(colourIndex) {
         this.#paletteCells.forEach((cell, index) => {
             if (index !== null && index === colourIndex) {
                 if (!cell.classList.contains('table-dark')) {
@@ -508,6 +492,22 @@ export default class PaletteEditor {
                 }
             } else {
                 cell.classList.remove('sms-selected');
+            }
+        });
+    }
+
+    /**
+     * @param {number} colourIndex
+     */
+    #highlightPaletteColour(colourIndex) {
+        const paletteCells = this.#paletteCells;
+        paletteCells.forEach((cell, index) => {
+            if (index === colourIndex) {
+                if (!cell.classList.contains('table-secondary')) {
+                    cell.classList.add('sms-highlight');
+                }
+            } else {
+                cell.classList.remove('sms-highlight');
             }
         });
     }

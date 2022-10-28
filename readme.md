@@ -59,6 +59,7 @@ For this you will require OpenSSL to be installed.
 | F or B | Change to fill / bucket tool. |
 | S | Change to select tool. |
 | P | Change to pencil tool. |
+| I | Change to colour select tool. |
 | Alt + plus (+) | Increase image scale / zoom. |
 | Alt + minus (-) | Decrease image scale / zoom. |
 
