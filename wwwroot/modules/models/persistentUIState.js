@@ -32,6 +32,16 @@ export default class PersistentUIState {
     }
 
     /**
+     * Gets or sets the last replace value that was set in the import tile box.
+     */
+     get importTileReplace() {
+        return this.#importTileReplace;
+    }
+    set importTileReplace(value) {
+        this.#importTileReplace = value;
+    }
+
+    /**
      * Index in the palette list of the last selected palette.
      */
     get paletteIndex() {
@@ -68,6 +78,8 @@ export default class PersistentUIState {
     #importPaletteSystem = 'gg';
     /** @type {string} */
     #importTileAssemblyCode = '';
+    /** @type {boolean} */
+    #importTileReplace = false;
     /** @type {number} */
     #paletteIndex = 0;
     /** @type {number} */

@@ -29,18 +29,18 @@ import FileUtil from "./util/fileUtil.js";
 
 const undoManager = new UndoManager(50);
 
-const paletteDialogue = new PaletteModalDialogue(document.getElementById('tbPaletteDialogue'));
-const tileDialogue = new TileSetImportModalDialogue(document.getElementById('tbTileDialogue'));
 const exportDialogue = new ExportModalDialogue(document.getElementById('tbExportDialogue'));
 const colourPickerDialogue = new ColourPickerDialogue(document.getElementById('tbColourPickerDialogue'));
 const colourPickerToolbox = new ColourPickerToolbox(document.getElementById('tbColourToolbox'));
 const paletteEditor = new PaletteEditor(document.getElementById('tbPaletteEditor'));
+const paletteImportDialogue = new PaletteModalDialogue(document.querySelector('[data-smsgfx-component-id=palette-import-dialogue]'));
 const tileEditor = new TileEditor(document.getElementById('tbTileEditor'));
 const tileEditorToolbar = new TileEditorToolbar(document.querySelector('[data-smsgfx-component-id=tile-editor-toolbar]'));
+const tileImportDialogue = new TileSetImportModalDialogue(document.querySelector('[data-smsgfx-component-id=tile-import-dialogue]'));
 const tileContextToolbar = new TileContextToolbar(document.getElementById('tbTileContextToolbar'));
+const importImageModalDialogue = new ImportImageModalDialogue(document.querySelector('[data-smsgfx-component-id=import-image-modal]'));
 const pencilContextToolbar = new PencilContextToolbar(document.querySelector('[data-smsgfx-component-id=pencil-tool-context-toolbar]'));
 const headerBar = new HeaderBar(document.querySelector('[data-smsgfx-component-id=header-bar]'));
-const importImageModalDialogue = new ImportImageModalDialogue(document.querySelector('[data-smsgfx-component-id=import-image-modal]'));
 
 
 
@@ -124,7 +124,7 @@ function wireUpEventHandlers() {
 
     pencilContextToolbar.addHandlerOnButtonCommand(handlePencilContextToolbarOnButtonCommand);
 
-    paletteDialogue.addHandlerOnConfirm(handleImportPaletteModalDialogueOnConfirm);
+    paletteImportDialogue.addHandlerOnConfirm(handleImportPaletteModalDialogueOnConfirm);
 
     colourPickerDialogue.addHandlerOnChange(handleColourPickerChange);
     colourPickerDialogue.addHandlerOnConfirm(handleColourPickerConfirm);
@@ -133,7 +133,7 @@ function wireUpEventHandlers() {
     colourPickerToolbox.addHandlerRequestTabChange(handleColourPickerToolboxTabChange);
     colourPickerToolbox.addHandlerRequestColourChange(handleColourPickerToolboxColourChange);
 
-    tileDialogue.addHandlerOnConfirm(handleImportTileSet);
+    tileImportDialogue.addHandlerOnConfirm(handleImportTileSet);
 
     importImageModalDialogue.addHandlerOnConfirm(handleImageImportModalOnConfirm)
 }
@@ -437,9 +437,11 @@ function handlePaletteEditorRequestNewPalette(args) {
 }
 /** @param {import('./ui/paletteEditor').PaletteEditorCallback} args */
 function handlePaletteEditorRequestImportPaletteFromCode(args) {
-    const lastSystem = state.persistentUIState.importPaletteSystem;
-    const lastPaletteData = state.persistentUIState.importPaletteAssemblyCode;
-    paletteDialogue.show(lastSystem, lastPaletteData);
+    paletteImportDialogue.setState({
+        paletteData: getUIState().importPaletteAssemblyCode,
+        system: getUIState().importPaletteSystem
+    });
+    paletteImportDialogue.show();
 }
 
 /** @param {import('./ui/paletteEditor').PaletteEditorPaletteChangeEventArgs} args */
@@ -644,7 +646,11 @@ function handleTileEditorToolbarRequestImportImage(args) {
 
 /** @param {import('./ui/tileEditorToolbar').TileEditorToolbarCallback} args */
 function handleTileEditorToolbarRequestImportTileSetFromCode(args) {
-    tileDialogue.show(state.persistentUIState.importTileAssemblyCode);
+    tileImportDialogue.setState({
+        tileSetData: getUIState().importTileAssemblyCode,
+        replace: getUIState().importTileReplace
+    });
+    tileImportDialogue.show();
 }
 
 /** @param {import('./ui/tileEditorToolbar').TileEditorToolbarCallback} args */
@@ -821,26 +827,27 @@ function handleImportPaletteModalDialogueOnConfirm(args) {
     if (system === 'gg') {
         const array = AssemblyUtil.readAsUint16Array(paletteData);
         const palette = PaletteFactory.createFromGameGearPalette(array);
-        state.paletteList.addPalette(palette);
+        getPaletteList().addPalette(palette);
     } else if (system === 'ms') {
         const array = AssemblyUtil.readAsUint8ClampedArray(paletteData);
         const palette = PaletteFactory.createFromMasterSystemPalette(array);
-        state.paletteList.addPalette(palette);
+        getPaletteList().addPalette(palette);
     }
 
-    const selectedPaletteIndex = state.paletteList.length - 1;
+    getUIState().paletteIndex = getPaletteList().length - 1;
+    getUIState().importPaletteSystem = args.system;
+    getUIState().importPaletteAssemblyCode = args.paletteData;
+    state.saveToLocalStorage();
+
     paletteEditor.setState({
-        paletteList: state.paletteList,
-        selectedPaletteIndex: selectedPaletteIndex
+        paletteList: getPaletteList(),
+        selectedPaletteIndex: getUIState().paletteIndex
     });
     tileEditor.setState({
         palette: getPalette()
     });
 
-    state.persistentUIState.paletteIndex = selectedPaletteIndex;
-    state.persistentUIState.importPaletteSystem = args.system;
-    state.persistentUIState.importPaletteAssemblyCode = args.paletteData;
-    state.saveToLocalStorage();
+    paletteImportDialogue.hide();
 }
 
 /**
@@ -974,21 +981,28 @@ function handleImportTileSet(args) {
 
     const tileSetData = args.tileSetData;
     const tileSetDataArray = AssemblyUtil.readAsUint8ClampedArray(tileSetData);
-    const tileSet = TileSetBinarySerialiser.deserialise(tileSetDataArray);
+    const importedTileSet = TileSetBinarySerialiser.deserialise(tileSetDataArray);
 
-    const project = state.project;
-    project.tileSet = tileSet;
-    state.setProject(project);
+    if (args.replace) {
+        getProject().tileSet = importedTileSet;
+    } else {
+        importedTileSet.getTiles().forEach(importedTile => {
+            getTileSet().addTile(importedTile);
+        });
+    }
 
-    state.persistentUIState.importTileAssemblyCode = tileSetData;
+    getUIState().importTileAssemblyCode = args.tileSetData;
+    getUIState().importTileReplace = args.replace;
     state.saveToLocalStorage();
 
     tileEditorToolbar.setState({
-        tileWidth: tileSet.tileWidth
+        tileWidth: getTileSet().tileWidth
     });
     tileEditor.setState({
-        tileSet: tileSet
+        tileSet: getTileSet()
     });
+
+    tileImportDialogue.hide();
 }
 
 

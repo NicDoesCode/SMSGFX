@@ -1,5 +1,4 @@
 import ModalDialogue from "./modalDialogue.js";
-import EventDispatcher from "../components/eventDispatcher.js";
 
 export default class PaletteModalDialogue extends ModalDialogue {
 
@@ -8,6 +7,8 @@ export default class PaletteModalDialogue extends ModalDialogue {
     #tbPaletteSystem;
     /** @type {HTMLTextAreaElement} */
     #tbPaletteData;
+    /** @type {HTMLElement} */
+    #element;
 
 
     /**
@@ -16,20 +17,23 @@ export default class PaletteModalDialogue extends ModalDialogue {
      */
     constructor(element) {
         super(element);
-        this.#tbPaletteSystem = document.getElementById('tbPaletteSystem');
-        this.#tbPaletteData = document.getElementById('tbPaletteData');
+        this.#element = element;
+        this.#tbPaletteSystem = this.#element.querySelector('[data-smsgfx-id=select-palette-system]');
+        this.#tbPaletteData = this.#element.querySelector('[data-smsgfx-id=text-palette-data]');
     }
 
 
     /**
-     * Shows the dialogue with assembly data.
-     * @param {string} system - The system to be imported, either 'ms' or 'gg'.
-     * @param {string} paletteData - The WLA-DLX assembly code that contains the palette.
+     * Sets the state of the palette import dialogue.
+     * @param {PaletteImportModalDialogueState} state - State object.
      */
-    show(system, paletteData) {
-        this.#tbPaletteSystem.value = system;
-        this.#tbPaletteData.value = paletteData;
-        super.show();
+    setState(state) {
+        if (typeof state?.system === 'string') {
+            this.#tbPaletteSystem.value = state.system;
+        }
+        if (typeof state?.paletteData === 'string') {
+            this.#tbPaletteData.value = state.paletteData;
+        }
     }
 
 
@@ -49,6 +53,13 @@ export default class PaletteModalDialogue extends ModalDialogue {
 
 }
 
+
+/**
+ * Import tile set dialogue state object.
+ * @typedef {object} PaletteImportModalDialogueState
+ * @property {string} system - The system to be imported, either 'ms' or 'gg'.
+ * @property {string} paletteData - The WLA-DLX assembly code that contains the palette.
+ */
 
 /**
  * Import palette dialogue confirm callback.

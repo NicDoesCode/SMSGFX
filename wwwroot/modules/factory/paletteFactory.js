@@ -44,12 +44,13 @@ export default class PaletteFactory {
     static createFromMasterSystemPalette(array) {
         /** @type {Palette} */
         const result = PaletteFactory.create('Master System Palette', 'ms');
-        array.forEach((colour, index) => {
+        for (let idx = 0; idx < 16 || idx < array.length; idx++) {
+            const colour = array[idx];
             var r = Math.round(255 / 3 * (parseInt('00000011', 2) & colour));
             var g = Math.round(255 / 3 * (parseInt('00001100', 2) & colour) >> 2);
             var b = Math.round(255 / 3 * (parseInt('00110000', 2) & colour) >> 4);
-            result.setColour(index, { r, g, b })
-        });
+            result.setColour(idx, { r, g, b })
+        }
         return result;
     }
 
@@ -61,12 +62,13 @@ export default class PaletteFactory {
     static createFromGameGearPalette(array) {
         /** @type {Palette} */
         const result = PaletteFactory.create('Game Gear Palette', 'gg');
-        array.forEach(colour => {
+        for (let idx = 0; idx < 16 || idx < array.length; idx++) {
+            const colour = array[idx];
             var r = Math.round(255 / 15 * (parseInt('0000000000001111', 2) & colour));
             var g = Math.round(255 / 15 * (parseInt('0000000011110000', 2) & colour) >> 4);
             var b = Math.round(255 / 15 * (parseInt('0000111100000000', 2) & colour) >> 8);
-            result.setColour(index, { r, g, b })
-        });
+            result.setColour(idx, { r, g, b })
+        }
         return result;
     }
 
