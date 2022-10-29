@@ -20,8 +20,12 @@ const commands = {
     tileWidth: 'tileWidth',
     scale: 'scale'
 }
-
-const tools = { select: 'select', pencil: 'pencil', bucket: 'bucket', eyedropper: 'eyedropper' };
+const tools = {
+    select: 'select',
+    pencil: 'pencil',
+    bucket: 'bucket',
+    eyedropper: 'eyedropper'
+};
 const scales = [1, 2, 5, 10, 15, 20, 50];
 
 export default class TileEditorToolbar {
@@ -58,12 +62,12 @@ export default class TileEditorToolbar {
             element.onclick = () => this.#handleToolbarButton(element);
         });
 
-        this.#element.querySelectorAll(`select[data-command=${commands.tileWidth}]`).forEach(element => {
-            element.onclick = () => this.#handleTileWidthChange(element);
+        this.#element.querySelectorAll(`[data-command=${commands.tileWidth}]`).forEach(element => {
+            element.onchange = () => this.#handleTileWidthChange(element);
         });
 
         this.#element.querySelectorAll(`select[data-command=${commands.scale}]`).forEach(element => {
-            element.onclick = () => this.#handleScaleChange(element);
+            element.onchange = () => this.#handleScaleChange(element);
         });
     }
 
@@ -74,26 +78,26 @@ export default class TileEditorToolbar {
      */
     setState(state) {
         if (typeof state?.tileWidth === 'number') {
-            this.#tileWidth = state.tileWidth;
+            this.#getElement(commands.tileWidth).value = state.tileWidth;
         }
         if (typeof state?.selectedTool === 'string') {
             this.#highlightTool(state.selectedTool);
         }
         if (typeof state?.scale === 'number') {
-            this.#scaleValue = state.scale;
+            this.#getElement(commands.scale).value = state.scale;
         }
         if (typeof state?.undoEnabled === 'boolean' || typeof state?.undoEnabled === 'number') {
             if (state.undoEnabled) {
-                this.#btnToolUndo.removeAttribute('disabled');
+                this.#getElement(commands.undo).removeAttribute('disabled');
             } else {
-                this.#btnToolUndo.setAttribute('disabled', 'disabled');
+                this.#getElement(commands.undo).setAttribute('disabled', 'disabled');
             }
         }
         if (typeof state?.redoEnabled === 'boolean' || typeof state?.redoEnabled === 'number') {
             if (state.redoEnabled) {
-                this.#btnToolRedo.removeAttribute('disabled');
+                this.#getElement(commands.redo).removeAttribute('disabled');
             } else {
-                this.#btnToolRedo.setAttribute('disabled', 'disabled');
+                this.#getElement(commands.redo).setAttribute('disabled', 'disabled');
             }
         }
     }
@@ -124,10 +128,10 @@ export default class TileEditorToolbar {
         const command = element.getAttribute('data-command');
         const args = this.#createArgs(command);
         element.classList.remove('is-invalid');
-        if (args.tileWidth < 1 || args.tileWidth > 64) {
-            element.classList.add('is-invalid');
-        } else {
+        if (args.tileWidth > 0 && args.tileWidth <= 64) {
             this.#dispatcher.dispatch(EVENT_OnCommand, args);
+        } else {
+            element.classList.add('is-invalid');
         }
     }
 
@@ -140,21 +144,6 @@ export default class TileEditorToolbar {
         }
     }
 
-
-    /**
-     * @param {string} command - The command.
-     * @returns {TileEditorToolbarCommandEventArgs}
-     */
-    #createArgs(command) {
-        const tileWidth = parseInt(this.#element.querySelector(`[data-command=${commands.tileWidth}]`).value);
-        const scale = parseInt(this.#element.querySelector(`[data-command=${commands.scale}]`).value);
-        return {
-            command: command,
-            scale: scale,
-            tileWidth: tileWidth,
-            tool: null
-        };
-    }
 
     /**
      * @param {string} toolName
@@ -174,6 +163,25 @@ export default class TileEditorToolbar {
                 }
             }
         });
+    }
+
+    /**
+     * @param {string} command - The command.
+     * @returns {TileEditorToolbarCommandEventArgs}
+     */
+    #createArgs(command) {
+        const tileWidth = parseInt(this.#getElement(commands.tileWidth).value);
+        const scale = parseInt(this.#getElement(commands.scale).value);
+        return {
+            command: command,
+            scale: scale,
+            tileWidth: tileWidth,
+            tool: null
+        };
+    }
+
+    #getElement(command) {
+        return this.#element.querySelector(`[data-command=${command}]`);
     }
 
 

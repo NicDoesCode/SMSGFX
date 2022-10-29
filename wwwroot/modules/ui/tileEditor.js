@@ -77,23 +77,23 @@ export default class TileEditor {
     setState(state) {
         let dirty = false;
         // Change palette?
-        const palette = state.palette;
+        const palette = state?.palette;
         if (palette && typeof palette.getColour === 'function') {
             this.#canvasManager.invalidateImage();
             this.#palette = palette;
             dirty = true;
         }
         // Changing tile set
-        const tileSet = state.tileSet;
+        const tileSet = state?.tileSet;
         if (tileSet && typeof tileSet.getPixelAt === 'function') {
             this.#canvasManager.invalidateImage();
             this.#tileSet = tileSet;
             dirty = true;
         }
         // Changing scale?
-        if (typeof state.scale === 'number') {
+        if (typeof state?.scale === 'number') {
             const scale = state.scale;
-            if (scale > 0 && scale <= 50 && scale !== this.#scale) {
+            if (scale > 0 && scale <= 50) {
                 this.#scale = state.scale;
                 this.#canvasManager.invalidateImage();
                 dirty = true;
@@ -102,12 +102,12 @@ export default class TileEditor {
             }
         }
         // Display native?
-        if (typeof state.displayNative === 'boolean') {
+        if (typeof state?.displayNative === 'boolean') {
             this.#displayNative = state.displayNative;
             dirty = true;
         }
         // Selected tile index?
-        if (typeof state.selectedTileIndex === 'number') {
+        if (typeof state?.selectedTileIndex === 'number') {
             this.#canvasManager.selectedTileIndex = state.selectedTileIndex;
             dirty = true;
         }

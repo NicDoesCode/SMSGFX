@@ -111,14 +111,7 @@ function wireUpEventHandlers() {
     tileEditor.addHandlerRequestMirrorTileHorizontal(handleTileEditorMirrorTileHorizontal);
     tileEditor.addHandlerRequestMirrorTileVertical(handleTileEditorMirrorTileVertical);
 
-    tileEditorToolbar.addHandlerRequestAddTile(handleTileEditorToolbarRequestAddTile);
-    tileEditorToolbar.addHandlerRequestImportImage(handleTileEditorToolbarRequestImportImage);
-    tileEditorToolbar.addHandlerRequestImportTileSetFromCode(handleTileEditorToolbarRequestImportTileSetFromCode);
-    tileEditorToolbar.addHandlerRequestUndo(handleTileEditorToolbarRequestUndo);
-    tileEditorToolbar.addHandlerRequestRedo(handleTileEditorToolbarRequestRedo);
-    tileEditorToolbar.addHandlerRequestToolChange(handleTileEditorToolbarRequestToolChange);
-    tileEditorToolbar.addHandlerRequestTileWidthChange(handleTileEditorToolbarRequestTileWidthChange);
-    tileEditorToolbar.addHandlerRequestScaleChange(handleTileEditorToolbarRequestScaleChange);
+    tileEditorToolbar.addHandlerOnCommand(handleTileEditorToolbarOnCommand);
 
     tileContextToolbar.addHandlerOnButtonCommand(handleTileContextToolbarOnButtonCommand);
 
@@ -145,11 +138,7 @@ function createEventListeners() {
             const targetTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/gif', 'image/svg+xml'];
             const file = clipboardEvent.clipboardData.files[0];
             if (targetTypes.includes(file.type)) {
-                importImageModalDialogue.setState({
-                    paletteList: getPaletteList(),
-                    file: file
-                });
-                importImageModalDialogue.show();
+                tileImportImage(file);
             }
         } else {
             /** @type {string} */
@@ -221,7 +210,7 @@ function createEventListeners() {
                     handled = true;
                 } else if (keyEvent.code === 'KeyE') {
                     // New tile
-                    newTile();
+                    tileNew();
                     handled = true;
                 }
 
@@ -630,55 +619,34 @@ function handlePaletteEditorRequestColourIndexReplace(args) {
 }
 
 
-/** @param {import('./ui/tileEditorToolbar').TileEditorToolbarCallback} args */
-function handleTileEditorToolbarRequestAddTile(args) {
-    newTile();
-}
-
-/** @param {import('./ui/tileEditorToolbar').TileEditorToolbarCallback} args */
-function handleTileEditorToolbarRequestImportImage(args) {
-    importImageModalDialogue.setState({
-        paletteList: getPaletteList()
-    });
-    importImageModalDialogue.show();
-}
-
-/** @param {import('./ui/tileEditorToolbar').TileEditorToolbarCallback} args */
-function handleTileEditorToolbarRequestImportTileSetFromCode(args) {
-    tileImportDialogue.setState({
-        tileSetData: getUIState().importTileAssemblyCode,
-        replace: getUIState().importTileReplace
-    });
-    tileImportDialogue.show();
-}
-
-/** @param {import('./ui/tileEditorToolbar').TileEditorToolbarCallback} args */
-function handleTileEditorToolbarRequestUndo(args) {
-    undoOrRedo('u');
-}
-
-/** @param {import('./ui/tileEditorToolbar').TileEditorToolbarCallback} args */
-function handleTileEditorToolbarRequestRedo(args) {
-    undoOrRedo('r');
-}
-
-/** @param {import('./ui/tileEditorToolbar.js').TileEditorToolbarUIEventArgs} args */
-function handleTileEditorToolbarRequestToolChange(args) {
-    selectTileEditorToolbarTool(args.tool);
-}
-
-/** @param {import('./ui/tileEditorToolbar.js').TileEditorToolbarUIEventArgs} args */
-function handleTileEditorToolbarRequestTileWidthChange(args) {
-    getTileSet().tileWidth = args.tileWidth;
-    tileEditor.setState({
-        tileSet: getTileSet()
-    });
-    state.saveToLocalStorage();
-}
-
-/** @param {import('./ui/tileEditorToolbar.js').TileEditorToolbarUIEventArgs} args */
-function handleTileEditorToolbarRequestScaleChange(args) {
-    setScale(args.scale);
+/** @param {import('./ui/tileEditorToolbar').TileEditorToolbarCommandEventArgs} args */
+function handleTileEditorToolbarOnCommand(args) {
+    switch (args.command) {
+        case TileEditorToolbar.Commands.tileAdd:
+            tileNew();
+            break;
+        case TileEditorToolbar.Commands.tileImageImport:
+            tileImportImage();
+            break;
+        case TileEditorToolbar.Commands.tileCodeImport:
+            tileImportCode();
+            break;
+        case TileEditorToolbar.Commands.undo:
+            undoOrRedo('u');
+            break;
+        case TileEditorToolbar.Commands.redo:
+            undoOrRedo('r');
+            break;
+        case TileEditorToolbar.Commands.toolChange:
+            selectTileEditorToolbarTool(args.tool);
+            break;
+        case TileEditorToolbar.Commands.tileWidth:
+            tileWidthSet(args.tileWidth);
+            break;
+        case TileEditorToolbar.Commands.scale:
+            setScale(args.scale);
+            break;
+    }
 }
 
 
@@ -1305,10 +1273,7 @@ function newPalette() {
     });
 }
 
-/**
- * Creates a new tile.
- */
-function newTile() {
+function tileNew() {
     if (getTileSet()) {
         addUndoState();
 
@@ -1323,6 +1288,36 @@ function newTile() {
             palette: getPalette()
         });
     }
+}
+
+/**
+ * @param {File|null} file 
+ */
+function tileImportImage(file) {
+    importImageModalDialogue.setState({
+        paletteList: getPaletteList(),
+        file: file ?? null
+    });
+    importImageModalDialogue.show();
+}
+
+function tileImportCode() {
+    tileImportDialogue.setState({
+        tileSetData: getUIState().importTileAssemblyCode,
+        replace: getUIState().importTileReplace
+    });
+    tileImportDialogue.show();
+}
+
+/**
+ * @param {number} tileWidth 
+ */
+function tileWidthSet(tileWidth) {
+    getTileSet().tileWidth = tileWidth;
+    tileEditor.setState({
+        tileSet: getTileSet()
+    });
+    state.saveToLocalStorage();
 }
 
 /**
@@ -1893,4 +1888,5 @@ $(() => {
         visible: instanceState.tool === TileEditorToolbar.Tools.pencil,
         brushSize: instanceState.pencilSize
     });
+    selectTileEditorToolbarTool(instanceState.tool);
 });
