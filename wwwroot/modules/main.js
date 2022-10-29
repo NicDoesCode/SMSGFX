@@ -334,19 +334,19 @@ function createEventListeners() {
 
                 if (keyEvent.code === 'KeyF' || keyEvent.code === 'KeyB') {
                     // Select fill tool
-                    selectTileEditorToolbarTool(TileEditorToolbar.Tools.bucket);
+                    selectTool(TileEditorToolbar.Tools.bucket);
                     handled = true;
                 } else if (keyEvent.code === 'KeyS') {
                     // Select selection tool
-                    selectTileEditorToolbarTool(TileEditorToolbar.Tools.select);
+                    selectTool(TileEditorToolbar.Tools.select);
                     handled = true;
                 } else if (keyEvent.code === 'KeyP') {
                     // Select pencil tool
-                    selectTileEditorToolbarTool(TileEditorToolbar.Tools.pencil);
+                    selectTool(TileEditorToolbar.Tools.pencil);
                     handled = true;
                 } else if (keyEvent.code === 'KeyI') {
                     // Select eyedropper tool
-                    selectTileEditorToolbarTool(TileEditorToolbar.Tools.eyedropper);
+                    selectTool(TileEditorToolbar.Tools.eyedropper);
                     handled = true;
                 } else if (keyEvent.code === 'Delete') {
                     // Delete any selected tile
@@ -638,7 +638,7 @@ function handleTileEditorToolbarOnCommand(args) {
             undoOrRedo('r');
             break;
         case TileEditorToolbar.Commands.toolChange:
-            selectTileEditorToolbarTool(args.tool);
+            selectTool(args.tool);
             break;
         case TileEditorToolbar.Commands.tileWidth:
             tileWidthSet(args.tileWidth);
@@ -1148,52 +1148,42 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
             const tileIndex = getTileSet().getTileIndexByCoordinate(imageX, imageY);
             selectTile(tileIndex);
 
+            instanceState.lastTileMapPx.x = -1;
+            instanceState.lastTileMapPx.y = -1;
+
         } else if (tool === TileEditorToolbar.Tools.pencil) {
-            if (instanceState.ctrlIsDown) {
 
-                // CTRL down, set colour
-                const colourIndex = getTileSet().getPixelAt(imageX, imageY);
-                if (typeof colourIndex === 'number') {
-                    selectColourIndex(colourIndex);
+            // CTRL not down, so draw pixel
+            const lastPx = instanceState.lastTileMapPx;
+            if (imageX !== lastPx.x || imageY !== lastPx.y) {
+                addUndoState();
+                if (!instanceState.undoDisabled) {
+                    instanceState.undoDisabled = true;
                 }
 
-            } else {
+                instanceState.lastTileMapPx.x = imageX;
+                instanceState.lastTileMapPx.y = imageY;
 
-                // CTRL not down, so draw pixel
-                const lastPx = instanceState.lastTileMapPx;
-                if (imageX !== lastPx.x || imageY !== lastPx.y) {
-                    addUndoState();
-                    if (!instanceState.undoDisabled) {
-                        instanceState.undoDisabled = true;
-                    }
+                const tileSet = getTileSet();
 
-                    instanceState.lastTileMapPx.x = imageX;
-                    instanceState.lastTileMapPx.y = imageY;
-
-                    // Show the palette colour
-                    const tileSet = getTileSet();
-
-                    const size = instanceState.pencilSize;
-                    if (size > 0) {
-                        const startX = imageX - Math.floor(size / 2);
-                        const startY = imageY - Math.floor(size / 2);
-                        const endX = imageX + Math.ceil(size / 2);
-                        const endY = imageY + Math.ceil(size / 2);
-                        for (let yPx = startY; yPx < endY; yPx++) {
-                            const xLeft = (size > 3 && (yPx === startY || yPx === endY - 1)) ? startX + 1 : startX;
-                            const xRight = (size > 3 && (yPx === startY || yPx === endY - 1)) ? endX - 1 : endX;
-                            for (let xPx = xLeft; xPx < xRight; xPx++) {
-                                tileSet.setPixelAt(xPx, yPx, colourIndex);
-                            }
+                const size = instanceState.pencilSize;
+                if (size > 0) {
+                    const startX = imageX - Math.floor(size / 2);
+                    const startY = imageY - Math.floor(size / 2);
+                    const endX = imageX + Math.ceil(size / 2);
+                    const endY = imageY + Math.ceil(size / 2);
+                    for (let yPx = startY; yPx < endY; yPx++) {
+                        const xLeft = (size > 3 && (yPx === startY || yPx === endY - 1)) ? startX + 1 : startX;
+                        const xRight = (size > 3 && (yPx === startY || yPx === endY - 1)) ? endX - 1 : endX;
+                        for (let xPx = xLeft; xPx < xRight; xPx++) {
+                            tileSet.setPixelAt(xPx, yPx, colourIndex);
                         }
-                    } else {
-                        tileSet.setPixelAt(imageX, imageY, colourIndex);
                     }
-
-                    // Update the UI
-                    tileEditor.setState({ tileSet: tileSet });
+                } else {
+                    tileSet.setPixelAt(imageX, imageY, colourIndex);
                 }
 
+                tileEditor.setState({ tileSet: tileSet });
             }
 
         } else if (tool === TileEditorToolbar.Tools.bucket) {
@@ -1202,12 +1192,18 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
             TileSetColourFillUtil.fill(getTileSet(), imageX, imageY, colourIndex)
             tileEditor.setState({ tileSet: getTileSet() });
 
+            instanceState.lastTileMapPx.x = -1;
+            instanceState.lastTileMapPx.y = -1;
+
         } else if (tool === TileEditorToolbar.Tools.eyedropper) {
 
             const colourIndex = getTileSet().getPixelAt(imageX, imageY);
             if (colourIndex !== null) {
                 selectColourIndex(colourIndex);
             }
+
+            instanceState.lastTileMapPx.x = -1;
+            instanceState.lastTileMapPx.y = -1;
 
         }
 
@@ -1723,7 +1719,7 @@ function swapTilesAt(tileAIndex, tileBIndex) {
  * Selects a tool on the tile editor toolbar.
  * @param {string} tool - Name of the tool to select.
  */
-function selectTileEditorToolbarTool(tool) {
+function selectTool(tool) {
     if (TileEditorToolbar.Tools[tool]) {
         const t = TileEditorToolbar.Tools;
         instanceState.tool = tool;
@@ -1754,6 +1750,9 @@ function selectTileEditorToolbarTool(tool) {
             cursor: cursor,
             cursorSize: cursorSize
         });
+
+        instanceState.lastTileMapPx.x = -1;
+        instanceState.lastTileMapPx.y = -1;
     }
 }
 
@@ -1891,5 +1890,5 @@ $(() => {
         visible: instanceState.tool === TileEditorToolbar.Tools.pencil,
         brushSize: instanceState.pencilSize
     });
-    selectTileEditorToolbarTool(instanceState.tool);
+    selectTool(instanceState.tool);
 });
