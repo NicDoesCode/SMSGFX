@@ -1743,13 +1743,16 @@ function selectTileEditorToolbarTool(tool) {
             selectedTool: tool
         });
         let cursor = 'arrow';
+        let cursorSize = 1;
         if ([t.eyedropper, t.bucket].includes(tool)) {
             cursor = 'crosshair';
         } else if (tool === t.pencil) {
             cursor = 'none';
+            cursorSize = instanceState.pencilSize;
         }
         tileEditor.setState({
-            cursor: cursor
+            cursor: cursor,
+            cursorSize: cursorSize
         });
     }
 }
