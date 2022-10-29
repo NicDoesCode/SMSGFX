@@ -1,5 +1,6 @@
 import EventDispatcher from "../components/eventDispatcher.js";
 
+const EVENT_OnCommand = 'EVENT_OnCommand';
 const EVENT_RequestAddTile = 'EVENT_RequestAddTile';
 const EVENT_RequestImportTileSet = 'EVENT_RequestImportTileSet';
 const EVENT_RequestImportImage = 'EVENT_RequestImportImage';
@@ -9,11 +10,26 @@ const EVENT_RequestScaleChange = 'EVENT_RequestScaleChange';
 const EVENT_RequestUndo = 'EVENT_RequestUndo';
 const EVENT_RequestRedo = 'EVENT_RequestRedo';
 
+const commands = {
+    tileAdd: 'tileAdd',
+    tileImageImport: 'tileImageImport',
+    tileCodeImport: 'tileCodeImport',
+    undo: 'undo',
+    redo: 'redo',
+    toolChange: 'toolChange',
+    tileWidth: 'tileWidth',
+    scale: 'scale'
+}
+
 const tools = { select: 'select', pencil: 'pencil', bucket: 'bucket', eyedropper: 'eyedropper' };
 const scales = [1, 2, 5, 10, 15, 20, 50];
 
 export default class TileEditorToolbar {
 
+
+    static get Commands() {
+        return commands;
+    }
 
     static get Tools() {
         return tools;
@@ -24,43 +40,8 @@ export default class TileEditorToolbar {
     }
 
 
-    /**
-     * Gets the current pixel scale value.
-     */
-    get #scaleValue() {
-        return parseInt(this.#tbTileSetScale.value);
-    }
-    set #scaleValue(value) {
-        this.#tbTileSetScale.value = value;
-    }
-
-    /**
-     * Gets the current tile width value.
-     */
-    get #tileWidth() {
-        return parseInt(this.#tbTileSetWidth.value);
-    }
-    set #tileWidth(value) {
-        this.#tbTileSetWidth.value = value;
-    }
-
-
     /** @type {HTMLDivElement} */
     #element;
-    /** @type {HTMLButtonElement} */
-    #btnTilesAddTile;
-    /** @type {HTMLButtonElement} */
-    #btnTilesImport;
-    /** @type {HTMLButtonElement} */
-    #btnImageImport;
-    /** @type {HTMLInputElement} */
-    #tbTileSetWidth;
-    /** @type {HTMLSelectElement} */
-    #tbTileSetScale;
-    /** @type {HTMLButtonElement} */
-    #btnToolUndo;
-    /** @type {HTMLButtonElement} */
-    #btnToolRedo;
     #lastScale = 1;
     #dispatcher;
 
@@ -73,30 +54,16 @@ export default class TileEditorToolbar {
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 
-        this.#btnTilesAddTile = this.#element.querySelector('#btnTilesAddTile');
-        this.#btnTilesAddTile.onclick = (e) => this.#handleRequestAddTile(e);
+        this.#element.querySelectorAll('button[data-command]').forEach(element => {
+            element.onclick = () => this.#handleToolbarButton(element);
+        });
 
-        this.#btnImageImport = this.#element.querySelector('#btnImageImport');
-        this.#btnImageImport.onclick = (e) => this.#handleRequestImportImage(e);
+        this.#element.querySelectorAll(`select[data-command=${commands.tileWidth}]`).forEach(element => {
+            element.onclick = () => this.#handleTileWidthChange(element);
+        });
 
-        this.#btnTilesImport = this.#element.querySelector('#btnTilesImport');
-        this.#btnTilesImport.onclick = (e) => this.#handleRequestImportTilesFromCode(e);
-
-        this.#tbTileSetWidth = this.#element.querySelector('#tbTileSetWidth');
-        this.#tbTileSetWidth.onchange = (e) => this.#handleTileSetWidthChange(e);
-
-        this.#tbTileSetScale = this.#element.querySelector('#tbTileSetScale');
-        this.#tbTileSetScale.onchange = (e) => this.#handleScaleChange(e);
-
-        this.#btnToolUndo = this.#element.querySelector('#btnToolUndo');
-        this.#btnToolUndo.onclick = (e) => this.#handleToolUndoClick(e);
-
-        this.#btnToolRedo = this.#element.querySelector('#btnToolRedo');
-        this.#btnToolRedo.onclick = (e) => this.#handleToolRedoClick(e);
-
-        const toolButtons = this.#element.querySelectorAll('button[data-tool]');
-        toolButtons.forEach(toolButton => {
-            toolButton.onclick = (e) => this.#handleToolChanged(e, toolButton.getAttribute('data-tool'));
+        this.#element.querySelectorAll(`select[data-command=${commands.scale}]`).forEach(element => {
+            element.onclick = () => this.#handleScaleChange(element);
         });
     }
 
@@ -133,69 +100,61 @@ export default class TileEditorToolbar {
 
 
     /**
-     * Triggered when add new tile is requested.
-     * @param {TileEditorToolbarCallback} callback - Callback function.
+     * Handler for when a command is received from the toolbar.
+     * @param {TileEditorToolbarCommandCallback} callback - Callback function.
      */
-    addHandlerRequestAddTile(callback) {
-        this.#dispatcher.on(EVENT_RequestAddTile, callback);
+    addHandlerOnCommand(callback) {
+        this.#dispatcher.on(EVENT_OnCommand, callback);
+    }
+
+
+    #handleToolbarButton(element) {
+        const command = element.getAttribute('data-command');
+        const args = this.#createArgs(command);
+        if (command === commands.toolChange && element.hasAttribute('data-tool')) {
+            args.tool = element.getAttribute('data-tool');
+        }
+        this.#dispatcher.dispatch(EVENT_OnCommand, args);
     }
 
     /**
-     * Triggered when import tile set from code is requested.
-     * @param {TileEditorToolbarCallback} callback - Callback function.
+     * @param {HTMLElement} element 
      */
-    addHandlerRequestImportImage(callback) {
-        this.#dispatcher.on(EVENT_RequestImportImage, callback);
+    #handleTileWidthChange(element) {
+        const command = element.getAttribute('data-command');
+        const args = this.#createArgs(command);
+        element.classList.remove('is-invalid');
+        if (args.tileWidth < 1 || args.tileWidth > 64) {
+            element.classList.add('is-invalid');
+        } else {
+            this.#dispatcher.dispatch(EVENT_OnCommand, args);
+        }
     }
+
+    #handleScaleChange(element) {
+        const command = element.getAttribute('data-command');
+        const args = this.#createArgs(command);
+        if (args.scale !== this.#lastScale) {
+            this.#dispatcher.dispatch(EVENT_OnCommand, args);
+            this.#lastScale = args.scale;
+        }
+    }
+
 
     /**
-     * Triggered when import tile set from code is requested.
-     * @param {TileEditorToolbarCallback} callback - Callback function.
+     * @param {string} command - The command.
+     * @returns {TileEditorToolbarCommandEventArgs}
      */
-    addHandlerRequestImportTileSetFromCode(callback) {
-        this.#dispatcher.on(EVENT_RequestImportTileSet, callback);
+    #createArgs(command) {
+        const tileWidth = parseInt(this.#element.querySelector(`[data-command=${commands.tileWidth}]`).value);
+        const scale = parseInt(this.#element.querySelector(`[data-command=${commands.scale}]`).value);
+        return {
+            command: command,
+            scale: scale,
+            tileWidth: tileWidth,
+            tool: null
+        };
     }
-
-    /**
-     * Triggered when undo is requested.
-     * @param {TileEditorToolbarCallback} callback - Callback function.
-     */
-    addHandlerRequestUndo(callback) {
-        this.#dispatcher.on(EVENT_RequestUndo, callback);
-    }
-
-    /**
-     * Triggered when redo is requested.
-     * @param {TileEditorToolbarCallback} callback - Callback function.
-     */
-    addHandlerRequestRedo(callback) {
-        this.#dispatcher.on(EVENT_RequestRedo, callback);
-    }
-
-    /**
-     * Triggered when tool change requested.
-     * @param {TileEditorToolbarUICallback} callback - Callback function.
-     */
-    addHandlerRequestToolChange(callback) {
-        this.#dispatcher.on(EVENT_RequestToolChange, callback);
-    }
-
-    /**
-     * Triggered when tile width is changed.
-     * @param {TileEditorToolbarUICallback} callback - Callback function.
-     */
-    addHandlerRequestTileWidthChange(callback) {
-        this.#dispatcher.on(EVENT_RequestTileWidthChange, callback);
-    }
-
-    /**
-     * Triggered when scale level is changed.
-     * @param {TileEditorToolbarUICallback} callback - Callback function.
-     */
-    addHandlerRequestScaleChange(callback) {
-        this.#dispatcher.on(EVENT_RequestScaleChange, callback);
-    }
-
 
     /**
      * @param {string} toolName
@@ -218,56 +177,6 @@ export default class TileEditorToolbar {
     }
 
 
-    #handleRequestAddTile(event) {
-        this.#dispatcher.dispatch(EVENT_RequestAddTile, {});
-    }
-
-    #handleRequestImportImage(event) {
-        this.#dispatcher.dispatch(EVENT_RequestImportImage, {});
-    }
-
-    #handleRequestImportTilesFromCode(event) {
-        this.#dispatcher.dispatch(EVENT_RequestImportTileSet, {});
-    }
-
-    #handleTileSetWidthChange(event) {
-        const newTileWidth = this.#tileWidth;
-        if (!isNaN(newTileWidth) && newTileWidth > 0 && newTileWidth <= 16) {
-            /** @type {TileEditorToolbarUIEventArgs} */
-            const args = { tileWidth: newTileWidth };
-            this.#dispatcher.dispatch(EVENT_RequestTileWidthChange, args);
-            this.#tbTileSetWidth.classList.remove('is-invalid');
-        } else if (!this.#tbTileSetWidth.classList.contains('is-invalid')) {
-            this.#tbTileSetWidth.classList.add('is-invalid');
-        }
-    }
-
-    #handleScaleChange(event) {
-        const newScale = this.#scaleValue;
-        if (newScale !== this.#lastScale) {
-            /** @type {TileEditorToolbarUIEventArgs} */
-            const args = { scale: newScale };
-            this.#dispatcher.dispatch(EVENT_RequestScaleChange, args);
-            this.#lastScale = newScale;
-        }
-    }
-
-    #handleToolUndoClick(event) {
-        this.#dispatcher.dispatch(EVENT_RequestUndo, {});
-    }
-
-    #handleToolRedoClick(event) {
-        this.#dispatcher.dispatch(EVENT_RequestRedo, {});
-    }
-
-    /** @param {string} tool */
-    #handleToolChanged(event, tool) {
-        /** @type {TileEditorToolbarUIEventArgs} */
-        const args = { tool: tool };
-        this.#dispatcher.dispatch(EVENT_RequestToolChange, args);
-    }
-
-
 }
 
 
@@ -282,23 +191,16 @@ export default class TileEditorToolbar {
  */
 
 /**
- * Tile editor toolbar event callback.
- * @callback TileEditorToolbarCallback
- * @param {object} args - Arguments.
+ * Tile editor toolbar callback.
+ * @callback TileEditorToolbarCommandCallback
+ * @param {TileEditorToolbarCommandEventArgs} args - Arguments.
  * @exports
  */
 /**
- * Tile editor tool UI callback.
- * @callback TileEditorToolbarUICallback
- * @param {TileEditorToolbarUIEventArgs} args - Arguments.
- * @exports
- */
-/**
- * @typedef {object} TileEditorToolbarUIEventArgs
+ * @typedef {object} TileEditorToolbarCommandEventArgs
+ * @property {string} command - Command being issued.
  * @property {string} tool - Current selected tool.
  * @property {number} tileWidth - Current tile width.
  * @property {number} scale - Current sale value.
  * @exports
  */
-
-

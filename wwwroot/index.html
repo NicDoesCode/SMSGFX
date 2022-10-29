@@ -326,15 +326,15 @@
                                 <div class="col-auto ms-0 ps-0 pe-0">
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text">Tile</span>
-                                        <button id="btnTilesAddTile" class="btn btn-outline-secondary"
+                                        <button data-command="tileAdd" class="btn btn-outline-secondary"
                                             title="Add a new tile to the end of the set.">
                                             <i class="bi bi-plus-lg"></i>
                                         </button>
-                                        <button id="btnImageImport" class="btn btn-outline-secondary"
+                                        <button data-command="tileImageImport" class="btn btn-outline-secondary"
                                             title="Import an image as a tile map.">
                                             <i class="bi bi-file-earmark-plus"></i>
                                         </button>
-                                        <button id="btnTilesImport" class="btn btn-outline-secondary"
+                                        <button data-command="tileCodeImport" class="btn btn-outline-secondary"
                                             title="Import tiles from your code.">
                                             <i class="bi bi-box-arrow-in-down"></i>
                                         </button>
@@ -343,10 +343,10 @@
                                 <div class="col-auto pe-0">
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text">Undo</span>
-                                        <button id="btnToolUndo" class="btn btn-outline-secondary" title="Undo.">
+                                        <button data-command="undo" class="btn btn-outline-secondary" title="Undo.">
                                             <i class="bi bi-arrow-counterclockwise"></i>
                                         </button>
-                                        <button id="btnToolRedo" class="btn btn-outline-secondary" title="Redo.">
+                                        <button data-command="redo" class="btn btn-outline-secondary" title="Redo.">
                                             <i class="bi bi-arrow-clockwise"></i>
                                         </button>
                                     </div>
@@ -354,19 +354,19 @@
                                 <div class="col-auto pe-0">
                                     <div data-smsgfx-component-id="tools" class="input-group input-group-sm">
                                         <span class="input-group-text">Tools</span>
-                                        <button id="btnToolSelection" class="btn btn-outline-secondary"
+                                        <button data-command="toolChange" class="btn btn-outline-secondary"
                                             data-tool="select" title="Tile tool.">
                                             <i class="bi bi-cursor"></i>
                                         </button>
-                                        <button id="btnToolPencil" class="btn btn-outline-secondary" data-tool="pencil"
+                                        <button data-command="toolChange" class="btn btn-outline-secondary" data-tool="pencil"
                                             title="Pencil tool.">
                                             <i class="bi bi-pencil-fill"></i>
                                         </button>
-                                        <button id="btnToolBucket" class="btn btn-outline-secondary" data-tool="bucket"
+                                        <button data-command="toolChange" class="btn btn-outline-secondary" data-tool="bucket"
                                             title="Fill tool.">
                                             <i class="bi bi-paint-bucket"></i>
                                         </button>
-                                        <button id="btnToolBucket" class="btn btn-outline-secondary"
+                                        <button data-command=toolChange" class="btn btn-outline-secondary"
                                             data-tool="eyedropper" title="Colour select tool.">
                                             <i class="bi bi-eyedropper"></i>
                                         </button>
@@ -375,13 +375,13 @@
                                 <div class="col-auto pe-0">
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text">Tile width</span>
-                                        <input id="tbTileSetWidth" type="text" class="form-control" style="width: 40px">
+                                        <input data-command="tileWidth" type="text" class="form-control" style="width: 40px">
                                     </div>
                                 </div>
                                 <div class="col-auto">
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text">Zoom</span>
-                                        <select id="tbTileSetScale" class="form-select">
+                                        <select data-command="scale" class="form-select">
                                             <options>
                                                 <option value="1">1:1</option>
                                                 <option value="2">2:1</option>
