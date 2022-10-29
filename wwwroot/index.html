@@ -35,7 +35,7 @@
                                 placeholder="Project title" aria-label="Project title">
                             <button data-smsgfx-id="button-project-new" class="btn btn-outline-secondary"
                                 title="New project." type="button">
-                                <i class="bi bi-plus-lg"></i> New
+                                <i class="bi bi-file-earmark-plus"></i> New
                             </button>
                             <button data-smsgfx-id="button-project-load" class="btn btn-outline-secondary"
                                 title="Load project." type="button">
@@ -52,7 +52,7 @@
                             <span class="input-group-text">Export</span>
                             <button data-smsgfx-id="button-export-code" class="btn btn-outline-secondary"
                                 title="Export assembly code." type="button">
-                                <i class="bi bi-box-arrow-right"></i> Code
+                                <i class="bi bi-code"></i> Code
                             </button>
                             <button data-smsgfx-id="button-export-image" class="btn btn-outline-secondary"
                                 title="Export tiles as an image." type="button">
@@ -76,7 +76,7 @@
                     </button>
                     <button id="btnImportPaletteFromCode" class="btn btn-outline-secondary"
                         title="Import a palette from your assembly code.">
-                        <i class="bi bi-box-arrow-in-down"></i>
+                        <i class="bi bi-code"></i>
                     </button>
                 </div>
                 <!-- End: Palette editor : header -->
@@ -320,8 +320,7 @@
                 <div class="sms-rows">
                     <div class="sms-row">
                         <!-- Tile editor toolbar -->
-                        <div data-smsgfx-component-id="tile-editor-toolbar"
-                            class="sms-tile-toolbar container-fluid p-0 m-0 pt-3 pb-2">
+                        <div data-smsgfx-component-id="tile-editor-toolbar" class="container-fluid p-0 m-0 pt-3 pb-2">
                             <div class="row align-items-center p-0 m-0">
                                 <div class="col-auto ms-0 ps-0 pe-0">
                                     <div class="input-group input-group-sm">
@@ -332,11 +331,11 @@
                                         </button>
                                         <button data-command="tileImageImport" class="btn btn-outline-secondary"
                                             title="Import an image as a tile map.">
-                                            <i class="bi bi-file-earmark-plus"></i>
+                                            <i class="bi bi-image"></i>
                                         </button>
                                         <button data-command="tileCodeImport" class="btn btn-outline-secondary"
                                             title="Import tiles from your code.">
-                                            <i class="bi bi-box-arrow-in-down"></i>
+                                            <i class="bi bi-code"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -358,12 +357,12 @@
                                             data-tool="select" title="Tile tool.">
                                             <i class="bi bi-cursor"></i>
                                         </button>
-                                        <button data-command="toolChange" class="btn btn-outline-secondary" data-tool="pencil"
-                                            title="Pencil tool.">
+                                        <button data-command="toolChange" class="btn btn-outline-secondary"
+                                            data-tool="pencil" title="Pencil tool.">
                                             <i class="bi bi-pencil-fill"></i>
                                         </button>
-                                        <button data-command="toolChange" class="btn btn-outline-secondary" data-tool="bucket"
-                                            title="Fill tool.">
+                                        <button data-command="toolChange" class="btn btn-outline-secondary"
+                                            data-tool="bucket" title="Fill tool.">
                                             <i class="bi bi-paint-bucket"></i>
                                         </button>
                                         <button data-command="toolChange" class="btn btn-outline-secondary"
@@ -375,7 +374,8 @@
                                 <div class="col-auto pe-0">
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text">Tile width</span>
-                                        <input data-command="tileWidth" type="text" class="form-control" style="width: 40px">
+                                        <input data-command="tileWidth" type="text" class="form-control"
+                                            style="width: 40px">
                                     </div>
                                 </div>
                                 <div class="col-auto">
@@ -398,16 +398,44 @@
                         </div>
                         <!-- End: Tile editor toolbar -->
                     </div>
-                    <div id="tbTileContextToolbar" class="sms-row visually-hidden">
-                        <!-- Tile context toolbar -->
-                        <div class="sms-tile-toolbar container-fluid p-0 m-0">
+                    <!-- Tile context toolbar -->
+                    <div data-smsgfx-component-id="tile-context-toolbar" class="sms-row">
+                        <div class="container-fluid p-0 m-0">
                             <div class="row align-items-center p-0 m-0">
-                                <div class="col-auto ms-0 ps-0 pe-2">
+                                <!-- Pencil toolstrip -->
+                                <div data-toolstrip="pencil" class="col-auto ms-0 ps-0 pe-2">
                                     <div class="input-group input-group-sm p-0 m-0 pb-2">
-                                        <span class="input-group-text fw-bolder">Tile tool</span>
+                                        <span class="input-group-text">Pencil size</span>
+                                        <button class="btn btn-outline-secondary" style="min-width: 30px"
+                                            title="1px brush size." data-command="brushSize" data-brush-size="1">
+                                            <img src="./assets/image/icon-brush-01.png" alt="Brush size 1px.">
+                                        </button>
+                                        <button class="btn btn-outline-secondary" style="min-width: 30px"
+                                            title="2px brush size." data-command="brushSize" data-brush-size="2">
+                                            <img src="./assets/image/icon-brush-02.png" alt="Brush size 2px.">
+                                        </button>
+                                        <button class="btn btn-outline-secondary" style="min-width: 30px"
+                                            title="3px brush size." data-command="brushSize" data-brush-size="3">
+                                            <img src="./assets/image/icon-brush-03.png" alt="Brush size 3px.">
+                                        </button>
+                                        <button class="btn btn-outline-secondary" style="min-width: 30px"
+                                            title="4px brush size." data-command="brushSize" data-brush-size="4">
+                                            <img src="./assets/image/icon-brush-04.png" alt="Brush size 4px.">
+                                        </button>
+                                        <button class="btn btn-outline-secondary" style="min-width: 30px"
+                                            title="5px brush size." data-command="brushSize" data-brush-size="5">
+                                            <img src="./assets/image/icon-brush-05.png" alt="Brush size 5px.">
+                                        </button>
                                     </div>
                                 </div>
-                                <div class="col-auto pe-0 ps-1">
+                                <!-- End: Pencil toolstrip -->
+                                <!-- Select toolstrip -->
+                                <div data-toolstrip="select" class="col-auto ms-0 ps-0 pe-2">
+                                    <div class="input-group input-group-sm p-0 m-0 pb-2">
+                                        <span class="input-group-text fw-bolder">Select tool</span>
+                                    </div>
+                                </div>
+                                <div data-toolstrip="select" class="col-auto pe-0 ps-1">
                                     <div class="input-group input-group-sm p-0 m-0 pb-2">
                                         <button class="btn btn-outline-secondary" title="Cut tile." data-command="cut">
                                             <i class="bi bi-scissors"></i>
@@ -422,7 +450,7 @@
                                         </button>
                                     </div>
                                 </div>
-                                <div class="col-auto pe-0 ps-1">
+                                <div data-toolstrip="select" class="col-auto pe-0 ps-1">
                                     <div class="input-group input-group-sm p-0 m-0 pb-2">
                                         <button class="btn btn-outline-secondary" title="Clone tile."
                                             data-command="clone">
@@ -430,7 +458,7 @@
                                         </button>
                                     </div>
                                 </div>
-                                <div class="col-auto ps-1 pe-0">
+                                <div data-toolstrip="select" class="col-auto ps-1 pe-0">
                                     <div class="input-group input-group-sm p-0 m-0 pb-2">
                                         <button class="btn btn-outline-secondary" title="Remove tile."
                                             data-command="remove">
@@ -438,7 +466,7 @@
                                         </button>
                                     </div>
                                 </div>
-                                <div class="col-auto pe-0">
+                                <div data-toolstrip="select" class="col-auto pe-0">
                                     <div class="input-group input-group-sm p-0 m-0 pb-2">
                                         <span class="input-group-text">Move</span>
                                         <button class="btn btn-outline-secondary" title="Move tile to left."
@@ -451,7 +479,7 @@
                                         </button>
                                     </div>
                                 </div>
-                                <div class="col-auto pe-0">
+                                <div data-toolstrip="select" class="col-auto pe-0">
                                     <div class="input-group input-group-sm p-0 m-0 pb-2">
                                         <span class="input-group-text">Mirror</span>
                                         <button class="btn btn-outline-secondary" title="Mirror tile horizontally."
@@ -464,7 +492,7 @@
                                         </button>
                                     </div>
                                 </div>
-                                <div class="col-auto pe-0">
+                                <div data-toolstrip="select" class="col-auto pe-0">
                                     <div class="input-group input-group-sm p-0 m-0 pb-2">
                                         <span class="input-group-text">Insert</span>
                                         <button class="btn btn-outline-secondary"
@@ -477,48 +505,11 @@
                                         </button>
                                     </div>
                                 </div>
+                                <!-- End: Select toolstrip -->
                             </div>
                         </div>
-                        <!-- End: Tile context toolbar -->
                     </div>
-                    <div data-smsgfx-component-id="pencil-tool-context-toolbar" class="sms-row visually-hidden">
-                        <!-- Pencil context toolbar -->
-                        <div class="sms-tile-toolbar container-fluid p-0 m-0">
-                            <div class="row align-items-center p-0 m-0">
-                                <div class="col-auto ms-0 ps-0 pe-0">
-                                    <div class="input-group input-group-sm p-0 m-0 pb-2">
-                                        <span class="input-group-text fw-bolder">Tools</span>
-                                    </div>
-                                </div>
-                                <div class="col-auto pe-0">
-                                    <div class="input-group input-group-sm p-0 m-0 pb-2">
-                                        <span class="input-group-text">Pencil size</span>
-                                        <button class="btn btn-outline-secondary" style="min-width: 30px"
-                                            title="1px brush size." data-command="brush-size" data-brush-size="1">
-                                            <img src="./assets/image/icon-brush-01.png" alt="Brush size 1px.">
-                                        </button>
-                                        <button class="btn btn-outline-secondary" style="min-width: 30px"
-                                            title="2px brush size." data-command="brush-size" data-brush-size="2">
-                                            <img src="./assets/image/icon-brush-02.png" alt="Brush size 2px.">
-                                        </button>
-                                        <button class="btn btn-outline-secondary" style="min-width: 30px"
-                                            title="3px brush size." data-command="brush-size" data-brush-size="3">
-                                            <img src="./assets/image/icon-brush-03.png" alt="Brush size 3px.">
-                                        </button>
-                                        <button class="btn btn-outline-secondary" style="min-width: 30px"
-                                            title="4px brush size." data-command="brush-size" data-brush-size="4">
-                                            <img src="./assets/image/icon-brush-04.png" alt="Brush size 4px.">
-                                        </button>
-                                        <button class="btn btn-outline-secondary" style="min-width: 30px"
-                                            title="5px brush size." data-command="brush-size" data-brush-size="5">
-                                            <img src="./assets/image/icon-brush-05.png" alt="Brush size 5px.">
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- End: Pencil context toolbar -->
-                    </div>
+                    <!-- End: Tile context toolbar -->
                     <div class="sms-row sms-grow">
                         <!-- Tile editor -->
                         <div id="tbTileEditor" class="sms-canvas-container">
@@ -643,7 +634,8 @@
                         <textarea data-smsgfx-id="text-tile-data" class="form-control" rows="10"></textarea>
                     </div>
                     <div class="form-check">
-                        <input data-smsgfx-id="check-replace-tiles" class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+                        <input data-smsgfx-id="check-replace-tiles" class="form-check-input" type="checkbox" value=""
+                            id="flexCheckDefault">
                         <label class="form-check-label" for="flexCheckDefault">
                             Replace existing tiles in project with these
                         </label>

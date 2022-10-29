@@ -23,7 +23,6 @@ import ProjectFactory from "./factory/projectFactory.js";
 import PaletteListFactory from "./factory/paletteListFactory.js";
 import TileUtil from "./util/tileUtil.js";
 import ImportImageModalDialogue from "./ui/importImageModalDialogue.js";
-import PencilContextToolbar from "./ui/pencilContextToolbar.js";
 import FileUtil from "./util/fileUtil.js";
 
 
@@ -37,9 +36,8 @@ const paletteImportDialogue = new PaletteModalDialogue(document.querySelector('[
 const tileEditor = new TileEditor(document.getElementById('tbTileEditor'));
 const tileEditorToolbar = new TileEditorToolbar(document.querySelector('[data-smsgfx-component-id=tile-editor-toolbar]'));
 const tileImportDialogue = new TileSetImportModalDialogue(document.querySelector('[data-smsgfx-component-id=tile-import-dialogue]'));
-const tileContextToolbar = new TileContextToolbar(document.getElementById('tbTileContextToolbar'));
+const tileContextToolbar = new TileContextToolbar(document.querySelector('[data-smsgfx-component-id=tile-context-toolbar]'));
 const importImageModalDialogue = new ImportImageModalDialogue(document.querySelector('[data-smsgfx-component-id=import-image-modal]'));
-const pencilContextToolbar = new PencilContextToolbar(document.querySelector('[data-smsgfx-component-id=pencil-tool-context-toolbar]'));
 const headerBar = new HeaderBar(document.querySelector('[data-smsgfx-component-id=header-bar]'));
 
 
@@ -114,8 +112,6 @@ function wireUpEventHandlers() {
     tileEditorToolbar.addHandlerOnCommand(handleTileEditorToolbarOnCommand);
 
     tileContextToolbar.addHandlerOnButtonCommand(handleTileContextToolbarOnButtonCommand);
-
-    pencilContextToolbar.addHandlerOnButtonCommand(handlePencilContextToolbarOnButtonCommand);
 
     paletteImportDialogue.addHandlerOnConfirm(handleImportPaletteModalDialogueOnConfirm);
 
@@ -653,50 +649,46 @@ function handleTileEditorToolbarOnCommand(args) {
 /** @param {import('./ui/tileContextToolbar.js').TileContextToolbarCommandEventArgs} args */
 function handleTileContextToolbarOnButtonCommand(args) {
     if (instanceState.tileIndex > -1 && instanceState.tileIndex < getTileSet().length) {
-        if (args.command === TileContextToolbar.ToolbarButtons.cut) {
+        if (args.command === TileContextToolbar.Commands.cut) {
             // Cut
             cutTileToClipboardAt(instanceState.tileIndex);
-        } else if (args.command === TileContextToolbar.ToolbarButtons.copy) {
+        } else if (args.command === TileContextToolbar.Commands.copy) {
             // Copy
             copyTileToClipboardAt(instanceState.tileIndex);
-        } else if (args.command === TileContextToolbar.ToolbarButtons.paste) {
+        } else if (args.command === TileContextToolbar.Commands.paste) {
             // Paste
             pasteTileAt(instanceState.tileIndex);
-        } else if (args.command === TileContextToolbar.ToolbarButtons.clone) {
+        } else if (args.command === TileContextToolbar.Commands.clone) {
             // Clone
             cloneTileAt(instanceState.tileIndex);
-        } else if (args.command === TileContextToolbar.ToolbarButtons.remove) {
+        } else if (args.command === TileContextToolbar.Commands.remove) {
             // Remove
             removeTileAt(instanceState.tileIndex);
-        } else if (args.command === TileContextToolbar.ToolbarButtons.moveLeft) {
+        } else if (args.command === TileContextToolbar.Commands.moveLeft) {
             // Move left 
             if (instanceState.tileIndex > 0) {
                 swapTilesAt(instanceState.tileIndex - 1, instanceState.tileIndex);
             }
-        } else if (args.command === TileContextToolbar.ToolbarButtons.moveRight) {
+        } else if (args.command === TileContextToolbar.Commands.moveRight) {
             // Move right 
             if (instanceState.tileIndex < getTile().length - 1) {
                 swapTilesAt(instanceState.tileIndex, instanceState.tileIndex + 1);
             }
-        } else if (args.command === TileContextToolbar.ToolbarButtons.mirrorHorizontal) {
+        } else if (args.command === TileContextToolbar.Commands.mirrorHorizontal) {
             // Mirror horizontal 
             mirrorTileAt('h', instanceState.tileIndex);
-        } else if (args.command === TileContextToolbar.ToolbarButtons.mirrorVertical) {
+        } else if (args.command === TileContextToolbar.Commands.mirrorVertical) {
             // Mirror vertical 
             mirrorTileAt('v', instanceState.tileIndex);
-        } else if (args.command === TileContextToolbar.ToolbarButtons.insertBefore) {
+        } else if (args.command === TileContextToolbar.Commands.insertBefore) {
             // Insert before 
             insertTileAt(instanceState.tileIndex);
-        } else if (args.command === TileContextToolbar.ToolbarButtons.insertAfter) {
+        } else if (args.command === TileContextToolbar.Commands.insertAfter) {
             // Insert after 
             insertTileAt(instanceState.tileIndex + 1);
         }
     }
-}
-
-/** @param {import('./ui/pencilContextToolbar').PencilContextToolbarEventArgs} args */
-function handlePencilContextToolbarOnButtonCommand(args) {
-    if (args?.command === PencilContextToolbar.Commands.brushSize) {
+    if (args.command === TileContextToolbar.Commands.brushSize) {
         if (args.brushSize && args.brushSize >= 1 && args.brushSize <= 5) {
             setPencilSize(args.brushSize);
         }
@@ -1218,11 +1210,11 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
 function setPencilSize(brushSize) {
     if (brushSize && brushSize >= 1 && brushSize <= 50) {
         instanceState.pencilSize = brushSize;
-        pencilContextToolbar.setState({
+        tileContextToolbar.setState({
             brushSize: instanceState.pencilSize
         });
         tileEditor.setState({
-            cursorSize: instanceState.pencilSize
+            cursorSize: (instanceState.tool === TileEditorToolbar.Tools.pencil) ? instanceState.pencilSize : 1
         });
     }
 }
@@ -1721,7 +1713,7 @@ function swapTilesAt(tileAIndex, tileBIndex) {
  */
 function selectTool(tool) {
     if (TileEditorToolbar.Tools[tool]) {
-        const t = TileEditorToolbar.Tools;
+        const tools = TileEditorToolbar.Tools;
         instanceState.tool = tool;
         if (tool !== TileEditorToolbar.Tools.select) {
             instanceState.tileIndex = -1;
@@ -1729,23 +1721,32 @@ function selectTool(tool) {
                 selectedTileIndex: instanceState.tileIndex
             });
         }
-        tileContextToolbar.setState({
-            visible: tool === t.select
-        });
-        pencilContextToolbar.setState({
-            visible: [t.pencil, t.eyedropper, t.bucket].includes(tool)
-        });
-        tileEditorToolbar.setState({
-            selectedTool: tool
-        });
+
+        let visibleStrips = [];
+        if ([tools.pencil, tools.eyedropper, tools.bucket].includes(tool)) {
+            visibleStrips.push(TileContextToolbar.Toolstrips.pencil);
+        } 
+        if ([tools.select].includes(tool)) {
+            visibleStrips.push(TileContextToolbar.Toolstrips.select);
+        } 
+
         let cursor = 'arrow';
         let cursorSize = 1;
-        if ([t.eyedropper, t.bucket].includes(tool)) {
+        if ([tools.eyedropper, tools.bucket].includes(tool)) {
             cursor = 'crosshair';
-        } else if (tool === t.pencil) {
+        } else if (tool === tools.pencil) {
             cursor = 'none';
             cursorSize = instanceState.pencilSize;
         }
+
+        tileEditorToolbar.setState({
+            selectedTool: tool
+        });
+        tileContextToolbar.setState({
+            visible: true,
+            brushSize: instanceState.pencilSize,
+            visibleToolstrips: visibleStrips
+        });
         tileEditor.setState({
             cursor: cursor,
             cursorSize: cursorSize
@@ -1885,10 +1886,6 @@ $(() => {
         scale: getUIState().scale,
         displayNative: getUIState().displayNativeColour,
         cursorSize: instanceState.pencilSize
-    });
-    pencilContextToolbar.setState({
-        visible: instanceState.tool === TileEditorToolbar.Tools.pencil,
-        brushSize: instanceState.pencilSize
     });
     selectTool(instanceState.tool);
 });
