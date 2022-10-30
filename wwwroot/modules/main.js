@@ -1745,7 +1745,7 @@ function selectTool(tool) {
         if ([tools.eyedropper, tools.bucket].includes(tool)) {
             cursor = 'crosshair';
         } else if (tool === tools.pencil) {
-            cursor = 'none';
+            cursor = 'crosshair';
             cursorSize = instanceState.pencilSize;
         }
 
