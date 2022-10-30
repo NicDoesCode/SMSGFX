@@ -112,7 +112,7 @@ export default class TileContextToolbar {
      * Register a callback for when a command button is clicked on the tile context toolbar.
      * @param {TileContextToolbarCommandCallback} callback - Callback that will receive the command.
      */
-    addHandlerOnButtonCommand(callback) {
+    addHandlerOnCommand(callback) {
         this.#dispatcher.on(EVENT_OnCommand, callback);
     }
 

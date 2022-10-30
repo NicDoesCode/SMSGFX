@@ -71,6 +71,26 @@ export default class PersistentUIState {
         this.#displayNativeColour = value;
     }
 
+    /**
+     * Gets or sets whether to draw grid lines for the tiles.
+     */
+     get showTileGrid() {
+        return this.#showTileGrid;
+    }
+    set showTileGrid(value) {
+        this.#showTileGrid = value;
+    }
+
+    /**
+     * Gets or sets whether to draw grid lines for the pixels.
+     */
+    get showPixelGrid() {
+        return this.#showPixelGrid;
+    }
+    set showPixelGrid(value) {
+        this.#showPixelGrid = value;
+    }
+
 
     /** @type {string} */
     #importPaletteAssemblyCode = '';
@@ -86,6 +106,10 @@ export default class PersistentUIState {
     #scale = 10;
     /** @type {boolean} */
     #displayNativeColour = true;
+    /** @type {boolean} */
+    #showTileGrid = true;
+    /** @type {boolean} */
+    #showPixelGrid = true;
 
 
     constructor() {

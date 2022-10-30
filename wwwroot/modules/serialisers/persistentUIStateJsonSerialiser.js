@@ -17,7 +17,9 @@ export default class PersistentUIStateJsonSerialiser {
             importTileAssemblyCode: appUI.importTileAssemblyCode,
             paletteIndex: appUI.paletteIndex,
             scale: appUI.scale,
-            displayNativeColour: appUI.displayNativeColour
+            displayNativeColour: appUI.displayNativeColour,
+            showTileGrid: appUI.showTileGrid,
+            showPixelGrid: appUI.showPixelGrid
         };
         return JSON.stringify(result);
     }
@@ -50,6 +52,12 @@ export default class PersistentUIStateJsonSerialiser {
             if (typeof deserialised.displayNativeColour === 'boolean') {
                 result.displayNativeColour = deserialised.displayNativeColour;
             } 
+            if (typeof deserialised.showTileGrid === 'boolean') {
+                result.showTileGrid = deserialised.showTileGrid;
+            } 
+            if (typeof deserialised.showPixelGrid === 'boolean') {
+                result.showPixelGrid = deserialised.showPixelGrid;
+            } 
         }
         return result;
     }
@@ -66,4 +74,6 @@ export default class PersistentUIStateJsonSerialiser {
  * @property {number} paletteIndex
  * @property {number} scale
  * @property {boolean} displayNativeColour
+ * @property {boolean} showTileGrid
+ * @property {boolean} showPixelGrid
  */

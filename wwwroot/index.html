@@ -322,7 +322,7 @@
                         <!-- Tile editor toolbar -->
                         <div data-smsgfx-component-id="tile-editor-toolbar" class="container-fluid p-0 m-0 pt-3 pb-2">
                             <div class="row align-items-center p-0 m-0">
-                                <div class="col-auto ms-0 ps-0 pe-0">
+                                <div data-toolstrip="tileAdd" class="col-auto ms-0 ps-0 pe-0">
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text">Tile</span>
                                         <button data-command="tileAdd" class="btn btn-outline-secondary"
@@ -339,7 +339,7 @@
                                         </button>
                                     </div>
                                 </div>
-                                <div class="col-auto pe-0">
+                                <div data-toolstrip="undo" class="col-auto pe-0">
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text">Undo</span>
                                         <button data-command="undo" class="btn btn-outline-secondary" title="Undo.">
@@ -350,7 +350,7 @@
                                         </button>
                                     </div>
                                 </div>
-                                <div class="col-auto pe-0">
+                                <div data-toolstrip="tools" class="col-auto pe-0">
                                     <div data-smsgfx-component-id="tools" class="input-group input-group-sm">
                                         <span class="input-group-text">Tools</span>
                                         <button data-command="toolChange" class="btn btn-outline-secondary"
@@ -371,14 +371,14 @@
                                         </button>
                                     </div>
                                 </div>
-                                <div class="col-auto pe-0">
+                                <div data-toolstrip="tileWidth" class="col-auto pe-0">
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text">Tile width</span>
                                         <input data-command="tileWidth" type="text" class="form-control"
                                             style="width: 40px">
                                     </div>
                                 </div>
-                                <div class="col-auto">
+                                <div data-toolstrip="scale" class="col-auto">
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text">Zoom</span>
                                         <select data-command="scale" class="form-select">
@@ -578,6 +578,52 @@
                             <!-- End: Tile editor context menu -->
                         </div>
                         <!-- End: Tile editor -->
+                    </div>
+
+                    <div class="sms-row">
+
+                        <!-- Tile editor bottom toolbar -->
+                        <div data-smsgfx-component-id="tile-editor-bottom-toolbar"
+                            class="container-fluid p-0 m-0 pt-1 pb-1">
+                            <div class="row align-items-center p-0 m-0">
+                                <div data-toolstrip="scale" class="col-auto pe-2 p-0 m-0">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">Zoom</span>
+                                        <select data-command="scale" class="form-select">
+                                            <options>
+                                                <option value="1">1:1</option>
+                                                <option value="2">2:1</option>
+                                                <option value="5">5:1</option>
+                                                <option value="10" selected>10:1</option>
+                                                <option value="15">15:1</option>
+                                                <option value="20">20:1</option>
+                                                <option value="50">50:1</option>
+                                            </options>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div data-toolstrip="showTileGrid" class="col-auto pe-2 p-0 m-0">
+                                    <div class="input-group input-group-sm">
+                                        <div class="input-group-text">
+                                            <input data-command="showTileGrid" data-labelled-by="showTileGrid" class="form-check-input mt-0" type="checkbox" value=""
+                                                aria-label="Checkbox for following text input">
+                                            <label for="showTileGrid" class="ps-1">Tile grid</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div data-toolstrip="showPixelGrid" class="col-auto pe-2 p-0 m-0">
+                                    <div class="input-group input-group-sm">
+                                        <div class="input-group-text">
+                                            <input data-command="showPixelGrid" data-labelled-by="showPixelGrid" class="form-check-input mt-0" type="checkbox" value=""
+                                                aria-label="Checkbox for following text input">
+                                            <label for="showPixelGrid" class="ps-1">Pixel grid</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- End: Tile editor bottom toolbar -->
+
                     </div>
 
                 </div>

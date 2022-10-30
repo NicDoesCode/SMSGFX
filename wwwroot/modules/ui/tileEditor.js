@@ -106,6 +106,16 @@ export default class TileEditor {
             this.#displayNative = state.displayNative;
             dirty = true;
         }
+        // Draw tile grid
+        if (['boolean', 'number'].includes(typeof state?.showTileGrid)) {
+            this.#canvasManager.showTileGrid = state?.showTileGrid;
+            dirty = true;
+        }
+        // Draw pixel grid
+        if (['boolean', 'number'].includes(typeof state?.showPixelGrid)) {
+            this.#canvasManager.showPixelGrid = state?.showPixelGrid;
+            dirty = true;
+        }
         // Selected tile index?
         if (typeof state?.selectedTileIndex === 'number') {
             this.#canvasManager.selectedTileIndex = state.selectedTileIndex;
@@ -369,6 +379,8 @@ export default class TileEditor {
  * @property {number?} selectedTileIndex - Currently selected tile index.
  * @property {number?} cursorSize - Size of the cursor in px.
  * @property {string?} cursor - Cursor to use when the mouse hovers over the image editor.
+ * @property {boolean?} showTileGrid - Should the tile grid be drawn?
+ * @property {boolean?} showPixelGrid - Should the pixel grid be drawn?
  * @exports 
  */
 

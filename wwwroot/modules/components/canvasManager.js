@@ -77,6 +77,26 @@ export default class CanvasManager {
         this.#cursorSize = value;
     }
 
+    /**
+     * Gets or sets whether to draw grid lines for the tiles.
+     */
+    get showTileGrid() {
+        return this.#drawTileGrid;
+    }
+    set showTileGrid(value) {
+        this.#drawTileGrid = value;
+    }
+
+    /**
+     * Gets or sets whether to draw grid lines for the pixels.
+     */
+    get showPixelGrid() {
+        return this.#drawPixelGrid;
+    }
+    set showPixelGrid(value) {
+        this.#drawPixelGrid = value;
+    }
+
 
     /** @type {HTMLCanvasElement} */
     #baseCanvas;
@@ -93,6 +113,8 @@ export default class CanvasManager {
     /** @type {number} */
     #selectedTileIndex = -1;
     #cursorSize = 1;
+    #drawTileGrid = false;
+    #drawPixelGrid = false;
 
 
     /**
@@ -220,14 +242,45 @@ export default class CanvasManager {
         context.drawImage(baseCanvas, 0, 0);
         context.moveTo(0, 0);
 
+        // Draw tile grid
+        if (this.showTileGrid) {
+            context.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+            context.beginPath();
+            for (let x = 0; x < this.#baseCanvas.width; x += pxSize * 8) {
+                context.moveTo(x, 0);
+                context.lineTo(x, this.#baseCanvas.height);
+            }
+            for (let y = 0; y < this.#baseCanvas.height; y += pxSize * 8) {
+                context.moveTo(0, y);
+                context.lineTo(this.#baseCanvas.width, y);
+            }
+            context.closePath();
+            context.stroke();
+        }
+
+        // Draw pixel grid
+        if (this.showPixelGrid && this.scale >= 5) {
+            context.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+            context.beginPath();
+            for (let x = 0; x < this.#baseCanvas.width; x += pxSize) {
+                context.moveTo(x, 0);
+                context.lineTo(x, this.#baseCanvas.height);
+            }
+            for (let y = 0; y < this.#baseCanvas.height; y += pxSize) {
+                context.moveTo(0, y);
+                context.lineTo(this.#baseCanvas.width, y);
+            }
+            context.closePath();
+            context.stroke();
+        }
+
         // Highlight the entire tile
-        context.strokeStyle = 'grey';
+        context.strokeStyle = 'yellow';
         context.strokeRect(coords.tileX, coords.tileY, (8 * pxSize), (8 * pxSize));
 
         // Draw the cursor
         context.strokeStyle = 'white';
         this.drawBrushBorder(context, coords, 1);
-        // this.#drawTool(context, coords, { x: 1, y: 1 });
         context.strokeStyle = 'black';
         this.drawBrushBorder(context, coords, 2);
 

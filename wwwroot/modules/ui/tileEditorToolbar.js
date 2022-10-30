@@ -1,14 +1,7 @@
+import GeneralUtil from "../util/generalUtil.js";
 import EventDispatcher from "../components/eventDispatcher.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
-const EVENT_RequestAddTile = 'EVENT_RequestAddTile';
-const EVENT_RequestImportTileSet = 'EVENT_RequestImportTileSet';
-const EVENT_RequestImportImage = 'EVENT_RequestImportImage';
-const EVENT_RequestToolChange = 'EVENT_RequestToolChange';
-const EVENT_RequestTileWidthChange = 'EVENT_RequestTileWidthChange';
-const EVENT_RequestScaleChange = 'EVENT_RequestScaleChange';
-const EVENT_RequestUndo = 'EVENT_RequestUndo';
-const EVENT_RequestRedo = 'EVENT_RequestRedo';
 
 const commands = {
     tileAdd: 'tileAdd',
@@ -18,7 +11,9 @@ const commands = {
     redo: 'redo',
     toolChange: 'toolChange',
     tileWidth: 'tileWidth',
-    scale: 'scale'
+    scale: 'scale',
+    showTileGrid: 'showTileGrid',
+    showPixelGrid: 'showPixelGrid'
 }
 const tools = {
     select: 'select',
@@ -27,6 +22,10 @@ const tools = {
     eyedropper: 'eyedropper'
 };
 const scales = [1, 2, 5, 10, 15, 20, 50];
+const toolstrips = {
+    tileAdd: 'tileAdd', scale: 'scale', tileWidth: 'tileWidth', tools: 'tools', undo: 'undo',
+    showTileGrid: 'showTileGrid', showPixelGrid: 'showPixelGrid'
+}
 
 export default class TileEditorToolbar {
 
@@ -41,6 +40,10 @@ export default class TileEditorToolbar {
 
     static get scales() {
         return scales;
+    }
+
+    static get ToolStrips() {
+        return toolstrips;
     }
 
 
@@ -69,6 +72,20 @@ export default class TileEditorToolbar {
         this.#element.querySelectorAll(`select[data-command=${commands.scale}]`).forEach(element => {
             element.onchange = () => this.#handleScaleChange(element);
         });
+
+        this.#element.querySelectorAll(`input[type=checkbox][data-command]`).forEach(element => {
+            element.onchange = () => this.#handleCheckedChanged(element);
+        });
+
+        this.#element.querySelectorAll('[data-labelled-by]').forEach(element => {
+            const labelledBy = element.getAttribute('data-labelled-by');
+            const labelElm = this.#element.querySelector(`label[for=${labelledBy}]`)
+            if (labelElm) {
+                const id = `smsgfx${GeneralUtil.generateRandomString(16)}`;
+                labelElm.setAttribute('for', id);
+                element.id = id;
+            }
+        });
     }
 
 
@@ -78,27 +95,55 @@ export default class TileEditorToolbar {
      */
     setState(state) {
         if (typeof state?.tileWidth === 'number') {
-            this.#getElement(commands.tileWidth).value = state.tileWidth;
+            const elm = this.#getElement(commands.tileWidth);
+            if (elm) elm.value = state.tileWidth;
         }
         if (typeof state?.selectedTool === 'string') {
             this.#highlightTool(state.selectedTool);
         }
         if (typeof state?.scale === 'number') {
-            this.#getElement(commands.scale).value = state.scale;
+            const elm = this.#getElement(commands.scale);
+            if (elm) elm.value = state.scale;
         }
         if (typeof state?.undoEnabled === 'boolean' || typeof state?.undoEnabled === 'number') {
-            if (state.undoEnabled) {
-                this.#getElement(commands.undo).removeAttribute('disabled');
-            } else {
-                this.#getElement(commands.undo).setAttribute('disabled', 'disabled');
+            const elm = this.#getElement(commands.undo);
+            if (elm) {
+                if (state.undoEnabled) {
+                    elm.removeAttribute('disabled');
+                } else {
+                    elm.setAttribute('disabled', 'disabled');
+                }
             }
         }
         if (typeof state?.redoEnabled === 'boolean' || typeof state?.redoEnabled === 'number') {
-            if (state.redoEnabled) {
-                this.#getElement(commands.redo).removeAttribute('disabled');
-            } else {
-                this.#getElement(commands.redo).setAttribute('disabled', 'disabled');
+            const elm = this.#getElement(commands.redo);
+            if (elm) {
+                if (state.redoEnabled) {
+                    elm.removeAttribute('disabled');
+                } else {
+                    elm.setAttribute('disabled', 'disabled');
+                }
             }
+        }
+        if (typeof state?.showTileGridChecked === 'boolean' || typeof state?.showTileGridChecked === 'number') {
+            const elm = this.#getElement(commands.showTileGrid);
+            if (elm) elm.checked = state?.showTileGridChecked;
+        }
+        if (typeof state?.showPixelGridChecked === 'boolean' || typeof state?.showPixelGridChecked === 'number') {
+            const elm = this.#getElement(commands.showPixelGrid);
+            if (elm) elm.checked = state?.showPixelGridChecked;
+        }
+        if (state?.visibleToolstrips && Array.isArray(state.visibleToolstrips)) {
+            this.#element.querySelectorAll('[data-toolstrip]').forEach(element => {
+                const toolstrip = element.getAttribute('data-toolstrip');
+                if (state.visibleToolstrips.includes(toolstrip)) {
+                    while (element.classList.contains('visually-hidden')) {
+                        element.classList.remove('visually-hidden');
+                    }
+                } else {
+                    element.classList.add('visually-hidden');
+                }
+            });
         }
     }
 
@@ -135,6 +180,9 @@ export default class TileEditorToolbar {
         }
     }
 
+    /**
+     * @param {HTMLSelectElement} element 
+     */
     #handleScaleChange(element) {
         const command = element.getAttribute('data-command');
         const args = this.#createArgs(command);
@@ -142,6 +190,17 @@ export default class TileEditorToolbar {
             this.#dispatcher.dispatch(EVENT_OnCommand, args);
             this.#lastScale = args.scale;
         }
+    }
+
+    /**
+     * @param {HTMLInputElement} element 
+     */
+    #handleCheckedChanged(element) {
+        const command = element.getAttribute('data-command');
+        const args = this.#createArgs(command);
+        if (command === commands.showTileGrid) args.showTileGrid = element.checked;
+        if (command === commands.showPixelGrid) args.showPixelGrid = element.checked;
+        this.#dispatcher.dispatch(EVENT_OnCommand, args);
     }
 
 
@@ -170,8 +229,8 @@ export default class TileEditorToolbar {
      * @returns {TileEditorToolbarCommandEventArgs}
      */
     #createArgs(command) {
-        const tileWidth = parseInt(this.#getElement(commands.tileWidth).value);
-        const scale = parseInt(this.#getElement(commands.scale).value);
+        const tileWidth = parseInt(this.#getElement(commands.tileWidth)?.value ?? 0);
+        const scale = parseInt(this.#getElement(commands.scale)?.value ?? 1);
         return {
             command: command,
             scale: scale,
@@ -190,11 +249,14 @@ export default class TileEditorToolbar {
 
 /**
  * @typedef {object} TileEditorToolbarState
+ * @property {string[]?} visibleToolstrips - An array of strings containing visible toolstrips.
  * @property {number?} tileWidth - Tile width to display.
  * @property {string?} selectedTool - Currently selected tool.
  * @property {number?} scale - New scale level.
  * @property {boolean?} undoEnabled - Is the user able to undo?
  * @property {boolean?} redoEnabled - Is the user able to redo?
+ * @property {boolean?} showTileGridChecked - Should the 'show tile grid' option be checked?
+ * @property {boolean?} showPixelGridChecked - Should the 'show pixel grid' option be checked?
  * @exports 
  */
 
@@ -210,5 +272,7 @@ export default class TileEditorToolbar {
  * @property {string} tool - Current selected tool.
  * @property {number} tileWidth - Current tile width.
  * @property {number} scale - Current sale value.
+ * @property {number} showTileGrid - Value for show tile grid.
+ * @property {number} showPixelGrid - Value for show pixel grid.
  * @exports
  */
