@@ -1171,7 +1171,9 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
                 const tileSet = getTileSet();
 
                 const size = instanceState.pencilSize;
-                if (size > 0) {
+                if (size === 1) {
+                    tileSet.setPixelAt(imageX, imageY, colourIndex);
+                } else {
                     const startX = imageX - Math.floor(size / 2);
                     const startY = imageY - Math.floor(size / 2);
                     const endX = imageX + Math.ceil(size / 2);
@@ -1183,8 +1185,6 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
                             tileSet.setPixelAt(xPx, yPx, colourIndex);
                         }
                     }
-                } else {
-                    tileSet.setPixelAt(imageX, imageY, colourIndex);
                 }
 
                 tileEditor.setState({ tileSet: tileSet });

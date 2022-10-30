@@ -271,6 +271,8 @@ export default class TileSet {
      * @returns {number|null}
      */
     getPixelAt(x, y) {
+        if (x < 0 || x > this.tileWidth * 8 - 1) return;
+        if (y < 0 || y > this.tileHeight * 8 - 1) return;
 
         // Get the tile number
         const tileX = (x - (x % 8)) / 8;
@@ -297,7 +299,7 @@ export default class TileSet {
         if (paletteIndex < 0 || paletteIndex > 15) throw new Error('setPixelAt: Palette index must be between 0 and 15.');
 
         if (x < 0 || x > this.tileWidth * 8 - 1) return;
-        if (y < 0 || y > this.tileWidth * 8 - 1) return;
+        if (y < 0 || y > this.tileHeight * 8 - 1) return;
 
         // Get the tile number
         const tileX = (x - (x % 8)) / 8;
