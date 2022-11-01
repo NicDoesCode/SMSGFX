@@ -2,13 +2,14 @@ import ProjectFactory from '../factory/projectFactory.js';
 import Project from '../models/project.js';
 import TileSetJsonSerialiser from './tileSetJsonSerialiser.js';
 import PaletteListJsonSerialiser from './paletteListJsonSerialiser.js';
+import GeneralUtil from '../util/generalUtil.js';
 
 export default class ProjectJsonSerialiser {
 
 
     /**
      * Serialises a project to a JSON string.
-     * @param {Palette} project - Project to serialise.
+     * @param {Project} project - Project to serialise.
      * @param {boolean} format - true for pretty format, otherwise false.
      * @returns {string} 
      */
@@ -39,12 +40,12 @@ export default class ProjectJsonSerialiser {
      * @returns {ProjectSerialisable} 
      */
     static toSerialisable(project) {
-        const version = 1;
-        const title = project.title;
-        const paletteList = PaletteListJsonSerialiser.toSerialisable(project.paletteList);
-        const tileSet = TileSetJsonSerialiser.toSerialisable(project.tileSet);
         return {
-            version, title, tileSet, paletteList
+            id: project.id, 
+            version: 1, 
+            title: project.title,
+            paletteList: PaletteListJsonSerialiser.toSerialisable(project.paletteList),
+            tileSet: TileSetJsonSerialiser.toSerialisable(project.tileSet)
         };
     }
 
@@ -54,10 +55,12 @@ export default class ProjectJsonSerialiser {
      * @returns {Project}
      */
     static fromSerialisable(projectSerialisable) {
-        const title = projectSerialisable.title;
-        const tileSet = TileSetJsonSerialiser.fromSerialisable(projectSerialisable.tileSet);
-        const paletteList = PaletteListJsonSerialiser.fromSerialisable(projectSerialisable.paletteList);
-        return ProjectFactory.create(title, tileSet, paletteList);
+        return ProjectFactory.create({
+            id: projectSerialisable.id,
+            title: projectSerialisable.title, 
+            tileSet: TileSetJsonSerialiser.fromSerialisable(projectSerialisable.tileSet),
+            paletteList: PaletteListJsonSerialiser.fromSerialisable(projectSerialisable.paletteList)
+        });
     }
 
 
@@ -67,6 +70,7 @@ export default class ProjectJsonSerialiser {
  * @typedef ProjectSerialisable
  * @type {object}
  * @property {number} version
+ * @property {string} id
  * @property {string} title
  * @property {import('./tileSetJsonSerialiser').TileSetSerialisable} tileSet
  * @property {import('./paletteJsonSerialiser').PaletteSerialisable} paletteList

@@ -94,7 +94,6 @@ export default class PaletteEditorContextMenu {
             // Position menu to mouse pointer
             const position = state.position;
             const rect = this.#element.getBoundingClientRect();
-            console.log(rect);
             this.#btnMenuActivate.style.left = `${position.x - rect.left - 5}px`;
             this.#btnMenuActivate.style.top = `${position.y - rect.top - 5}px`;
         }

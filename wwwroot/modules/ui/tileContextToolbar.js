@@ -31,6 +31,7 @@ export default class TileContextToolbar {
     /** @type {{HTMLButtonElement}} */
     #buttons = {};
     #dispatcher;
+    #enabled = true;
 
 
     /**
@@ -105,6 +106,13 @@ export default class TileContextToolbar {
                 }
             });
         }
+
+        if (typeof state?.enabled === 'boolean') {
+            this.#enabled = state?.enabled;
+            this.#element.querySelectorAll('[data-command]').forEach(element => {
+                element.disabled = !this.#enabled;
+            });
+        }
     }
 
 
@@ -123,6 +131,7 @@ export default class TileContextToolbar {
 /**
  * @typedef {object} TileContextToolbarState
  * @property {boolean?} visible - Is the toolbar visible?
+ * @property {boolean?} enabled - Is the toolbar enabled?
  * @property {string[]?} visibleToolstrips - An array of strings containing visible toolstrips.
  * @property {string[]?} disabledCommands - An array of strings containing disabled buttons.
  * @property {number?} brushSize - Selected brush size, 1 to 5.

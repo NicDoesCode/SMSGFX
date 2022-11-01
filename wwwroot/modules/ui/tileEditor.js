@@ -2,7 +2,6 @@ import CanvasManager from "../components/canvasManager.js";
 import EventDispatcher from "../components/eventDispatcher.js";
 import PaletteFactory from "../factory/paletteFactory.js";
 import Palette from "../models/palette.js";
-import Tile from "../models/tile.js";
 import TileSet from "../models/tileSet.js";
 import TileEditorContextMenu from "./tileEditorContextMenu.js";
 
@@ -39,6 +38,7 @@ export default class TileEditor {
     #canvasMouseIsDown = false;
     #displayNative = true;
     #dispatcher;
+    #enabled = true;
 
 
     /**
@@ -142,6 +142,13 @@ export default class TileEditor {
             } else {
                 this.#canvasManager.drawUI(this.#tbCanvas, 0, 0);
             }
+        }
+
+        if (typeof state?.enabled === 'boolean') {
+            this.#enabled = state?.enabled;
+            // this.#element.querySelectorAll('[data-command]').forEach(element => {
+            //     element.disabled = !this.#enabled;
+            // });
         }
     }
 
@@ -252,7 +259,7 @@ export default class TileEditor {
 
     /** @param {MouseEvent} event */
     #handleCanvasMouseMove(event) {
-        if (this.#tileSet) {
+        if (this.#enabled && this.#tileSet) {
             const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(event.clientX, event.clientY);
             const lastCoords = this.#lastCoords;
             if (!lastCoords || lastCoords.x !== coords.x || lastCoords.y !== coords.y) {
@@ -275,6 +282,7 @@ export default class TileEditor {
 
     /** @param {MouseEvent} event */
     #handleCanvasMouseDown(event) {
+        if (!this.#enabled) return;
         if (event.button === 0) {
             this.#canvasMouseIsDown = true;
             const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(event.clientX, event.clientY);
@@ -292,6 +300,7 @@ export default class TileEditor {
 
     /** @param {MouseEvent} event */
     #handleCanvasMouseUp(event) {
+        if (!this.#enabled) return;
         this.#canvasMouseIsDown = false;
         const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(event.clientX, event.clientY);
         /** @type {TileEditorPixelEventArgs} */
@@ -307,6 +316,7 @@ export default class TileEditor {
 
     /** @param {MouseEvent} event */
     #handleCanvasMouseLeave(event) {
+        if (!this.#enabled) return;
         this.#canvasMouseIsDown = false;
         /** @type {TileEditorPixelEventArgs} */
         const args = { x: 0, y: 0, mouseIsDown: this.#canvasMouseIsDown };
@@ -320,6 +330,8 @@ export default class TileEditor {
 
     /** @param {MouseEvent} event */
     #handleCanvasContextMenu(event) {
+        if (!this.#enabled) return;
+  
         const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(event.clientX, event.clientY);
 
         // Get the tile index
@@ -381,6 +393,7 @@ export default class TileEditor {
  * @property {string?} cursor - Cursor to use when the mouse hovers over the image editor.
  * @property {boolean?} showTileGrid - Should the tile grid be drawn?
  * @property {boolean?} showPixelGrid - Should the pixel grid be drawn?
+ * @property {boolean?} enabled - Is the control enabled or disabled?
  * @exports 
  */
 

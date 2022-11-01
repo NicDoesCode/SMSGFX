@@ -5,6 +5,7 @@ import ProjectFactory from "../factory/projectFactory.js";
 import ColourUtil from "./colourUtil.js";
 import TileSetFactory from "../factory/tileSetFactory.js";
 import PaletteListFactory from "../factory/paletteListFactory.js";
+import GeneralUtil from "./generalUtil.js";
 
 export default class ImageUtil {
 
@@ -448,8 +449,6 @@ export default class ImageUtil {
             }
             virtualY++;
         }
-        const tileSet = TileSetFactory.fromArray(virtualData);
-        tileSet.tileWidth = tiles.tilesWide;
 
         // Write tiles
         const system = params?.system ?? 'ms';
@@ -464,11 +463,13 @@ export default class ImageUtil {
                 projectPalette.setColour(i, { r: 0, g: 0, b: 0 });
             }
         }
-        const paletteList = PaletteListFactory.create([projectPalette]);
 
-        const projectName = params?.projectName ?? 'Imported image';
-
-        const project = ProjectFactory.create(projectName, tileSet, paletteList);
+        const project = ProjectFactory.create({
+            title: params?.projectName ?? 'Imported image',
+            tileSet: TileSetFactory.fromArray(virtualData),
+            paletteList: PaletteListFactory.create([projectPalette])
+        });
+        project.tileSet.tileWidth = tiles.tilesWide;
         return project;
     }
 

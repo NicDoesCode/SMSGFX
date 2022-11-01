@@ -1,10 +1,19 @@
 import EventDispatcher from "../components/eventDispatcher.js";
 import ColourUtil from "../util/colourUtil.js";
 
-const EVENT_RequestColourChange = 'EVENT_RequestColourChange';
-const EVENT_RequestTabChange = 'EVENT_RequestTabChange';
+const EVENT_OnCommand = 'EVENT_OnCommand';
+
+const commands = {
+    colourChanged: 'colourChanged',
+    tabChanged: 'tabChanged'
+}
 
 export default class ColourPickerToolbox {
+
+
+    static get Commands() {
+        return commands;
+    }
 
 
     #element;
@@ -33,6 +42,7 @@ export default class ColourPickerToolbox {
     /** @type {HTMLElement} */
     #currentTab;
     #dispatcher;
+    #enabled = true;
 
 
     /**
@@ -45,14 +55,14 @@ export default class ColourPickerToolbox {
 
         this.#currentTab = 'rgb';
 
-        this.#tbColourToolboxRedSlider = element.querySelector('#tbColourToolboxRedSlider');
-        this.#tbColourToolboxGreenSlider = element.querySelector('#tbColourToolboxGreenSlider');
-        this.#tbColourToolboxBlueSlider = element.querySelector('#tbColourToolboxBlueSlider');
-        this.#tbColourToolboxRed = element.querySelector('#tbColourToolboxRed');
-        this.#tbColourToolboxGreen = element.querySelector('#tbColourToolboxGreen');
-        this.#tbColourToolboxBlue = element.querySelector('#tbColourToolboxBlue');
-        this.#btnColourToolboxPick = element.querySelector('#btnColourToolboxPick');
-        this.#tbColourToolboxHex = element.querySelector('#tbColourToolboxHex');
+        this.#tbColourToolboxRedSlider = this.#element.querySelector('[data-smsgfx-id=redSlider]');
+        this.#tbColourToolboxGreenSlider = this.#element.querySelector('[data-smsgfx-id=greenSlider]');
+        this.#tbColourToolboxBlueSlider = this.#element.querySelector('[data-smsgfx-id=blueSlider]');
+        this.#tbColourToolboxRed = this.#element.querySelector('[data-smsgfx-id=inputRedValue]');
+        this.#tbColourToolboxGreen = this.#element.querySelector('[data-smsgfx-id=inputGreenValue]');
+        this.#tbColourToolboxBlue = this.#element.querySelector('[data-smsgfx-id=inputBlueValue]');
+        this.#btnColourToolboxPick = this.#element.querySelector('[data-smsgfx-id=colourPicker]');
+        this.#tbColourToolboxHex = this.#element.querySelector('[data-smsgfx-id=inputHex]');
 
         this.#tbColourToolboxRedSlider.onchange = () => this.#setFromColour('r', tbColourToolboxRedSlider.value);
         this.#tbColourToolboxGreenSlider.onchange = () => this.#setFromColour('g', tbColourToolboxGreenSlider.value);
@@ -70,11 +80,14 @@ export default class ColourPickerToolbox {
         tabLinks.forEach(tabLink => {
             tabLink.onclick = () => {
                 const tab = tabLink.parentElement.getAttribute('data-colour-toolbox-tab');
-                this.#handleTabChanged(tab);
+                const args = this.#createEventArgs(commands.tabChanged);
+                args.tab = tab;
+                this.#dispatcher.dispatch(EVENT_OnCommand, args);
             }
         });
 
         this.#makeSMSColourButtons();
+        this.#showCurrentTab();
     }
 
 
@@ -83,58 +96,62 @@ export default class ColourPickerToolbox {
      * @param {ColourPickerToolboxState} state - State to set.
      */
     setState(state) {
-        if (state) {
-            if (typeof state.showTab === 'string') {
-                this.#currentTab = (state.showTab === 'sms') ? 'sms' : 'rgb';
-                this.#showCurrentTab();
-            }
-            if (typeof state.r === 'number') {
-                if (state.r < 0 || state.r > 255) throw new Error('Red colour value must be between 0 and 255.');
-                this.#r = state.r;
-            }
-            if (typeof state.g === 'number') {
-                if (state.g < 0 || state.g > 255) throw new Error('Green colour value must be between 0 and 255.');
-                this.#g = state.g;
-            }
-            if (typeof state.b === 'number') {
-                if (state.b < 0 || state.b > 255) throw new Error('Blue colour value must be between 0 and 255.');
-                this.#b = state.b;
-            }
+        if (typeof state?.showTab === 'string') {
+            this.#currentTab = (state.showTab === 'sms') ? 'sms' : 'rgb';
+            this.#showCurrentTab();
+        }
+        if (typeof state?.r === 'number') {
+            if (state.r < 0 || state.r > 255) throw new Error('Red colour value must be between 0 and 255.');
+            this.#r = state.r;
+        }
+        if (typeof state?.g === 'number') {
+            if (state.g < 0 || state.g > 255) throw new Error('Green colour value must be between 0 and 255.');
+            this.#g = state.g;
+        }
+        if (typeof state?.b === 'number') {
+            if (state.b < 0 || state.b > 255) throw new Error('Blue colour value must be between 0 and 255.');
+            this.#b = state.b;
         }
         this.#setAllValues();
+
+        if (typeof state?.enabled === 'boolean') {
+            this.#enabled = state.enabled;
+            this.#element.querySelectorAll('input').forEach(element => {
+                element.disabled = !this.#enabled;
+            });
+            const box = this.#element.querySelector('[data-smsgfx-id=smsColourPalette]');
+            box.querySelectorAll('button[data-colour-hex]').forEach(element => {
+                element.disabled = !this.#enabled;
+            });
+        }
     }
 
 
     /**
-     * When the colour picker toolbox has a value changed.
-     * @param {ColourPickerToolboxTabCallback} callback - Callback function.
+     * Registers a handler for a command.
+     * @param {PaletteEditorCommandCallback} callback - Callback that will receive the command.
      */
-    addHandlerRequestTabChange(callback) {
-        this.#dispatcher.on(EVENT_RequestTabChange, callback)
+    addHandlerOnCommand(callback) {
+        this.#dispatcher.on(EVENT_OnCommand, callback);
     }
 
-    /**
-     * When the colour picker toolbox has a value changed.
-     * @param {ColourPickerToolboxColourCallback} callback - Callback function.
-     */
-    addHandlerRequestColourChange(callback) {
-        this.#dispatcher.on(EVENT_RequestColourChange, callback)
-    }
-
-
-    /**
-     * @param {string} tab - The tab that was selected.
-     */
-    #handleTabChanged(tab) {
-        /** @type {ColourPickerToolboxTabEventArgs} */
-        const args = { tab: tab };
-        this.#dispatcher.dispatch(EVENT_RequestTabChange, args);
-    }
 
     #handleColourChanged() {
-        /** @type {ColourPickerToolboxColourEventArgs} */
-        const args = { r: this.#r, g: this.#g, b: this.#b };
-        this.#dispatcher.dispatch(EVENT_RequestColourChange, args);
+        const args = this.#createEventArgs(commands.colourChanged);
+        args.r = this.#r;
+        args.g = this.#g;
+        args.b = this.#b;
+        this.#dispatcher.dispatch(EVENT_OnCommand, args);
+    }
+
+
+    /** @returns {ColourPickerToolboxCommandEventArgs} */
+    #createEventArgs(command) {
+        return {
+            command: command,
+            r: 0, g: 0, b: 0,
+            tab: null
+        };
     }
 
 
@@ -148,8 +165,8 @@ export default class ColourPickerToolbox {
                 });
             });
         });
-        const smsColourContainer = this.#element.querySelector('#pnlColourToolboxSMS');
-        const box = smsColourContainer.querySelector('#tbSMSColourBox');
+        const smsColourContainer = this.#element.querySelector('[data-smsgfx-id=smsColourContainer]');
+        const box = smsColourContainer.querySelector('[data-smsgfx-id=smsColourPalette]');
         colours.forEach(colour => {
             const colourHex = ColourUtil.toHex(colour.r, colour.g, colour.b);
             const btn = document.createElement('button');
@@ -234,8 +251,8 @@ export default class ColourPickerToolbox {
         this.#tbColourToolboxGreen.value = this.#g;
         this.#tbColourToolboxBlue.value = this.#b;
         const hex = ColourUtil.toHex(this.#r, this.#g, this.#b);
-        tbColourToolboxHex.value = hex;
-        btnColourToolboxPick.value = hex;
+        this.#tbColourToolboxHex.value = hex;
+        this.#btnColourToolboxPick.value = hex;
         this.#tbColourToolboxHex.classList.remove('is-invalid');
     }
 
@@ -245,6 +262,7 @@ export default class ColourPickerToolbox {
 
 /**
  * @typedef {object} ColourPickerToolboxState
+ * @property {boolean?} enabled - Is the toolbox enabled?
  * @property {string?} showTab - Either 'rgb' or 'sms', which content tab to show.
  * @property {number?} r - Red component.
  * @property {number?} g - Green component.
@@ -253,28 +271,18 @@ export default class ColourPickerToolbox {
  */
 
 /**
- * Tab changed callback.
- * @callback ColourPickerToolboxTabCallback
- * @param {ColourPickerToolboxTabEventArgs} args - Arguments.
+ * Colour picker toolbox on command callback.
+ * @callback ColourPickerToolboxCommandCallback
+ * @param {ColourPickerToolboxCommandEventArgs} args - Arguments.
  * @exports
  */
 /**
- * Tab changed event args.
- * @typedef {object} ColourPickerToolboxTabEventArgs
+ * Colour picker toolbox on command event args.
+ * @typedef {object} ColourPickerToolboxCommandEventArgs
+ * @property {string} command - Command being issued.
  * @property {string} tab - Tab to display.
- * @export
- */
-/**
- * Colour changed callback.
- * @callback ColourPickerToolboxColourCallback
- * @argument {ColourPickerToolboxColourEventArgs} args - Event args.
- * @export
- */
-/**
- * Colour event args.
- * @typedef {object} ColourPickerToolboxColourEventArgs
  * @property {number} r - Red component.
  * @property {number} g - Green component.
  * @property {number} b - Blue component.
- * @export
+ * @exports
  */

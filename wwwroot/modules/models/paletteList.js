@@ -17,18 +17,18 @@ export default class PaletteList {
 
     /**
      * Creates a new instance of a palette list.
-     * @param {Palette[]?} palettes - Initial array of palettes to populate.
+     * @param {Palette[]?} items - Initial array of items to populate.
      */
-    constructor(palettes) {
-        if (palettes && !Array.isArray(palettes)) throw new Error('Array of palettes must be passed.');
-        if (palettes && Array.isArray(palettes)) {
-            palettes.forEach(p => this.addPalette(p));
+    constructor(items) {
+        if (items && !Array.isArray(items)) throw new Error('Array of palettes must be passed.');
+        if (items && Array.isArray(items)) {
+            items.forEach(p => this.addPalette(p));
         }
     }
 
 
     /**
-     * Returns all palettes.
+     * Returns all items.
      * @returns {Palette[]}
      */
     getPalettes() {
@@ -36,8 +36,8 @@ export default class PaletteList {
     }
 
     /**
-     * Gets a palette.
-     * @param {number} index Index of the palette to get.
+     * Gets an item by index.
+     * @param {number} index - Index of the item to get.
      * @returns {Palette}
      */
     getPalette(index) {
@@ -49,17 +49,21 @@ export default class PaletteList {
     }
 
     /**
-     * Adds a palette to the list.
-     * @param {Palette|Palette[]} value Palette object to add.
+     * Adds an item to the list.
+     * @param {Palette|Palette[]} value - Item or array of items to add.
      */
     addPalette(value) {
-        this.#palettes.push(value);
+        if (Array.isArray(value)) {
+            value.forEach(item => this.#palettes.push(item));
+        } else {
+            this.#palettes.push(value);
+        }
     }
 
     /**
-     * Inserts a palette.
-     * @param {number} index Index of where to insert the palette.
-     * @param {Palette} value Palette value to insert.
+     * Inserts an item by index.
+     * @param {number} index - Index of where to insert the item.
+     * @param {Palette} value - Value to insert.
      */
     insertAt(index, value) {
         index = Math.max(index, 0);
@@ -70,9 +74,9 @@ export default class PaletteList {
     }
 
     /**
-     * Sets a palette.
-     * @param {number} index Index of the palette to set.
-     * @param {Palette} value Palette value to set.
+     * Sets an item by index.
+     * @param {number} index - Index of the palette to set.
+     * @param {Palette} value - Palette value to set.
      */
     setPalette(index, value) {
         if (index >= 0 && index < this.#palettes.length) {
@@ -81,8 +85,8 @@ export default class PaletteList {
     }
 
     /**
-     * Removes a pelette at a given index.
-     * @param {number} index Index of the palette to remove.
+     * Removes an item at a given index.
+     * @param {number} index - Index of the palette to remove.
      */
     removeAt(index) {
         if (index >= 0 && index < this.#palettes.length) {
@@ -91,7 +95,7 @@ export default class PaletteList {
     }
 
     /**
-     * Clears the palette list.
+     * Clears the list.
      */
     clear() {
         this.#palettes.splice(0, this.#palettes.length);
