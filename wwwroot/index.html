@@ -19,20 +19,20 @@
     <div class="sms-container">
 
         <div data-smsgfx-component-id="header-bar" class="sms-header-bar">
-            <div class="sms-navbar navbar navbar-light bg-white">
-                <form class="container-fluid">
-                    <div class="col">
+            <select data-command="projectLoadById" class="form-select d-none">
+            </select>
+            <div class="sms-navbar navbar navbar-expand-lg">
+                <div class="container-fluid d-flex justify-content-between">
+                    <div class="p-0">
                         <span class="navbar-brand mb-0 h1">
                             <img src="./assets/image/controller.png" alt=""
                                 style="height: 22px; width: auto; box-shadow: 1px 1px 4px #444444;">
                             <label>SMSGFX</label>
                         </span>
                     </div>
-                    <div class="col-md-auto text-end pe-2">
-                        <select data-command="projectLoadById" class="form-select d-none">
-                        </select>
+                    <div class="p-0">
                         <div class="input-group input-group-sm">
-                            <button class="btn btn-outline-secondary dropdown-toggle" type="button"
+                            <button class="btn btn-outline-secondary dropdown-toggle bg-light text-dark border-secondary" type="button"
                                 data-bs-toggle="dropdown" aria-expanded="false"><span
                                     class="fw-bold">Project</span></button>
                             <div class="dropdown-menu sms-smaller-font">
@@ -54,24 +54,24 @@
                                 <div data-smsgfx-id="project-list" class="container m-0 p-0">
                                 </div>
                             </div>
-                            <input data-command="title" type="text" class="form-control" placeholder="Project title"
+                            <input data-command="title" type="text" class="form-control border-secondary" placeholder="Project title"
                                 aria-label="Project title">
                         </div>
                     </div>
-                    <div class="col-md-auto text-end">
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text">Export</span>
-                            <button data-command="exportCode" class="btn btn-outline-secondary"
+                    <div class="p-0">
+                        <div class="input-group input-group-sm bg-white border-secondary text-dark">
+                            <span class="input-group-text bg-light border-secondary">Export</span>
+                            <button data-command="exportCode" class="btn btn-outline-secondary text-dark"
                                 title="Export assembly code." type="button">
                                 <i class="bi bi-code"></i> Code
                             </button>
-                            <button data-command="exportImage" class="btn btn-outline-secondary"
+                            <button data-command="exportImage" class="btn btn-outline-secondary text-dark"
                                 title="Export tiles as an image." type="button">
                                 <i class="bi bi-card-image"></i> Image
                             </button>
                         </div>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
 

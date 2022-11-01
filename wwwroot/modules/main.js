@@ -1079,6 +1079,9 @@ function formatForProject() {
         showPixelGrid: getUIState().showPixelGrid,
         enabled: true
     });
+    tileContextToolbar.setState({
+        enabled: true
+    })
 }
 
 function formatForNoProject() {
@@ -1536,27 +1539,10 @@ function importProjectFromJson() {
                 addUndoState();
 
                 state.setProject(project);
+                state.saveProjectToLocalStorage();
                 state.persistentUIState.paletteIndex = 0;
 
-                // Set state
-                headerBar.setState({
-                    projectTitle: project.title
-                });
-                paletteEditor.setState({
-                    paletteList: getPaletteList(),
-                    selectedPaletteIndex: getUIState().paletteIndex,
-                    selectedColourIndex: 0,
-                    highlightedColourIndex: -1,
-                    displayNative: getUIState().displayNativeColour
-                });
-                setCommonTileToolbarStates({
-                    tileWidth: getTileSet().tileWidth
-                });
-                tileEditor.setState({
-                    palette: getPalette(),
-                    tileSet: getTileSet(),
-                    displayNative: getUIState().displayNativeColour
-                });
+                displaySelectedProject();
             });
         }
     }

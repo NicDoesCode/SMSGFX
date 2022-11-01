@@ -32,9 +32,12 @@ button:disabled img {
     height: auto;
 }
 
+.sms-container .sms-header-bar .sms-navbar {
+    background-color: #EEEEEE;
+    box-shadow: 0px 0px 6px #888888;
+}
+
 .sms-container .sms-header-bar .sms-navbar .navbar-brand {
-    position: relative;
-    display: inline-block;
     margin-left: 4px;
     font-size: 25px;
     text-shadow: 0px 0px 2px #FFFFFF, 1px 1px 5px #555555;
@@ -42,7 +45,7 @@ button:disabled img {
 
 .sms-container .sms-header-bar .sms-navbar .navbar-brand img {
     float: left;
-    margin: 5px 10px 0 5px;
+    margin: 4px 10px 0 5px;
 }
 
 .sms-container .sms-content {
