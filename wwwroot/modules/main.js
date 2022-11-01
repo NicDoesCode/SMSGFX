@@ -940,10 +940,11 @@ function handleImageImportModalOnConfirm(args) {
  * Creates a default tile set and palettes when the data store doesn't contain any.
  */
 function createDefaultProjectIfNoneExists() {
-    if (!state.projectCount === 0) {
-        state.addProject(createEmptyProject());
-        state.setProject(0);
-        state.saveToLocalStorage();
+    const projects = state.getProjectsFromLocalStorage();
+    if (projects.length === 0) {
+        const newProject = createEmptyProject();
+        state.setProject(newProject);
+        state.saveProjectToLocalStorage();
     }
 }
 
@@ -2026,7 +2027,7 @@ window.addEventListener('load', () => {
     // Load and set state
     state.loadFromLocalStorage();
 
-    // createDefaultProjectIfNoneExists();
+    createDefaultProjectIfNoneExists();
     checkPersistentUIValues();
 
     // Load initial projects
