@@ -1880,6 +1880,10 @@ $(() => {
         enabled: false
     });
 
+    tileEditor.setState({
+        enabled: false
+    });
+
 
     // headerBar.setState({
     //     projectTitle: state.project.title
