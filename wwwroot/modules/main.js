@@ -24,6 +24,7 @@ import PaletteListFactory from "./factory/paletteListFactory.js";
 import TileUtil from "./util/tileUtil.js";
 import ImportImageModalDialogue from "./ui/importImageModalDialogue.js";
 import FileUtil from "./util/fileUtil.js";
+import Project from "./models/project.js";
 
 
 const undoManager = new UndoManager(50);
@@ -48,7 +49,7 @@ const headerBar = new HeaderBar(document.querySelector('[data-smsgfx-component-i
    State
 */
 
-const state = State.instance;
+const state = new State();
 
 const instanceState = {
     /** @type {string} */
@@ -734,7 +735,7 @@ function handleColourPickerCancel(args) {
 /**
  * @param {import('./ui/colourPickerToolbox.js').ColourPickerToolboxCommandEventArgs} args
  */
- function handleColourPickerToolboxOnCommand(args) {
+function handleColourPickerToolboxOnCommand(args) {
     switch (args.command) {
 
         case ColourPickerToolbox.Commands.tabChanged:
@@ -818,7 +819,7 @@ function handleImageImportModalOnConfirm(args) {
 
     if (args.createNew) {
         const paletteList = PaletteListFactory.create([args.palette]);
-        const project = ProjectFactory.create(args.title, args.tileSet, paletteList);
+        const project = ProjectFactory.create({ title: args.title, tileSet: args.tileSet, paletteList: paletteList });
         state.setProject(project);
         state.saveToLocalStorage();
     } else {
@@ -858,32 +859,9 @@ function handleImageImportModalOnConfirm(args) {
  * Creates a default tile set and palettes when the data store doesn't contain any.
  */
 function createDefaultProjectIfNoneExists() {
-    if (!state.project || !state.project.tileSet || state.project.tileSet.length === 0 || !state.project.paletteList || state.project.paletteList.length === 0) {
-
-        const project = !state.project ? ProjectFactory.create() : state.project;
-
-        if (!project.title) {
-            project.title = 'New project';
-        }
-
-        // Create a default tile set
-        if (!project.tileSet || project.tileSet.length === 0) {
-            const dummyArray = new Uint8ClampedArray(64 * 8 * 8);
-            dummyArray.fill(15, 0, dummyArray.length);
-            const tileSet = TileSetFactory.fromArray(dummyArray);
-            tileSet.tileWidth = 8;
-
-            project.tileSet = tileSet;
-        }
-
-        // Create a default palette for Game Gear and Master System
-        if (!project.paletteList || project.paletteList.length === 0) {
-            if (!project.paletteList) project.paletteList = PaletteListFactory.create();
-            state.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('Default Master System', 'ms'));
-            state.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('Default Game Gear', 'gg'));
-        }
-
-        state.setProject(project);
+    if (!state.projectCount === 0) {
+        state.addProject(createEmptyProject());
+        state.setProject(0);
         state.saveToLocalStorage();
     }
 }
@@ -893,7 +871,7 @@ function createDefaultProjectIfNoneExists() {
  * @returns {Project}
  */
 function createEmptyProject() {
-    const project = ProjectFactory.create('New project');
+    const project = ProjectFactory.create({ title: 'New project' });
 
     // Create a default tile set
     project.tileSet = TileSetFactory.create();
@@ -912,7 +890,7 @@ function createEmptyProject() {
 
 function checkPersistentUIValues() {
     let dirty = false;
-    if (state.persistentUIState.paletteIndex < 0 || state.persistentUIState.paletteIndex >= state.project.paletteList.length) {
+    if (state.project && (state.persistentUIState.paletteIndex < 0 || state.persistentUIState.paletteIndex >= state.project.paletteList.length)) {
         state.persistentUIState.paletteIndex = 0;
         dirty = true;
     }
@@ -941,33 +919,33 @@ function checkPersistentUIValues() {
 
 
 /* ****************************************************************************************************
-   Helpers and general methods
-*/
+ * Helpers and general methods
+ */
 
 function getProject() {
-    return state.project
-};
+    return state.project;
+}
 function getTileSet() {
-    return state.tileSet
-};
+    return state.project.tileSet;
+}
 function getTile() {
     if (instanceState.tileIndex > -1 && instanceState.tileIndex < getTileSet().length) {
         return getTileSet().getTile(instanceState.tileIndex);
     } else {
         return null;
     }
-};
+}
 function getPaletteList() {
-    return state.paletteList;
+    return state.project?.paletteList ?? null;
 }
 function getPalette() {
-    if (state.paletteList.length > 0) {
+    if (getPaletteList().length > 0) {
         const paletteIndex = state.persistentUIState.paletteIndex;
-        if (paletteIndex >= 0 && paletteIndex < state.paletteList.length) {
-            return state.paletteList.getPalette(paletteIndex);
+        if (paletteIndex >= 0 && paletteIndex < getPaletteList().length) {
+            return getPaletteList().getPalette(paletteIndex);
         } else {
             state.persistentUIState.paletteIndex = 0;
-            return state.paletteList.getPalette(0);
+            return getPaletteList().getPalette(0);
         }
     } else return null;
 }
@@ -1841,7 +1819,7 @@ function selectColourIndex(index) {
    Initilisation
 */
 
-$(() => {
+window.addEventListener('load', () => {
 
     instanceState.tool = 'pencil';
     instanceState.colourToolboxTab = 'rgb';
@@ -1852,12 +1830,12 @@ $(() => {
     // Load and set state
     state.loadFromLocalStorage();
 
-    createDefaultProjectIfNoneExists();
+    // createDefaultProjectIfNoneExists();
     checkPersistentUIValues();
 
-    const palette = getPalette();
-    const tileSet = getTileSet();
-    const colour = palette.getColour(instanceState.colourIndex);
+    // const palette = getPalette();
+    // const tileSet = getTileSet();
+    // const colour = palette.getColour(instanceState.colourIndex);
 
 
     headerBar.setState({
@@ -1868,11 +1846,17 @@ $(() => {
         enabled: false
     });
 
-    setCommonTileToolbarStates({
+    tileContextToolbar.setState({
         enabled: false
     });
 
-    tileContextToolbar.setState({
+    const strips = TileEditorToolbar.ToolStrips;
+    tileEditorToolbar.setState({
+        visibleToolstrips: [strips.tileAdd, strips.undo, strips.tools, strips.tileWidth],
+        enabled: false
+    });
+    tileEditorBottomToolbar.setState({
+        visibleToolstrips: [strips.scale, strips.showTileGrid, strips.showPixelGrid],
         enabled: false
     });
 
@@ -1883,6 +1867,10 @@ $(() => {
     tileEditor.setState({
         enabled: false
     });
+
+    document.querySelector('.navbar-brand img').onclick = () => {
+        console.log('click');
+    };
 
 
     // headerBar.setState({
@@ -1927,6 +1915,7 @@ $(() => {
     //     showPixelGrid: getUIState().showPixelGrid
     // });
     // selectTool(instanceState.tool);
+
 });
 
 /**

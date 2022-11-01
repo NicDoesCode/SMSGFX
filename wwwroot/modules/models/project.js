@@ -2,9 +2,18 @@ import PaletteList from "./paletteList.js";
 import TileSet from "./tileSet.js";
 import TileSetFactory from "../factory/tileSetFactory.js";
 import PaletteListFactory from "../factory/paletteListFactory.js";
+import GeneralUtil from "../util/generalUtil.js";
 
 export default class Project {
 
+
+    /** Gets or sets the project id. */
+    get id() {
+        return this.#id;
+    }
+    set id(value) {
+        this.#id = value;
+    }
 
     /** Gets or sets the project title. */
     get title() {
@@ -34,6 +43,8 @@ export default class Project {
 
 
     /** @type {string} */
+    #id = null;
+    /** @type {string} */
     #title;
     /** @type {TileSet} */
     #tileSet;
@@ -43,11 +54,18 @@ export default class Project {
 
     /**
      * Creates a new instance of the project class.
+     * @param {string?} id - ID of the project.
      * @param {string?} title - Title, if not supplied one will be created.
      * @param {TileSet?} tileSet - Tile set, if not supplied one will be created.
      * @param {PaletteList?} paletteList - Colour palettes, if not supplied one will be created.
      */
-    constructor(title, tileSet, paletteList) {
+    constructor(id, title, tileSet, paletteList) {
+
+        if (typeof id !== 'undefined' && title !== null) {
+            this.#id = id;
+        } else {
+            this.id = GeneralUtil.generateRandomString(16);
+        }
 
         if (typeof title !== 'undefined' && title !== null) {
             this.title = title;

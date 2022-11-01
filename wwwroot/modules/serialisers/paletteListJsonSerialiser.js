@@ -32,7 +32,7 @@ export default class PaletteListJsonSerialiser {
     /**
      * Converts a palette object to a serialisable one.
      * @param {PaletteList} paletteList - Palette list to convert.
-     * @returns {paletteList} 
+     * @returns {import('./paletteJsonSerialiser').PaletteSerialisable[]} 
      */
     static toSerialisable(paletteList) {
         if (!paletteList || typeof paletteList.getPalettes !== 'function') throw new Error('Please pass a palette list.');

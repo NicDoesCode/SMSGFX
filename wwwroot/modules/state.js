@@ -1,91 +1,83 @@
-import ProjectJsonSerialiser from "./serialisers/projectJsonSerialiser.js";
+import ProjectListJsonSerialiser from "./serialisers/projectListJsonSerialiser.js";
 import PersistentUIState from "./models/persistentUIState.js";
 import PersistentUIStateFactory from "./factory/persistentUIStateFactory.js";
 import AppUIStateJsonSerialiser from "./serialisers/persistentUIStateJsonSerialiser.js";
 import Project from "./models/project.js";
-import ProjectFactory from "./factory/projectFactory.js";
+import ProjectList from "./models/projectList.js";
+import GeneralUtil from "./util/generalUtil.js";
+import ProjectJsonSerialiser from "./serialisers/projectJsonSerialiser.js";
 
-const LOCAL_STORAGE_APPUI = 'smsgfxappUi';
-const LOCAL_STORAGE_PROJECT = 'smsgfxproject';
+const LOCAL_STORAGE_APPUI = 'smsgfxappui';
+const LOCAL_STORAGE_PROJECTS = 'smsgfxproject_';
+
+const rxProjectId = /^[A-z0-9]+$/ig;
 
 export default class State {
 
 
-    /** Gets the static singleton instance. */
-    static get instance() {
-        if (!State.#instance) {
-            State.#instance = new State();
-        }
-        return State.#instance;
-    }
-
-    /** @type {State} */
-    static #instance = null;
-
-
     /**
-     * Gets the UI elements.
+     * Gets the presistent state for UI elements.
      */
     get persistentUIState() {
         return this.#persistentUIState;
     }
 
     /**
-     * Gets or sets the project.
+     * Gets the project.
      */
     get project() {
         return this.#project;
     }
 
-    /**
-     * Gets the palette list.
-     */
-    get paletteList() {
-        return this.project.paletteList;
-    }
-    set paletteList(value) {
-        if (value && typeof value.getPalettes === 'function') {
-            this.project.paletteList = value;
-        } else {
-            throw new Error('Please pass a palette list.');
-        }
-    }
-
-    /**
-     * Gets or sets the tile set.
-     */
-    get tileSet() {
-        return this.project.tileSet;
-    }
-    set tileSet(value) {
-        this.project.tileSet = value;
-    }
-
 
     /** @type {PersistentUIState} */
     #persistentUIState;
+    /** @type {Object.<string, Project>} */
+    #projects = {};
     /** @type {Project} */
     #project;
 
 
     constructor() {
         this.#persistentUIState = PersistentUIStateFactory.create();
-        const project = ProjectFactory.create();
-        this.setProject(project);
+        this.#project = null;
     }
 
 
     /**
-     * Sets the project state.
-     * @param {Project} project - Project to replace existing state.
+     * Gets all projects from local storage.
+     * @returns {ProjectList}
+     */
+    getProjectsFromLocalStorage() {
+        const result = new ProjectList();
+        for (const key in localStorage) {
+            if (key.startsWith(LOCAL_STORAGE_PROJECTS)) {
+                const id = key.substring(LOCAL_STORAGE_PROJECTS.length);
+                if (id && rxProjectId.test(project.id)) {
+                    if (this.project && this.project.id === id) {
+                        result.addProject(this.project);
+                    } else {
+                        const deserialised = ProjectJsonSerialiser.deserialise(localStorage.getItem(key));
+                        result.addProject(deserialised);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Set the current project.
+     * @param {Project} project - Project to set.
      */
     setProject(project) {
+        if (!project) throw new Error('Index out of range for new project to insert.');
         this.#project = project;
     }
 
 
     /**
-     * Loads values from local storage.
+     * Loads persistent UI values from local storage.
      */
     loadFromLocalStorage() {
         // Load UI from local storage
@@ -93,13 +85,23 @@ export default class State {
         if (serialisedAppUI) {
             this.#persistentUIState = AppUIStateJsonSerialiser.deserialise(serialisedAppUI);
         }
+    }
 
-        // Load the projedt
-        const serialisedProject = localStorage.getItem(LOCAL_STORAGE_PROJECT);
-        if (serialisedProject) {
-            const project = ProjectJsonSerialiser.deserialise(serialisedProject);
-            this.setProject(project);
-        }
+    /**
+     * Loads values from local storage.
+     * @param {string?} projectId - Project details to load.
+     */
+    loadProjectFromLocalStorage(projectId) {
+        if (!projectId || !rxProjectId.test(projectId)) throw new Error('Invalid project ID given.');
+
+        const storageId = `${LOCAL_STORAGE_PROJECTS}${projectId}`;
+        const serialised = localStorage.getItem(storageId);
+
+        if (!serialised) throw new Error('Project ID not found.');
+
+        const project = ProjectJsonSerialiser.deserialise(serialised);
+        ensureProjectHasId(project);
+        this.#project = project;
     }
 
 
@@ -110,9 +112,23 @@ export default class State {
         const serialisedUIState = AppUIStateJsonSerialiser.serialise(this.persistentUIState);
         localStorage.setItem(LOCAL_STORAGE_APPUI, serialisedUIState);
 
-        const serialisedProject = ProjectJsonSerialiser.serialise(this.project);
-        localStorage.setItem(LOCAL_STORAGE_PROJECT, serialisedProject);
+        if (this.project) {
+            ensureProjectHasId(project);
+            const storageId = `${LOCAL_STORAGE_PROJECTS}${project.id}`;
+            const serialised = ProjectJsonSerialiser.serialise(project);
+            localStorage.setItem(storageId, serialised);
+        }
     }
 
 
+}
+
+/**
+ * Makes sure that a project has an ID.
+ * @param {Project} project - Project to check.
+ */
+function ensureProjectHasId(project) {
+    if (!project.id || !rxProjectId.test(project.id)) {
+        project.id = GeneralUtil.generateRandomString(16);
+    }
 }
