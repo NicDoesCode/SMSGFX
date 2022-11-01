@@ -405,9 +405,9 @@ function handleHeaderBarOnCommand(args) {
         setProjectTitle(args.title);
     } else if (args.command === HeaderBar.Commands.projectNew) {
         newProject();
-    } else if (args.command === HeaderBar.Commands.projectLoad) {
+    } else if (args.command === HeaderBar.Commands.projectLoadFromFile) {
         importProjectFromJson();
-    } else if (args.command === HeaderBar.Commands.projectSave) {
+    } else if (args.command === HeaderBar.Commands.projectSaveToFile) {
         exportProjectToJson();
     } else if (args.command === HeaderBar.Commands.exportCode) {
         exportProjectToAssembly();
@@ -1866,6 +1866,7 @@ $(() => {
     const palette = getPalette();
     const tileSet = getTileSet();
     const colour = palette.getColour(instanceState.colourIndex);
+
 
     headerBar.setState({
         projectTitle: state.project.title

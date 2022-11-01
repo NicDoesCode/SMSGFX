@@ -31,18 +31,18 @@
                     <div class="col-md-auto text-end pe-2">
                         <div class="input-group input-group-sm">
                             <span class="input-group-text fw-bold">Project</span>
-                            <input data-smsgfx-id="textbox-project-title" type="text" class="form-control"
+                            <input data-command="title" type="text" class="form-control"
                                 placeholder="Project title" aria-label="Project title">
-                            <button data-smsgfx-id="button-project-new" class="btn btn-outline-secondary"
+                            <button data-command="projectNew" class="btn btn-outline-secondary"
                                 title="New project." type="button">
                                 <i class="bi bi-file-earmark-plus"></i> New
                             </button>
-                            <button data-smsgfx-id="button-project-load" class="btn btn-outline-secondary"
-                                title="Load project." type="button">
+                            <button data-command="projectLoadFromFile" class="btn btn-outline-secondary"
+                                title="Load project from file." type="button">
                                 <i class="bi bi-upload"></i> Load
                             </button>
-                            <button data-smsgfx-id="button-project-save" class="btn btn-outline-secondary"
-                                title="Save project." type="button">
+                            <button data-command="projectSaveToFile" class="btn btn-outline-secondary"
+                                title="Save project to file." type="button">
                                 <i class="bi bi-download"></i> Save
                             </button>
                         </div>
@@ -50,11 +50,11 @@
                     <div class="col-md-auto text-end">
                         <div class="input-group input-group-sm">
                             <span class="input-group-text">Export</span>
-                            <button data-smsgfx-id="button-export-code" class="btn btn-outline-secondary"
+                            <button data-command="exportCode" class="btn btn-outline-secondary"
                                 title="Export assembly code." type="button">
                                 <i class="bi bi-code"></i> Code
                             </button>
-                            <button data-smsgfx-id="button-export-image" class="btn btn-outline-secondary"
+                            <button data-command="exportImage" class="btn btn-outline-secondary"
                                 title="Export tiles as an image." type="button">
                                 <i class="bi bi-card-image"></i> Image
                             </button>
@@ -605,7 +605,8 @@
                                 <div data-toolstrip="showTileGrid" class="col-auto pe-2 p-0 m-0">
                                     <div class="input-group input-group-sm">
                                         <div class="input-group-text">
-                                            <input data-command="showTileGrid" data-labelled-by="showTileGrid" class="form-check-input mt-0" type="checkbox" value=""
+                                            <input data-command="showTileGrid" data-labelled-by="showTileGrid"
+                                                class="form-check-input mt-0" type="checkbox" value=""
                                                 aria-label="Checkbox for following text input">
                                             <label for="showTileGrid" class="ps-1">Tile grid</label>
                                         </div>
@@ -614,7 +615,8 @@
                                 <div data-toolstrip="showPixelGrid" class="col-auto pe-2 p-0 m-0">
                                     <div class="input-group input-group-sm">
                                         <div class="input-group-text">
-                                            <input data-command="showPixelGrid" data-labelled-by="showPixelGrid" class="form-check-input mt-0" type="checkbox" value=""
+                                            <input data-command="showPixelGrid" data-labelled-by="showPixelGrid"
+                                                class="form-check-input mt-0" type="checkbox" value=""
                                                 aria-label="Checkbox for following text input">
                                             <label for="showPixelGrid" class="ps-1">Pixel grid</label>
                                         </div>

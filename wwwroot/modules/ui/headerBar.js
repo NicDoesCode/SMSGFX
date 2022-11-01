@@ -5,8 +5,8 @@ const EVENT_OnCommand = 'EVENT_OnCommand';
 const commands = {
     title: 'title',
     projectNew: 'projectNew',
-    projectLoad: 'projectLoad',
-    projectSave: 'projectSave',
+    projectLoadFromFile: 'projectLoadFromFile',
+    projectSaveToFile: 'projectSaveToFile',
     exportCode: 'exportCode',
     exportImage: 'exportImage'
 }
@@ -21,18 +21,6 @@ export default class HeaderBar {
 
     /** @type {HTMLDivElement} */
     #element;
-    /** @type {HTMLInputElement} */
-    #tbProjectTitle;
-    /** @type {HTMLButtonElement} */
-    #btnProjectNew;
-    /** @type {HTMLButtonElement} */
-    #btnProjectLoad;
-    /** @type {HTMLButtonElement} */
-    #btnProjectSave;
-    /** @type {HTMLButtonElement} */
-    #btnExportCode;
-    /** @type {HTMLButtonElement} */
-    #btnExportImage;
     /** @type {EventDispatcher} */
     #dispatcher;
 
@@ -46,56 +34,35 @@ export default class HeaderBar {
 
         this.#dispatcher = new EventDispatcher();
 
-        this.#tbProjectTitle = this.#element.querySelector('[data-smsgfx-id=textbox-project-title]');
-        this.#tbProjectTitle.onchange = () => {
-            /** @type {HeaderBarCommandEventArgs} */
-            const args = { command: commands.title, title: this.#tbProjectTitle.value };
-            this.#dispatcher.dispatch(EVENT_OnCommand, args);
-        };
-        this.#tbProjectTitle.onkeydown = (evt) => {
-            // Prevent the enter key from triggering the 'load project' button
-            // instead make it trigger the onchange event.
-            if (evt.key.toLowerCase() === 'enter') {
-                this.#tbProjectTitle.onchange();
-                evt.stopImmediatePropagation();
-                return false;
-            }
-        };
+        this.#element.querySelectorAll('button[data-command]').forEach(element => {
+            element.onclick = () => {
+                /** @type {HeaderBarCommandEventArgs} */
+                const args = {
+                    command: element.getAttribute('data-command'),
+                    title: this.#element.querySelector(`[data-command=${commands.title}]`)?.value ?? null
+                };
+                this.#dispatcher.dispatch(EVENT_OnCommand, args);
+            };
+        });
 
-        this.#btnProjectNew = this.#element.querySelector('[data-smsgfx-id=button-project-new]');
-        this.#btnProjectNew.onclick = () => {
-            /** @type {HeaderBarCommandEventArgs} */
-            const args = { command: commands.projectNew }
-            this.#dispatcher.dispatch(EVENT_OnCommand, args);
-        };
-
-        this.#btnProjectLoad = this.#element.querySelector('[data-smsgfx-id=button-project-load]');
-        this.#btnProjectLoad.onclick = () => {
-            /** @type {HeaderBarCommandEventArgs} */
-            const args = { command: commands.projectLoad }
-            this.#dispatcher.dispatch(EVENT_OnCommand, args);
-        };
-
-        this.#btnProjectSave = this.#element.querySelector('[data-smsgfx-id=button-project-save]');
-        this.#btnProjectSave.onclick = () => {
-            /** @type {HeaderBarCommandEventArgs} */
-            const args = { command: commands.projectSave }
-            this.#dispatcher.dispatch(EVENT_OnCommand, args);
-        };
-
-        this.#btnExportCode = this.#element.querySelector('[data-smsgfx-id=button-export-code]');
-        this.#btnExportCode.onclick = () => {
-            /** @type {HeaderBarCommandEventArgs} */
-            const args = { command: commands.exportCode }
-            this.#dispatcher.dispatch(EVENT_OnCommand, args);
-        };
-
-        this.#btnExportImage = this.#element.querySelector('[data-smsgfx-id=button-export-image]');
-        this.#btnExportImage.onclick = () => {
-            /** @type {HeaderBarCommandEventArgs} */
-            const args = { command: commands.exportImage }
-            this.#dispatcher.dispatch(EVENT_OnCommand, args);
-        };
+        // Prevent pressing 'Enter' on the title field from submitting.
+        this.#element.querySelectorAll(`[data-command=${commands.title}]`).forEach(element => {
+            element.onchange = () => {
+                /** @type {HeaderBarCommandEventArgs} */
+                const args = {
+                    command: element.getAttribute('data-command'),
+                    title: element.value
+                };
+                this.#dispatcher.dispatch(EVENT_OnCommand, args);
+            };
+            element.onkeydown = (keyEvent) => {
+                if (keyEvent.code === 'Enter') {
+                    element.onchange();
+                    keyEvent.stopImmediatePropagation();
+                    return false;
+                }
+            };
+        });
     }
 
 
@@ -104,10 +71,20 @@ export default class HeaderBar {
      * @param {HeaderBarState} state - State to set.
      */
     setState(state) {
-        if (state) {
-            if (typeof state.projectTitle === 'string' && state.projectTitle.length > 0 && state.projectTitle !== null) {
-                this.#tbProjectTitle.value = state.projectTitle;
-            }
+        if (typeof state?.projectTitle === 'string' && state.projectTitle.length > 0 && state.projectTitle !== null) {
+            this.#element.querySelectorAll(`[data-command=${commands.title}]`).forEach(element => {
+                element.value = state.projectTitle;
+            });
+        }
+        if (Array.isArray(state?.disabledCommands)) {
+            const disabled = state.disabledCommands;
+            this.#element.querySelectorAll('[data-command]').forEach(element => {
+                if (disabled.includes(element.getAttribute('data-command'))) {
+                    element.setAttribute('disabled', 'disabled');
+                } else {
+                    element.removeAttribute('disabled');
+                }
+            });
         }
     }
 
@@ -128,6 +105,7 @@ export default class HeaderBar {
  * Header bar state.
  * @typedef {object} HeaderBarState
  * @property {string?} projectTitle - Project title to display.
+ * @property {string[]?} disabledCommands - Array of commands that should be disabled.
  */
 
 /**
