@@ -25,6 +25,8 @@ import TileUtil from "./util/tileUtil.js";
 import ImportImageModalDialogue from "./ui/importImageModalDialogue.js";
 import FileUtil from "./util/fileUtil.js";
 import Project from "./models/project.js";
+import TileSet from "./models/tileSet.js";
+import PaletteList from "./models/paletteList.js";
 
 
 const undoManager = new UndoManager(50);
@@ -82,6 +84,8 @@ const instanceState = {
 */
 
 function wireUpEventHandlers() {
+
+    state.addHandlerOnEvent(handleStateEvent);
 
     headerBar.addHandlerOnCommand(handleHeaderBarOnCommand);
 
@@ -388,20 +392,61 @@ function createEventListeners() {
 }
 
 
+/** @param {import('./state.js').StateEventArgs} args */
+function handleStateEvent(args) {
+    switch (args.event) {
+
+        case State.Events.projectChanged:
+            displaySelectedProject();
+            break;
+
+        case State.Events.projectListChanged:
+            displayProjectList();
+            break;
+
+    }
+}
+
+
 /** @param {import('./ui/headerBar.js').HeaderBarCommandEventArgs} args */
 function handleHeaderBarOnCommand(args) {
-    if (args.command === HeaderBar.Commands.title && args.title) {
-        setProjectTitle(args.title);
-    } else if (args.command === HeaderBar.Commands.projectNew) {
-        newProject();
-    } else if (args.command === HeaderBar.Commands.projectLoadFromFile) {
-        importProjectFromJson();
-    } else if (args.command === HeaderBar.Commands.projectSaveToFile) {
-        exportProjectToJson();
-    } else if (args.command === HeaderBar.Commands.exportCode) {
-        exportProjectToAssembly();
-    } else if (args.command === HeaderBar.Commands.exportImage) {
-        exportImage();
+
+    switch (args.command) {
+
+        case HeaderBar.Commands.title:
+            if (args.title) setProjectTitle(args.title);
+            break;
+
+        case HeaderBar.Commands.projectNew:
+            newProject();
+            break;
+
+        case HeaderBar.Commands.projectLoadFromFile:
+            importProjectFromJson();
+            break;
+
+        case HeaderBar.Commands.projectSaveToFile:
+            exportProjectToJson();
+            break;
+
+        case HeaderBar.Commands.exportCode:
+            exportProjectToAssembly();
+            break;
+
+        case HeaderBar.Commands.exportImage:
+            exportImage();
+            break;
+
+        case HeaderBar.Commands.projectLoadById:
+            const projects = state.getProjectsFromLocalStorage();
+            const project = projects.getProjectById(args.projectId);
+            state.setProject(project);
+            break;
+
+        case HeaderBar.Commands.projectDelete:
+            state.deleteProjectFromStorage(args.projectId);
+            break;
+
     }
 }
 
@@ -953,6 +998,113 @@ function getUIState() {
     return state.persistentUIState;
 }
 
+function formatForProject() {
+    const palette = getPalette();
+    const tileSet = getTileSet();
+    const colour = palette.getColour(instanceState.colourIndex);
+
+    headerBar.setState({
+        projectTitle: state.project.title,
+        enabled: true
+    });
+    paletteEditor.setState({
+        paletteList: getPaletteList(),
+        selectedPaletteIndex: getUIState().paletteIndex,
+        lastPaletteInputSystem: getUIState().importPaletteSystem,
+        selectedColourIndex: 0,
+        displayNative: getUIState().displayNativeColour,
+        enabled: true
+    });
+    colourPickerToolbox.setState({
+        showTab: instanceState.colourToolboxTab,
+        r: colour.r,
+        g: colour.g,
+        b: colour.b,
+        enabled: true
+    });
+    setCommonTileToolbarStates({
+        tileWidth: tileSet.tileWidth,
+        selectedTool: instanceState.tool,
+        scale: getUIState().scale,
+        undoEnabled: undoManager.canUndo,
+        redoEnabled: undoManager.canRedo,
+        showTileGridChecked: getUIState().showTileGrid,
+        showPixelGridChecked: getUIState().showPixelGrid,
+        enabled: true
+    });
+    tileEditor.setState({
+        palette: palette,
+        tileSet: tileSet,
+        scale: getUIState().scale,
+        displayNative: getUIState().displayNativeColour,
+        cursorSize: instanceState.pencilSize,
+        showTileGrid: getUIState().showTileGrid,
+        showPixelGrid: getUIState().showPixelGrid,
+        enabled: true
+    });
+}
+
+function formatForNoProject() {
+    const dummyProject = createEmptyProject();
+    headerBar.setState({
+        enabled: false,
+        projectTitle: '',
+        enabledCommands: [
+            HeaderBar.Commands.projectNew,
+            HeaderBar.Commands.projectLoadFromFile,
+            HeaderBar.Commands.projectLoadById, HeaderBar.Commands.projectDelete
+        ]
+    });
+    paletteEditor.setState({
+        paletteList: dummyProject.paletteList,
+        selectedPaletteIndex: 0,
+        selectedColourIndex: 0,
+        enabled: false
+    });
+    tileContextToolbar.setState({
+        enabled: false
+    });
+    tileEditorToolbar.setState({
+        enabled: false
+    });
+    tileEditorBottomToolbar.setState({
+        enabled: false
+    });
+    colourPickerToolbox.setState({
+        enabled: false
+    });
+    tileEditor.setState({
+        tileSet: dummyProject.tileSet,
+        enabled: false
+    });
+}
+
+function displaySelectedProject() {
+    if (getProject()) {
+        getUIState().lastProjectId = getProject().id;
+        state.saveUIStateToLocalStorage();
+        formatForProject();
+    } else {
+        formatForNoProject();
+        // Select default project if one was there
+        const projects = state.getProjectsFromLocalStorage();
+        const project = (() => {
+            const lastProject = projects.getProjectById(getUIState().lastProjectId);
+            if (lastProject) return lastProject;
+            if (projects.length > 0) return projects.getProject(0);
+            return null;
+        })();
+        if (project) state.setProject(project);
+    }
+}
+
+function displayProjectList() {
+    const projects = state.getProjectsFromLocalStorage();
+    headerBar.setState({
+        projects: projects
+    });
+}
+
 function takeToolAction(tool, colourIndex, imageX, imageY) {
 
     if (tool !== null && colourIndex >= 0 && colourIndex < 16) {
@@ -1307,7 +1459,8 @@ function setProjectTitle(title) {
 function newProject() {
     addUndoState();
 
-    state.setProject(createEmptyProject());
+    const newProject = createEmptyProject();
+    state.setProject(newProject);
     getUIState().paletteIndex = 0;
     state.saveToLocalStorage();
 
@@ -1440,7 +1593,7 @@ function undoOrRedo(undoOrRedo) {
 }
 
 function addUndoState() {
-    if (!instanceState.undoDisabled) {
+    if (state.project && !instanceState.undoDisabled) {
         undoManager.addUndoState(state.project);
         setCommonTileToolbarStates({
             undoEnabled: undoManager.canUndo,
@@ -1813,6 +1966,13 @@ function selectColourIndex(index) {
     });
 }
 
+/**
+ * @param {import('./ui/tileEditorToolbar.js').TileEditorToolbarState} state 
+ */
+function setCommonTileToolbarStates(state) {
+    tileEditorToolbar.setState(state);
+    tileEditorBottomToolbar.setState(state);
+}
 
 
 /* ****************************************************************************************************
@@ -1833,95 +1993,22 @@ window.addEventListener('load', () => {
     // createDefaultProjectIfNoneExists();
     checkPersistentUIValues();
 
-    // const palette = getPalette();
-    // const tileSet = getTileSet();
-    // const colour = palette.getColour(instanceState.colourIndex);
-
-
+    // Load initial projects
+    const projects = state.getProjectsFromLocalStorage();
     headerBar.setState({
-        enabled: false
+        projects: projects
     });
 
-    paletteEditor.setState({
-        enabled: false
-    });
-
-    tileContextToolbar.setState({
-        enabled: false
-    });
-
+    // Set up tool strips
     const strips = TileEditorToolbar.ToolStrips;
     tileEditorToolbar.setState({
-        visibleToolstrips: [strips.tileAdd, strips.undo, strips.tools, strips.tileWidth],
-        enabled: false
+        visibleToolstrips: [strips.tileAdd, strips.undo, strips.tools, strips.tileWidth]
     });
     tileEditorBottomToolbar.setState({
-        visibleToolstrips: [strips.scale, strips.showTileGrid, strips.showPixelGrid],
-        enabled: false
+        visibleToolstrips: [strips.scale, strips.showTileGrid, strips.showPixelGrid]
     });
 
-    colourPickerToolbox.setState({
-        enabled: false
-    });
+    selectTool(instanceState.tool);
 
-    tileEditor.setState({
-        enabled: false
-    });
-
-    document.querySelector('.navbar-brand img').onclick = () => {
-        console.log('click');
-    };
-
-
-    // headerBar.setState({
-    //     projectTitle: state.project.title
-    // });
-    // paletteEditor.setState({
-    //     paletteList: getPaletteList(),
-    //     selectedPaletteIndex: getUIState().paletteIndex,
-    //     lastPaletteInputSystem: getUIState().importPaletteSystem,
-    //     selectedColourIndex: 0,
-    //     displayNative: getUIState().displayNativeColour
-    // });
-    // colourPickerToolbox.setState({
-    //     showTab: instanceState.colourToolboxTab,
-    //     r: colour.r,
-    //     g: colour.g,
-    //     b: colour.b
-    // });
-    // const strips = TileEditorToolbar.ToolStrips;
-    // tileEditorToolbar.setState({
-    //     visibleToolstrips: [strips.tileAdd, strips.undo, strips.tools, strips.tileWidth]
-    // });
-    // tileEditorBottomToolbar.setState({
-    //     visibleToolstrips: [strips.scale, strips.showTileGrid, strips.showPixelGrid]
-    // });
-    // setCommonTileToolbarStates({
-    //     tileWidth: tileSet.tileWidth,
-    //     selectedTool: instanceState.tool,
-    //     scale: getUIState().scale,
-    //     undoEnabled: undoManager.canUndo,
-    //     redoEnabled: undoManager.canRedo,
-    //     showTileGridChecked: getUIState().showTileGrid,
-    //     showPixelGridChecked: getUIState().showPixelGrid
-    // });
-    // tileEditor.setState({
-    //     palette: palette,
-    //     tileSet: tileSet,
-    //     scale: getUIState().scale,
-    //     displayNative: getUIState().displayNativeColour,
-    //     cursorSize: instanceState.pencilSize,
-    //     showTileGrid: getUIState().showTileGrid,
-    //     showPixelGrid: getUIState().showPixelGrid
-    // });
-    // selectTool(instanceState.tool);
-
+    displaySelectedProject();
 });
-
-/**
- * @param {import('./ui/tileEditorToolbar.js').TileEditorToolbarState} state 
- */
-function setCommonTileToolbarStates(state) {
-    tileEditorToolbar.setState(state);
-    tileEditorBottomToolbar.setState(state);
-}

@@ -6,14 +6,26 @@ import Project from "./models/project.js";
 import ProjectList from "./models/projectList.js";
 import GeneralUtil from "./util/generalUtil.js";
 import ProjectJsonSerialiser from "./serialisers/projectJsonSerialiser.js";
+import EventDispatcher from "./components/eventDispatcher.js";
 
 const LOCAL_STORAGE_APPUI = 'smsgfxappui';
 const LOCAL_STORAGE_PROJECTS = 'smsgfxproject_';
 
-const rxProjectId = /^[A-z0-9]+$/ig;
+const EVENT_OnEvent = 'EVENT_OnEvent';
+
+const events = {
+    projectChanged: 'projectChanged',
+    projectListChanged: 'projectListUpdated'
+};
+
+const rxProjectId = /^[A-z0-9]+$/;
 
 export default class State {
 
+
+    static get Events() {
+        return events;
+    }
 
     /**
      * Gets the presistent state for UI elements.
@@ -36,11 +48,25 @@ export default class State {
     #projects = {};
     /** @type {Project} */
     #project;
+    /** @type {EventDispatcher} */
+    #dispatcher;
 
 
     constructor() {
         this.#persistentUIState = PersistentUIStateFactory.create();
         this.#project = null;
+        this.#dispatcher = new EventDispatcher();
+    }
+
+
+    /**
+     * Adds a callback for when the loaded project changes.
+     * @param {StateCallback} callback - Callback function.
+     */
+    addHandlerOnEvent(callback) {
+        if (typeof callback === 'function') {
+            this.#dispatcher.on(EVENT_OnEvent, callback);
+        }
     }
 
 
@@ -50,14 +76,14 @@ export default class State {
      */
     getProjectsFromLocalStorage() {
         const result = new ProjectList();
-        for (const key in localStorage) {
-            if (key.startsWith(LOCAL_STORAGE_PROJECTS)) {
-                const id = key.substring(LOCAL_STORAGE_PROJECTS.length);
-                if (id && rxProjectId.test(project.id)) {
-                    if (this.project && this.project.id === id) {
+        for (const storageKey in localStorage) {
+            if (storageKey.startsWith(LOCAL_STORAGE_PROJECTS)) {
+                const projectId = storageKey.substring(LOCAL_STORAGE_PROJECTS.length);
+                if (rxProjectId.test(projectId)) {
+                    if (this.project && this.project.id === projectId) {
                         result.addProject(this.project);
                     } else {
-                        const deserialised = ProjectJsonSerialiser.deserialise(localStorage.getItem(key));
+                        const deserialised = ProjectJsonSerialiser.deserialise(localStorage.getItem(storageKey));
                         result.addProject(deserialised);
                     }
                 }
@@ -68,11 +94,15 @@ export default class State {
 
     /**
      * Set the current project.
-     * @param {Project} project - Project to set.
+     * @param {Project|null} project - Project to set.
      */
     setProject(project) {
-        if (!project) throw new Error('Index out of range for new project to insert.');
-        this.#project = project;
+        if (project) {
+            this.#project = project;
+        } else {
+            this.#project = null;
+        }
+        this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectChanged));
     }
 
 
@@ -101,22 +131,47 @@ export default class State {
 
         const project = ProjectJsonSerialiser.deserialise(serialised);
         ensureProjectHasId(project);
-        this.#project = project;
+        this.setProject(project);
     }
 
+
+    saveUIStateToLocalStorage() {
+        const serialisedUIState = AppUIStateJsonSerialiser.serialise(this.persistentUIState);
+        localStorage.setItem(LOCAL_STORAGE_APPUI, serialisedUIState);
+    }
+
+    saveProjectToLocalStorage() {
+        if (this.project) {
+            ensureProjectHasId(this.project);
+            const storageId = `${LOCAL_STORAGE_PROJECTS}${this.project.id}`;
+            const serialised = ProjectJsonSerialiser.serialise(this.project);
+            localStorage.setItem(storageId, serialised);
+            this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectListChanged));
+        }
+    }
 
     /**
      * Saves to local storage.
      */
     saveToLocalStorage() {
-        const serialisedUIState = AppUIStateJsonSerialiser.serialise(this.persistentUIState);
-        localStorage.setItem(LOCAL_STORAGE_APPUI, serialisedUIState);
+        this.saveUIStateToLocalStorage();
+        this.saveProjectToLocalStorage();
+    }
 
-        if (this.project) {
-            ensureProjectHasId(project);
-            const storageId = `${LOCAL_STORAGE_PROJECTS}${project.id}`;
-            const serialised = ProjectJsonSerialiser.serialise(project);
-            localStorage.setItem(storageId, serialised);
+
+    /**
+     * Deletes a project from local storage.
+     * @param {string?} projectId - Project ID to delete.
+     */
+    deleteProjectFromStorage(projectId) {
+        if (projectId && rxProjectId.test(projectId)) {
+            const storageId = `${LOCAL_STORAGE_PROJECTS}${this.project.id}`;
+            localStorage.removeItem(storageId);
+            this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectListChanged));
+
+            if (this.project?.id === projectId) {
+                this.setProject(null);
+            }
         }
     }
 
@@ -132,3 +187,28 @@ function ensureProjectHasId(project) {
         project.id = GeneralUtil.generateRandomString(16);
     }
 }
+
+
+/**
+ * @param {string} event 
+ * @returns {StateEventArgs}
+ */
+function createArgs(event) {
+    return {
+        event: event
+    };
+}
+
+
+/**
+ * State callback.
+ * @callback StateCallback
+ * @param {StateEventArgs} args - Arguments.
+ * @exports
+ */
+/**
+ * @typedef {object} StateEventArgs
+ * @property {string} event - The event that occurred.
+ * @exports
+ */
+

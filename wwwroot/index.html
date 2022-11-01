@@ -29,22 +29,33 @@
                         </span>
                     </div>
                     <div class="col-md-auto text-end pe-2">
+                        <select data-command="projectLoadById" class="form-select d-none">
+                        </select>
                         <div class="input-group input-group-sm">
-                            <span class="input-group-text fw-bold">Project</span>
-                            <input data-command="title" type="text" class="form-control"
-                                placeholder="Project title" aria-label="Project title">
-                            <button data-command="projectNew" class="btn btn-outline-secondary"
-                                title="New project." type="button">
-                                <i class="bi bi-file-earmark-plus"></i> New
-                            </button>
-                            <button data-command="projectLoadFromFile" class="btn btn-outline-secondary"
-                                title="Load project from file." type="button">
-                                <i class="bi bi-upload"></i> Load
-                            </button>
-                            <button data-command="projectSaveToFile" class="btn btn-outline-secondary"
-                                title="Save project to file." type="button">
-                                <i class="bi bi-download"></i> Save
-                            </button>
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button"
+                                data-bs-toggle="dropdown" aria-expanded="false"><span
+                                    class="fw-bold">Project</span></button>
+                            <div class="dropdown-menu sms-smaller-font">
+                                <button data-command="projectNew" class="dropdown-item" title="New project."
+                                    type="button">
+                                    <i class="bi bi-file-earmark-plus"></i> New project
+                                </button>
+                                <hr class="dropdown-divider">
+                                <button data-command="projectLoadFromFile" class="dropdown-item"
+                                    title="Load project from file." type="button">
+                                    <i class="bi bi-upload"></i> Load from local file
+                                </button>
+                                <button data-command="projectSaveToFile" class="dropdown-item"
+                                    title="Save project to file." type="button">
+                                    <i class="bi bi-download"></i> Save to local file
+                                </button>
+                                <hr class="dropdown-divider">
+                                <p class="m-0 ps-2 mb-1"><small><strong><em>Local projects</em></strong></small></p>
+                                <div data-smsgfx-id="project-list" class="container m-0 p-0">
+                                </div>
+                            </div>
+                            <input data-command="title" type="text" class="form-control" placeholder="Project title"
+                                aria-label="Project title">
                         </div>
                     </div>
                     <div class="col-md-auto text-end">
@@ -88,8 +99,10 @@
                         <div class="input-group input-group-sm">
                             <input data-command="paletteTitle" type="text" class="form-control" aria-label="Enter name"
                                 list="tbPaletteSelect">
-                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"></button>
-                            <ul data-linked-command="paletteSelect" class="sms-dropdown-menu dropdown-menu dropdown-menu-end">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button"
+                                data-bs-toggle="dropdown" aria-expanded="false"></button>
+                            <ul data-linked-command="paletteSelect"
+                                class="sms-dropdown-menu dropdown-menu dropdown-menu-end">
                             </ul>
                         </div>
                     </div>
@@ -135,7 +148,8 @@
                         <div class="row">
                             <div class="col">
                                 <div class="form-check form-switch ms-2 mt-2">
-                                    <input id="displayNativeColours" data-command="displayNativeColours" class="form-check-input" type="checkbox" role="switch" checked>
+                                    <input id="displayNativeColours" data-command="displayNativeColours"
+                                        class="form-check-input" type="checkbox" role="switch" checked>
                                     <label class="form-check-label" for="displayNativeColours">
                                         <small>Emulate system colours</small>
                                     </label>
@@ -149,7 +163,8 @@
                                     type="button">
                                     <i class="bi bi-file-earmark-plus"></i> Clone
                                 </button>
-                                <button data-command="paletteDelete" class="btn btn-sm btn-outline-secondary" type="button">
+                                <button data-command="paletteDelete" class="btn btn-sm btn-outline-secondary"
+                                    type="button">
                                     <i class="bi bi bi-trash-fill"></i> Remove
                                 </button>
                             </div>
@@ -171,8 +186,7 @@
                     </div>
                     <div class="card-body p-2">
                         <div class="sms-colour-toolbox">
-                            <div class="container visually-hidden"
-                                data-colour-toolbox-tab-content="rgb">
+                            <div class="container visually-hidden" data-colour-toolbox-tab-content="rgb">
                                 <div class="row">
                                     <div class="col-2 pe-1">
                                         R
@@ -182,7 +196,8 @@
                                             max="255" step="17">
                                     </div>
                                     <div class="col-3 ps-1">
-                                        <input data-smsgfx-id="inputRedValue" type="text" class="form-control form-control-sm">
+                                        <input data-smsgfx-id="inputRedValue" type="text"
+                                            class="form-control form-control-sm">
                                     </div>
                                 </div>
                                 <div class="row">
@@ -216,7 +231,8 @@
                                         HEX
                                     </div>
                                     <div class="col-6 p-0">
-                                        <input data-smsgfx-id="inputHex" type="text" class="form-control form-control-sm">
+                                        <input data-smsgfx-id="inputHex" type="text"
+                                            class="form-control form-control-sm">
                                     </div>
                                     <div class="col-3 ps-1">
                                         <input data-smsgfx-id="colourPicker" type="color"

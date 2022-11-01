@@ -61,7 +61,7 @@ export default class Project {
      */
     constructor(id, title, tileSet, paletteList) {
 
-        if (typeof id !== 'undefined' && title !== null) {
+        if (typeof id !== 'undefined' && id !== null && id.length > 0) {
             this.#id = id;
         } else {
             this.id = GeneralUtil.generateRandomString(16);

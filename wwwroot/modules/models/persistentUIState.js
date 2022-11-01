@@ -2,6 +2,16 @@ export default class PersistentUIState {
 
 
     /**
+     * Gets or sets the last project ID that was selected.
+     */
+    get lastProjectId() {
+        return this.#lastProjectId;
+    }
+    set lastProjectId(value) {
+        this.#lastProjectId = value;
+    }
+
+    /**
      * Gets or sets the last text that was entered into the palette input box.
      */
     get importPaletteAssemblyCode() {
@@ -34,7 +44,7 @@ export default class PersistentUIState {
     /**
      * Gets or sets the last replace value that was set in the import tile box.
      */
-     get importTileReplace() {
+    get importTileReplace() {
         return this.#importTileReplace;
     }
     set importTileReplace(value) {
@@ -74,7 +84,7 @@ export default class PersistentUIState {
     /**
      * Gets or sets whether to draw grid lines for the tiles.
      */
-     get showTileGrid() {
+    get showTileGrid() {
         return this.#showTileGrid;
     }
     set showTileGrid(value) {
@@ -92,6 +102,8 @@ export default class PersistentUIState {
     }
 
 
+    /** @type {string} */
+    #lastProjectId = null;
     /** @type {string} */
     #importPaletteAssemblyCode = '';
     /** @type {string} */

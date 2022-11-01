@@ -12,6 +12,7 @@ export default class PersistentUIStateJsonSerialiser {
      static serialise(appUI) {
         /** @type {PersistentUISerialisable} */
         const result = {
+            lastProjectId: appUI.lastProjectId,
             importPaletteAssemblyCode: appUI.importPaletteAssemblyCode,
             importPaletteSystem: appUI.importPaletteSystem,
             importTileAssemblyCode: appUI.importTileAssemblyCode,
@@ -34,6 +35,9 @@ export default class PersistentUIStateJsonSerialiser {
         /** @type {PersistentUISerialisable} */
         const deserialised = JSON.parse(value);
         if (deserialised) {
+            if (deserialised.lastProjectId) {
+                result.lastProjectId = deserialised.lastProjectId;
+            }
             if (deserialised.importPaletteAssemblyCode) {
                 result.importPaletteAssemblyCode = deserialised.importPaletteAssemblyCode;
             }
@@ -68,6 +72,7 @@ export default class PersistentUIStateJsonSerialiser {
 /**
  * @typedef PersistentUISerialisable
  * @type {object}
+ * @property {string} lastProjectId
  * @property {string} importPaletteAssemblyCode
  * @property {string} importPaletteSystem
  * @property {string} importTileAssemblyCode

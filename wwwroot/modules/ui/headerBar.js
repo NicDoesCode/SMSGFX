@@ -1,4 +1,5 @@
 import EventDispatcher from "../components/eventDispatcher.js";
+import ProjectList from "../models/projectList.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -6,7 +7,9 @@ const commands = {
     title: 'title',
     projectNew: 'projectNew',
     projectLoadFromFile: 'projectLoadFromFile',
+    projectLoadById: 'projectLoadById',
     projectSaveToFile: 'projectSaveToFile',
+    projectDelete: 'projectDelete',
     exportCode: 'exportCode',
     exportImage: 'exportImage'
 }
@@ -37,11 +40,7 @@ export default class HeaderBar {
 
         this.#element.querySelectorAll('button[data-command]').forEach(element => {
             element.onclick = () => {
-                /** @type {HeaderBarCommandEventArgs} */
-                const args = {
-                    command: element.getAttribute('data-command'),
-                    title: this.#element.querySelector(`[data-command=${commands.title}]`)?.value ?? null
-                };
+                const args = this.#createArgs(element.getAttribute('data-command'));
                 this.#dispatcher.dispatch(EVENT_OnCommand, args);
             };
         });
@@ -49,11 +48,8 @@ export default class HeaderBar {
         // Prevent pressing 'Enter' on the title field from submitting.
         this.#element.querySelectorAll(`[data-command=${commands.title}]`).forEach(element => {
             element.onchange = () => {
-                /** @type {HeaderBarCommandEventArgs} */
-                const args = {
-                    command: element.getAttribute('data-command'),
-                    title: element.value
-                };
+                const args = this.#createArgs(element.getAttribute('data-command'));
+                args.title = element.value;
                 this.#dispatcher.dispatch(EVENT_OnCommand, args);
             };
             element.onkeydown = (keyEvent) => {
@@ -77,21 +73,33 @@ export default class HeaderBar {
                 element.value = state.projectTitle;
             });
         }
-        if (Array.isArray(state?.disabledCommands)) {
-            const disabled = state.disabledCommands;
-            this.#element.querySelectorAll('[data-command]').forEach(element => {
-                if (disabled.includes(element.getAttribute('data-command'))) {
-                    element.setAttribute('disabled', 'disabled');
-                } else {
-                    element.removeAttribute('disabled');
-                }
-            });
+
+        if (typeof state.projects?.getProjects === 'function') {
+            this.#displayProjects(state.projects);
         }
 
         if (typeof state?.enabled === 'boolean') {
             this.#enabled = state?.enabled;
             this.#element.querySelectorAll('[data-command]').forEach(element => {
                 element.disabled = !this.#enabled;
+            });
+        }
+
+        if (Array.isArray(state?.enabledCommands)) {
+            const enabled = state.enabledCommands;
+            this.#element.querySelectorAll('[data-command]').forEach(element => {
+                if (enabled.includes(element.getAttribute('data-command'))) {
+                    element.removeAttribute('disabled');
+                }
+            });
+        }
+
+        if (Array.isArray(state?.disabledCommands)) {
+            const disabled = state.disabledCommands;
+            this.#element.querySelectorAll('[data-command]').forEach(element => {
+                if (disabled.includes(element.getAttribute('data-command'))) {
+                    element.setAttribute('disabled', 'disabled');
+                }
             });
         }
     }
@@ -106,6 +114,118 @@ export default class HeaderBar {
     }
 
 
+    /**
+     * @param {string} command
+     * @returns {HeaderBarCommandEventArgs}
+     */
+    #createArgs(command) {
+        return {
+            command: command,
+            title: this.#element.querySelector(`[data-command=${commands.title}]`)?.value ?? null,
+            projectId: null
+        };
+    }
+
+
+    /**
+     * @param {ProjectList} projects
+     */
+    #displayProjects(projects) {
+        const elm = this.#element.querySelector('[data-smsgfx-id=project-list]');
+        while (elm.childNodes.length > 0) {
+            elm.childNodes[0].remove();
+        }
+        projects.getProjects().forEach(project => {
+            const row = document.createElement('div');
+            row.classList.add('dropdown-item', 'd-flex', 'justify-content-between', 'pt-0', 'pb-0', 'mb-1', 'ps-2', 'pe-2');
+            row.appendChild((() => {
+
+                const btn = document.createElement('button');
+                btn.classList.add('btn', 'btn-sm', 'btn-link', 'ms-0', 'ps-0');
+                btn.innerText = project.title;
+                btn.setAttribute('data-command', commands.projectLoadById);
+                btn.setAttribute('data-project-id', project.id);
+                btn.onclick = () => this.#handleProjectCommandButtonClicked(commands.projectLoadById, project.id);
+                return btn;
+
+            })());
+            row.appendChild((() => {
+
+                const btn = document.createElement('button');
+                btn.classList.add('btn', 'btn-sm', 'btn-outline-secondary');
+                btn.setAttribute('data-command', commands.pro);
+                btn.setAttribute('data-project-id', project.id);
+                btn.onclick = () => this.#handleProjectCommandButtonClicked(commands.projectDelete, project.id);
+                btn.appendChild((() => {
+                    const i = document.createElement('i');
+                    i.classList.add('bi', 'bi-trash-fill');
+                    return i;
+                })());
+                return btn;
+
+            })());
+            elm.appendChild(row);
+
+
+
+            // const row = document.createElement('div');
+            // row.classList.add('row');
+            // row.appendChild((() => {
+
+            //     const col = document.createElement('div');
+            //     col.classList.add('col-auto');
+            //     col.appendChild((() => {
+
+            //         const btn = document.createElement('button');
+            //         btn.classList.add('dropdown-item');
+            //         btn.innerText = project.title;
+            //         btn.setAttribute('data-command', commands.projectLoadById);
+            //         btn.setAttribute('data-project-id', project.id);
+            //         btn.onclick = () => this.#handleProjectCommandButtonClicked(commands.projectLoadById, project.id);
+            //         return btn;
+
+            //     })());
+            //     return col;
+
+            // })());
+            // row.appendChild((() => {
+
+            //     const col = document.createElement('div');
+            //     col.classList.add('col', 'p-0', 'm-0');
+            //     col.appendChild((() => {
+
+            //         const btn = document.createElement('button');
+            //         btn.classList.add('btn', 'btn-sm', 'btn-outline-secondary');
+            //         btn.setAttribute('data-command', commands.pro);
+            //         btn.setAttribute('data-project-id', project.id);
+            //         btn.onclick = () => this.#handleProjectCommandButtonClicked(commands.projectDelete, project.id);
+            //         btn.appendChild((() => {
+            //             const i = document.createElement('i');
+            //             i.classList.add('bi', 'bi-trash-fill');
+            //             return i;
+            //         })());
+            //         return btn;
+
+            //     })());
+            //     return col;
+
+            // })());
+            // elm.appendChild(row);
+        });
+    }
+
+
+    /**
+     * @param {string} command 
+     * @param {string} projectId 
+     */
+    #handleProjectCommandButtonClicked(command, projectId) {
+        const args = this.#createArgs(command);
+        args.projectId = projectId;
+        this.#dispatcher.dispatch(EVENT_OnCommand, args);
+    }
+
+
 }
 
 
@@ -113,7 +233,9 @@ export default class HeaderBar {
  * Header bar state.
  * @typedef {object} HeaderBarState
  * @property {string?} projectTitle - Project title to display.
- * @property {string[]?} disabledCommands - Array of commands that should be disabled.
+ * @property {string[]?} enabledCommands - Array of commands that should be enabled, overrided enabled state.
+ * @property {string[]?} disabledCommands - Array of commands that should be disabled, overrided enabled state.
+ * @property {ProjectList} projects - List of projects to display in the menu.
  * @property {boolean?} enabled - Is the control enabled or disabled?
  */
 
@@ -127,6 +249,7 @@ export default class HeaderBar {
  * @typedef {object} HeaderBarCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string?} title - Project title.
+ * @property {string?} projectId - Project ID.
  * @exports
  */
 

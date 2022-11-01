@@ -36,6 +36,21 @@ export default class ProjectList {
     }
 
     /**
+     * Gets an item by ID.
+     * @param {string} projectId - ID of the item to get.
+     * @returns {Project|null}
+     */
+    getProjectById(projectId) {
+        if (projectId) {
+            const found = this.#projects.filter(p => p.id === projectId);
+            if (found.length > 0) {
+                return found[0];
+            }
+        }
+        return null;
+    }
+
+    /**
      * Gets an item by index.
      * @param {number} index - Index of the item to get.
      * @returns {Project}
