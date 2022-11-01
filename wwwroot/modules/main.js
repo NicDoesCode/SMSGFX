@@ -27,6 +27,7 @@ import FileUtil from "./util/fileUtil.js";
 import Project from "./models/project.js";
 import TileSet from "./models/tileSet.js";
 import PaletteList from "./models/paletteList.js";
+import GeneralUtil from "./util/generalUtil.js";
 
 
 const undoManager = new UndoManager(50);
@@ -73,7 +74,8 @@ const instanceState = {
     pencilSize: 1,
     ctrlIsDown: false,
     shiftIsDown: false,
-    altIsDown: false
+    altIsDown: false,
+    sessionId: GeneralUtil.generateRandomString(32)
 };
 
 

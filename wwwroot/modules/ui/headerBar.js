@@ -142,6 +142,7 @@ export default class HeaderBar {
 
                 const btn = document.createElement('button');
                 btn.classList.add('btn', 'btn-sm', 'btn-link', 'ms-0', 'ps-0');
+                btn.type = 'button';
                 btn.innerText = project.title;
                 btn.setAttribute('data-command', commands.projectLoadById);
                 btn.setAttribute('data-project-id', project.id);
@@ -153,6 +154,7 @@ export default class HeaderBar {
 
                 const btn = document.createElement('button');
                 btn.classList.add('btn', 'btn-sm', 'btn-outline-secondary');
+                btn.type = 'button';
                 btn.setAttribute('data-command', commands.pro);
                 btn.setAttribute('data-project-id', project.id);
                 btn.onclick = () => this.#handleProjectCommandButtonClicked(commands.projectDelete, project.id);
