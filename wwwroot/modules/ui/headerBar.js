@@ -23,6 +23,7 @@ export default class HeaderBar {
     #element;
     /** @type {EventDispatcher} */
     #dispatcher;
+    #enabled = true;
 
 
     /**
@@ -86,6 +87,13 @@ export default class HeaderBar {
                 }
             });
         }
+
+        if (typeof state?.enabled === 'boolean') {
+            this.#enabled = state?.enabled;
+            this.#element.querySelectorAll('[data-command]').forEach(element => {
+                element.disabled = !this.#enabled;
+            });
+        }
     }
 
 
@@ -106,6 +114,7 @@ export default class HeaderBar {
  * @typedef {object} HeaderBarState
  * @property {string?} projectTitle - Project title to display.
  * @property {string[]?} disabledCommands - Array of commands that should be disabled.
+ * @property {boolean?} enabled - Is the control enabled or disabled?
  */
 
 /**

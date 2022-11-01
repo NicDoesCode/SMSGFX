@@ -4,10 +4,6 @@ import EventDispatcher from "../components/eventDispatcher.js";
 import PaletteList from "../models/paletteList.js";
 import PaletteEditorContextMenu from "./paletteEditorContextMenu.js";
 
-const EVENT_RequestColourIndexChange = 'EVENT_RequestColourIndexChange';
-const EVENT_RequestColourIndexEdit = 'EVENT_RequestColourIndexEdit';
-const EVENT_RequestPaletteIndexReplace = 'EVENT_RequestPaletteIndexReplace';
-const EVENT_RequestPaletteIndexSwap = 'EVENT_RequestPaletteIndexSwap';
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
 const commands = {
@@ -22,9 +18,8 @@ const commands = {
     colourIndexChange: 'colourIndexChange',
     colourIndexEdit: 'colourIndexEdit',
     colourIndexSwap: 'colourIndexSwap',
-    colourIndexReplace: 'colourIndexReplace',
+    colourIndexReplace: 'colourIndexReplace'
 }
-
 
 export default class PaletteEditor {
 
@@ -164,16 +159,16 @@ export default class PaletteEditor {
         if (typeof state?.enabled === 'boolean') {
             this.#enabled = state?.enabled;
             this.#element.querySelectorAll('[data-command]').forEach(element => {
-                element.disabled = true;
+                element.disabled = !this.#enabled;
             });
             this.#paletteButtons.forEach(button => {
-                button.disabled = true;
+                button.disabled = !this.#enabled;
             });
             this.#element.querySelectorAll('[data-linked-command]').forEach(element => {
-                element.disabled = true;
+                element.disabled = !this.#enabled;
             });
             this.#element.querySelectorAll('button[data-bs-toggle=dropdown]').forEach(element => {
-                element.disabled = true;
+                element.disabled = !this.#enabled;
             });
         }
     }

@@ -30,7 +30,7 @@ const undoManager = new UndoManager(50);
 
 const exportDialogue = new ExportModalDialogue(document.getElementById('tbExportDialogue'));
 const colourPickerDialogue = new ColourPickerDialogue(document.getElementById('tbColourPickerDialogue'));
-const colourPickerToolbox = new ColourPickerToolbox(document.getElementById('tbColourToolbox'));
+const colourPickerToolbox = new ColourPickerToolbox(document.querySelector('[data-smsgfx-component-id=colour-picker-toolbox]'));
 const paletteEditor = new PaletteEditor(document.querySelector('[data-smsgfx-component-id=palette-editor]'));
 const paletteImportDialogue = new PaletteModalDialogue(document.querySelector('[data-smsgfx-component-id=palette-import-dialogue]'));
 const tileEditor = new TileEditor(document.getElementById('tbTileEditor'));
@@ -110,8 +110,7 @@ function wireUpEventHandlers() {
     colourPickerDialogue.addHandlerOnConfirm(handleColourPickerConfirm);
     colourPickerDialogue.addHandlerOnCancel(handleColourPickerCancel);
 
-    colourPickerToolbox.addHandlerRequestTabChange(handleColourPickerToolboxTabChange);
-    colourPickerToolbox.addHandlerRequestColourChange(handleColourPickerToolboxColourChange);
+    colourPickerToolbox.addHandlerOnCommand(handleColourPickerToolboxOnCommand);
 
     tileImportDialogue.addHandlerOnConfirm(handleImportTileSet);
 
@@ -555,6 +554,7 @@ function handleTileContextToolbarCommand(args) {
     }
 }
 
+
 /** @param {import("./ui/tileEditor.js").TileEditorPixelEventArgs} args */
 function handleTileEditorPixelMouseOver(args) {
     const tileSet = getTileSet();
@@ -701,29 +701,7 @@ function handleColourPickerChange(args) {
  * @param {import('./ui/colourPickerDialogue').ColourPickerDialogueColourEventArgs} args - Event args.
  */
 function handleColourPickerConfirm(args) {
-    addUndoState();
-
-    const project = state.project;
-    const paletteList = project.paletteList;
-    const palette = paletteList.getPalette(state.persistentUIState.paletteIndex);
-    const currentColour = palette.getColour(args.index);
-
-    if (args.r !== currentColour.r || args.g !== currentColour.g || args.b !== currentColour.b) {
-
-        const newColour = PaletteColourFactory.create(args.r, args.g, args.b);
-        palette.setColour(args.index, newColour);
-
-        state.setProject(project);
-        state.saveToLocalStorage();
-
-        paletteEditor.setState({
-            paletteList: state.paletteList
-        });
-        tileEditor.setState({
-            palette: palette
-        });
-
-    }
+    changeColourIndex(getUIState().paletteIndex, args.index, { r: args.r, g: args.g, b: args.b })
     colourPickerDialogue.hide();
 }
 
@@ -733,9 +711,7 @@ function handleColourPickerConfirm(args) {
  */
 function handleColourPickerCancel(args) {
 
-    const project = state.project;
-    const paletteList = project.paletteList;
-    const palette = paletteList.getPalette(state.persistentUIState.paletteIndex);
+    const palette = getPaletteList().getPalette(state.persistentUIState.paletteIndex);
     const currentColour = palette.getColour(args.index);
 
     if (args.originalR !== currentColour.r || args.originalG !== currentColour.g || args.originalB !== currentColour.b) {
@@ -756,30 +732,38 @@ function handleColourPickerCancel(args) {
 
 
 /**
- * New tab selected values from the colour toolbox.
- * @param {import('./colourPickerToolbox.js').ColourPickerToolboxTabEventArgs} args - Event args.
+ * @param {import('./ui/colourPickerToolbox.js').ColourPickerToolboxCommandEventArgs} args
  */
-function handleColourPickerToolboxTabChange(args) {
-    colourPickerToolbox.setState({
-        showTab: args.tab
-    });
+ function handleColourPickerToolboxOnCommand(args) {
+    switch (args.command) {
+
+        case ColourPickerToolbox.Commands.tabChanged:
+            colourPickerToolbox.setState({
+                showTab: args.tab
+            });
+            break;
+
+        case ColourPickerToolbox.Commands.colourChanged:
+            changeColourIndex(getUIState().paletteIndex, instanceState.colourIndex, { r: args.r, g: args.g, b: args.b })
+            break;
+
+    }
 }
 
 
 /**
- * New RGB values from the colour toolbox received, bubble them up.
- * @param {import('./colourPickerToolbox.js').ColourPickerToolboxColourEventArgs} args - Event args.
+ * @param {number} paletteIndex
+ * @param {number} colourIndex
+ * @param {{r: number, g: number, b: number}} colour
  */
-function handleColourPickerToolboxColourChange(args) {
+function changeColourIndex(paletteIndex, colourIndex, colour) {
     addUndoState();
 
-    const project = state.project;
-    const palette = getPalette();
+    const palette = getPaletteList().getPalette(paletteIndex);
 
-    const newColour = PaletteColourFactory.create(args.r, args.g, args.b);
-    palette.setColour(instanceState.colourIndex, newColour);
+    const newColour = PaletteColourFactory.create(colour.r, colour.g, colour.b);
+    palette.setColour(colourIndex, newColour);
 
-    state.setProject(project);
     state.saveToLocalStorage();
 
     paletteEditor.setState({
@@ -1877,17 +1861,24 @@ $(() => {
 
 
     headerBar.setState({
-        disabledCommands: [
-            HeaderBar.Commands.title, HeaderBar.Commands.projectNew,
-            HeaderBar.Commands.projectSaveToFile, HeaderBar.Commands.projectLoadFromFile,
-            HeaderBar.Commands.exportCode, HeaderBar.Commands.exportImage
-        ]
+        enabled: false
     });
 
     paletteEditor.setState({
         enabled: false
     });
 
+    setCommonTileToolbarStates({
+        enabled: false
+    });
+
+    tileContextToolbar.setState({
+        enabled: false
+    });
+
+    colourPickerToolbox.setState({
+        enabled: false
+    });
 
 
     // headerBar.setState({

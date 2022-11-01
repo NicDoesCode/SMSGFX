@@ -51,6 +51,7 @@ export default class TileEditorToolbar {
     #element;
     #lastScale = 1;
     #dispatcher;
+    #enabled = true;
 
 
     /**
@@ -143,6 +144,13 @@ export default class TileEditorToolbar {
                 } else {
                     element.classList.add('visually-hidden');
                 }
+            });
+        }
+
+        if (typeof state?.enabled === 'boolean') {
+            this.#enabled = state?.enabled;
+            this.#element.querySelectorAll('[data-command]').forEach(element => {
+                element.disabled = !this.#enabled;
             });
         }
     }
@@ -249,6 +257,7 @@ export default class TileEditorToolbar {
 
 /**
  * @typedef {object} TileEditorToolbarState
+ * @property {boolean?} enabled - Is the toolbar enabled?
  * @property {string[]?} visibleToolstrips - An array of strings containing visible toolstrips.
  * @property {number?} tileWidth - Tile width to display.
  * @property {string?} selectedTool - Currently selected tool.
