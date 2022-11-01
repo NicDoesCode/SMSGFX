@@ -25,27 +25,8 @@ import TileUtil from "./util/tileUtil.js";
 import ImportImageModalDialogue from "./ui/importImageModalDialogue.js";
 import FileUtil from "./util/fileUtil.js";
 import Project from "./models/project.js";
-import TileSet from "./models/tileSet.js";
-import PaletteList from "./models/paletteList.js";
 import GeneralUtil from "./util/generalUtil.js";
-
-
-const undoManager = new UndoManager(50);
-
-const exportDialogue = new ExportModalDialogue(document.getElementById('tbExportDialogue'));
-const colourPickerDialogue = new ColourPickerDialogue(document.getElementById('tbColourPickerDialogue'));
-const colourPickerToolbox = new ColourPickerToolbox(document.querySelector('[data-smsgfx-component-id=colour-picker-toolbox]'));
-const paletteEditor = new PaletteEditor(document.querySelector('[data-smsgfx-component-id=palette-editor]'));
-const paletteImportDialogue = new PaletteModalDialogue(document.querySelector('[data-smsgfx-component-id=palette-import-dialogue]'));
-const tileEditor = new TileEditor(document.getElementById('tbTileEditor'));
-const tileEditorToolbar = new TileEditorToolbar(document.querySelector('[data-smsgfx-component-id=tile-editor-toolbar]'));
-const tileEditorBottomToolbar = new TileEditorToolbar(document.querySelector('[data-smsgfx-component-id=tile-editor-bottom-toolbar]'));
-const tileImportDialogue = new TileSetImportModalDialogue(document.querySelector('[data-smsgfx-component-id=tile-import-dialogue]'));
-const tileContextToolbar = new TileContextToolbar(document.querySelector('[data-smsgfx-component-id=tile-context-toolbar]'));
-const importImageModalDialogue = new ImportImageModalDialogue(document.querySelector('[data-smsgfx-component-id=import-image-modal]'));
-const headerBar = new HeaderBar(document.querySelector('[data-smsgfx-component-id=header-bar]'));
-
-
+import ProjectWatcher from "./components/projectWatcher.js";
 
 
 /* ****************************************************************************************************
@@ -82,10 +63,35 @@ const instanceState = {
 
 
 /* ****************************************************************************************************
+   Components
+*/
+
+const undoManager = new UndoManager(50);
+const watcher = new ProjectWatcher(instanceState.sessionId);
+
+const headerBar = new HeaderBar(document.querySelector('[data-smsgfx-component-id=header-bar]'));
+const exportDialogue = new ExportModalDialogue(document.getElementById('tbExportDialogue'));
+const colourPickerDialogue = new ColourPickerDialogue(document.getElementById('tbColourPickerDialogue'));
+const colourPickerToolbox = new ColourPickerToolbox(document.querySelector('[data-smsgfx-component-id=colour-picker-toolbox]'));
+const paletteEditor = new PaletteEditor(document.querySelector('[data-smsgfx-component-id=palette-editor]'));
+const paletteImportDialogue = new PaletteModalDialogue(document.querySelector('[data-smsgfx-component-id=palette-import-dialogue]'));
+const tileEditor = new TileEditor(document.getElementById('tbTileEditor'));
+const tileEditorToolbar = new TileEditorToolbar(document.querySelector('[data-smsgfx-component-id=tile-editor-toolbar]'));
+const tileEditorBottomToolbar = new TileEditorToolbar(document.querySelector('[data-smsgfx-component-id=tile-editor-bottom-toolbar]'));
+const tileImportDialogue = new TileSetImportModalDialogue(document.querySelector('[data-smsgfx-component-id=tile-import-dialogue]'));
+const tileContextToolbar = new TileContextToolbar(document.querySelector('[data-smsgfx-component-id=tile-context-toolbar]'));
+const importImageModalDialogue = new ImportImageModalDialogue(document.querySelector('[data-smsgfx-component-id=import-image-modal]'));
+
+
+
+
+/* ****************************************************************************************************
    Event handlers
 */
 
 function wireUpEventHandlers() {
+
+    watcher.addHandlerOnEvent(handleWatcherEvent);
 
     state.addHandlerOnEvent(handleStateEvent);
 
@@ -394,6 +400,26 @@ function createEventListeners() {
 }
 
 
+/** @param {import('./components/projectWatcher').ProjectWatcherEventArgs} args */
+function handleWatcherEvent(args) {
+    switch (args.event) {
+
+        case ProjectWatcher.Events.projectChanged:
+            const project = getProject();
+            if (project && args.project && args.project.id === project.id) {
+                state.setProject(args.project);
+                formatForProject();
+            }
+            break;
+
+        case ProjectWatcher.Events.projectListChanged:
+            setTimeout(() => displayProjectList(), 50);
+            break;
+
+    }
+}
+
+
 /** @param {import('./state.js').StateEventArgs} args */
 function handleStateEvent(args) {
     switch (args.event) {
@@ -402,8 +428,14 @@ function handleStateEvent(args) {
             displaySelectedProject();
             break;
 
+        case State.Events.projectSaved:
+            const project = getProject();
+            watcher.sendProjectChanged(project);
+            break;
+
         case State.Events.projectListChanged:
             displayProjectList();
+            watcher.sendProjectListChanged();
             break;
 
     }
@@ -627,8 +659,10 @@ function handleTileEditorPixelMouseDown(args) {
 
 /** @param {import("./ui/tileEditor.js").TileEditorPixelEventArgs} args */
 function handleTileEditorPixelMouseUp(args) {
-    state.saveToLocalStorage();
-    instanceState.undoDisabled = false;
+    if (instanceState.undoDisabled) {
+        state.saveToLocalStorage();
+        instanceState.undoDisabled = false;
+    }
 }
 
 /** @param {import("./ui/tileEditor.js").TileEditorTileEventArgs} args */
@@ -812,10 +846,10 @@ function changeColourIndex(paletteIndex, colourIndex, colour) {
     const newColour = PaletteColourFactory.create(colour.r, colour.g, colour.b);
     palette.setColour(colourIndex, newColour);
 
-    state.saveToLocalStorage();
+    state.saveProjectToLocalStorage();
 
     paletteEditor.setState({
-        paletteList: state.paletteList
+        paletteList: getPaletteList()
     });
     tileEditor.setState({
         palette: palette
@@ -1013,7 +1047,7 @@ function formatForProject() {
         paletteList: getPaletteList(),
         selectedPaletteIndex: getUIState().paletteIndex,
         lastPaletteInputSystem: getUIState().importPaletteSystem,
-        selectedColourIndex: 0,
+        selectedColourIndex: instanceState.colourIndex,
         displayNative: getUIState().displayNativeColour,
         enabled: true
     });

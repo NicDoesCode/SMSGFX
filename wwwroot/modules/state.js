@@ -15,7 +15,8 @@ const EVENT_OnEvent = 'EVENT_OnEvent';
 
 const events = {
     projectChanged: 'projectChanged',
-    projectListChanged: 'projectListUpdated'
+    projectListChanged: 'projectListUpdated',
+    projectSaved: 'projectSaved'
 };
 
 const rxProjectId = /^[A-z0-9]+$/;
@@ -146,6 +147,7 @@ export default class State {
             const storageId = `${LOCAL_STORAGE_PROJECTS}${this.project.id}`;
             const serialised = ProjectJsonSerialiser.serialise(this.project);
             localStorage.setItem(storageId, serialised);
+            this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectSaved, this.project.id));
             this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectListChanged));
         }
     }
@@ -191,11 +193,13 @@ function ensureProjectHasId(project) {
 
 /**
  * @param {string} event 
+ * @param {string|null} projectId 
  * @returns {StateEventArgs}
  */
-function createArgs(event) {
+function createArgs(event, projectId) {
     return {
-        event: event
+        event: event,
+        projectId: projectId ?? null
     };
 }
 
@@ -209,6 +213,7 @@ function createArgs(event) {
 /**
  * @typedef {object} StateEventArgs
  * @property {string} event - The event that occurred.
+ * @property {string} projectId - Associated project ID.
  * @exports
  */
 
