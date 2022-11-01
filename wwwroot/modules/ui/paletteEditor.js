@@ -4,20 +4,34 @@ import EventDispatcher from "../components/eventDispatcher.js";
 import PaletteList from "../models/paletteList.js";
 import PaletteEditorContextMenu from "./paletteEditorContextMenu.js";
 
-const EVENT_NewPalette = 'EVENT_NewPalette';
-const EVENT_ImportPaletteFromCode = 'EVENT_ImportPaletteFromCode';
-const EVENT_PaletteDelete = 'EVENT_PaletteDelete';
-const EVENT_PaletteClone = 'EVENT_PaletteClone';
-const EVENT_PaletteChanged = 'EVENT_PaletteChanged';
-const EVENT_PaletteSystemChanged = 'EVENT_PaletteSystemChanged';
 const EVENT_RequestColourIndexChange = 'EVENT_RequestColourIndexChange';
 const EVENT_RequestColourIndexEdit = 'EVENT_RequestColourIndexEdit';
-const EVENT_RequestTitleChange = 'EVENT_RequestTitleChange';
-const EVENT_RequestDisplayNativeChange = 'EVENT_RequestDisplayNativeChange';
 const EVENT_RequestPaletteIndexReplace = 'EVENT_RequestPaletteIndexReplace';
 const EVENT_RequestPaletteIndexSwap = 'EVENT_RequestPaletteIndexSwap';
+const EVENT_OnCommand = 'EVENT_OnCommand';
+
+const commands = {
+    paletteTitle: 'paletteTitle',
+    paletteSelect: 'paletteSelect',
+    paletteNew: 'paletteNew',
+    paletteCodeImport: 'paletteCodeImport',
+    paletteDelete: 'paletteDelete',
+    paletteClone: 'paletteClone',
+    paletteSystem: 'paletteSystem',
+    displayNativeColours: 'displayNativeColours',
+    colourIndexChange: 'colourIndexChange',
+    colourIndexEdit: 'colourIndexEdit',
+    colourIndexSwap: 'colourIndexSwap',
+    colourIndexReplace: 'colourIndexReplace',
+}
+
 
 export default class PaletteEditor {
+
+
+    static get Commands() {
+        return commands;
+    }
 
 
     /** @type {HTMLDivElement} */
@@ -26,34 +40,13 @@ export default class PaletteEditor {
     #paletteButtons = [];
     /** @type {HTMLTableCellElement[]} */
     #paletteCells = [];
-    /** @type {HTMLButtonElement} */
-    #btnNewPalette;
-    /** @type {HTMLButtonElement} */
-    #btnImportPaletteFromCode;
-    /** @type {HTMLButtonElement} */
-    #btnClonePalette;
-    /** @type {HTMLButtonElement} */
-    #btnRemovePalette;
-    /** @type {HTMLSelectElement} */
-    #tbPaletteSelect;
-    /** @type {HTMLUListElement} */
-    #tbPaletteSelectDropDown;
-    /** @type {HTMLInputElement} */
-    #tbPaletteTitle;
-    /** @type {HTMLSelectElement} */
-    #tbPaletteSystemSelect;
-    /** @type {HTMLInputElement} */
-    #tbPaletteEditorDisplayNative;
-    /** @type {HTMLButtonElement} */
-    #btnPaletteTargetMasterSystem;
-    /** @type {HTMLButtonElement} */
-    #btnPaletteTargetGameGear;
     /** @type {number} */
     #currentColourIndex = 0;
     /** @type {PaletteEditorContextMenu} */
     #contextMenu;
     /** @type {EventDispatcher} */
     #dispatcher;
+    #enabled = true;
 
 
     /**
@@ -65,89 +58,54 @@ export default class PaletteEditor {
 
         this.#dispatcher = new EventDispatcher();
 
-        this.#contextMenu = new PaletteEditorContextMenu(element.querySelector('[data-smsgfx-component-id=palette-editor-context-menu]'));
-        this.#contextMenu.addHandlerOnCommand((args) => this.#handlePaletteEditorContextMenuOnCommand(args));
+        this.#element.querySelectorAll('button[data-command]').forEach(element => {
+            element.onclick = () => {
+                const command = element.getAttribute('data-command');
+                const args = this.#createEventArgs(command);
+                this.#dispatcher.dispatch(EVENT_OnCommand, args);
+            };
+        });
+
+        this.#element.querySelectorAll(`input[type=text][data-command=${commands.paletteTitle}]`).forEach(element => {
+            element.onchange = () => {
+                const command = element.getAttribute('data-command');
+                const args = this.#createEventArgs(command);
+                this.#dispatcher.dispatch(EVENT_OnCommand, args);
+            };
+        });
+
+        this.#element.querySelectorAll(`select[data-command]`).forEach(element => {
+            element.onchange = () => {
+                const command = element.getAttribute('data-command');
+                const args = this.#createEventArgs(command);
+                this.#dispatcher.dispatch(EVENT_OnCommand, args);
+            };
+        });
+
+        this.#element.querySelectorAll(`[data-linked-command=${commands.paletteSystem}]`).forEach(element => {
+            element.onclick = () => {
+                const system = element.getAttribute('data-value');
+                this.#element.querySelectorAll(`[data-command=${commands.paletteSystem}]`).forEach(systemElement => {
+                    systemElement.value = system;
+                    systemElement.onchange();
+                });
+            }
+        });
+
+        this.#element.querySelectorAll('input[type=checkbox][data-command]').forEach(element => {
+            element.onchange = () => {
+                const command = element.getAttribute('data-command');
+                const args = this.#createEventArgs(command);
+                this.#dispatcher.dispatch(EVENT_OnCommand, args);
+            };
+        });
 
         this.#createPaletteColourIndexButtons();
 
-        this.#btnNewPalette = this.#element.querySelector('#btnNewPalette');
-        this.#btnNewPalette.onclick = () => this.#dispatcher.dispatch(EVENT_NewPalette, {});
-
-        this.#btnImportPaletteFromCode = this.#element.querySelector('#btnImportPaletteFromCode');
-        this.#btnImportPaletteFromCode.onclick = () => this.#dispatcher.dispatch(EVENT_ImportPaletteFromCode, {});
-
-        this.#btnClonePalette = this.#element.querySelector('#btnClonePalette');
-        this.#btnClonePalette.onclick = () => {
-            /** @type {PaletteEditorPaletteEventArgs} */
-            const args = { paletteIndex: this.#tbPaletteSelect.selectedIndex };
-            this.#dispatcher.dispatch(EVENT_PaletteClone, args);
-        };
-
-        this.#btnRemovePalette = this.#element.querySelector('#btnRemovePalette');
-        this.#btnRemovePalette.onclick = () => {
-            /** @type {PaletteEditorPaletteEventArgs} */
-            const args = { paletteIndex: this.#tbPaletteSelect.selectedIndex };
-            this.#dispatcher.dispatch(EVENT_PaletteDelete, args);
-        };
-
-        this.#btnClonePalette = this.#element.querySelector('#btnClonePalette');
-        this.#btnClonePalette.onclick = () => {
-            /** @type {PaletteEditorPaletteEventArgs} */
-            const args = { paletteIndex: this.#tbPaletteSelect.selectedIndex };
-            this.#dispatcher.dispatch(EVENT_PaletteClone, args);
-        };
-
-        this.#tbPaletteSelect = this.#element.querySelector('#tbPaletteSelect');
-        this.#tbPaletteSelect.onchange = () => {
-            /** @type {PaletteEditorPaletteChangeEventArgs} */
-            const args = {
-                paletteIndex: this.#tbPaletteSelect.selectedIndex,
-                oldPaletteIndex: this.#currentColourIndex
-            };
-            this.#dispatcher.dispatch(EVENT_PaletteChanged, args);
-            this.#currentColourIndex = this.#tbPaletteSelect.selectedIndex;
-        };
-
-        this.#tbPaletteSelectDropDown = this.#element.querySelector('#tbPaletteSelectDropDown');
-
-        this.#tbPaletteTitle = this.#element.querySelector('#tbPaletteTitle');
-        this.#tbPaletteTitle.onchange = () => {
-            /** @type {PaletteEditorTitleEventArgs} */
-            const args = { title: this.#tbPaletteTitle.value };
-            this.#dispatcher.dispatch(EVENT_RequestTitleChange, args);
-        };
-
-        this.#tbPaletteSystemSelect = this.#element.querySelector('#tbPaletteSystemSelect');
-        this.#tbPaletteSystemSelect.onchange = () => {
-            /** @type {PaletteEditorSystemChangedEventArgs} */
-            const args = {
-                paletteIndex: this.#tbPaletteSelect.selectedIndex,
-                system: this.#tbPaletteSystemSelect.value
-            };
-            this.#dispatcher.dispatch(EVENT_PaletteSystemChanged, args);
-        };
-
-        this.#btnPaletteTargetMasterSystem = this.#element.querySelector('#btnPaletteTargetMasterSystem');
-        this.#btnPaletteTargetMasterSystem.onclick = () => {
-            this.#tbPaletteSystemSelect.value = 'ms';
-            this.#tbPaletteSystemSelect.onchange();
-        }
-
-        this.#btnPaletteTargetGameGear = this.#element.querySelector('#btnPaletteTargetGameGear');
-        this.#btnPaletteTargetGameGear.onclick = () => {
-            this.#tbPaletteSystemSelect.value = 'gg';
-            this.#tbPaletteSystemSelect.onchange();
-        }
-
-        this.#tbPaletteEditorDisplayNative = this.#element.querySelector('#tbPaletteEditorDisplayNative');
-        this.#tbPaletteEditorDisplayNative.onchange = () => {
-            /** @type {PaletteEditorDisplayNativeEventArgs} */
-            const args = {
-                displayNativeEnabled: this.#tbPaletteEditorDisplayNative.checked
-            };
-            this.#dispatcher.dispatch(EVENT_RequestDisplayNativeChange, args);
-        };
+        this.#contextMenu = new PaletteEditorContextMenu(element.querySelector('[data-smsgfx-component-id=palette-editor-context-menu]'));
+        this.#contextMenu.addHandlerOnCommand((args) => this.#handlePaletteEditorContextMenuOnCommand(args));
     }
+
 
     /**
      * Sets the state of the object.
@@ -163,15 +121,22 @@ export default class PaletteEditor {
             updateVirtualList = true;
         }
         if (typeof state?.selectedPaletteIndex === 'number') {
-            this.#tbPaletteSelect.selectedIndex = state.selectedPaletteIndex;
-            updateVirtualList = true;
+            this.#element.querySelectorAll(`[data-command=${commands.paletteSelect}]`).forEach(element => {
+                element.selectedIndex = state.selectedPaletteIndex;
+                updateVirtualList = true;
+            });
         }
         if (typeof state?.displayNative === 'boolean') {
-            this.#tbPaletteEditorDisplayNative.checked = state.displayNative;
+            this.#element.querySelectorAll(`[data-command=${commands.displayNativeColours}]`).forEach(element => {
+                element.checked = state.displayNative;
+            });
         }
         if (paletteList) {
-            const selectedPalette = paletteList.getPalette(this.#tbPaletteSelect.selectedIndex);
-            this.#setPalette(selectedPalette);
+            const select = this.#element.querySelector(`[data-command=${commands.paletteSelect}]`);
+            if (select) {
+                const selectedPalette = paletteList.getPalette(select.selectedIndex);
+                this.#setPalette(selectedPalette);
+            }
         }
         if (typeof state?.selectedColourIndex === 'number' && state?.selectedColourIndex >= 0 && state?.selectedColourIndex < 16) {
             this.#currentColourIndex = state.selectedColourIndex;
@@ -181,113 +146,71 @@ export default class PaletteEditor {
             this.#highlightPaletteColour(state.highlightedColourIndex);
         }
         if (typeof state?.title === 'string') {
-            this.#tbPaletteTitle.value = state.title;
+            this.#element.querySelectorAll(`[data-command=${commands.paletteTitle}]`).forEach(element => {
+                element.value = state.title;
+            });
         }
         if (typeof state?.selectedSystem === 'string') {
-            this.#tbPaletteSystemSelect.value = state.selectedSystem;
+            this.#element.querySelectorAll(`[data-command=${commands.paletteSystem}]`).forEach(element => {
+                element.value = state.selectedSystem;
+            });
             this.#updateSystemSelectVirtualList(state.selectedSystem);
         }
         // Refresh the virtual list if needed
         if (updateVirtualList) {
             this.#updatePaletteSelectVirtualList();
         }
+
+        if (typeof state?.enabled === 'boolean') {
+            this.#enabled = state?.enabled;
+            this.#element.querySelectorAll('[data-command]').forEach(element => {
+                element.disabled = true;
+            });
+            this.#paletteButtons.forEach(button => {
+                button.disabled = true;
+            });
+            this.#element.querySelectorAll('[data-linked-command]').forEach(element => {
+                element.disabled = true;
+            });
+            this.#element.querySelectorAll('button[data-bs-toggle=dropdown]').forEach(element => {
+                element.disabled = true;
+            });
+        }
     }
 
 
     /**
-     * User requests a new palette.
-     * @param {PaletteEditorCallback} callback - Callback function.
+     * Registers a handler for a command.
+     * @param {PaletteEditorCommandCallback} callback - Callback that will receive the command.
      */
-    addHandlerRequestNewPalette(callback) {
-        this.#dispatcher.on(EVENT_NewPalette, callback);
+    addHandlerOnCommand(callback) {
+        this.#dispatcher.on(EVENT_OnCommand, callback);
     }
 
-    /**
-     * User requests to import a new palette.
-     * @param {PaletteEditorCallback} callback - Callback function.
-     */
-    addHandlerRequestImportPaletteFromCode(callback) {
-        this.#dispatcher.on(EVENT_ImportPaletteFromCode, callback);
-    }
 
     /**
-     * User requests to clone a palette.
-     * @param {PaletteEditorPaletteCallback} callback - Callback function.
-     */
-    addHandlerRequestClonePalette(callback) {
-        this.#dispatcher.on(EVENT_PaletteClone, callback);
+     * @param {string} command 
+     * @returns {PaletteEditorCommandEventArgs} 
+     * */
+    #createEventArgs(command) {
+        return {
+            command: command,
+            paletteIndex: this.#element.querySelector(`select[data-command=${commands.paletteSelect}]`)?.selectedIndex ?? -1,
+            paletteTitle: this.#element.querySelector(`input[type=text][data-command=${commands.paletteTitle}]`)?.value ?? null,
+            paletteSystem: this.#element.querySelector(`select[data-command=${commands.paletteSystem}]`)?.value ?? null,
+            displayNative: this.#element.querySelector(`[data-command=${commands.displayNativeColours}]`)?.checked ?? null,
+            colourIndex: -1,
+            targetColourIndex: -1
+        };
     }
 
-    /**
-     * User requests to delete a palette.
-     * @param {PaletteEditorPaletteCallback} callback - Callback function.
-     */
-    addHandlerRequestDeletePalette(callback) {
-        this.#dispatcher.on(EVENT_PaletteDelete, callback);
+
+    #getElement(command) {
+        return this.#element.querySelector(`[data-command=${command}]`);
     }
 
-    /**
-     * User changes the selected palette.
-     * @param {PaletteEditorPaletteChangeCallback} callback - Callback function.
-     */
-    addHandlerRequestSelectedPaletteChange(callback) {
-        this.#dispatcher.on(EVENT_PaletteChanged, callback);
-    }
-
-    /**
-     * User changes the palette title.
-     * @param {PaletteEditorTitleCallback} callback - Callback function.
-     */
-    addHandlerRequestTitleChange(callback) {
-        this.#dispatcher.on(EVENT_RequestTitleChange, callback);
-    }
-
-    /**
-     * User changes the selected system.
-     * @param {PaletteEditorSystemChangedCallback} callback - Callback function.
-     */
-    addHandlerRequestSystemChange(callback) {
-        this.#dispatcher.on(EVENT_PaletteSystemChanged, callback);
-    }
-
-    /**
-     * User changes the display native option.
-     * @param {PaletteEditorDisplayNativeCallback} callback - Callback function.
-     */
-    addHandlerRequestNativeChange(callback) {
-        this.#dispatcher.on(EVENT_RequestDisplayNativeChange, callback);
-    }
-
-    /**
-     * Request to change the selected colour index within the palette.
-     * @param {PaletteEditorColourIndexCallback} callback - Callback function.
-     */
-    addHandlerRequestColourIndexChange(callback) {
-        this.#dispatcher.on(EVENT_RequestColourIndexChange, callback);
-    }
-
-    /**
-     * Request to edit a colour index with in the palette.
-     * @param {PaletteEditorColourIndexCallback} callback - Callback function.
-     */
-    addHandlerRequestColourIndexEdit(callback) {
-        this.#dispatcher.on(EVENT_RequestColourIndexEdit, callback);
-    }
-
-    /**
-     * Request to swap all instances of one colour index with another and vice versa.
-     * @param {PaletteEditorColourIndexCallback} callback - Callback function.
-     */
-    addHandlerRequestColourIndexSwap(callback) {
-        this.#dispatcher.on(EVENT_RequestPaletteIndexSwap, callback);
-    }
-
-    /**
-     * Request to replace all instances of one colour index with another.
-     * @param {PaletteEditorColourIndexCallback} callback - Callback function.
-     */
-    addHandlerRequestColourIndexReplace(callback) {
-        this.#dispatcher.on(EVENT_RequestPaletteIndexReplace, callback);
+    #getElements(command) {
+        return this.#element.querySelectorAll(`[data-command=${command}]`);
     }
 
 
@@ -296,60 +219,27 @@ export default class PaletteEditor {
      * @param {import("./paletteEditorContextMenu.js").PaletteEditorContextMenuCommandEventArgs} args - Arguments.
      */
     #handlePaletteEditorContextMenuOnCommand(args) {
-        if (args?.command === PaletteEditorContextMenu.Commands.swapColour) {
-            /** @type {PaletteEditorColourCommandEventArgs} */
-            const eventArgs = {
-                sourceColourIndex: args.sourceColourIndex,
-                targetColourIndex: args.targetColourIndex
-            };
-            this.#dispatcher.dispatch(EVENT_RequestPaletteIndexSwap, eventArgs);
-            this.#contextMenu.setState({ visible: false });
-        } else if (args?.command === PaletteEditorContextMenu.Commands.replaceColour) {
-            /** @type {PaletteEditorColourCommandEventArgs} */
-            const eventArgs = {
-                sourceColourIndex: args.sourceColourIndex,
-                targetColourIndex: args.targetColourIndex
-            };
-            this.#dispatcher.dispatch(EVENT_RequestPaletteIndexReplace, eventArgs);
-            this.#contextMenu.setState({ visible: false });
-        }
-    }
+        let a;
 
+        switch (args.command) {
 
-    /**
-     * Handles colour click event, when the colour is not already selected we will select it
-     * otherwise we will edit it.
-     * @param {number} colourIndex - Index of the colour that was clicked.
-     * @param {MouseEvent} event - Mouse event associated with the click event.
-     */
-    #handlePaletteColourButtonClicked(colourIndex, event) {
-        /** @type {PaletteEditorColourIndexEventArgs} */
-        const args = {
-            paletteIndex: this.#tbPaletteSelect.selectedIndex,
-            colourIndex: colourIndex
-        }
-        if (this.#currentColourIndex !== colourIndex) {
-            this.#currentColourIndex = colourIndex;
-            this.#dispatcher.dispatch(EVENT_RequestColourIndexChange, args);
-        } else {
-            this.#dispatcher.dispatch(EVENT_RequestColourIndexEdit, args);
-        }
-    }
+            case PaletteEditorContextMenu.Commands.swapColour:
+                a = this.#createEventArgs(commands.colourIndexSwap);
+                a.colourIndex = args.sourceColourIndex;
+                a.targetColourIndex = args.targetColourIndex;
+                this.#dispatcher.dispatch(EVENT_OnCommand, a);
+                this.#contextMenu.setState({ visible: false });
+                break;
 
-    /**
-     * Handles colour click event, when the colour is not already selected we will select it
-     * otherwise we will edit it.
-     * @param {number} colourIndex - Index of the colour that was clicked.
-     * @param {MouseEvent} event - Mouse event associated with the click event.
-     */
-    #handlePaletteColourButtonContext(colourIndex, event) {
-        console.log(event);
-        this.#contextMenu.setState({
-            colourIndex: colourIndex,
-            visible: true,
-            position: { x: event.clientX, y: event.clientY }
-        });
-        return false;
+            case PaletteEditorContextMenu.Commands.replaceColour:
+                a = this.#createEventArgs(commands.colourIndexReplace);
+                a.colourIndex = args.sourceColourIndex;
+                a.targetColourIndex = args.targetColourIndex;
+                this.#dispatcher.dispatch(EVENT_OnCommand, a);
+                this.#contextMenu.setState({ visible: false });
+                break;
+
+        }
     }
 
 
@@ -358,49 +248,56 @@ export default class PaletteEditor {
      * @param {PaletteList} paletteList - List of palettes.
      */
     #refreshPaletteSelectList(paletteList) {
-        const lastSelectedIndex = this.#tbPaletteSelect.selectedIndex;
-        const optionCount = this.#tbPaletteSelect.options.length;
-        for (let i = 0; i < optionCount; i++) {
-            this.#tbPaletteSelect.options.remove(0);
+        const select = this.#element.querySelector(`select[data-command=${commands.paletteSelect}]`);
+        if (select) {
+            const lastSelectedIndex = select.selectedIndex;
+            const optionCount = select.options.length;
+            for (let i = 0; i < optionCount; i++) {
+                select.options.remove(0);
+            }
+            const palettes = paletteList.getPalettes();
+            for (let i = 0; i < palettes.length; i++) {
+                const option = document.createElement('option');
+                option.innerText = `#${i} | ${palettes[i].title}`;
+                option.value = i.toString();
+                option.selected = lastSelectedIndex === i;
+                select.options.add(option);
+            }
+            if (select.selectedIndex === -1) {
+                select.selectedIndex = 0;
+            }
+            this.#updatePaletteSelectVirtualList();
         }
-        const palettes = paletteList.getPalettes();
-        for (let i = 0; i < palettes.length; i++) {
-            const option = document.createElement('option');
-            option.innerText = `#${i} | ${palettes[i].title}`;
-            option.value = i.toString();
-            option.selected = lastSelectedIndex === i;
-            this.#tbPaletteSelect.options.add(option);
-        }
-        if (this.#tbPaletteSelect.selectedIndex === -1) {
-            this.#tbPaletteSelect.selectedIndex = 0;
-        }
-        this.#updatePaletteSelectVirtualList();
     }
 
     /**
      * Updates the fake dropdown list to mirror the real one.
      */
     #updatePaletteSelectVirtualList() {
-        while (this.#tbPaletteSelectDropDown.childNodes.length > 0) {
-            this.#tbPaletteSelectDropDown.childNodes.item(0).remove();
-        }
-        this.#tbPaletteSelect.querySelectorAll('option').forEach((option, index) => {
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-            a.href = '#';
-            a.classList.add('dropdown-item');
-            if (index === this.#tbPaletteSelect.selectedIndex) {
-                a.classList.add('active');
-            } else {
-                a.onclick = () => {
-                    this.#tbPaletteSelect.selectedIndex = index;
-                    this.#tbPaletteSelect.onchange();
-                };
+        const virtualList = this.#element.querySelector(`[data-linked-command=${commands.paletteSelect}]`);
+        const select = this.#element.querySelector(`select[data-command=${commands.paletteSelect}]`);
+        if (virtualList && select) {
+            while (virtualList.childNodes.length > 0) {
+                virtualList.childNodes.item(0).remove();
             }
-            a.innerHTML = option.innerHTML;
-            li.appendChild(a);
-            this.#tbPaletteSelectDropDown.appendChild(li);
-        });
+            select.querySelectorAll('option').forEach((option, index) => {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = '#';
+                a.classList.add('dropdown-item');
+                if (index === select.selectedIndex) {
+                    a.classList.add('active');
+                } else {
+                    a.onclick = () => {
+                        select.selectedIndex = index;
+                        select.onchange();
+                    };
+                }
+                a.innerHTML = option.innerHTML;
+                li.appendChild(a);
+                virtualList.appendChild(li);
+            });
+        }
     }
 
     /**
@@ -408,14 +305,13 @@ export default class PaletteEditor {
      * @param {string} system - System to select.
      */
     #updateSystemSelectVirtualList(system) {
-        this.#btnPaletteTargetMasterSystem.classList.remove('active');
-        this.#btnPaletteTargetGameGear.classList.remove('active');
-        if (system === 'ms') {
-            this.#btnPaletteTargetMasterSystem.classList.add('active');
-
-        } else if (system === 'gg') {
-            this.#btnPaletteTargetGameGear.classList.add('active');
-        }
+        const buttons = this.#element.querySelectorAll(`[data-linked-command=${commands.paletteSystem}]`);
+        buttons.forEach(button => {
+            button.classList.remove('active');
+            if (button.getAttribute('data-value') === system) {
+                button.classList.add('active');
+            }
+        });
     }
 
     /**
@@ -426,7 +322,7 @@ export default class PaletteEditor {
         const paletteButtons = this.#paletteButtons;
         for (let i = 0; i < 16; i++) {
             if (i < palette.getColours().length) {
-                const displayNative = this.#tbPaletteEditorDisplayNative.checked;
+                const displayNative = this.#getElement(commands.displayNativeColours)?.checked ?? false;
                 const c = palette.getColour(i);
                 if (displayNative) {
                     paletteButtons[i].style.backgroundColor = ColourUtil.toNativeHex(palette.system, c.r, c.g, c.b);
@@ -437,8 +333,8 @@ export default class PaletteEditor {
                 paletteButtons[i].style.backgroundColor = null;
             }
         }
-        this.#tbPaletteTitle.value = palette.title;
-        this.#tbPaletteSystemSelect.value = palette.system;
+        this.#getElements(commands.paletteTitle).forEach(element => element.value = palette.title);
+        this.#getElements(commands.paletteSystem).forEach(element => element.value = palette.system);
         this.#updateSystemSelectVirtualList(palette.system);
     }
 
@@ -450,29 +346,40 @@ export default class PaletteEditor {
         const tbody = table.querySelector('tbody');
 
         let tr, td;
-        for (let i = 0; i < 16; i++) {
+        for (let idx = 0; idx < 16; idx++) {
 
-            if (i % 4 === 0) {
+            if (idx % 4 === 0) {
                 tr = document.createElement('tr');
                 tbody.appendChild(tr);
             }
 
             // Colour button
             td = document.createElement('td');
-            td.setAttribute('data-colour-index', i.toString());
+            td.setAttribute('data-colour-index', idx.toString());
             td.classList.add('text-center');
             tr.appendChild(td);
 
             const btnColour = document.createElement('button');
             btnColour.classList.add('btn', 'btn-sm', 'btn-outline-secondary', 'position-relative', 'sms-palette-button');
-            btnColour.setAttribute('data-colour-index', i.toString());
-            btnColour.onclick = (event) => this.#handlePaletteColourButtonClicked(i, event);
-            btnColour.oncontextmenu = (event) => this.#handlePaletteColourButtonContext(i, event);
+            btnColour.setAttribute('data-colour-index', idx.toString());
+            btnColour.onclick = () => {
+                const colourCurrentlySelected = this.#currentColourIndex === idx;
+                const args = this.#createEventArgs(colourCurrentlySelected ? commands.colourIndexEdit : commands.colourIndexChange);
+                args.colourIndex = idx;
+                this.#dispatcher.dispatch(EVENT_OnCommand, args);
+            };
+            btnColour.oncontextmenu = (event) => {
+                this.#contextMenu.setState({
+                    colourIndex: idx, visible: true,
+                    position: { x: event.clientX, y: event.clientY }
+                });
+                return false;
+            };
             td.appendChild(btnColour);
 
             const lblContent = document.createElement('span');
             lblContent.classList.add('position-absolute', 'translate-middle', 'badge');
-            lblContent.innerHTML = `#${i}`;
+            lblContent.innerHTML = `#${idx}`;
             btnColour.appendChild(lblContent);
 
             this.#paletteCells.push(td);
@@ -484,7 +391,7 @@ export default class PaletteEditor {
     /**
      * @param {number} colourIndex
      */
-     #selectPaletteColour(colourIndex) {
+    #selectPaletteColour(colourIndex) {
         this.#paletteCells.forEach((cell, index) => {
             if (index !== null && index === colourIndex) {
                 if (!cell.classList.contains('table-dark')) {
@@ -526,106 +433,23 @@ export default class PaletteEditor {
  * @property {number?} selectedColourIndex - Sets the selected colour index.
  * @property {number?} highlightedColourIndex - Sets the selected colour index.
  * @property {boolean?} displayNative - Should the palette editor display native colours?
+ * @property {boolean?} enabled - Is the control enabled or disabled?
  */
 
 /**
- * Event callback.
- * @callback PaletteEditorCallback
- * @param {object} args - Arguments.
- * @exports
- */
-
-/**
- * Event callback with palette index.
- * @callback PaletteEditorPaletteCallback
- * @param {PaletteEditorPaletteEventArgs} args - Arguments.
+ * When a command is issued from the palette editor.
+ * @callback PaletteEditorCommandCallback
+ * @param {PaletteEditorCommandEventArgs} args - Arguments.
  * @exports
  */
 /**
- * @typedef PaletteEditorPaletteEventArgs
- * @type {object}
- * @property {number} paletteIndex - Palette index.
- * @exports 
- */
-
-/**
- * Event callback with old and new palette index.
- * @callback PaletteEditorPaletteChangeCallback
- * @param {PaletteEditorPaletteChangeEventArgs} args - Arguments.
+ * @typedef {object} PaletteEditorCommandEventArgs
+ * @property {string} command - The command being invoked.
+ * @property {number?} paletteIndex - Index of the selected palette.
+ * @property {string?} paletteTitle - Title value for the selected palette.
+ * @property {string?} paletteSystem - Selected system value for the selected palette, either 'ms' or 'gg'.
+ * @property {number?} colourIndex - Index from 0 to 15 for the given colour.
+ * @property {number?} targetColourIndex - Target palette colour index from 0 to 15.
+ * @property {boolean?} displayNative - Display native colours for system?
  * @exports
- */
-/**
- * @typedef PaletteEditorPaletteChangeEventArgs
- * @type {object}
- * @property {number} paletteIndex - New palette index.
- * @property {number} oldPaletteIndex - Old palette index.
- * @exports 
- */
-
-/**
- * Event callback for when the system is changed.
- * @callback PaletteEditorSystemChangedCallback
- * @param {PaletteEditorSystemChangedEventArgs} args - Arguments.
- * @exports
- */
-/**
- * @typedef PaletteEditorSystemChangedEventArgs
- * @type {object}
- * @property {number} paletteIndex - Palette index.
- * @property {string} system - Either 'ms' or 'gg'.
- * @exports 
- */
-
-/**
- * Event callback with colour index.
- * @callback PaletteEditorColourIndexCallback
- * @param {PaletteEditorColourIndexEventArgs} args - Arguments.
- * @exports
- */
-/**
- * @typedef PaletteEditorColourIndexEventArgs
- * @type {object}
- * @property {number} paletteIndex - Palette index.
- * @property {number} colourIndex - Colour index within the palette.
- * @exports 
- */
-
-/**
- * Event callback with colour index.
- * @callback PaletteEditorColourCommandCallback
- * @param {PaletteEditorColourCommandEventArgs} args - Arguments.
- * @exports
- */
-/**
- * @typedef PaletteEditorColourCommandEventArgs
- * @type {object}
- * @property {number} sourceColourIndex - Source palette colour index from 0 to 15.
- * @property {number} targetColourIndex - Target palette colour index from 0 to 15.
- * @exports 
- */
-
-/**
- * Event callback with new palette title.
- * @callback PaletteEditorTitleCallback
- * @param {PaletteEditorTitleEventArgs} args - Arguments.
- * @exports
- */
-/**
- * @typedef PaletteEditorTitleEventArgs
- * @type {object}
- * @property {number} title - Palette title.
- * @exports 
- */
-
-/**
- * Event callback with new display native setting.
- * @callback PaletteEditorDisplayNativeCallback
- * @param {PaletteEditorDisplayNativeEventArgs} args - Arguments.
- * @exports
- */
-/**
- * @typedef PaletteEditorDisplayNativeEventArgs
- * @type {object}
- * @property {boolean} displayNativeEnabled - Whether to display native colours or not.
- * @exports 
  */

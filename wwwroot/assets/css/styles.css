@@ -1,5 +1,9 @@
 body {}
 
+button:disabled img {
+    opacity: 0.5;
+}
+
 .sms-container .sms-smaller-font,
 .sms-container .sms-smaller-font.input-group-text,
 .sms-container .sms-smaller-font input,

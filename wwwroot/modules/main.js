@@ -31,7 +31,7 @@ const undoManager = new UndoManager(50);
 const exportDialogue = new ExportModalDialogue(document.getElementById('tbExportDialogue'));
 const colourPickerDialogue = new ColourPickerDialogue(document.getElementById('tbColourPickerDialogue'));
 const colourPickerToolbox = new ColourPickerToolbox(document.getElementById('tbColourToolbox'));
-const paletteEditor = new PaletteEditor(document.getElementById('tbPaletteEditor'));
+const paletteEditor = new PaletteEditor(document.querySelector('[data-smsgfx-component-id=palette-editor]'));
 const paletteImportDialogue = new PaletteModalDialogue(document.querySelector('[data-smsgfx-component-id=palette-import-dialogue]'));
 const tileEditor = new TileEditor(document.getElementById('tbTileEditor'));
 const tileEditorToolbar = new TileEditorToolbar(document.querySelector('[data-smsgfx-component-id=tile-editor-toolbar]'));
@@ -84,18 +84,7 @@ function wireUpEventHandlers() {
 
     headerBar.addHandlerOnCommand(handleHeaderBarOnCommand);
 
-    paletteEditor.addHandlerRequestNewPalette(handlePaletteEditorRequestNewPalette);
-    paletteEditor.addHandlerRequestImportPaletteFromCode(handlePaletteEditorRequestImportPaletteFromCode);
-    paletteEditor.addHandlerRequestSelectedPaletteChange(handlePaletteEditorRequestSelectedPaletteChange);
-    paletteEditor.addHandlerRequestClonePalette(handlePaletteEditorRequestClonePalette);
-    paletteEditor.addHandlerRequestDeletePalette(handlePaletteEditorRequestDeletePalette);
-    paletteEditor.addHandlerRequestTitleChange(handlePaletteEditorRequestTitleChange);
-    paletteEditor.addHandlerRequestSystemChange(handlePaletteEditorRequestSystemChange);
-    paletteEditor.addHandlerRequestNativeChange(handlePaletteEditorRequestNativeChange);
-    paletteEditor.addHandlerRequestColourIndexChange(handlePaletteEditorRequestColourIndexChange);
-    paletteEditor.addHandlerRequestColourIndexEdit(handlePaletteEditorRequestColourIndexEdit);
-    paletteEditor.addHandlerRequestColourIndexSwap(handlePaletteEditorRequestColourIndexSwap);
-    paletteEditor.addHandlerRequestColourIndexReplace(handlePaletteEditorRequestColourIndexReplace);
+    paletteEditor.addHandlerOnCommand(handlePaletteEditorOnCommand);
 
     tileEditor.addHandlerPixelMouseOver(handleTileEditorPixelMouseOver);
     tileEditor.addHandlerPixelMouseDown(handleTileEditorPixelMouseDown);
@@ -225,11 +214,11 @@ function createEventListeners() {
                     handled = true;
                 } else if (keyEvent.code === 'ArrowDown') {
                     // Lower palette
-                    selectPaletteIndex(getUIState().paletteIndex + 1);
+                    changePalette(getUIState().paletteIndex + 1);
                     handled = true;
                 } else if (keyEvent.code === 'ArrowUp') {
                     // Higher palette
-                    selectPaletteIndex(getUIState().paletteIndex - 1);
+                    changePalette(getUIState().paletteIndex - 1);
                     handled = true;
                 } else if (keyEvent.code === 'ArrowLeft') {
                     // Lower palette
@@ -417,203 +406,62 @@ function handleHeaderBarOnCommand(args) {
 }
 
 
-/** @param {import('./ui/paletteEditor').PaletteEditorCallback} args */
-function handlePaletteEditorRequestNewPalette(args) {
-    newPalette();
-}
-/** @param {import('./ui/paletteEditor').PaletteEditorCallback} args */
-function handlePaletteEditorRequestImportPaletteFromCode(args) {
-    paletteImportDialogue.setState({
-        paletteData: getUIState().importPaletteAssemblyCode,
-        system: getUIState().importPaletteSystem
-    });
-    paletteImportDialogue.show();
-}
+/** @param {import('./ui/paletteEditor').PaletteEditorCommandEventArgs} args */
+function handlePaletteEditorOnCommand(args) {
+    switch (args.command) {
+        case PaletteEditor.Commands.paletteSelect:
+            changePalette(args.paletteIndex);
+            break;
 
-/** @param {import('./ui/paletteEditor').PaletteEditorPaletteChangeEventArgs} args */
-function handlePaletteEditorRequestSelectedPaletteChange(args) {
-    selectPaletteIndex(args.paletteIndex);
-}
+        case PaletteEditor.Commands.paletteNew:
+            newPalette();
+            break;
 
-/** @param {import('./ui/paletteEditor').PaletteEditorPaletteEventArgs} args */
-function handlePaletteEditorRequestClonePalette(args) {
-    const paletteIndex = args.paletteIndex;
-    if (paletteIndex >= 0 && paletteIndex < state.paletteList.length) {
-
-        addUndoState();
-
-        const newPalette = PaletteFactory.clone(getPalette());
-        newPalette.title += ' (copy)';
-
-        getPaletteList().addPalette(newPalette);
-
-        const newPaletteIndex = getPaletteList().length - 1;
-
-        paletteEditor.setState({
-            paletteList: state.paletteList,
-            selectedPaletteIndex: newPaletteIndex
-        });
-        tileEditor.setState({
-            palette: getPalette()
-        });
-
-        getUIState().paletteIndex = newPaletteIndex;
-        state.saveToLocalStorage();
-    }
-}
-
-/** @param {import('./ui/paletteEditor').PaletteEditorPaletteEventArgs} args */
-function handlePaletteEditorRequestDeletePalette(args) {
-    const paletteIndex = args.paletteIndex;
-    if (paletteIndex >= 0 && paletteIndex < state.paletteList.length) {
-
-        addUndoState();
-
-        // Remove palette
-        state.paletteList.removeAt(paletteIndex);
-        const newSelectedIndex = Math.min(paletteIndex, state.paletteList.length - 1);
-        if (state.paletteList.length > 0) {
-            paletteEditor.setState({
-                paletteList: state.paletteList,
-                selectedPaletteIndex: newSelectedIndex
+        case PaletteEditor.Commands.paletteCodeImport:
+            paletteImportDialogue.setState({
+                paletteData: getUIState().importPaletteAssemblyCode,
+                system: getUIState().importPaletteSystem
             });
-            state.persistentUIState.paletteIndex = newSelectedIndex;
-        } else {
-            state.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('ms'));
-            paletteEditor.setState({
-                paletteList: state.paletteList,
-                selectedPaletteIndex: 0
-            });
-            state.persistentUIState.paletteIndex = 0;
-        }
+            paletteImportDialogue.show();
+            break;
 
-        // Refresh image
-        tileEditor.setState({
-            palette: getPalette()
-        });
+        case PaletteEditor.Commands.paletteClone:
+            clonePalette(args.paletteIndex);
+            break;
 
-        state.saveToLocalStorage();
+        case PaletteEditor.Commands.paletteDelete:
+            deletePalette(args.paletteIndex);
+            break;
+
+        case PaletteEditor.Commands.paletteTitle:
+            changePaletteTitle(args.paletteIndex, args.paletteTitle);
+            break;
+
+        case PaletteEditor.Commands.paletteSystem:
+            changePaletteSystem(args.paletteIndex, args.paletteSystem);
+            break;
+
+        case PaletteEditor.Commands.displayNativeColours:
+            changePaletteEditorDisplayNativeColours(args.displayNative);
+            break;
+
+        case PaletteEditor.Commands.colourIndexChange:
+            changeSelectedColourIndex(args.colourIndex);
+            break;
+
+        case PaletteEditor.Commands.colourIndexEdit:
+            editSelectedColourIndex(args.paletteIndex, args.colourIndex);
+            break;
+
+        case PaletteEditor.Commands.colourIndexSwap:
+            swapColourIndex(args.colourIndex, args.targetColourIndex);
+            break;
+
+        case PaletteEditor.Commands.colourIndexReplace:
+            replaceColourIndex(args.colourIndex, args.targetColourIndex);
+            break;
+
     }
-}
-
-/** @param {import('./ui/paletteEditor').PaletteEditorTitleEventArgs} args */
-function handlePaletteEditorRequestTitleChange(args) {
-    addUndoState();
-
-    const project = state.project;
-    const paletteList = project.paletteList;
-    const palette = paletteList.getPalette(state.persistentUIState.paletteIndex);
-    palette.title = args.title;
-
-    state.setProject(project);
-
-    paletteEditor.setState({
-        paletteList: paletteList
-    });
-
-    state.saveToLocalStorage();
-}
-
-/** @param {import('./ui/paletteEditor').PaletteEditorSystemChangedEventArgs} args */
-function handlePaletteEditorRequestSystemChange(args) {
-    addUndoState();
-
-    const project = state.project;
-    const paletteList = getPaletteList();
-    const oldPalette = paletteList.getPalette(args.paletteIndex);
-    const newPalette = PaletteFactory.clone(oldPalette);
-    newPalette.system = args.system;
-    paletteList.setPalette(args.paletteIndex, newPalette);
-
-    state.setProject(project);
-
-    paletteEditor.setState({
-        paletteList: getPaletteList(),
-        selectedSystem: args.system,
-        displayNative: getUIState().displayNativeColour
-    });
-    tileEditor.setState({
-        palette: getPalette(),
-        displayNative: getUIState().displayNativeColour
-    });
-
-    state.saveToLocalStorage();
-}
-
-/** @param {import('./ui/paletteEditor').PaletteEditorDisplayNativeEventArgs} args */
-function handlePaletteEditorRequestNativeChange(args) {
-
-    state.persistentUIState.displayNativeColour = args.displayNativeEnabled;
-    state.saveToLocalStorage();
-
-    paletteEditor.setState({
-        paletteList: getPaletteList(),
-        displayNative: getUIState().displayNativeColour
-    });
-    tileEditor.setState({
-        tileSet: getTileSet(),
-        palette: getPalette(),
-        displayNative: getUIState().displayNativeColour
-    });
-}
-
-/** @param {import('./ui/paletteEditor').PaletteEditorColourIndexEventArgs} args */
-function handlePaletteEditorRequestColourIndexChange(args) {
-    if (args.colourIndex >= 0 && args.colourIndex < 16) {
-        paletteEditor.setState({
-            selectedColourIndex: args.colourIndex
-        });
-        instanceState.colourIndex = args.colourIndex;
-        const colour = getPalette().getColour(instanceState.colourIndex);
-        colourPickerToolbox.setState({
-            r: colour.r,
-            g: colour.g,
-            b: colour.b
-        });
-    }
-}
-
-/** @param {import('./ui/paletteEditor').PaletteEditorColourIndexEventArgs} args */
-function handlePaletteEditorRequestColourIndexEdit(args) {
-    const palette = state.project.paletteList.getPalette(args.paletteIndex);
-    colourPickerDialogue.show(palette, args.colourIndex);
-}
-
-/** @param {import('./ui/paletteEditor').PaletteEditorColourCommandEventArgs} args */
-function handlePaletteEditorRequestColourIndexSwap(args) {
-    addUndoState();
-
-    getTileSet().swapColourIndex(args.sourceColourIndex, args.targetColourIndex);
-
-    const sourceColour = getPalette().getColour(args.sourceColourIndex);
-    const targetColour = getPalette().getColour(args.targetColourIndex);
-
-    getPalette().setColour(args.sourceColourIndex, targetColour);
-    getPalette().setColour(args.targetColourIndex, sourceColour);
-
-    state.saveToLocalStorage();
-
-    tileEditor.setState({
-        palette: getPalette(),
-        tileSet: getTileSet()
-    });
-
-    paletteEditor.setState({
-        paletteList: getPaletteList()
-    });
-}
-
-/** @param {import('./ui/paletteEditor').PaletteEditorColourCommandEventArgs} args */
-function handlePaletteEditorRequestColourIndexReplace(args) {
-    addUndoState();
-
-    getTileSet().replaceColourIndex(args.sourceColourIndex, args.targetColourIndex);
-
-    state.saveToLocalStorage();
-
-    tileEditor.setState({
-        tileSet: getTileSet()
-    });
 }
 
 
@@ -1273,6 +1121,166 @@ function newPalette() {
     });
 }
 
+function clonePalette(paletteIndex) {
+    if (paletteIndex >= 0 && paletteIndex < state.paletteList.length) {
+
+        addUndoState();
+
+        const newPalette = PaletteFactory.clone(getPalette());
+        newPalette.title += ' (copy)';
+
+        getPaletteList().addPalette(newPalette);
+
+        const newPaletteIndex = getPaletteList().length - 1;
+
+        paletteEditor.setState({
+            paletteList: state.paletteList,
+            selectedPaletteIndex: newPaletteIndex
+        });
+        tileEditor.setState({
+            palette: getPalette()
+        });
+
+        getUIState().paletteIndex = newPaletteIndex;
+        state.saveToLocalStorage();
+    }
+}
+
+function deletePalette(paletteIndex) {
+    if (paletteIndex >= 0 && paletteIndex < state.paletteList.length) {
+
+        addUndoState();
+
+        // Remove palette
+        state.paletteList.removeAt(paletteIndex);
+        const newSelectedIndex = Math.min(paletteIndex, state.paletteList.length - 1);
+        if (state.paletteList.length > 0) {
+            paletteEditor.setState({
+                paletteList: state.paletteList,
+                selectedPaletteIndex: newSelectedIndex
+            });
+            state.persistentUIState.paletteIndex = newSelectedIndex;
+        } else {
+            state.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('ms'));
+            paletteEditor.setState({
+                paletteList: state.paletteList,
+                selectedPaletteIndex: 0
+            });
+            state.persistentUIState.paletteIndex = 0;
+        }
+
+        // Refresh image
+        tileEditor.setState({
+            palette: getPalette()
+        });
+
+        state.saveToLocalStorage();
+    }
+}
+
+function changePaletteTitle(paletteIndex, newTitle) {
+    addUndoState();
+
+    const palette = getPaletteList().getPalette(paletteIndex);
+    palette.title = newTitle;
+
+    state.saveToLocalStorage();
+
+    paletteEditor.setState({
+        paletteList: getPaletteList()
+    });
+}
+
+function changePaletteSystem(paletteIndex, system) {
+    addUndoState();
+
+    const palette = getPaletteList().getPalette(paletteIndex);
+    palette.system = system;
+
+    state.saveToLocalStorage();
+
+    paletteEditor.setState({
+        paletteList: getPaletteList(),
+        selectedSystem: system,
+        displayNative: getUIState().displayNativeColour
+    });
+    tileEditor.setState({
+        palette: getPalette(),
+        displayNative: getUIState().displayNativeColour
+    });
+}
+
+function changePaletteEditorDisplayNativeColours(displayNative) {
+
+    state.persistentUIState.displayNativeColour = displayNative;
+    state.saveToLocalStorage();
+
+    paletteEditor.setState({
+        paletteList: getPaletteList(),
+        displayNative: getUIState().displayNativeColour
+    });
+    tileEditor.setState({
+        tileSet: getTileSet(),
+        palette: getPalette(),
+        displayNative: getUIState().displayNativeColour
+    });
+}
+
+function changeSelectedColourIndex(colourIndex) {
+    if (colourIndex >= 0 && colourIndex < 16) {
+        paletteEditor.setState({
+            selectedColourIndex: colourIndex
+        });
+        instanceState.colourIndex = colourIndex;
+        const colour = getPalette().getColour(instanceState.colourIndex);
+        colourPickerToolbox.setState({
+            r: colour.r,
+            g: colour.g,
+            b: colour.b
+        });
+    }
+}
+
+function editSelectedColourIndex(paletteIndex, colourIndex) {
+    const palette = getPaletteList().getPalette(paletteIndex);
+    colourPickerDialogue.show(palette, colourIndex);
+}
+
+function swapColourIndex(sourceColourIndex, targetColourIndex) {
+    addUndoState();
+
+    getTileSet().swapColourIndex(sourceColourIndex, targetColourIndex);
+
+    const sourceColour = getPalette().getColour(sourceColourIndex);
+    const targetColour = getPalette().getColour(targetColourIndex);
+
+    getPalette().setColour(sourceColourIndex, targetColour);
+    getPalette().setColour(targetColourIndex, sourceColour);
+
+    state.saveToLocalStorage();
+
+    tileEditor.setState({
+        palette: getPalette(),
+        tileSet: getTileSet()
+    });
+
+    paletteEditor.setState({
+        paletteList: getPaletteList()
+    });
+}
+
+function replaceColourIndex(sourceColourIndex, targetColourIndex) {
+    addUndoState();
+
+    getTileSet().replaceColourIndex(sourceColourIndex, targetColourIndex);
+
+    state.saveToLocalStorage();
+
+    tileEditor.setState({
+        tileSet: getTileSet()
+    });
+}
+
 function tileNew() {
     if (getTileSet()) {
         addUndoState();
@@ -1814,7 +1822,7 @@ function decreaseScale() {
  * Selects a given palette.
  * @param {number} index - Palette index in the palette list.
  */
-function selectPaletteIndex(index) {
+function changePalette(index) {
     if (index < 0 || index >= getPaletteList().length) return;
 
     state.persistentUIState.paletteIndex = index;
@@ -1869,47 +1877,61 @@ $(() => {
 
 
     headerBar.setState({
-        projectTitle: state.project.title
+        disabledCommands: [
+            HeaderBar.Commands.title, HeaderBar.Commands.projectNew,
+            HeaderBar.Commands.projectSaveToFile, HeaderBar.Commands.projectLoadFromFile,
+            HeaderBar.Commands.exportCode, HeaderBar.Commands.exportImage
+        ]
     });
+
     paletteEditor.setState({
-        paletteList: getPaletteList(),
-        selectedPaletteIndex: getUIState().paletteIndex,
-        lastPaletteInputSystem: getUIState().importPaletteSystem,
-        selectedColourIndex: 0,
-        displayNative: getUIState().displayNativeColour
+        enabled: false
     });
-    colourPickerToolbox.setState({
-        showTab: instanceState.colourToolboxTab,
-        r: colour.r,
-        g: colour.g,
-        b: colour.b
-    });
-    const strips = TileEditorToolbar.ToolStrips;
-    tileEditorToolbar.setState({
-        visibleToolstrips: [strips.tileAdd, strips.undo, strips.tools, strips.tileWidth]
-    });
-    tileEditorBottomToolbar.setState({
-        visibleToolstrips: [strips.scale, strips.showTileGrid, strips.showPixelGrid]
-    });
-    setCommonTileToolbarStates({
-        tileWidth: tileSet.tileWidth,
-        selectedTool: instanceState.tool,
-        scale: getUIState().scale,
-        undoEnabled: undoManager.canUndo,
-        redoEnabled: undoManager.canRedo,
-        showTileGridChecked: getUIState().showTileGrid,
-        showPixelGridChecked: getUIState().showPixelGrid
-    });
-    tileEditor.setState({
-        palette: palette,
-        tileSet: tileSet,
-        scale: getUIState().scale,
-        displayNative: getUIState().displayNativeColour,
-        cursorSize: instanceState.pencilSize,
-        showTileGrid: getUIState().showTileGrid,
-        showPixelGrid: getUIState().showPixelGrid
-    });
-    selectTool(instanceState.tool);
+
+
+
+    // headerBar.setState({
+    //     projectTitle: state.project.title
+    // });
+    // paletteEditor.setState({
+    //     paletteList: getPaletteList(),
+    //     selectedPaletteIndex: getUIState().paletteIndex,
+    //     lastPaletteInputSystem: getUIState().importPaletteSystem,
+    //     selectedColourIndex: 0,
+    //     displayNative: getUIState().displayNativeColour
+    // });
+    // colourPickerToolbox.setState({
+    //     showTab: instanceState.colourToolboxTab,
+    //     r: colour.r,
+    //     g: colour.g,
+    //     b: colour.b
+    // });
+    // const strips = TileEditorToolbar.ToolStrips;
+    // tileEditorToolbar.setState({
+    //     visibleToolstrips: [strips.tileAdd, strips.undo, strips.tools, strips.tileWidth]
+    // });
+    // tileEditorBottomToolbar.setState({
+    //     visibleToolstrips: [strips.scale, strips.showTileGrid, strips.showPixelGrid]
+    // });
+    // setCommonTileToolbarStates({
+    //     tileWidth: tileSet.tileWidth,
+    //     selectedTool: instanceState.tool,
+    //     scale: getUIState().scale,
+    //     undoEnabled: undoManager.canUndo,
+    //     redoEnabled: undoManager.canRedo,
+    //     showTileGridChecked: getUIState().showTileGrid,
+    //     showPixelGridChecked: getUIState().showPixelGrid
+    // });
+    // tileEditor.setState({
+    //     palette: palette,
+    //     tileSet: tileSet,
+    //     scale: getUIState().scale,
+    //     displayNative: getUIState().displayNativeColour,
+    //     cursorSize: instanceState.pencilSize,
+    //     showTileGrid: getUIState().showTileGrid,
+    //     showPixelGrid: getUIState().showPixelGrid
+    // });
+    // selectTool(instanceState.tool);
 });
 
 /**
