@@ -5,23 +5,36 @@ import Palette from "../models/palette.js";
 import TileSet from "../models/tileSet.js";
 import TileEditorContextMenu from "./tileEditorContextMenu.js";
 
-const EVENT_PixelMouseOver = 'EVENT_PixelMouseOver';
-const EVENT_PixelMouseDown = 'EVENT_PixelMouseDown';
-const EVENT_PixelMouseUp = 'EVENT_PixelMouseUp';
-const EVENT_RequestSelectTile = 'EVENT_RequestSelectTile';
-const EVENT_RequestRemoveTile = 'EVENT_RequestRemoveTile';
-const EVENT_RequestInsertTileBefore = 'EVENT_RequestInsertTileBefore';
-const EVENT_RequestInsertTileAfter = 'EVENT_RequestInsertTileAfter';
-const EVENT_RequestCloneTile = 'EVENT_RequestCloneTile';
-const EVENT_RequestMoveTileLeft = 'EVENT_RequestMoveTileLeft';
-const EVENT_RequestMoveTileRight = 'EVENT_RequestMoveTileRight';
-const EVENT_RequestMirrorHorizontal = 'EVENT_RequestMirrorHorizontal';
-const EVENT_RequestMirrorVertical = 'EVENT_RequestMirrorVertical';
+const EVENT_OnCommand = 'EVENT_OnCommand';
+const EVENT_OnEvent = 'EVENT_OnEvent';
+
+const commands = {
+    clone: 'clone', remove: 'remove',
+    moveLeft: 'moveLeft', moveRight: 'moveRight',
+    mirrorHorizontal: 'mirrorHorizontal', mirrorVertical: 'mirrorVertical',
+    insertBefore: 'insertBefore', insertAfter: 'insertAfter',
+    selectTile: 'selectTile'
+}
+
+const events = {
+    pixelMouseOver: 'pixelMouseOver',
+    pixelMouseDown: 'pixelMouseDown',
+    pixelMouseUp: 'pixelMouseUp'
+}
 
 export default class TileEditor {
 
 
-    /** @type {HTMLDivElement} */
+    static get Commands() {
+        return commands;
+    }
+
+    static get Events() {
+        return events;
+    }
+
+
+    /** @type {HTMLElement} */
     #element;
     /** @type {HTMLCanvasElement} */
     #tbCanvas;
@@ -35,7 +48,9 @@ export default class TileEditor {
     #lastCoords;
     #scale = 1;
     #canvasManager;
-    #canvasMouseIsDown = false;
+    #canvasMouseLeftDown = false;
+    #canvasMouseMiddleDown = false;
+    #canvasMouseRightDown = false;
     #displayNative = true;
     #dispatcher;
     #enabled = true;
@@ -49,7 +64,7 @@ export default class TileEditor {
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 
-        this.#tbCanvas = this.#element.querySelector('#tbCanvas');
+        this.#tbCanvas = this.#element.querySelector('[data-sms-id=tile-editor-canvas]');
         this.#canvasManager = new CanvasManager();
 
         this.#tbCanvas.onmousemove = (e) => this.#handleCanvasMouseMove(e);
@@ -58,15 +73,8 @@ export default class TileEditor {
         this.#tbCanvas.onmouseleave = (e) => this.#handleCanvasMouseLeave(e);
         this.#tbCanvas.oncontextmenu = (e) => this.#handleCanvasContextMenu(e);
 
-        this.#tileEditorContextMenu = new TileEditorContextMenu(element.querySelector('#tbTileEditorMenu'));
-        this.#tileEditorContextMenu.addHandlerRequestRemoveTile((args) => this.#bubbleContextEvent(EVENT_RequestRemoveTile, args));
-        this.#tileEditorContextMenu.addHandlerRequestInsertTileBefore((args) => this.#bubbleContextEvent(EVENT_RequestInsertTileBefore, args));
-        this.#tileEditorContextMenu.addHandlerRequestInsertTileAfter((args) => this.#bubbleContextEvent(EVENT_RequestInsertTileAfter, args));
-        this.#tileEditorContextMenu.addHandlerRequestCloneTile((args) => this.#bubbleContextEvent(EVENT_RequestCloneTile, args));
-        this.#tileEditorContextMenu.addHandlerRequestMoveTileLeft((args) => this.#bubbleContextEvent(EVENT_RequestMoveTileLeft, args));
-        this.#tileEditorContextMenu.addHandlerRequestMoveTileRight((args) => this.#bubbleContextEvent(EVENT_RequestMoveTileRight, args));
-        this.#tileEditorContextMenu.addHandlerRequestMirrorTileHorizontal((args) => this.#bubbleContextEvent(EVENT_RequestMirrorHorizontal, args));
-        this.#tileEditorContextMenu.addHandlerRequestMirrorTileVertical((args) => this.#bubbleContextEvent(EVENT_RequestMirrorVertical, args));
+        this.#tileEditorContextMenu = new TileEditorContextMenu(this.#element.querySelector('[data-smsgfx-component-id=tile-editor-context-menu]'));
+        this.#tileEditorContextMenu.addHandlerOnCommand((args) => this.#bubbleCommand(args));
     }
 
 
@@ -146,9 +154,6 @@ export default class TileEditor {
 
         if (typeof state?.enabled === 'boolean') {
             this.#enabled = state?.enabled;
-            // this.#element.querySelectorAll('[data-command]').forEach(element => {
-            //     element.disabled = !this.#enabled;
-            // });
         }
     }
 
@@ -161,99 +166,19 @@ export default class TileEditor {
 
 
     /**
-     * Mouse moves over a tile set pixel.
-     * @param {TileEditorPixelCallback} callback - Callback function.
+     * Register a callback function for when a command is invoked.
+     * @param {TileEditorEventCallback} callback - Callback that will receive the command.
      */
-    addHandlerPixelMouseOver(callback) {
-        this.#dispatcher.on(EVENT_PixelMouseOver, callback);
+    addHandlerOnCommand(callback) {
+        this.#dispatcher.on(EVENT_OnCommand, callback);
     }
 
     /**
-     * Mouse clicks on a tile set pixel.
-     * @param {TileEditorPixelCallback} callback - Callback function.
+     * Register a callback function for when an event occurs.
+     * @param {TileEditorEventCallback} callback - Callback for when the event occurs.
      */
-    addHandlerPixelMouseDown(callback) {
-        this.#dispatcher.on(EVENT_PixelMouseDown, callback);
-    }
-
-    /**
-     * Mouse clicks on a tile set pixel.
-     * @param {TileEditorPixelCallback} callback - Callback function.
-     */
-    addHandlerPixelMouseUp(callback) {
-        this.#dispatcher.on(EVENT_PixelMouseUp, callback);
-    }
-
-    /**
-     * Request a tile be selected.
-     * @param {TileEditorTileCallback} callback - Callback function.
-     */
-    addHandlerRequestSelectTile(callback) {
-        this.#dispatcher.on(EVENT_RequestSelectTile, callback);
-    }
-
-    /**
-     * Request to remove a tile from a tile set.
-     * @param {TileEditorTileCallback} callback - Callback function.
-     */
-    addHandlerRequestRemoveTile(callback) {
-        this.#dispatcher.on(EVENT_RequestRemoveTile, callback);
-    }
-
-    /**
-     * Request to insert a tile before another in a tile set.
-     * @param {TileEditorTileCallback} callback - Callback function.
-     */
-    addHandlerRequestInsertTileBefore(callback) {
-        this.#dispatcher.on(EVENT_RequestInsertTileBefore, callback);
-    }
-
-    /**
-     * Request to insert a tile before another in a tile set.
-     * @param {TileEditorTileCallback} callback - Callback function.
-     */
-    addHandlerRequestInsertTileAfter(callback) {
-        this.#dispatcher.on(EVENT_RequestInsertTileAfter, callback);
-    }
-
-    /**
-     * Request to clone a tile in a tile set.
-     * @param {TileEditorTileCallback} callback - Callback function.
-     */
-    addHandlerRequestCloneTile(callback) {
-        this.#dispatcher.on(EVENT_RequestCloneTile, callback);
-    }
-
-    /**
-     * Request to swap the position with the tile to the right in the tile set.
-     * @param {TileEditorTileCallback} callback - Callback function.
-     */
-    addHandlerRequestMoveTileLeft(callback) {
-        this.#dispatcher.on(EVENT_RequestMoveTileLeft, callback);
-    }
-
-    /**
-     * Request to swap the position with the tile to the left in the tile set.
-     * @param {TileEditorTileCallback} callback - Callback function.
-     */
-    addHandlerRequestMoveTileRight(callback) {
-        this.#dispatcher.on(EVENT_RequestMoveTileRight, callback);
-    }
-
-    /**
-     * Request to horizontally mirror the tile.
-     * @param {TileEditorTileCallback} callback - Callback function.
-     */
-    addHandlerRequestMirrorTileHorizontal(callback) {
-        this.#dispatcher.on(EVENT_RequestMirrorHorizontal, callback);
-    }
-
-    /**
-     * Request to vertically mirror the tile.
-     * @param {TileEditorTileCallback} callback - Callback function.
-     */
-    addHandlerRequestMirrorTileVertical(callback) {
-        this.#dispatcher.on(EVENT_RequestMirrorVertical, callback);
+    addHandlerOnEvent(callback) {
+        this.#dispatcher.on(EVENT_OnEvent, callback);
     }
 
 
@@ -263,102 +188,147 @@ export default class TileEditor {
             const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(event.clientX, event.clientY);
             const lastCoords = this.#lastCoords;
             if (!lastCoords || lastCoords.x !== coords.x || lastCoords.y !== coords.y) {
-                /** @type {TileEditorPixelEventArgs} */
+                /** @type {TileEditorEventArgs} */
                 const args = {
+                    event: events.pixelMouseOver,
                     x: coords.x, y: coords.y,
-                    mouseIsDown: this.#canvasMouseIsDown,
+                    mousePrimaryIsDown: this.#canvasMouseLeftDown,
                     isPrimaryButton: event.button === 0,
                     isSecondaryButton: event.button === 2,
                     isAuxButton: event.button === 1
                 };
-                this.#dispatcher.dispatch(EVENT_PixelMouseOver, args);
+                this.#dispatcher.dispatch(EVENT_OnEvent, args);
                 this.#lastCoords = coords;
                 if (this.#canvasManager.canDraw) {
                     this.#canvasManager.drawUI(this.#tbCanvas, coords.x, coords.y);
                 }
             }
         }
+        if (this.#enabled && this.#canvasMouseMiddleDown) {
+            this.#element.scrollBy(-event.movementX, -event.movementY);
+        }
     }
 
     /** @param {MouseEvent} event */
     #handleCanvasMouseDown(event) {
         if (!this.#enabled) return;
+
         if (event.button === 0) {
-            this.#canvasMouseIsDown = true;
-            const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(event.clientX, event.clientY);
-            /** @type {TileEditorPixelEventArgs} */
-            const args = {
-                x: coords.x, y: coords.y,
-                mouseIsDown: this.#canvasMouseIsDown,
-                isPrimaryButton: event.button === 0,
-                isSecondaryButton: event.button === 2,
-                isAuxButton: event.button === 1
-            };
-            this.#dispatcher.dispatch(EVENT_PixelMouseDown, args);
+            this.#canvasMouseLeftDown = true;
+        } else if (event.button === 1) {
+            this.#canvasMouseMiddleDown = true;
+        } else if (event.button === 2) {
+            this.#canvasMouseRightDown = true;
         }
+
+        const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(event.clientX, event.clientY);
+
+        /** @type {TileEditorEventArgs} */
+        const args = {
+            event: events.pixelMouseDown,
+            x: coords.x, y: coords.y,
+            mousePrimaryIsDown: this.#canvasMouseLeftDown,
+            mouseSecondaryIsDown: this.#canvasMouseRightDown,
+            mouseAuxIsDown: this.#canvasMouseMiddleDown,
+            isPrimaryButton: event.button === 0,
+            isSecondaryButton: event.button === 2,
+            isAuxButton: event.button === 1
+        };
+        this.#dispatcher.dispatch(EVENT_OnEvent, args);
     }
 
     /** @param {MouseEvent} event */
     #handleCanvasMouseUp(event) {
         if (!this.#enabled) return;
-        this.#canvasMouseIsDown = false;
+
+        if (event.button === 0) {
+            this.#canvasMouseLeftDown = false;
+        } else if (event.button === 1) {
+            this.#canvasMouseMiddleDown = false;
+        } else if (event.button === 2) {
+            this.#canvasMouseRightDown = false;
+        }
+
         const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(event.clientX, event.clientY);
-        /** @type {TileEditorPixelEventArgs} */
+
+        /** @type {TileEditorEventArgs} */
         const args = {
+            event: events.pixelMouseUp,
             x: coords.x, y: coords.y,
-            mouseIsDown: this.#canvasMouseIsDown,
+            mousePrimaryIsDown: this.#canvasMouseLeftDown,
+            mouseSecondaryIsDown: this.#canvasMouseRightDown,
+            mouseAuxIsDown: this.#canvasMouseMiddleDown,
             isPrimaryButton: event.button === 0,
             isSecondaryButton: event.button === 2,
             isAuxButton: event.button === 1
         };
-        this.#dispatcher.dispatch(EVENT_PixelMouseUp, args);
+        this.#dispatcher.dispatch(EVENT_OnEvent, args);
     }
 
     /** @param {MouseEvent} event */
     #handleCanvasMouseLeave(event) {
         if (!this.#enabled) return;
-        this.#canvasMouseIsDown = false;
-        /** @type {TileEditorPixelEventArgs} */
-        const args = { x: 0, y: 0, mouseIsDown: this.#canvasMouseIsDown };
+
+        /** @type {TileEditorEventArgs} */
+        const args = {
+            event: events.pixelMouseUp,
+            x: 0, y: 0,
+            mousePrimaryIsDown: this.#canvasMouseLeftDown,
+            mouseSecondaryIsDown: this.#canvasMouseRightDown,
+            mouseAuxIsDown: this.#canvasMouseMiddleDown,
+            isPrimaryButton: this.#canvasMouseLeftDown,
+            isSecondaryButton: this.#canvasMouseRightDown,
+            isAuxButton: this.#canvasMouseMiddleDown,
+        };
         if (this.#lastCoords) {
             args.x = this.#lastCoords.x;
             args.y = this.#lastCoords.y;
         }
-        this.#dispatcher.dispatch(EVENT_PixelMouseUp, args);
+        this.#dispatcher.dispatch(EVENT_OnEvent, args);
+
+        this.#canvasMouseLeftDown = false;
+        this.#canvasMouseMiddleDown = false;
+        this.#canvasMouseRightDown = false;
         this.#lastCoords = null;
     }
 
     /** @param {MouseEvent} event */
     #handleCanvasContextMenu(event) {
         if (!this.#enabled) return;
-  
+
         const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(event.clientX, event.clientY);
 
         // Get the tile index
         const tile = this.#tileSet.getTileByCoordinate(coords.x, coords.y);
         const tileIndex = this.#tileSet.getTileIndex(tile);
 
-        /** @type {TileEditorTileEventArgs} */
-        const tileArgs = { tileIndex: tileIndex };
+        /** @type {TileEditorCommandEventArgs} */
+        const tileArgs = {
+            command: commands.selectTile,
+            tileIndex: tileIndex
+        };
+        this.#dispatcher.dispatch(EVENT_OnCommand, tileArgs);
 
-        this.#dispatcher.dispatch(EVENT_RequestSelectTile, tileArgs);
         this.#tileEditorContextMenu.show(event.clientX, event.clientY, coords.x, coords.y);
+
         return false;
     }
 
     /** 
      * @param {string} string 
-     * @param {import('./tileEditorContextMenu').TileEditorContextMenuPixelEventArgs} args 
+     * @param {import('./tileEditorContextMenu').TileEditorContextMenuCommandEventArgs} args 
      * */
-    #bubbleContextEvent(eventName, args) {
+    #bubbleCommand(args) {
         // Get the tile index
         const tile = this.#tileSet.getTileByCoordinate(args.x, args.y);
         const tileIndex = this.#tileSet.getTileIndex(tile);
 
-        /** @type {TileEditorTileEventArgs} */
-        const tileArgs = { tileIndex: tileIndex };
-
-        this.#dispatcher.dispatch(eventName, tileArgs);
+        /** @type {TileEditorCommandEventArgs} */
+        const tileArgs = {
+            command: args.command,
+            tileIndex: tileIndex
+        };
+        this.#dispatcher.dispatch(EVENT_OnCommand, tileArgs);
     }
 
 
@@ -405,30 +375,34 @@ export default class TileEditor {
  */
 
 /**
- * Tile editor pixel callback.
- * @callback TileEditorPixelCallback
- * @param {TileEditorPixelEventArgs} args - Arguments.
+ * Callback for when a command is invoked.
+ * @callback TileEditorCommandCallback
+ * @param {TileEditorCommandEventArgs} args - Arguments.
  * @exports
  */
 /**
- * @typedef {object} TileEditorPixelEventArgs
- * @property {number} x - X tile map pixel thats selected.
- * @property {number} y - Y tile map pixel thats selected.
- * @property {boolean} mouseIsDown - True when the mouse is down, otherwise false.
- * @property {boolean} isPrimaryButton - True when the mouse button is the secondary one, otherwise false.
- * @property {boolean} isSecondaryButton - True when the mouse button is the secondary one, otherwise false.
- * @property {boolean} isAuxButton - True when the mouse button is the auxiliary one (mouse wheel), otherwise false.
+ * @typedef {object} TileEditorCommandEventArgs
+ * @property {string} command - Command being invoked.
+ * @property {number} tileIndex - Index of the tile witin the tile map.
  * @exports
  */
 
 /**
- * Tile editor tile callback.
- * @callback TileEditorTileCallback
- * @param {TileEditorTileEventArgs} args - Arguments.
+ * Callback for when an event occurs.
+ * @callback TileEditorEventCallback
+ * @param {TileEditorEventArgs} args - Arguments.
  * @exports
  */
 /**
- * @typedef {object} TileEditorTileEventArgs
- * @property {number} tileIndex - Index of the tile witin the tile map.
- * @exports 
+ * @typedef {object} TileEditorEventArgs
+ * @property {string} event - Event that occurred.
+ * @property {number} x - X tile map pixel thats selected.
+ * @property {number} y - Y tile map pixel thats selected.
+ * @property {boolean} mousePrimaryIsDown - True when the primary mouse button is down, otherwise false.
+ * @property {boolean} mouseSecondaryIsDown - True when the secondary mouse button is down, otherwise false.
+ * @property {boolean} mouseAuxIsDown - True when the auxiliary mouse button is down, otherwise false.
+ * @property {boolean} isPrimaryButton - True when the mouse button is the primary one, otherwise false.
+ * @property {boolean} isSecondaryButton - True when the mouse button is the secondary one, otherwise false.
+ * @property {boolean} isAuxButton - True when the mouse button is the auxiliary one (mouse wheel), otherwise false.
+ * @exports
  */

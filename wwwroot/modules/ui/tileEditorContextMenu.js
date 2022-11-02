@@ -1,15 +1,20 @@
 import EventDispatcher from "../components/eventDispatcher.js";
 
-const EVENT_RequestRemoveTile = 'EVENT_RequestRemoveTile';
-const EVENT_RequestInsertTileBefore = 'EVENT_RequestInsertTileBefore';
-const EVENT_RequestInsertTileAfter = 'EVENT_RequestInsertTileAfter';
-const EVENT_RequestCloneTile = 'EVENT_RequestCloneTile';
-const EVENT_RequestMoveTileLeft = 'EVENT_RequestMoveTileLeft';
-const EVENT_RequestMoveTileRight = 'EVENT_RequestMoveTileRight';
-const EVENT_RequestMirrorHorizontal = 'EVENT_RequestMirrorHorizontal';
-const EVENT_RequestMirrorVertical = 'EVENT_RequestMirrorVertical';
+const EVENT_OnCommand = 'EVENT_OnCommand';
+
+const commands = {
+    clone: 'clone', remove: 'remove',
+    moveLeft: 'moveLeft', moveRight: 'moveRight',
+    mirrorHorizontal: 'mirrorHorizontal', mirrorVertical: 'mirrorVertical',
+    insertBefore: 'insertBefore', insertAfter: 'insertAfter'
+}
 
 export default class TileEditorContextMenu {
+
+
+    static get Commands() {
+        return commands;
+    }
 
 
     /** @type {HTMLDivElement} */
@@ -24,15 +29,19 @@ export default class TileEditorContextMenu {
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 
-        this.#btnTileEditorMenu = element.querySelector('#btnTileEditorMenu');
-        this.#element.querySelector('button[data-command=remove]').onclick = (event) => this.#handleTileContext(event);
-        this.#element.querySelector('button[data-command=insert-before]').onclick = (event) => this.#handleTileContext(event);
-        this.#element.querySelector('button[data-command=insert-after]').onclick = (event) => this.#handleTileContext(event);
-        this.#element.querySelector('button[data-command=clone]').onclick = (event) => this.#handleTileContext(event);
-        this.#element.querySelector('button[data-command=move-left]').onclick = (event) => this.#handleTileContext(event);
-        this.#element.querySelector('button[data-command=move-right]').onclick = (event) => this.#handleTileContext(event);
-        this.#element.querySelector('button[data-command=mirror-horizontal]').onclick = (event) => this.#handleTileContext(event);
-        this.#element.querySelector('button[data-command=mirror-vertical]').onclick = (event) => this.#handleTileContext(event);
+        this.#btnTileEditorMenu = this.#element.querySelector('[data-bs-toggle=dropdown]');
+    
+        this.#element.querySelectorAll('button[data-command]').forEach(button => {
+            button.onclick = () => {
+                /** @type {TileEditorContextMenuCommandEventArgs} */
+                const args = {
+                    command: button.getAttribute('data-command'),
+                    x: parseInt(this.#btnTileEditorMenu.getAttribute('data-x-coord')),
+                    y: parseInt(this.#btnTileEditorMenu.getAttribute('data-y-coord'))
+                };
+                this.#dispatcher.dispatch(EVENT_OnCommand, args);
+            }
+        });
     }
 
 
@@ -46,9 +55,8 @@ export default class TileEditorContextMenu {
      */
     show(clientX, clientY, tileSetX, tileSetY) {
         // Record related pixel
-        /** @type {TileEditorContextMenuPixelEventArgs} */
-        const args = { x: tileSetX, y: tileSetY };
-        this.#btnTileEditorMenu.setAttribute('data-tile-set-coords', JSON.stringify(args));
+        this.#btnTileEditorMenu.setAttribute('data-x-coord', tileSetX);
+        this.#btnTileEditorMenu.setAttribute('data-y-coord', tileSetY);
 
         // Position menu to mouse pointer
         const rect = this.#element.getBoundingClientRect();
@@ -64,97 +72,11 @@ export default class TileEditorContextMenu {
 
 
     /**
-     * Request to remove a tile from a tile set.
-     * @param {TileEditorContextMenuPixelCallback} callback - Callback function.
+     * Register a callback function for when a command is invoked.
+     * @param {TileEditorContextMenuCommandCallback} callback - Callback that will receive the command.
      */
-    addHandlerRequestRemoveTile(callback) {
-        this.#dispatcher.on(EVENT_RequestRemoveTile, callback);
-    }
-
-    /**
-     * Request to insert a tile before another in a tile set.
-     * @param {TileEditorContextMenuPixelCallback} callback - Callback function.
-     */
-    addHandlerRequestInsertTileBefore(callback) {
-        this.#dispatcher.on(EVENT_RequestInsertTileBefore, callback);
-    }
-
-    /**
-     * Request to insert a tile before another in a tile set.
-     * @param {TileEditorContextMenuPixelCallback} callback - Callback function.
-     */
-    addHandlerRequestInsertTileAfter(callback) {
-        this.#dispatcher.on(EVENT_RequestInsertTileAfter, callback);
-    }
-
-    /**
-     * Request to clone a tile in a tile set.
-     * @param {TileEditorContextMenuPixelCallback} callback - Callback function.
-     */
-     addHandlerRequestCloneTile(callback) {
-        this.#dispatcher.on(EVENT_RequestCloneTile, callback);
-    }
-
-    /**
-     * Request to swap the position with the tile to the right in the tile set.
-     * @param {TileEditorContextMenuPixelCallback} callback - Callback function.
-     */
-     addHandlerRequestMoveTileLeft(callback) {
-        this.#dispatcher.on(EVENT_RequestMoveTileLeft, callback);
-    }
-
-    /**
-     * Request to swap the position with the tile to the left in the tile set.
-     * @param {TileEditorContextMenuPixelCallback} callback - Callback function.
-     */
-     addHandlerRequestMoveTileRight(callback) {
-        this.#dispatcher.on(EVENT_RequestMoveTileRight, callback);
-    }
-
-    /**
-     * Request to horizontally mirror the tile.
-     * @param {TileEditorContextMenuPixelCallback} callback - Callback function.
-     */
-     addHandlerRequestMirrorTileHorizontal(callback) {
-        this.#dispatcher.on(EVENT_RequestMirrorHorizontal, callback);
-    }
-
-    /**
-     * Request to vertically mirror the tile.
-     * @param {TileEditorContextMenuPixelCallback} callback - Callback function.
-     */
-     addHandlerRequestMirrorTileVertical(callback) {
-        this.#dispatcher.on(EVENT_RequestMirrorVertical, callback);
-    }
-
-
-    /**
-     * @param {MouseEvent} event 
-     */
-    #handleTileContext(event) {
-        // Extract the coordinates from the element
-        /** @type {TileEditorContextMenuPixelEventArgs} */
-        const args = JSON.parse(this.#btnTileEditorMenu.getAttribute('data-tile-set-coords'));
-
-        // Get the command and act on it
-        const command = event.currentTarget.getAttribute('data-command');
-        if (command === 'remove') {
-            this.#dispatcher.dispatch(EVENT_RequestRemoveTile, args);
-        } else if (command === 'insert-before') {
-            this.#dispatcher.dispatch(EVENT_RequestInsertTileBefore, args);
-        } else if (command === 'insert-after') {
-            this.#dispatcher.dispatch(EVENT_RequestInsertTileAfter, args);
-        } else if (command === 'clone') {
-            this.#dispatcher.dispatch(EVENT_RequestCloneTile, args);
-        } else if (command === 'move-left') {
-            this.#dispatcher.dispatch(EVENT_RequestMoveTileLeft, args);
-        } else if (command === 'move-right') {
-            this.#dispatcher.dispatch(EVENT_RequestMoveTileRight, args);
-        } else if (command === 'mirror-horizontal') {
-            this.#dispatcher.dispatch(EVENT_RequestMirrorHorizontal, args);
-        } else if (command === 'mirror-vertical') {
-            this.#dispatcher.dispatch(EVENT_RequestMirrorVertical, args);
-        }
+     addHandlerOnCommand(callback) {
+        this.#dispatcher.on(EVENT_OnCommand, callback);
     }
 
 
@@ -163,12 +85,13 @@ export default class TileEditorContextMenu {
 
 /**
  * Tile editor context menu callback.
- * @callback TileEditorContextMenuPixelCallback
- * @param {TileEditorContextMenuPixelEventArgs} args - Arguments.
+ * @callback TileEditorContextMenuCommandCallback
+ * @param {TileEditorContextMenuCommandEventArgs} args - Arguments.
  * @exports
  */
 /**
- * @typedef {object} TileEditorContextMenuPixelEventArgs
+ * @typedef {object} TileEditorContextMenuCommandEventArgs
+ * @property {string} command - Command being invoked.
  * @property {number} x - X tile map pixel.
  * @property {number} y - Y tile map pixel.
  * @exports

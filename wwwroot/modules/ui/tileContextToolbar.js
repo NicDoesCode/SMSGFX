@@ -40,7 +40,6 @@ export default class TileContextToolbar {
      */
     constructor(element) {
         this.#element = element;
-
         this.#dispatcher = new EventDispatcher();
 
         this.#element.querySelectorAll('button[data-command]').forEach(button => {
@@ -139,7 +138,7 @@ export default class TileContextToolbar {
  */
 
 /**
- * Tile editor tool UI callback.
+ * Callback for when a command is invoked.
  * @callback TileContextToolbarCommandCallback
  * @param {TileContextToolbarCommandEventArgs} args - Arguments.
  * @exports

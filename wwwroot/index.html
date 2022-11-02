@@ -526,18 +526,18 @@
                     <!-- End: Tile context toolbar -->
                     <div class="sms-row sms-grow">
                         <!-- Tile editor -->
-                        <div id="tbTileEditor" class="sms-canvas-container">
-                            <div id="pnlCanvas" class="sms-canvas-container-item">
-                                <canvas class="sms-canvas" id="tbCanvas" width="700" height="700"></canvas>
+                        <div data-smsgfx-component-id="tile-editor" class="sms-canvas-container">
+                            <div class="sms-canvas-container-item">
+                                <canvas data-sms-id="tile-editor-canvas" class="sms-canvas" width="700" height="700"></canvas>
                             </div>
                             <!-- Tile editor context menu -->
-                            <div id="tbTileEditorMenu" class="dropdown" style="position: absolute">
-                                <button id="btnTileEditorMenu" class="btn btn-secondary dropdown-toggle visually-hidden"
+                            <div data-smsgfx-component-id="tile-editor-context-menu" class="dropdown" style="position: absolute">
+                                <button class="btn btn-secondary dropdown-toggle visually-hidden"
                                     style="position: absolute; z-index: 100; width: 250px" type="button"
                                     data-bs-toggle="dropdown" aria-expanded="false">
                                     Dropdown button
                                 </button>
-                                <ul id="tbTileEditorMenuDropDown" class="dropdown-menu" style="font-size: 0.75em;">
+                                <ul class="dropdown-menu" style="font-size: 0.75em;">
                                     <li class="pb-2">
                                         <div class="btn-toolbar justify-content-between ps-3 pe-3 m-0" role="toolbar">
                                             <div class="input-group">
@@ -545,9 +545,9 @@
                                             </div>
                                             <div class="btn-group btn-group-sm" role="group">
                                                 <button class="btn btn-outline-secondary"
-                                                    data-command="mirror-horizontal"><i class="bi bi-vr"></i></button>
+                                                    data-command="mirrorHorizontal"><i class="bi bi-vr"></i></button>
                                                 <button class="btn btn-outline-secondary"
-                                                    data-command="mirror-vertical"><i class="bi bi-hr"></i></button>
+                                                    data-command="mirrorVertical"><i class="bi bi-hr"></i></button>
                                             </div>
                                         </div>
                                     </li>
@@ -559,9 +559,9 @@
                                             </div>
                                             <div class="btn-group btn-group-sm" role="group">
                                                 <button class="btn btn-outline-secondary"
-                                                    data-command="insert-before"><i
+                                                    data-command="insertBefore"><i
                                                         class="bi bi-arrow-bar-left"></i></button>
-                                                <button class="btn btn-outline-secondary" data-command="insert-after"><i
+                                                <button class="btn btn-outline-secondary" data-command="insertAfter"><i
                                                         class="bi bi-arrow-bar-right"></i></button>
                                             </div>
                                         </div>
@@ -573,9 +573,9 @@
                                                 <label class="form-label mt-2">Move tile</label>
                                             </div>
                                             <div class="btn-group btn-group-sm" role="group">
-                                                <button class="btn btn-outline-secondary" data-command="move-left"><i
+                                                <button class="btn btn-outline-secondary" data-command="moveLeft"><i
                                                         class="bi bi-arrow-left"></i></button>
-                                                <button class="btn btn-outline-secondary" data-command="move-right"><i
+                                                <button class="btn btn-outline-secondary" data-command="moveRight"><i
                                                         class="bi bi-arrow-right"></i></button>
                                             </div>
                                         </div>

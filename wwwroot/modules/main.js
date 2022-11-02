@@ -75,7 +75,7 @@ const colourPickerDialogue = new ColourPickerDialogue(document.getElementById('t
 const colourPickerToolbox = new ColourPickerToolbox(document.querySelector('[data-smsgfx-component-id=colour-picker-toolbox]'));
 const paletteEditor = new PaletteEditor(document.querySelector('[data-smsgfx-component-id=palette-editor]'));
 const paletteImportDialogue = new PaletteModalDialogue(document.querySelector('[data-smsgfx-component-id=palette-import-dialogue]'));
-const tileEditor = new TileEditor(document.getElementById('tbTileEditor'));
+const tileEditor = new TileEditor(document.querySelector('[data-smsgfx-component-id=tile-editor]'));
 const tileEditorToolbar = new TileEditorToolbar(document.querySelector('[data-smsgfx-component-id=tile-editor-toolbar]'));
 const tileEditorBottomToolbar = new TileEditorToolbar(document.querySelector('[data-smsgfx-component-id=tile-editor-bottom-toolbar]'));
 const tileImportDialogue = new TileSetImportModalDialogue(document.querySelector('[data-smsgfx-component-id=tile-import-dialogue]'));
@@ -99,18 +99,8 @@ function wireUpEventHandlers() {
 
     paletteEditor.addHandlerOnCommand(handlePaletteEditorOnCommand);
 
-    tileEditor.addHandlerPixelMouseOver(handleTileEditorPixelMouseOver);
-    tileEditor.addHandlerPixelMouseDown(handleTileEditorPixelMouseDown);
-    tileEditor.addHandlerPixelMouseUp(handleTileEditorPixelMouseUp);
-    tileEditor.addHandlerRequestSelectTile(handleTileEditorRequestSelectTile);
-    tileEditor.addHandlerRequestRemoveTile(handleTileEditorRequestRemoveTile);
-    tileEditor.addHandlerRequestInsertTileBefore(handleTileEditorRequestInsertTileBefore);
-    tileEditor.addHandlerRequestInsertTileAfter(handleTileEditorRequestInsertTileAfter);
-    tileEditor.addHandlerRequestCloneTile(handleTileEditorRequestCloneTile);
-    tileEditor.addHandlerRequestMoveTileLeft(handleTileEditorMoveTileLeft);
-    tileEditor.addHandlerRequestMoveTileRight(handleTileEditorMoveTileRight);
-    tileEditor.addHandlerRequestMirrorTileHorizontal(handleTileEditorMirrorTileHorizontal);
-    tileEditor.addHandlerRequestMirrorTileVertical(handleTileEditorMirrorTileVertical);
+    tileEditor.addHandlerOnCommand(handleTileEditorOnCommand);
+    tileEditor.addHandlerOnEvent(handleTileEditorOnEvent);
 
     tileEditorToolbar.addHandlerOnCommand(handleTileEditorToolbarOnCommand);
     tileEditorBottomToolbar.addHandlerOnCommand(handleTileEditorToolbarOnCommand);
@@ -588,44 +578,59 @@ function handleTileEditorToolbarOnCommand(args) {
 /** @param {import('./ui/tileContextToolbar.js').TileContextToolbarCommandEventArgs} args */
 function handleTileContextToolbarCommand(args) {
     if (instanceState.tileIndex > -1 && instanceState.tileIndex < getTileSet().length) {
-        if (args.command === TileContextToolbar.Commands.cut) {
-            // Cut
-            cutTileToClipboardAt(instanceState.tileIndex);
-        } else if (args.command === TileContextToolbar.Commands.copy) {
-            // Copy
-            copyTileToClipboardAt(instanceState.tileIndex);
-        } else if (args.command === TileContextToolbar.Commands.paste) {
-            // Paste
-            pasteTileAt(instanceState.tileIndex);
-        } else if (args.command === TileContextToolbar.Commands.clone) {
-            // Clone
-            cloneTileAt(instanceState.tileIndex);
-        } else if (args.command === TileContextToolbar.Commands.remove) {
-            // Remove
-            removeTileAt(instanceState.tileIndex);
-        } else if (args.command === TileContextToolbar.Commands.moveLeft) {
-            // Move left 
-            if (instanceState.tileIndex > 0) {
-                swapTilesAt(instanceState.tileIndex - 1, instanceState.tileIndex);
-            }
-        } else if (args.command === TileContextToolbar.Commands.moveRight) {
-            // Move right 
-            if (instanceState.tileIndex < getTile().length - 1) {
-                swapTilesAt(instanceState.tileIndex, instanceState.tileIndex + 1);
-            }
-        } else if (args.command === TileContextToolbar.Commands.mirrorHorizontal) {
-            // Mirror horizontal 
-            mirrorTileAt('h', instanceState.tileIndex);
-        } else if (args.command === TileContextToolbar.Commands.mirrorVertical) {
-            // Mirror vertical 
-            mirrorTileAt('v', instanceState.tileIndex);
-        } else if (args.command === TileContextToolbar.Commands.insertBefore) {
-            // Insert before 
-            insertTileAt(instanceState.tileIndex);
-        } else if (args.command === TileContextToolbar.Commands.insertAfter) {
-            // Insert after 
-            insertTileAt(instanceState.tileIndex + 1);
+
+        switch (args.command) {
+
+            case TileContextToolbar.Commands.cut:
+                cutTileToClipboardAt(instanceState.tileIndex);
+                break;
+
+            case TileContextToolbar.Commands.copy:
+                copyTileToClipboardAt(instanceState.tileIndex);
+                break;
+
+            case TileContextToolbar.Commands.paste:
+                pasteTileAt(instanceState.tileIndex);
+                break;
+
+            case TileContextToolbar.Commands.clone:
+                cloneTileAt(instanceState.tileIndex);
+                break;
+
+            case TileContextToolbar.Commands.remove:
+                removeTileAt(instanceState.tileIndex);
+                break;
+
+            case TileContextToolbar.Commands.moveLeft:
+                if (instanceState.tileIndex > 0) {
+                    swapTilesAt(instanceState.tileIndex - 1, instanceState.tileIndex);
+                }
+                break;
+
+            case TileContextToolbar.Commands.moveRight:
+                if (instanceState.tileIndex < getTile().length - 1) {
+                    swapTilesAt(instanceState.tileIndex, instanceState.tileIndex + 1);
+                }
+                break;
+
+            case TileContextToolbar.Commands.mirrorHorizontal:
+                mirrorTileAt('h', instanceState.tileIndex);
+                break;
+
+            case TileContextToolbar.Commands.mirrorVertical:
+                mirrorTileAt('v', instanceState.tileIndex);
+                break;
+
+            case TileContextToolbar.Commands.insertBefore:
+                insertTileAt(instanceState.tileIndex);
+                break;
+
+            case TileContextToolbar.Commands.insertAfter:
+                insertTileAt(instanceState.tileIndex + 1);
+                break;
+
         }
+
     }
     if (args.command === TileContextToolbar.Commands.brushSize) {
         if (args.brushSize && args.brushSize >= 1 && args.brushSize <= 5) {
@@ -635,85 +640,89 @@ function handleTileContextToolbarCommand(args) {
 }
 
 
-/** @param {import("./ui/tileEditor.js").TileEditorPixelEventArgs} args */
-function handleTileEditorPixelMouseOver(args) {
-    const tileSet = getTileSet();
+/** @param {import("./ui/tileEditor.js").TileEditorCommandEventArgs} args */
+function handleTileEditorOnCommand(args) {
+    switch (args.command) {
 
-    if (args.mouseIsDown) {
-        takeToolAction(instanceState.tool, instanceState.colourIndex, args.x, args.y);
-    }
+        case TileEditor.Commands.clone:
+            cloneTileAt(args.tileIndex);
+            break;
 
-    // Show the palette colour
-    const pixel = tileSet.getPixelAt(args.x, args.y);
-    if (pixel !== null) {
-        paletteEditor.setState({
-            highlightedColourIndex: pixel
-        });
-    }
-}
+        case TileEditor.Commands.insertAfter:
+            insertTileAt(args.tileIndex + 1);
+            break;
 
-/** @param {import("./ui/tileEditor.js").TileEditorPixelEventArgs} args */
-function handleTileEditorPixelMouseDown(args) {
-    takeToolAction(instanceState.tool, instanceState.colourIndex, args.x, args.y);
-}
+        case TileEditor.Commands.insertBefore:
+            insertTileAt(args.tileIndex);
+            break;
 
-/** @param {import("./ui/tileEditor.js").TileEditorPixelEventArgs} args */
-function handleTileEditorPixelMouseUp(args) {
-    if (instanceState.undoDisabled) {
-        state.saveToLocalStorage();
-        instanceState.undoDisabled = false;
-    }
-}
+        case TileEditor.Commands.mirrorHorizontal:
+            mirrorTileAt('h', args.tileIndex);
+            break;
 
-/** @param {import("./ui/tileEditor.js").TileEditorTileEventArgs} args */
-function handleTileEditorRequestSelectTile(args) {
-    selectTile(args.tileIndex);
-}
+        case TileEditor.Commands.mirrorVertical:
+            mirrorTileAt('v', args.tileIndex);
+            break;
 
-/** @param {import("./ui/tileEditor.js").TileEditorTileEventArgs} args */
-function handleTileEditorRequestRemoveTile(args) {
-    removeTileAt(args.tileIndex);
-}
+        case TileEditor.Commands.moveLeft:
+            if (!args || typeof args.tileIndex !== 'number') return;
+            if (args.tileIndex > 0 && args.tileIndex < getTileSet().length) {
+                swapTilesAt(args.tileIndex - 1, args.tileIndex);
+            }
+            break;
 
-/** @param {import("./ui/tileEditor.js").TileEditorTileEventArgs} args */
-function handleTileEditorRequestInsertTileBefore(args) {
-    insertTileAt(args.tileIndex);
-}
+        case TileEditor.Commands.moveRight:
+            if (!args || typeof args.tileIndex !== 'number') return;
+            if (args.tileIndex >= 0 && args.tileIndex < getTileSet().length - 1) {
+                swapTilesAt(args.tileIndex, args.tileIndex + 1);
+            }
+            break;
 
-/** @param {import("./ui/tileEditor.js").TileEditorTileEventArgs} args */
-function handleTileEditorRequestInsertTileAfter(args) {
-    insertTileAt(args.tileIndex + 1);
-}
+        case TileEditor.Commands.remove:
+            removeTileAt(args.tileIndex);
+            break;
 
-/** @param {import("./ui/tileEditor.js").TileEditorTileEventArgs} args */
-function handleTileEditorRequestCloneTile(args) {
-    cloneTileAt(args.tileIndex);
-}
+        case TileEditor.Commands.selectTile:
+            selectTile(args.tileIndex);
+            break;
 
-/** @param {import("./ui/tileEditor.js").TileEditorTileEventArgs} args */
-function handleTileEditorMoveTileLeft(args) {
-    if (!args || typeof args.tileIndex !== 'number') return;
-    if (args.tileIndex > 0 && args.tileIndex < getTileSet().length) {
-        swapTilesAt(args.tileIndex - 1, args.tileIndex);
     }
 }
 
-/** @param {import("./ui/tileEditor.js").TileEditorTileEventArgs} args */
-function handleTileEditorMoveTileRight(args) {
-    if (!args || typeof args.tileIndex !== 'number') return;
-    if (args.tileIndex >= 0 && args.tileIndex < getTileSet().length - 1) {
-        swapTilesAt(args.tileIndex, args.tileIndex + 1);
+/** @param {import("./ui/tileEditor.js").TileEditorEventArgs} args */
+function handleTileEditorOnEvent(args) {
+    switch (args.event) {
+
+        case TileEditor.Events.pixelMouseDown:
+            if (args.isPrimaryButton) {
+                takeToolAction(instanceState.tool, instanceState.colourIndex, args.x, args.y);
+            }
+            break;
+
+        case TileEditor.Events.pixelMouseOver:
+            const tileSet = getTileSet();
+
+            if (args.mousePrimaryIsDown) {
+                takeToolAction(instanceState.tool, instanceState.colourIndex, args.x, args.y);
+            }
+
+            // Show the palette colour
+            const pixel = tileSet.getPixelAt(args.x, args.y);
+            if (pixel !== null) {
+                paletteEditor.setState({
+                    highlightedColourIndex: pixel
+                });
+            }
+            break;
+
+        case TileEditor.Events.pixelMouseUp:
+            if (instanceState.undoDisabled) {
+                state.saveToLocalStorage();
+                instanceState.undoDisabled = false;
+            }
+            break;
+
     }
-}
-
-/** @param {import("./ui/tileEditor.js").TileEditorTileEventArgs} args */
-function handleTileEditorMirrorTileHorizontal(args) {
-    mirrorTileAt('h', args.tileIndex);
-}
-
-/** @param {import("./ui/tileEditor.js").TileEditorTileEventArgs} args */
-function handleTileEditorMirrorTileVertical(args) {
-    mirrorTileAt('v', args.tileIndex);
 }
 
 
