@@ -7,6 +7,8 @@ import TileSet from "../models/tileSet.js";
 const EVENT_SourceImageUpdated = 'EVENT_SourceImageUpdated';
 const EVENT_PreviewImageUpdated = 'EVENT_PreviewImageUpdated';
 
+const MAX_INITIAL_IMPORT_WIDTH = 256;
+
 export default class ImportImageModalDialogue extends ModalDialogue {
 
 
@@ -321,6 +323,8 @@ export default class ImportImageModalDialogue extends ModalDialogue {
 
     async #handleDimensionPxChange(dimension) {
         if (this.#sourceImageIsSet()) {
+            this.#showImageSizeWarning(false);
+
             if (!dimension || !['w', 'h'].includes(dimension)) throw new Error('Invalid dimension.');
             if (!this.#sourceImage) throw new Error('No image loaded.');
 
@@ -367,6 +371,8 @@ export default class ImportImageModalDialogue extends ModalDialogue {
 
     async #handleDimensionPercentChange(dimension) {
         if (this.#sourceImageIsSet()) {
+            this.#showImageSizeWarning(false);
+
             if (!dimension || !['w', 'h'].includes(dimension)) throw new Error('Invalid dimension.');
             if (!this.#sourceImage) throw new Error('No image loaded.');
 
@@ -563,12 +569,29 @@ export default class ImportImageModalDialogue extends ModalDialogue {
      * When the source image is updated display it and update the form accordinlgly.
      */
     async #handleSourceImageUpdatedAsync() {
+        this.#showImageSizeWarning(false);
+      
         if (this.#sourceImageIsSet()) {
-            const width = parseInt(this.#tbImportWidth.value);
-            const height = parseInt(this.#tbImportHeight.value);
-            if (isNaN(width) || isNaN(height)) {
-                this.#recalculateTileAndOriginInputs(this.#sourceImage.width, this.#sourceImage.height);
+            const max = MAX_INITIAL_IMPORT_WIDTH;
+            let width = this.#sourceImage.width;
+            let height = this.#sourceImage.height;
+
+            if (width > max || height > max) {
+                const widthGreaterThanHeight = width > height;
+                if (widthGreaterThanHeight) {
+                    let percent = 1 / width * max;
+                    width = 256;
+                    height = Math.round(height * percent);
+                } else {
+                    let percent = 1 / height * max;
+                    width = Math.round(width * percent);
+                    height = 256;
+                }
+                this.#showImageSizeWarning(true);
             }
+
+            this.#recalculateTileAndOriginInputs(width, height);
+
             resetCanvas(this.#tbCanvasPreview);
             await this.#renderSourceImageAsync();
         }
@@ -581,6 +604,20 @@ export default class ImportImageModalDialogue extends ModalDialogue {
     async #handlePreviewImageUpdatedAsync() {
         await this.#renderPreviewImageAsync();
         this.#updateInputEnabledState();
+    }
+
+
+    #showImageSizeWarning(show) {
+        const warningElm = this.#element.querySelector('[data-smsgfx-id=image-resize-warning]');
+        if (warningElm) {
+            if (show && warningElm.classList.contains('visually-hidden')) {
+                while (warningElm.classList.contains('visually-hidden')) {
+                    warningElm.classList.remove('visually-hidden');
+                }
+            } else if (!show && !warningElm.classList.contains('visually-hidden')) {
+                warningElm.classList.add('visually-hidden');
+            }
+        }
     }
 
 

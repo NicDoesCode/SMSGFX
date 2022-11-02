@@ -32,8 +32,9 @@
                     </div>
                     <div class="p-0">
                         <div class="input-group input-group-sm">
-                            <button class="btn btn-outline-secondary dropdown-toggle bg-light text-dark border-secondary" type="button"
-                                data-bs-toggle="dropdown" aria-expanded="false"><span
+                            <button
+                                class="btn btn-outline-secondary dropdown-toggle bg-light text-dark border-secondary"
+                                type="button" data-bs-toggle="dropdown" aria-expanded="false"><span
                                     class="fw-bold">Project</span></button>
                             <div class="dropdown-menu sms-smaller-font">
                                 <button data-command="projectNew" class="dropdown-item" title="New project."
@@ -54,8 +55,8 @@
                                 <div data-smsgfx-id="project-list" class="container m-0 p-0">
                                 </div>
                             </div>
-                            <input data-command="title" type="text" class="form-control border-secondary" placeholder="Project title"
-                                aria-label="Project title">
+                            <input data-command="title" type="text" class="form-control border-secondary"
+                                placeholder="Project title" aria-label="Project title">
                         </div>
                     </div>
                     <div class="p-0">
@@ -528,10 +529,12 @@
                         <!-- Tile editor -->
                         <div data-smsgfx-component-id="tile-editor" class="sms-canvas-container">
                             <div class="sms-canvas-container-item">
-                                <canvas data-sms-id="tile-editor-canvas" class="sms-canvas" width="700" height="700"></canvas>
+                                <canvas data-sms-id="tile-editor-canvas" class="sms-canvas" width="700"
+                                    height="700"></canvas>
                             </div>
                             <!-- Tile editor context menu -->
-                            <div data-smsgfx-component-id="tile-editor-context-menu" class="dropdown" style="position: absolute">
+                            <div data-smsgfx-component-id="tile-editor-context-menu" class="dropdown"
+                                style="position: absolute">
                                 <button class="btn btn-secondary dropdown-toggle visually-hidden"
                                     style="position: absolute; z-index: 100; width: 250px" type="button"
                                     data-bs-toggle="dropdown" aria-expanded="false">
@@ -558,8 +561,7 @@
                                                 <label class="form-label mt-2">Insert tile</label>
                                             </div>
                                             <div class="btn-group btn-group-sm" role="group">
-                                                <button class="btn btn-outline-secondary"
-                                                    data-command="insertBefore"><i
+                                                <button class="btn btn-outline-secondary" data-command="insertBefore"><i
                                                         class="bi bi-arrow-bar-left"></i></button>
                                                 <button class="btn btn-outline-secondary" data-command="insertAfter"><i
                                                         class="bi bi-arrow-bar-right"></i></button>
@@ -891,6 +893,9 @@
                                         <label class="form-check-label" for="importImageDialogueLockAspect">
                                             <small>Lock aspect ratio</small>
                                         </label>
+                                    </div>
+                                    <div data-smsgfx-id="image-resize-warning" class="alert alert-warning p-2 visually-hidden" role="alert">
+                                        <small><i class="bi bi-exclamation-triangle-fill"></i> Your image has been automatically resized, to restore original size click the revert button.</small>
                                     </div>
                                 </div>
                                 <div class="accordion accordion-flush mb-2">
