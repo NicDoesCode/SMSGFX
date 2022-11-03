@@ -598,49 +598,70 @@
 
                     <div class="sms-row">
 
-                        <!-- Tile editor bottom toolbar -->
-                        <div data-smsgfx-component-id="tile-editor-bottom-toolbar"
-                            class="container-fluid p-0 m-0 pt-1 pb-1">
-                            <div class="row align-items-center p-0 m-0">
-                                <div data-toolstrip="scale" class="col-auto pe-2 p-0 m-0">
-                                    <div class="input-group input-group-sm">
-                                        <span class="input-group-text">Zoom</span>
-                                        <select data-command="scale" class="form-select">
-                                            <options>
-                                                <option value="1">1:1</option>
-                                                <option value="2">2:1</option>
-                                                <option value="5">5:1</option>
-                                                <option value="10" selected>10:1</option>
-                                                <option value="15">15:1</option>
-                                                <option value="20">20:1</option>
-                                                <option value="50">50:1</option>
-                                            </options>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div data-toolstrip="showTileGrid" class="col-auto pe-2 p-0 m-0">
-                                    <div class="input-group input-group-sm">
-                                        <div class="input-group-text">
-                                            <input data-command="showTileGrid" data-labelled-by="showTileGrid"
-                                                class="form-check-input mt-0" type="checkbox" value=""
-                                                aria-label="Checkbox for following text input">
-                                            <label for="showTileGrid" class="ps-1">Tile grid</label>
+                        <div class="container p-0 m-0">
+                            <div class="row p-0 m-0">
+                                <div class="col p-0 m-0">
+                                    <!-- Tile editor bottom toolbar -->
+                                    <div data-smsgfx-component-id="tile-editor-bottom-toolbar"
+                                        class="container-fluid p-0 m-0 pt-1 pb-1">
+                                        <div class="row align-items-center p-0 m-0">
+                                            <div data-toolstrip="scale" class="col-auto pe-2 p-0 m-0">
+                                                <div class="input-group input-group-sm">
+                                                    <span class="input-group-text">Zoom</span>
+                                                    <select data-command="scale" class="form-select">
+                                                        <options>
+                                                            <option value="1">1:1</option>
+                                                            <option value="2">2:1</option>
+                                                            <option value="5">5:1</option>
+                                                            <option value="10" selected>10:1</option>
+                                                            <option value="15">15:1</option>
+                                                            <option value="20">20:1</option>
+                                                            <option value="50">50:1</option>
+                                                        </options>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div data-toolstrip="showTileGrid" class="col-auto pe-2 p-0 m-0">
+                                                <div class="input-group input-group-sm">
+                                                    <div class="input-group-text">
+                                                        <input data-command="showTileGrid"
+                                                            data-labelled-by="showTileGrid"
+                                                            class="form-check-input mt-0" type="checkbox" value=""
+                                                            aria-label="Checkbox for following text input">
+                                                        <label for="showTileGrid" class="ps-1">Tile grid</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div data-toolstrip="showPixelGrid" class="col-auto pe-2 p-0 m-0">
+                                                <div class="input-group input-group-sm">
+                                                    <div class="input-group-text">
+                                                        <input data-command="showPixelGrid"
+                                                            data-labelled-by="showPixelGrid"
+                                                            class="form-check-input mt-0" type="checkbox" value=""
+                                                            aria-label="Checkbox for following text input">
+                                                        <label for="showPixelGrid" class="ps-1">Pixel grid</label>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
+                                    <!-- End: Tile editor bottom toolbar -->
                                 </div>
-                                <div data-toolstrip="showPixelGrid" class="col-auto pe-2 p-0 m-0">
-                                    <div class="input-group input-group-sm">
-                                        <div class="input-group-text">
-                                            <input data-command="showPixelGrid" data-labelled-by="showPixelGrid"
-                                                class="form-check-input mt-0" type="checkbox" value=""
-                                                aria-label="Checkbox for following text input">
-                                            <label for="showPixelGrid" class="ps-1">Pixel grid</label>
-                                        </div>
-                                    </div>
+                                <div class="col-auto p-0 m-0">
+                                    <p class="p-2 m-0">
+                                        <small>
+                                            <a href="https://github.com/NicDoesCode/SMSGFX" target="_blank"
+                                                title="View this project on GitHub.">GitHub</a> |
+                                            <a href="./documentation.html" target="_blank"
+                                                title="View this project on GitHub.">Documentation</a> |
+                                            <a href="#" target="_blank" data-bs-toggle="modal" data-bs-target="#aboutModal"
+                                                title="About this application.">About</a>
+                                        </small>
+                                    </p>
                                 </div>
                             </div>
                         </div>
-                        <!-- End: Tile editor bottom toolbar -->
+
 
                     </div>
 
@@ -894,8 +915,11 @@
                                             <small>Lock aspect ratio</small>
                                         </label>
                                     </div>
-                                    <div data-smsgfx-id="image-resize-warning" class="alert alert-warning p-2 visually-hidden" role="alert">
-                                        <small><i class="bi bi-exclamation-triangle-fill"></i> Your image has been automatically resized, to restore original size click the revert button.</small>
+                                    <div data-smsgfx-id="image-resize-warning"
+                                        class="alert alert-warning p-2 visually-hidden" role="alert">
+                                        <small><i class="bi bi-exclamation-triangle-fill"></i> Your image has been
+                                            automatically resized, to restore original size click the revert
+                                            button.</small>
                                     </div>
                                 </div>
                                 <div class="accordion accordion-flush mb-2">
@@ -1031,6 +1055,32 @@
         </div>
     </div>
     <!-- End: Import image modal -->
+
+    <!-- About modal -->
+    <div id="aboutModal" data-smsgfx-component-id="about-dialogue" class="modal fade" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">About SMSGFX</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>An easy to use tile editor for Sega Master System and Sega Game Gear Games.</p>
+                    <p>Created by Nicholas Furgiuele.</p>
+                    <p>Licenced under GPL v3.</p>
+                    <p>
+                        <a href="https://github.com/NicDoesCode/SMSGFX" title="Click this link for the source code.">
+                            Source code available on the project's GitHub page.
+                        </a>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End: About modal -->
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
