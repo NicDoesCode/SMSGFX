@@ -2,6 +2,7 @@ import CanvasManager from "../components/canvasManager.js";
 import EventDispatcher from "../components/eventDispatcher.js";
 import PaletteFactory from "../factory/paletteFactory.js";
 import Palette from "../models/palette.js";
+import ReferenceImage from "../models/referenceImage.js";
 import TileSet from "../models/tileSet.js";
 import TileEditorContextMenu from "./tileEditorContextMenu.js";
 
@@ -52,6 +53,8 @@ export default class TileEditor {
     #canvasMouseMiddleDown = false;
     #canvasMouseRightDown = false;
     #displayNative = true;
+    /** @type {ReferenceImage} */
+    #referenceImage;
     #dispatcher;
     #enabled = true;
 
@@ -138,6 +141,19 @@ export default class TileEditor {
         // Cursor type
         if (typeof state?.cursor === 'string') {
             this.#tbCanvas.style.cursor = state.cursor;
+        }
+        // Reference image
+        if (state.referenceImage) {
+            this.#canvasManager.clearReferenceImages();
+            this.#canvasManager.addReferenceImage(state.referenceImage);
+            this.#canvasManager.invalidateImage();
+            dirty = true;
+        }
+        // Transparency index
+        if (typeof state?.transparencyIndex === 'number') {
+            this.#canvasManager.transparencyIndex = state.transparencyIndex;
+            this.#canvasManager.invalidateImage();
+            dirty = true;
         }
         // Refresh image?
         if (dirty && this.#palette && this.#tileSet) {
@@ -361,6 +377,8 @@ export default class TileEditor {
  * @property {number?} selectedTileIndex - Currently selected tile index.
  * @property {number?} cursorSize - Size of the cursor in px.
  * @property {string?} cursor - Cursor to use when the mouse hovers over the image editor.
+ * @property {ReferenceImage?} referenceImage - Reference image to draw.
+ * @property {number?} transparencyIndex - 0 to 15 of which colour index to make transparent.
  * @property {boolean?} showTileGrid - Should the tile grid be drawn?
  * @property {boolean?} showPixelGrid - Should the pixel grid be drawn?
  * @property {boolean?} enabled - Is the control enabled or disabled?

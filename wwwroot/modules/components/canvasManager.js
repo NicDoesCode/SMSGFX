@@ -1,6 +1,7 @@
 import TileSet from "./../models/tileSet.js";
 import Palette from "./../models/palette.js";
 import ColourUtil from "./../util/colourUtil.js";
+import ReferenceImage from "../models/referenceImage.js";
 
 export default class CanvasManager {
 
@@ -97,6 +98,16 @@ export default class CanvasManager {
         this.#drawPixelGrid = value;
     }
 
+    /**
+     * Gets or sets the colour index for transparency, 0 to 15, -1 for none.
+     */
+    get transparencyIndex() {
+        return this.#transparencyIndex;
+    }
+    set transparencyIndex(value) {
+        this.#transparencyIndex = value;
+    }
+
 
     /** @type {HTMLCanvasElement} */
     #baseCanvas;
@@ -113,8 +124,11 @@ export default class CanvasManager {
     /** @type {number} */
     #selectedTileIndex = -1;
     #cursorSize = 1;
+    #transparencyIndex = 15;
     #drawTileGrid = false;
     #drawPixelGrid = false;
+    /** @type {ReferenceImage[]} */
+    #referenceImages = [];
 
 
     /**
@@ -146,6 +160,21 @@ export default class CanvasManager {
 
 
     /**
+     * Sets the reference image.
+     * @param {ReferenceImage} referenceImage - Reference image to draw.
+     */
+    addReferenceImage(referenceImage) {
+        if (referenceImage) {
+            this.#referenceImages.push(referenceImage);
+        }
+    }
+
+    clearReferenceImages() {
+        this.#referenceImages = [];
+    }
+
+
+    /**
      * Draws a tile set and then returns the image as a base 64 URL.
      */
     #refreshBaseImage() {
@@ -160,6 +189,7 @@ export default class CanvasManager {
         const rows = Math.ceil(this.tileSet.length / tiles);
 
         const pxSize = this.scale;
+        const transColour = this.#referenceImages.filter(r => r.image !== null).length > 0 ? this.#transparencyIndex : -1;
 
         canvas.width = tiles * 8 * pxSize;
         canvas.height = rows * 8 * pxSize;
@@ -184,12 +214,12 @@ export default class CanvasManager {
                     const colour = this.palette.getColour(pixelPaletteIndex);
                     const hex = ColourUtil.toHex(colour.r, colour.g, colour.b);
                     ctx.fillStyle = hex;
-                } else {
-                    ctx.fillStyle = 'yellow';
                 }
 
-                ctx.moveTo(0, 0);
-                ctx.fillRect(x, y, pxSize, pxSize);
+                if (transColour === -1 || pixelPaletteIndex !== transColour) {
+                    ctx.moveTo(0, 0);
+                    ctx.fillRect(x, y, pxSize, pxSize);
+                }
             }
 
         });
@@ -237,6 +267,19 @@ export default class CanvasManager {
         // Equalise width and height
         canvas.width = baseCanvas.width;
         canvas.height = baseCanvas.height;
+
+        context.fillStyle = '#FFFFFF';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw the reference image
+        context.globalAlpha = 0.5;
+        this.#referenceImages.forEach(ref => {
+            if (ref.image) {
+                const bounds = ref.getBounds();
+                context.drawImage(ref.image, bounds.x * pxSize, bounds.y * pxSize, bounds.width * pxSize, bounds.height * pxSize);
+            }
+        });
+        context.globalAlpha = 1;
 
         // Draw the cached image
         context.drawImage(baseCanvas, 0, 0);

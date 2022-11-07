@@ -27,6 +27,8 @@ import FileUtil from "./util/fileUtil.js";
 import Project from "./models/project.js";
 import GeneralUtil from "./util/generalUtil.js";
 import ProjectWatcher from "./components/projectWatcher.js";
+import ImageUtil from "./util/imageUtil.js";
+import ReferenceImage from "./models/referenceImage.js";
 
 
 /* ****************************************************************************************************
@@ -56,7 +58,9 @@ const instanceState = {
     ctrlIsDown: false,
     shiftIsDown: false,
     altIsDown: false,
-    sessionId: GeneralUtil.generateRandomString(32)
+    sessionId: GeneralUtil.generateRandomString(32),
+    /** @type {ReferenceImage} */
+    referenceImage: null
 };
 
 
@@ -101,10 +105,8 @@ function wireUpEventHandlers() {
 
     tileEditor.addHandlerOnCommand(handleTileEditorOnCommand);
     tileEditor.addHandlerOnEvent(handleTileEditorOnEvent);
-
     tileEditorToolbar.addHandlerOnCommand(handleTileEditorToolbarOnCommand);
     tileEditorBottomToolbar.addHandlerOnCommand(handleTileEditorToolbarOnCommand);
-
     tileContextToolbar.addHandlerOnCommand(handleTileContextToolbarCommand);
 
     paletteImportDialogue.addHandlerOnConfirm(handleImportPaletteModalDialogueOnConfirm);
@@ -636,6 +638,15 @@ function handleTileContextToolbarCommand(args) {
         if (args.brushSize && args.brushSize >= 1 && args.brushSize <= 5) {
             setPencilSize(args.brushSize);
         }
+    }
+    if (args.command === TileContextToolbar.Commands.referenceImageSelect) {
+        selectReferenceImage();
+    }
+    if (args.command === TileContextToolbar.Commands.referenceImageClear) {
+        clearReferenceImage();
+    }
+    if (args.command === TileContextToolbar.Commands.referenceImageDisplay) {
+        updateReferenceImage(args.referenceBounds, args.referenceTransparency);
     }
 }
 
@@ -1220,10 +1231,76 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
             instanceState.lastTileMapPx.x = -1;
             instanceState.lastTileMapPx.y = -1;
 
+        } else if (tool === TileEditorToolbar.Tools.referenceImage) {
+            // TODO - Allow dynamic reference image editing.
         }
 
     }
 
+}
+
+function selectReferenceImage() {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.onchange = async () => {
+
+        const sourceImg = await ImageUtil.fileInputToImageAsync(fileInput);
+        const dimensions = ImageUtil.calculateImageSize(sourceImg, 1024, 1024);
+        const resizedImg = await ImageUtil.resizeImageAsync(sourceImg, dimensions.width, dimensions.height);
+        const drawDimensions = ImageUtil.calculateImageSize(sourceImg, getTileSet().tileWidth * 8, getTileSet().tileHeight * 8);
+
+        if (!instanceState.referenceImage) {
+            instanceState.referenceImage = new ReferenceImage();
+        }
+
+        instanceState.referenceImage.setImage(resizedImg);
+        instanceState.referenceImage.setBounds(0, 0, drawDimensions.width, drawDimensions.height);
+
+        tileContextToolbar.setState({
+            referenceBounds: instanceState.referenceImage.getBounds(),
+            referenceTransparency: instanceState.transparencyIndex
+        });
+        tileEditor.setState({
+            referenceImage: instanceState.referenceImage
+        });
+    };
+    fileInput.click();
+}
+
+function clearReferenceImage() {
+
+    instanceState.referenceImage.clearImage();
+
+    tileContextToolbar.setState({
+        referenceBounds: instanceState.referenceImage.getBounds()
+    });
+    tileEditor.setState({
+        referenceImage: instanceState.referenceImage
+    });
+
+}
+
+/**
+ * Updates the reference image.
+ * @param {DOMRect} bounds - Bounds of the reference image.
+ * @param {number} transparencyIndex - Transparency colour index.
+ */
+function updateReferenceImage(bounds, transparencyIndex) {
+    if (!instanceState.referenceImage) {
+        instanceState.referenceImage = new ReferenceImage();
+    }
+    instanceState.referenceImage.setBounds(bounds.x, bounds.y, bounds.width, bounds.height);
+
+    const refImage = instanceState.referenceImage;
+
+    tileEditor.setState({
+        referenceImage: refImage,
+        transparencyIndex: transparencyIndex
+    });
+    tileContextToolbar.setState({
+        referenceBounds: refImage.getBounds(),
+        referenceTransparency: refImage.transparencyIndex
+    });
 }
 
 /**
@@ -1894,6 +1971,9 @@ function selectTool(tool) {
         if ([tools.select].includes(tool)) {
             visibleStrips.push(TileContextToolbar.Toolstrips.select);
         }
+        if ([tools.referenceImage].includes(tool)) {
+            visibleStrips.push(TileContextToolbar.Toolstrips.referenceImage);
+        }
 
         let cursor = 'arrow';
         let cursorSize = 1;
@@ -2038,6 +2118,10 @@ window.addEventListener('load', () => {
     });
     tileEditorBottomToolbar.setState({
         visibleToolstrips: [strips.scale, strips.showTileGrid, strips.showPixelGrid]
+    });
+
+    tileContextToolbar.setState({
+        referenceTransparency: 15
     });
 
     selectTool(instanceState.tool);

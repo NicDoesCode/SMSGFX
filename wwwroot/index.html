@@ -384,6 +384,10 @@
                                             data-tool="eyedropper" title="Colour select tool.">
                                             <i class="bi bi-eyedropper"></i>
                                         </button>
+                                        <button data-command="toolChange" class="btn btn-outline-secondary"
+                                            data-tool="referenceImage" title="Reference image.">
+                                            <i class="bi bi-pip"></i>
+                                        </button>
                                     </div>
                                 </div>
                                 <div data-toolstrip="tileWidth" class="col-auto pe-0">
@@ -521,6 +525,70 @@
                                     </div>
                                 </div>
                                 <!-- End: Select toolstrip -->
+                                <!-- Reference image toolstrip -->
+                                <div data-toolstrip="referenceImage" class="col-auto ms-0 ps-0 pe-2">
+                                    <div class="input-group input-group-sm p-0 m-0 pb-2">
+                                        <span class="input-group-text fw-bolder">Reference</span>
+                                    </div>
+                                </div>
+                                <div data-toolstrip="referenceImage" class="col-auto pe-0 ps-0">
+                                    <div class="input-group input-group-sm p-0 m-0 pb-2">
+                                        <button class="btn btn-outline-secondary" title="Select a new reference image."
+                                            data-command="referenceImageSelect">
+                                            <i class="bi bi-upload"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary" title="Select a new reference image."
+                                            data-command="referenceImageClear">
+                                            <i class="bi bi-trash-fill"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div data-toolstrip="referenceImage" class="col-auto pe-0">
+                                    <div class="input-group input-group-sm p-0 m-0 pb-2">
+                                        <span class="input-group-text">X</span>
+                                        <input data-command="referenceImageDisplay" data-field="referenceX" type="text" class="form-control"
+                                            style="width: 40px">
+                                        <span class="input-group-text">Y</span>
+                                        <input data-command="referenceImageDisplay" data-field="referenceY" type="text" class="form-control"
+                                            style="width: 40px">
+                                    </div>
+                                </div>
+                                <div data-toolstrip="referenceImage" class="col-auto pe-0">
+                                    <div class="input-group input-group-sm p-0 m-0 pb-2">
+                                        <span class="input-group-text">W</span>
+                                        <input data-command="referenceImageDisplay" data-field="referenceWidth" type="text" class="form-control"
+                                            style="width: 40px">
+                                        <span class="input-group-text">H</span>
+                                        <input data-command="referenceImageDisplay" data-field="referenceHeight" type="text" class="form-control"
+                                            style="width: 40px">
+                                    </div>
+                                </div>
+                                <div data-toolstrip="referenceImage" class="col-auto">
+                                    <div class="input-group input-group-sm p-0 m-0 pb-2">
+                                        <span class="input-group-text">Transparency</span>
+                                        <select data-command="referenceImageDisplay" data-field="referenceTransparency" class="form-select">
+                                            <options>
+                                                <option value="0">#0</option>
+                                                <option value="1">#1</option>
+                                                <option value="2">#2</option>
+                                                <option value="3">#3</option>
+                                                <option value="4">#4</option>
+                                                <option value="5">#5</option>
+                                                <option value="6">#6</option>
+                                                <option value="7">#7</option>
+                                                <option value="8">#8</option>
+                                                <option value="9">#9</option>
+                                                <option value="10">#10</option>
+                                                <option value="11">#11</option>
+                                                <option value="12">#12</option>
+                                                <option value="13">#13</option>
+                                                <option value="14">#14</option>
+                                                <option value="15" selected>#15</option>
+                                            </options>
+                                        </select>
+                                    </div>
+                                </div>
+                                <!-- End: Reference image toolstrip -->
                             </div>
                         </div>
                     </div>
@@ -654,8 +722,8 @@
                                                 title="View this project on GitHub.">GitHub</a> |
                                             <a href="./documentation.html" target="_blank"
                                                 title="View this project on GitHub.">Documentation</a> |
-                                            <a href="#" target="_blank" data-bs-toggle="modal" data-bs-target="#aboutModal"
-                                                title="About this application.">About</a>
+                                            <a href="#" target="_blank" data-bs-toggle="modal"
+                                                data-bs-target="#aboutModal" title="About this application.">About</a>
                                         </small>
                                     </p>
                                 </div>

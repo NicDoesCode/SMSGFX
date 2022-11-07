@@ -7,6 +7,8 @@ import TileSetFactory from "../factory/tileSetFactory.js";
 import PaletteListFactory from "../factory/paletteListFactory.js";
 import GeneralUtil from "./generalUtil.js";
 
+const imageMimeTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/gif', 'image/svg+xml'];
+
 export default class ImageUtil {
 
 
@@ -273,6 +275,31 @@ export default class ImageUtil {
             };
             reader.readAsDataURL(file);
         });
+    }
+
+    /**
+     * Reads an image from a file.
+     * @param {HTMLImageElement} image - Image to calculate the size of.
+     * @param {number} maximumWidth - Maximum width of the image.
+     * @param {number} maximumHeight - Maximum height of the image.
+     * @returns {{width: number, height: number}}
+     */
+    static calculateImageSize(image, maximumWidth, maximumHeight) {
+        let width = image.width;
+        let height = image.height;
+        if (width > maximumWidth || height > maximumHeight) {
+            const widthGreaterThanHeight = width > height;
+            if (widthGreaterThanHeight) {
+                let percent = 1 / width * maximumWidth;
+                width = maximumWidth;
+                height = Math.round(height * percent);
+            } else {
+                let percent = 1 / height * maximumHeight;
+                width = Math.round(width * percent);
+                height = maximumHeight;
+            }
+        }
+        return { width, height };
     }
 
 

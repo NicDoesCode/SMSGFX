@@ -19,7 +19,8 @@ const tools = {
     select: 'select',
     pencil: 'pencil',
     bucket: 'bucket',
-    eyedropper: 'eyedropper'
+    eyedropper: 'eyedropper',
+    referenceImage: 'referenceImage'
 };
 const scales = [1, 2, 5, 10, 15, 20, 50];
 const toolstrips = {
