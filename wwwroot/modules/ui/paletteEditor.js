@@ -10,7 +10,7 @@ const commands = {
     paletteTitle: 'paletteTitle',
     paletteSelect: 'paletteSelect',
     paletteNew: 'paletteNew',
-    paletteCodeImport: 'paletteCodeImport',
+    paletteImport: 'paletteImport',
     paletteDelete: 'paletteDelete',
     paletteClone: 'paletteClone',
     paletteSystem: 'paletteSystem',

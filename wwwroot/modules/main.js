@@ -496,7 +496,7 @@ function handlePaletteEditorOnCommand(args) {
             newPalette();
             break;
 
-        case PaletteEditor.Commands.paletteCodeImport:
+        case PaletteEditor.Commands.paletteImport:
             paletteImportDialogue.setState({
                 paletteData: getUIState().importPaletteAssemblyCode,
                 system: getUIState().importPaletteSystem
