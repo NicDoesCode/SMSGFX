@@ -155,7 +155,9 @@ export default class CanvasManager {
      * Returns a bitmap that represents the tile set as a PNG data URL.
      */
     toDataURL() {
-        return this.#baseCanvas.toDataURL('image/png');
+        const canvas = document.createElement('canvas');
+        this.#drawBaseImage(canvas, -1);
+        return canvas.toDataURL('image/png');
     }
 
 
@@ -178,18 +180,26 @@ export default class CanvasManager {
      * Draws a tile set and then returns the image as a base 64 URL.
      */
     #refreshBaseImage() {
+        const transColour = this.#referenceImages.filter(r => r.image !== null).length > 0 ? this.#transparencyIndex : -1;
+        this.#drawBaseImage(this.#baseCanvas, transColour);
+    }
+
+    /**
+     * Draws the base image onto a canvas element.
+     * @param {HTMLCanvasElement} canvas - Canvas element to draw onto.
+     * @param {number} transparencyColour - Render this colour as transparent.
+     */
+    #drawBaseImage(canvas, transparencyColour) {
 
         if (!this.tileSet) throw new Error('refreshBaseImage: No tile set.');
         if (!this.tileSet) throw new Error('refreshBaseImage: No palette.');
 
-        const canvas = this.#baseCanvas;
-        const ctx = this.#baseCtx;
+        const context = canvas.getContext('2d');
 
         const tiles = Math.max(this.tileSet.tileWidth, 1);
         const rows = Math.ceil(this.tileSet.length / tiles);
 
         const pxSize = this.scale;
-        const transColour = this.#referenceImages.filter(r => r.image !== null).length > 0 ? this.#transparencyIndex : -1;
 
         canvas.width = tiles * 8 * pxSize;
         canvas.height = rows * 8 * pxSize;
@@ -213,12 +223,12 @@ export default class CanvasManager {
                 if (pixelPaletteIndex >= 0 && pixelPaletteIndex < 16) {
                     const colour = this.palette.getColour(pixelPaletteIndex);
                     const hex = ColourUtil.toHex(colour.r, colour.g, colour.b);
-                    ctx.fillStyle = hex;
+                    context.fillStyle = hex;
                 }
 
-                if (transColour === -1 || pixelPaletteIndex !== transColour) {
-                    ctx.moveTo(0, 0);
-                    ctx.fillRect(x, y, pxSize, pxSize);
+                if (transparencyColour === -1 || pixelPaletteIndex !== transparencyColour) {
+                    context.moveTo(0, 0);
+                    context.fillRect(x, y, pxSize, pxSize);
                 }
             }
 
@@ -349,7 +359,7 @@ export default class CanvasManager {
      * @param {CanvasRenderingContext2D} context 
      * @param {CanvCoords} coords 
      */
-     #drawReferenceImages(context, coords) {
+    #drawReferenceImages(context, coords) {
         const pxSize = coords.pxSize;
         context.globalAlpha = 0.5;
         this.#referenceImages.forEach(ref => {

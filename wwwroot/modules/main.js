@@ -797,9 +797,7 @@ function handleImportPaletteModalDialogueOnConfirm(args) {
  */
 function handleColourPickerChange(args) {
 
-    const project = state.project;
-    const paletteList = project.paletteList;
-    const palette = paletteList.getPalette(state.persistentUIState.paletteIndex);
+    const palette = getPaletteList().getPalette(getUIState().paletteIndex);
     const currentColour = palette.getColour(args.index);
 
     if (args.r !== currentColour.r || args.g !== currentColour.g || args.b !== currentColour.b) {
@@ -808,7 +806,7 @@ function handleColourPickerChange(args) {
         palette.setColour(args.index, newColour);
 
         paletteEditor.setState({
-            paletteList: state.paletteList
+            paletteList: getPaletteList()
         });
         tileEditor.setState({
             palette: palette
@@ -833,7 +831,7 @@ function handleColourPickerConfirm(args) {
  */
 function handleColourPickerCancel(args) {
 
-    const palette = getPaletteList().getPalette(state.persistentUIState.paletteIndex);
+    const palette = getPaletteList().getPalette(getUIState().paletteIndex);
     const currentColour = palette.getColour(args.index);
 
     if (args.originalR !== currentColour.r || args.originalG !== currentColour.g || args.originalB !== currentColour.b) {
@@ -842,7 +840,7 @@ function handleColourPickerCancel(args) {
         palette.setColour(args.index, restoreColour);
 
         paletteEditor.setState({
-            paletteList: state.paletteList
+            paletteList: getPaletteList()
         });
         tileEditor.setState({
             palette: palette
@@ -1048,7 +1046,7 @@ function getProject() {
     return state.project;
 }
 function getTileSet() {
-    return state.project.tileSet;
+    return getProject().tileSet;
 }
 function getTile() {
     if (instanceState.tileIndex > -1 && instanceState.tileIndex < getTileSet().length) {
@@ -1058,15 +1056,15 @@ function getTile() {
     }
 }
 function getPaletteList() {
-    return state.project?.paletteList ?? null;
+    return getProject()?.paletteList ?? null;
 }
 function getPalette() {
     if (getPaletteList().length > 0) {
-        const paletteIndex = state.persistentUIState.paletteIndex;
+        const paletteIndex = getUIState().paletteIndex;
         if (paletteIndex >= 0 && paletteIndex < getPaletteList().length) {
             return getPaletteList().getPalette(paletteIndex);
         } else {
-            state.persistentUIState.paletteIndex = 0;
+            getUIState().paletteIndex = 0;
             return getPaletteList().getPalette(0);
         }
     } else return null;
@@ -1081,7 +1079,7 @@ function formatForProject() {
     const colour = palette.getColour(instanceState.colourIndex);
 
     headerBar.setState({
-        projectTitle: state.project.title,
+        projectTitle: getProject().title,
         enabled: true
     });
     paletteEditor.setState({
@@ -1569,7 +1567,7 @@ function newPalette() {
     const selectedPaletteIndex = getPaletteList().length - 1;
 
     // Update state
-    state.persistentUIState.paletteIndex = selectedPaletteIndex;
+    getUIState().paletteIndex = selectedPaletteIndex;
     paletteEditor.setState({
         paletteList: getPaletteList(),
         selectedPaletteIndex: selectedPaletteIndex
@@ -1580,7 +1578,7 @@ function newPalette() {
 }
 
 function clonePalette(paletteIndex) {
-    if (paletteIndex >= 0 && paletteIndex < state.paletteList.length) {
+    if (paletteIndex >= 0 && paletteIndex < getPaletteList().length) {
 
         addUndoState();
 
@@ -1592,7 +1590,7 @@ function clonePalette(paletteIndex) {
         const newPaletteIndex = getPaletteList().length - 1;
 
         paletteEditor.setState({
-            paletteList: state.paletteList,
+            paletteList: getPaletteList(),
             selectedPaletteIndex: newPaletteIndex
         });
         tileEditor.setState({
@@ -1605,26 +1603,26 @@ function clonePalette(paletteIndex) {
 }
 
 function deletePalette(paletteIndex) {
-    if (paletteIndex >= 0 && paletteIndex < state.paletteList.length) {
+    if (paletteIndex >= 0 && paletteIndex < getPaletteList().length) {
 
         addUndoState();
 
         // Remove palette
-        state.paletteList.removeAt(paletteIndex);
-        const newSelectedIndex = Math.min(paletteIndex, state.paletteList.length - 1);
-        if (state.paletteList.length > 0) {
+        getPaletteList().removeAt(paletteIndex);
+        const newSelectedIndex = Math.min(paletteIndex, getPaletteList().length - 1);
+        if (getPaletteList().length > 0) {
             paletteEditor.setState({
-                paletteList: state.paletteList,
+                paletteList: getPaletteList(),
                 selectedPaletteIndex: newSelectedIndex
             });
-            state.persistentUIState.paletteIndex = newSelectedIndex;
+            getUIState().paletteIndex = newSelectedIndex;
         } else {
-            state.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('ms'));
+            getPaletteList().addPalette(PaletteFactory.createNewStandardColourPalette('ms'));
             paletteEditor.setState({
-                paletteList: state.paletteList,
+                paletteList: getPaletteList(),
                 selectedPaletteIndex: 0
             });
-            state.persistentUIState.paletteIndex = 0;
+            getUIState().paletteIndex = 0;
         }
 
         // Refresh image
@@ -1844,7 +1842,7 @@ function importProjectFromJson() {
 
                 state.setProject(project);
                 state.saveProjectToLocalStorage();
-                state.persistentUIState.paletteIndex = 0;
+                getUIState().paletteIndex = 0;
 
                 displaySelectedProject();
             });
@@ -1857,7 +1855,7 @@ function importProjectFromJson() {
  * Exports the project to a JSON file.
  */
 function exportProjectToJson() {
-    ProjectUtil.saveToFile(state.project);
+    ProjectUtil.saveToFile(getProject());
 }
 
 /**
@@ -1920,8 +1918,8 @@ function undoOrRedo(undoOrRedo) {
 }
 
 function addUndoState() {
-    if (state.project && !instanceState.undoDisabled) {
-        undoManager.addUndoState(state.project);
+    if (getProject() && !instanceState.undoDisabled) {
+        undoManager.addUndoState(getProject());
         setCommonTileToolbarStates({
             undoEnabled: undoManager.canUndo,
             redoEnabled: undoManager.canRedo
