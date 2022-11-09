@@ -10,10 +10,10 @@ export default class TileSetBinarySerialiser {
      * @param {TileSet} tileSet - Tile set to serialise.
      */
      static serialise(tileSet) {
-        const byteLength = tileSet.length * 64;
+        const byteLength = tileSet.length * 32;
         const result = new Uint8ClampedArray(byteLength);
         tileSet.getTiles().forEach((tile, index) => {
-            const resultArrayOffset = index * 64;
+            const resultArrayOffset = index * 32;
             const tileAsBinary = TileBinarySerialiser.serialise(tile);
             result.set(tileAsBinary, resultArrayOffset);
         });

@@ -10,7 +10,7 @@ export default class TileBinarySerialiser {
      * @param {Tile} tile - Tile to serialise.
      */
     static serialise(tile) {
-        const result = new Uint8ClampedArray(64);
+        const result = new Uint8ClampedArray(32);
         let index = 0;
         for (let row = 0; row < 8; row++) {
             const encoded = [0, 0, 0, 0];

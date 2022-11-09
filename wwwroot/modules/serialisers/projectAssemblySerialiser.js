@@ -61,8 +61,8 @@ export default class ProjectAssemblySerialiser {
         for (let i = 0; i < tileSet.length; i++) {
             message.push(`; Tile index $${i.toString(16).padStart(3, 0)}`);
             const tileMessage = ['.db'];
-            const tileStartIndex = i * 64;
-            for (let t = tileStartIndex; t < tileStartIndex + 64; t += 4) {
+            const tileStartIndex = i * 32;
+            for (let t = tileStartIndex; t < tileStartIndex + 32; t += 4) {
                 const bytes = encoded.slice(t, t + 4);
                 for (let b = 0; b < bytes.length; b++) {
                     tileMessage.push('$' + bytes[b].toString(16).padStart(8, '0').substring(6).toUpperCase());
