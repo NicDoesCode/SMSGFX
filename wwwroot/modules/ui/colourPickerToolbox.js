@@ -64,16 +64,16 @@ export default class ColourPickerToolbox {
         this.#btnColourToolboxPick = this.#element.querySelector('[data-smsgfx-id=colourPicker]');
         this.#tbColourToolboxHex = this.#element.querySelector('[data-smsgfx-id=inputHex]');
 
-        this.#tbColourToolboxRedSlider.onchange = () => this.#setFromColour('r', tbColourToolboxRedSlider.value);
-        this.#tbColourToolboxGreenSlider.onchange = () => this.#setFromColour('g', tbColourToolboxGreenSlider.value);
-        this.#tbColourToolboxBlueSlider.onchange = () => this.#setFromColour('b', tbColourToolboxBlueSlider.value);
+        this.#tbColourToolboxRedSlider.onchange = () => this.#setFromColour('r', this.#tbColourToolboxRedSlider.value);
+        this.#tbColourToolboxGreenSlider.onchange = () => this.#setFromColour('g', this.#tbColourToolboxGreenSlider.value);
+        this.#tbColourToolboxBlueSlider.onchange = () => this.#setFromColour('b', this.#tbColourToolboxBlueSlider.value);
 
-        this.#tbColourToolboxRed.onchange = () => this.#setFromColour('r', tbColourToolboxRedSlider.value);
-        this.#tbColourToolboxGreen.onchange = () => this.#setFromColour('g', tbColourToolboxGreenSlider.value);
-        this.#tbColourToolboxBlue.onchange = () => this.#setFromColour('b', tbColourToolboxBlueSlider.value);
+        this.#tbColourToolboxRed.onchange = () => this.#setFromColour('r', this.#tbColourToolboxRedSlider.value);
+        this.#tbColourToolboxGreen.onchange = () => this.#setFromColour('g', this.#tbColourToolboxGreenSlider.value);
+        this.#tbColourToolboxBlue.onchange = () => this.#setFromColour('b', this.#tbColourToolboxBlueSlider.value);
 
-        this.#btnColourToolboxPick.onchange = () => this.#setFromHex(btnColourToolboxPick.value);
-        this.#tbColourToolboxHex.onchange = () => this.#setFromHex(tbColourToolboxHex.value);
+        this.#btnColourToolboxPick.onchange = () => this.#setFromHex(this.#btnColourToolboxPick.value);
+        this.#tbColourToolboxHex.onchange = () => this.#setFromHex(this.#tbColourToolboxHex.value);
 
         /** @type NodeListOf<HTMLAnchorElement> */
         const tabLinks = this.#element.querySelectorAll('[data-colour-toolbox-tabs] [data-colour-toolbox-tab] a');
