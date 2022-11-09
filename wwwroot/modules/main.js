@@ -50,6 +50,8 @@ const instanceState = {
     colourToolboxTab: null,
     /** @type {boolean} */
     undoDisabled: false,
+    /** @type {string} */
+    lastBound: null,
     lastTileMapPx: {
         x: -1, y: -1
     },
@@ -60,7 +62,13 @@ const instanceState = {
     altIsDown: false,
     sessionId: GeneralUtil.generateRandomString(32),
     /** @type {ReferenceImage} */
-    referenceImage: null
+    referenceImage: null,
+    /** @type {HTMLImageElement} */
+    referenceImageOriginal: null,
+    /** @type {DOMRect} */
+    referenceImageOriginalBounds: null,
+    referenceImageLockAspect: true,
+    referenceImageMoving: false
 };
 
 
@@ -645,8 +653,16 @@ function handleTileContextToolbarCommand(args) {
     if (args.command === TileContextToolbar.Commands.referenceImageClear) {
         clearReferenceImage();
     }
+    if (args.command === TileContextToolbar.Commands.referenceImageLockAspect) {
+        instanceState.referenceImageLockAspect = args.referenceLockAspect;
+    }
     if (args.command === TileContextToolbar.Commands.referenceImageDisplay) {
         updateReferenceImage(args.referenceBounds, args.referenceTransparency);
+    }
+    if (args.command === TileContextToolbar.Commands.referenceImageRevert) {
+        const drawDimensions = ImageUtil.calculateImageSize(instanceState.referenceImageOriginal, getTileSet().tileWidth * 8, getTileSet().tileHeight * 8);
+        const restoredBounds = new DOMRect(0, 0, drawDimensions.width, drawDimensions.height);
+        updateReferenceImage(restoredBounds, args.referenceTransparency);
     }
 }
 
@@ -702,37 +718,41 @@ function handleTileEditorOnCommand(args) {
 
 /** @param {import("./ui/tileEditor.js").TileEditorEventArgs} args */
 function handleTileEditorOnEvent(args) {
-    switch (args.event) {
+    if (instanceState.tool === TileEditorToolbar.Tools.referenceImage) {
+        takeReferenceImageAction(args);
+    } else {
+        switch (args.event) {
 
-        case TileEditor.Events.pixelMouseDown:
-            if (args.isPrimaryButton) {
-                takeToolAction(instanceState.tool, instanceState.colourIndex, args.x, args.y);
-            }
-            break;
+            case TileEditor.Events.pixelMouseDown:
+                if (args.isPrimaryButton) {
+                    takeToolAction(instanceState.tool, instanceState.colourIndex, args.x, args.y);
+                }
+                break;
 
-        case TileEditor.Events.pixelMouseOver:
-            const tileSet = getTileSet();
+            case TileEditor.Events.pixelMouseOver:
+                const tileSet = getTileSet();
 
-            if (args.mousePrimaryIsDown) {
-                takeToolAction(instanceState.tool, instanceState.colourIndex, args.x, args.y);
-            }
+                if (args.mousePrimaryIsDown) {
+                    takeToolAction(instanceState.tool, instanceState.colourIndex, args.x, args.y);
+                }
 
-            // Show the palette colour
-            const pixel = tileSet.getPixelAt(args.x, args.y);
-            if (pixel !== null) {
-                paletteEditor.setState({
-                    highlightedColourIndex: pixel
-                });
-            }
-            break;
+                // Show the palette colour
+                const pixel = tileSet.getPixelAt(args.x, args.y);
+                if (pixel !== null) {
+                    paletteEditor.setState({
+                        highlightedColourIndex: pixel
+                    });
+                }
+                break;
 
-        case TileEditor.Events.pixelMouseUp:
-            if (instanceState.undoDisabled) {
-                state.saveToLocalStorage();
-                instanceState.undoDisabled = false;
-            }
-            break;
+            case TileEditor.Events.pixelMouseUp:
+                if (instanceState.undoDisabled) {
+                    state.saveToLocalStorage();
+                    instanceState.undoDisabled = false;
+                }
+                break;
 
+        }
     }
 }
 
@@ -1231,12 +1251,206 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
             instanceState.lastTileMapPx.x = -1;
             instanceState.lastTileMapPx.y = -1;
 
-        } else if (tool === TileEditorToolbar.Tools.referenceImage) {
-            // TODO - Allow dynamic reference image editing.
         }
 
     }
 
+}
+
+/** @param {import("./ui/tileEditor.js").TileEditorEventArgs} args */
+function takeReferenceImageAction(args) {
+    if (instanceState.referenceImage) {
+
+        if (args.event === TileEditor.Events.pixelMouseDown) {
+            // Mouse is clicked, record the coords and ref image bound that was clicked
+
+            const refBounds = instanceState.referenceImage.getBounds();
+            instanceState.lastBound = getBoundType(args.x, args.y, refBounds);
+            instanceState.lastTileMapPx.x = args.x;
+            instanceState.lastTileMapPx.y = args.y;
+            instanceState.referenceImageOriginalBounds = refBounds;
+
+        } else if (args.event === TileEditor.Events.pixelMouseOver) {
+            // Mouse is moved, set cursor and preform any required movement or resize
+
+            const refBounds = instanceState.referenceImage.getBounds();
+            const origBounds = instanceState.referenceImageOriginalBounds;
+            const last = instanceState.lastTileMapPx;
+
+            if (args.mousePrimaryIsDown) {
+                // Mouse was held, so perform movement or resize
+
+                let newX = refBounds.x;
+                let newY = refBounds.y;
+                let newW = refBounds.width;
+                let newH = refBounds.height;
+
+                const hasLastPosition = last.x !== -1 && last.y !== -1;
+                if (hasLastPosition) {
+
+                    const movementX = (last.x - args.x);
+                    const movementY = (last.y - args.y);
+
+                    // Move
+
+                    if (instanceState.lastBound === boundTypes.c) {
+                        // Moves entire image?
+                        newX -= movementX;
+                        newY -= movementY;
+                    }
+
+                    // Resize
+                    switch (instanceState.lastBound) {
+                        case boundTypes.t: newH += movementY; break;
+                        case boundTypes.b: newH -= movementY; break;
+                        case boundTypes.l: newW += movementX; break;
+                        case boundTypes.r: newW -= movementX; break;
+                        case boundTypes.tl: newW += movementX; newH += movementY; break;
+                        case boundTypes.bl: newW += movementX; newH -= movementY; break;
+                        case boundTypes.tr: newW -= movementX; newH += movementY; break;
+                        case boundTypes.br: newW -= movementX; newH -= movementY; break;
+                    }
+                    if (args.ctrlKeyPressed) {
+                        let origAxis = { w: origBounds.width, h: origBounds.height };
+                        switch (instanceState.lastBound) {
+                            case boundTypes.t:
+                            case boundTypes.b:
+                            case boundTypes.tl:
+                            case boundTypes.br:
+                                newW = calcAxisPx('w', newH, origAxis);
+                                break;
+                            case boundTypes.l:
+                            case boundTypes.r:
+                            case boundTypes.bl:
+                            case boundTypes.tr:
+                                newH = calcAxisPx('h', newW, origAxis);
+                                break;
+                        }
+                    }
+
+                    // Anchor
+                    switch (instanceState.lastBound) {
+                        case boundTypes.t: newY = origBounds.bottom - newH; break;
+                        case boundTypes.b: newY = origBounds.top; break;
+                        case boundTypes.l: newX = origBounds.right - newW; break;
+                        case boundTypes.r: newX = origBounds.left; break;
+                        case boundTypes.tl: newY = origBounds.bottom - newH; newX = origBounds.right - newW; break;
+                        case boundTypes.bl: newY = origBounds.top; newX = origBounds.right - newW; break;
+                        case boundTypes.tr: newY = origBounds.bottom - newH; newX = origBounds.left; break;
+                        case boundTypes.br: newY = origBounds.top; newX = origBounds.left; break;
+                    }
+                    if (args.ctrlKeyPressed) {
+                        switch (instanceState.lastBound) {
+                            case boundTypes.t:
+                            case boundTypes.b:
+                                newX = origBounds.left + (origBounds.width / 2) - (newW / 2);
+                                break;
+                            case boundTypes.l:
+                            case boundTypes.r:
+                                newY = origBounds.top + (origBounds.height / 2) - (newH / 2);
+                                break;
+                        }
+                    }
+
+                    instanceState.referenceImage.setBounds(newX, newY, newW, newH);
+                    tileContextToolbar.setState({ referenceBounds: instanceState.referenceImage.getBounds() });
+
+                }
+            } else {
+                // Mouse wasn't held, so just update cursor to reflect the bound
+                const refBounds = instanceState.referenceImage.getBounds();
+                const bound = getBoundType(args.x, args.y, refBounds);
+                if (bound === boundTypes.c) {
+                    tileEditor.setState({ cursor: 'move' });
+                } else if (bound === boundTypes.tl || bound === boundTypes.br) {
+                    tileEditor.setState({ cursor: 'nwse-resize' });
+                } else if (bound === boundTypes.bl || bound === boundTypes.tr) {
+                    tileEditor.setState({ cursor: 'nesw-resize' });
+                } else if (bound === boundTypes.t || bound === boundTypes.b) {
+                    tileEditor.setState({ cursor: 'ns-resize' });
+                } else if (bound === boundTypes.l || bound === boundTypes.r) {
+                    tileEditor.setState({ cursor: 'ew-resize' });
+                } else {
+                    tileEditor.setState({ cursor: 'default' });
+                }
+            }
+
+            instanceState.lastTileMapPx.x = args.x;
+            instanceState.lastTileMapPx.y = args.y;
+
+        } else if (args.event === TileEditor.Events.pixelMouseUp) {
+
+            instanceState.lastBound = null;
+            instanceState.lastTileMapPx.x = -1;
+            instanceState.lastTileMapPx.y = -1;
+
+        }
+    }
+}
+
+const boundTypes = { c: 'c', t: 't', r: 'r', b: 'b', l: 'l', tl: 'tl', tr: 'tr', br: 'br', bl: 'bl' };
+
+/**
+ * Given the length of one axis, this will return the length of the other axis as a percentage.
+ * @param {string} axis - Either 'w' or 'h'.
+ * @param {number} otherAxisPx - Other axis value in Px.
+ * @param {{ w: number, h: number }} originalValues - Bounds.
+ * @returns {number}
+ */
+function calcAxisPx(axis, otherAxisPx, originalValues) {
+    const otherAxis = axis === 'w' ? 'h' : 'w';
+    const ratio = 1 / originalValues[axis] * originalValues[otherAxis];
+    return otherAxisPx * ratio;
+}
+
+/**
+ * @param {number} x 
+ * @param {number} y 
+ * @param {DOMRect} bounds 
+ */
+function getBoundType(x, y, bounds) {
+    const centreBound = new DOMRect(bounds.left + 1, bounds.top + 1, bounds.width - 3, bounds.height - 3);
+    if (isInBounds(x, y, centreBound)) return boundTypes.c;
+
+    const topBounds = new DOMRect(bounds.left + 1, bounds.top - 1, bounds.width - 3, 3);
+    if (isInBounds(x, y, topBounds)) return boundTypes.t;
+
+    const botBounds = new DOMRect(bounds.left + 1, bounds.bottom - 3, bounds.width - 3, 3);
+    if (isInBounds(x, y, botBounds)) return boundTypes.b;
+
+    const leftBounds = new DOMRect(bounds.left - 1, bounds.top + 1, 3, bounds.height - 3);
+    if (isInBounds(x, y, leftBounds)) return boundTypes.l;
+
+    const rightBounds = new DOMRect(bounds.right - 3, bounds.top + 1, 3, bounds.height - 3);
+    if (isInBounds(x, y, rightBounds)) return boundTypes.r;
+
+    const topLeftBounds = new DOMRect(bounds.left - 1, bounds.top - 1, 3, 3);
+    if (isInBounds(x, y, topLeftBounds)) return boundTypes.tl;
+
+    const topRightBounds = new DOMRect(bounds.right - 3, bounds.top - 1, 3, 3);
+    if (isInBounds(x, y, topRightBounds)) return boundTypes.tr;
+
+    const bottomLeftBounds = new DOMRect(bounds.left - 1, bounds.bottom - 3, 3, 3);
+    if (isInBounds(x, y, bottomLeftBounds)) return boundTypes.bl;
+
+    const bottomRightBounds = new DOMRect(bounds.right - 3, bounds.bottom - 3, 3, 3);
+    if (isInBounds(x, y, bottomRightBounds)) return boundTypes.br;
+
+    return null;
+}
+
+/**
+ * @param {number} x 
+ * @param {number} y 
+ * @param {DOMRect} bounds 
+ * @param {number|null|undefined} collapsePx 
+ */
+function isInBounds(x, y, bounds, collapsePx) {
+    if (!collapsePx) collapsePx = 0;
+    return x > (bounds.left + collapsePx) &&
+        x < (bounds.right - collapsePx) &&
+        y > (bounds.top + collapsePx) &&
+        y < (bounds.bottom - collapsePx);
 }
 
 function selectReferenceImage() {
@@ -1245,6 +1459,8 @@ function selectReferenceImage() {
     fileInput.onchange = async () => {
 
         const sourceImg = await ImageUtil.fileInputToImageAsync(fileInput);
+        instanceState.referenceImageOriginal = sourceImg;
+
         const dimensions = ImageUtil.calculateImageSize(sourceImg, 1024, 1024);
         const resizedImg = await ImageUtil.resizeImageAsync(sourceImg, dimensions.width, dimensions.height);
         const drawDimensions = ImageUtil.calculateImageSize(sourceImg, getTileSet().tileWidth * 8, getTileSet().tileHeight * 8);
@@ -1255,6 +1471,7 @@ function selectReferenceImage() {
 
         instanceState.referenceImage.setImage(resizedImg);
         instanceState.referenceImage.setBounds(0, 0, drawDimensions.width, drawDimensions.height);
+
 
         tileContextToolbar.setState({
             referenceBounds: instanceState.referenceImage.getBounds(),
@@ -1270,6 +1487,7 @@ function selectReferenceImage() {
 function clearReferenceImage() {
 
     instanceState.referenceImage.clearImage();
+    instanceState.referenceImageOriginal = null;
 
     tileContextToolbar.setState({
         referenceBounds: instanceState.referenceImage.getBounds()
@@ -2121,7 +2339,8 @@ window.addEventListener('load', () => {
     });
 
     tileContextToolbar.setState({
-        referenceTransparency: 15
+        referenceTransparency: 15,
+        referenceLockAspect: instanceState.referenceImageLockAspect
     });
 
     selectTool(instanceState.tool);

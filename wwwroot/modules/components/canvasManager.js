@@ -271,19 +271,19 @@ export default class CanvasManager {
         context.fillStyle = '#FFFFFF';
         context.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw the reference image
-        context.globalAlpha = 0.5;
-        this.#referenceImages.forEach(ref => {
-            if (ref.image) {
-                const bounds = ref.getBounds();
-                context.drawImage(ref.image, bounds.x * pxSize, bounds.y * pxSize, bounds.width * pxSize, bounds.height * pxSize);
-            }
-        });
-        context.globalAlpha = 1;
+        // Draw the reference image below
+        if (this.transparencyIndex >= 0 && this.transparencyIndex < 16) {
+            this.#drawReferenceImages(context, coords);
+        }
 
         // Draw the cached image
         context.drawImage(baseCanvas, 0, 0);
         context.moveTo(0, 0);
+
+        // If drawing reference images above
+        if (this.transparencyIndex === -1) {
+            this.#drawReferenceImages(context, coords);
+        }
 
         // Draw tile grid
         if (this.showTileGrid) {
@@ -344,6 +344,22 @@ export default class CanvasManager {
         }
     }
 
+
+    /**
+     * @param {CanvasRenderingContext2D} context 
+     * @param {CanvCoords} coords 
+     */
+     #drawReferenceImages(context, coords) {
+        const pxSize = coords.pxSize;
+        context.globalAlpha = 0.5;
+        this.#referenceImages.forEach(ref => {
+            if (ref.image) {
+                const bounds = ref.getBounds();
+                context.drawImage(ref.image, bounds.x * pxSize, bounds.y * pxSize, bounds.width * pxSize, bounds.height * pxSize);
+            }
+        });
+        context.globalAlpha = 1;
+    }
 
     /**
      * @param {CanvasRenderingContext2D} context 

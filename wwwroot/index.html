@@ -545,45 +545,59 @@
                                 </div>
                                 <div data-toolstrip="referenceImage" class="col-auto pe-0">
                                     <div class="input-group input-group-sm p-0 m-0 pb-2">
+                                        <button class="btn btn-outline-secondary" data-command="referenceImageRevert"
+                                            title="Revert proportions.">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div data-toolstrip="referenceImage" class="col-auto pe-0">
+                                    <div class="input-group input-group-sm p-0 m-0 pb-2">
                                         <span class="input-group-text">X</span>
-                                        <input data-command="referenceImageDisplay" data-field="referenceX" type="text" class="form-control"
-                                            style="width: 40px">
+                                        <input data-command="referenceImageDisplay" data-field="referenceX"
+                                            type="number" class="form-control" style="width: 60px">
                                         <span class="input-group-text">Y</span>
-                                        <input data-command="referenceImageDisplay" data-field="referenceY" type="text" class="form-control"
-                                            style="width: 40px">
+                                        <input data-command="referenceImageDisplay" data-field="referenceY"
+                                            type="number" class="form-control" style="width: 60px">
                                     </div>
                                 </div>
                                 <div data-toolstrip="referenceImage" class="col-auto pe-0">
                                     <div class="input-group input-group-sm p-0 m-0 pb-2">
                                         <span class="input-group-text">W</span>
-                                        <input data-command="referenceImageDisplay" data-field="referenceWidth" type="text" class="form-control"
-                                            style="width: 40px">
+                                        <input data-command="referenceImageDisplay" data-field="referenceWidth"
+                                            type="number" class="form-control" style="width: 60px">
                                         <span class="input-group-text">H</span>
-                                        <input data-command="referenceImageDisplay" data-field="referenceHeight" type="text" class="form-control"
-                                            style="width: 40px">
+                                        <input data-command="referenceImageDisplay" data-field="referenceHeight"
+                                            type="number" class="form-control" style="width: 60px">
+                                        <button class="btn btn-outline-secondary active" data-command="referenceImageLockAspect"
+                                            title="Maintain aspect ratio of reference image?" aria-pressed="true"
+                                            data-toggle="referenceImageAspect" data-bs-toggle="button">
+                                            <i class="bi bi-link-45deg"></i>
+                                        </button>
                                     </div>
                                 </div>
                                 <div data-toolstrip="referenceImage" class="col-auto">
                                     <div class="input-group input-group-sm p-0 m-0 pb-2">
-                                        <span class="input-group-text">Transparency</span>
-                                        <select data-command="referenceImageDisplay" data-field="referenceTransparency" class="form-select">
+                                        <select data-command="referenceImageDisplay" data-field="referenceTransparency"
+                                            class="form-select">
                                             <options>
-                                                <option value="0">#0</option>
-                                                <option value="1">#1</option>
-                                                <option value="2">#2</option>
-                                                <option value="3">#3</option>
-                                                <option value="4">#4</option>
-                                                <option value="5">#5</option>
-                                                <option value="6">#6</option>
-                                                <option value="7">#7</option>
-                                                <option value="8">#8</option>
-                                                <option value="9">#9</option>
-                                                <option value="10">#10</option>
-                                                <option value="11">#11</option>
-                                                <option value="12">#12</option>
-                                                <option value="13">#13</option>
-                                                <option value="14">#14</option>
-                                                <option value="15" selected>#15</option>
+                                                <option value="-1">Overlay above image</option>
+                                                <option value="0">Draw over colour #0</option>
+                                                <option value="1">Draw over colour #1</option>
+                                                <option value="2">Draw over colour #2</option>
+                                                <option value="3">Draw over colour #3</option>
+                                                <option value="4">Draw over colour #4</option>
+                                                <option value="5">Draw over colour #5</option>
+                                                <option value="6">Draw over colour #6</option>
+                                                <option value="7">Draw over colour #7</option>
+                                                <option value="8">Draw over colour #8</option>
+                                                <option value="9">Draw over colour #9</option>
+                                                <option value="10">Draw over colour #10</option>
+                                                <option value="11">Draw over colour #11</option>
+                                                <option value="12">Draw over colour #12</option>
+                                                <option value="13">Draw over colour #13</option>
+                                                <option value="14">Draw over colour #14</option>
+                                                <option value="15" selected>Draw over colour #15</option>
                                             </options>
                                         </select>
                                     </div>

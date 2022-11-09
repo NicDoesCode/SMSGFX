@@ -211,7 +211,8 @@ export default class TileEditor {
                     mousePrimaryIsDown: this.#canvasMouseLeftDown,
                     isPrimaryButton: event.button === 0,
                     isSecondaryButton: event.button === 2,
-                    isAuxButton: event.button === 1
+                    isAuxButton: event.button === 1,
+                    ctrlKeyPressed: event.ctrlKey
                 };
                 this.#dispatcher.dispatch(EVENT_OnEvent, args);
                 this.#lastCoords = coords;
@@ -248,7 +249,8 @@ export default class TileEditor {
             mouseAuxIsDown: this.#canvasMouseMiddleDown,
             isPrimaryButton: event.button === 0,
             isSecondaryButton: event.button === 2,
-            isAuxButton: event.button === 1
+            isAuxButton: event.button === 1,
+            ctrlKeyPressed: event.ctrlKey
         };
         this.#dispatcher.dispatch(EVENT_OnEvent, args);
     }
@@ -276,7 +278,8 @@ export default class TileEditor {
             mouseAuxIsDown: this.#canvasMouseMiddleDown,
             isPrimaryButton: event.button === 0,
             isSecondaryButton: event.button === 2,
-            isAuxButton: event.button === 1
+            isAuxButton: event.button === 1,
+            ctrlKeyPressed: event.ctrlKey
         };
         this.#dispatcher.dispatch(EVENT_OnEvent, args);
     }
@@ -295,6 +298,7 @@ export default class TileEditor {
             isPrimaryButton: this.#canvasMouseLeftDown,
             isSecondaryButton: this.#canvasMouseRightDown,
             isAuxButton: this.#canvasMouseMiddleDown,
+            ctrlKeyPressed: event.ctrlKey
         };
         if (this.#lastCoords) {
             args.x = this.#lastCoords.x;
@@ -422,5 +426,6 @@ export default class TileEditor {
  * @property {boolean} isPrimaryButton - True when the mouse button is the primary one, otherwise false.
  * @property {boolean} isSecondaryButton - True when the mouse button is the secondary one, otherwise false.
  * @property {boolean} isAuxButton - True when the mouse button is the auxiliary one (mouse wheel), otherwise false.
+ * @property {boolean} ctrlKeyPressed - True when the control key is pressed, otherwise false, otherwise false.
  * @exports
  */
