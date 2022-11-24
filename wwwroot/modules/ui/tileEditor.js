@@ -15,7 +15,8 @@ const commands = {
     moveLeft: 'moveLeft', moveRight: 'moveRight',
     mirrorHorizontal: 'mirrorHorizontal', mirrorVertical: 'mirrorVertical',
     insertBefore: 'insertBefore', insertAfter: 'insertAfter',
-    selectTile: 'selectTile'
+    selectTile: 'selectTile',
+    zoomIn: 'zoomIn', zoomOut: 'zoomOut'
 }
 
 const events = {
@@ -76,6 +77,7 @@ export default class TileEditor {
         this.#tbCanvas.onmouseup = (e) => this.#handleCanvasMouseUp(e);
         this.#tbCanvas.onmouseleave = (e) => this.#handleCanvasMouseLeave(e);
         this.#tbCanvas.oncontextmenu = (e) => this.#handleCanvasContextMenu(e);
+        this.#element.onwheel = (e) => this.#handleCanvasMouseWheel(e);
 
         TileEditorContextMenu.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=tile-editor-context-menu]'))
             .then((obj) => {
@@ -90,7 +92,7 @@ export default class TileEditor {
      * @param {HTMLElement} element - Container element.
      * @returns {Promise<TileEditor>}
      */
-     static async loadIntoAsync(element) {
+    static async loadIntoAsync(element) {
         await TemplateUtil.loadURLIntoAsync('./modules/ui/tileEditor.html', element);
         return new TileEditor(element);
     }
@@ -347,6 +349,26 @@ export default class TileEditor {
         this.#tileEditorContextMenu.show(event.clientX, event.clientY, coords.x, coords.y);
 
         return false;
+    }
+
+    /** @param {WheelEvent} event */
+    #handleCanvasMouseWheel(event) {
+        if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+
+            /** @type {TileEditorCommandEventArgs} */
+            const args = {};
+
+            if (event.deltaY > 0) {
+                args.command = commands.zoomIn;
+            } else {
+                args.command = commands.zoomOut;
+            }
+            this.#dispatcher.dispatch(EVENT_OnCommand, args);
+
+            return false;
+        }
     }
 
     /** 

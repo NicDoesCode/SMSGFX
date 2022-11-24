@@ -728,6 +728,13 @@ function handleTileEditorOnCommand(args) {
             selectTile(args.tileIndex);
             break;
 
+        case TileEditor.Commands.zoomIn:
+            increaseScale();
+            break;
+
+        case TileEditor.Commands.zoomOut:
+            decreaseScale();
+            break;
     }
 }
 
