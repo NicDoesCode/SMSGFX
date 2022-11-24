@@ -3,6 +3,7 @@ import ImageUtil from "../util/imageUtil.js";
 import ModalDialogue from "./modalDialogue.js";
 import EventDispatcher from "../components/eventDispatcher.js";
 import TileSet from "../models/tileSet.js";
+import TemplateUtil from "../util/templateUtil.js";
 
 const EVENT_SourceImageUpdated = 'EVENT_SourceImageUpdated';
 const EVENT_PreviewImageUpdated = 'EVENT_PreviewImageUpdated';
@@ -10,7 +11,6 @@ const EVENT_PreviewImageUpdated = 'EVENT_PreviewImageUpdated';
 const MAX_INITIAL_IMPORT_WIDTH = 256;
 
 export default class ImportImageModalDialogue extends ModalDialogue {
-
 
     /** @type {HTMLButtonElement} */
     #btnImportFile;
@@ -77,11 +77,11 @@ export default class ImportImageModalDialogue extends ModalDialogue {
 
 
     /**
-     * Initialises a new instance of the AddPaletteModalDialogue class.
-     * @param {HTMLDivElement} element The DIV that contains the modal.
+     * Initialises a new instance of this class.
+     * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
-        super(element);
+        super(element.querySelector('[data-smsgfx-id=modal]'));
         this.#element = element;
 
         this.#dispatcher = new EventDispatcher();
@@ -146,6 +146,17 @@ export default class ImportImageModalDialogue extends ModalDialogue {
         this.#tbCanvasPreview = element.querySelector('[data-smsgfx-id=canvas-preview]');
 
         this.#wireUpTabs();
+    }
+
+
+    /**
+     * Creates an instance of the object inside a container element.
+     * @param {HTMLElement} element - Container element.
+     * @returns {Promise<ImportImageModalDialogue>}
+     */
+     static async loadIntoAsync(element) {
+        await TemplateUtil.loadURLIntoAsync('./modules/ui/importImageModalDialogue.html', element);
+        return new ImportImageModalDialogue(element); 
     }
 
 

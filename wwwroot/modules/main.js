@@ -10,7 +10,8 @@ import PaletteEditor from "./ui/paletteEditor.js";
 import TileEditor from "./ui/tileEditor.js";
 import TileEditorToolbar from "./ui/tileEditorToolbar.js";
 import TileContextToolbar from "./ui/tileContextToolbar.js";
-import HeaderBar from "./ui/headerBar.js";
+import ProjectToolbar from "./ui/projectToolbar.js";
+import ExportToolbar from "./ui/exportToolbar.js";
 import ProjectUtil from "./util/projectUtil.js";
 import PaletteFactory from "./factory/paletteFactory.js";
 import TileSetBinarySerialiser from "./serialisers/tileSetBinarySerialiser.js";
@@ -29,6 +30,7 @@ import GeneralUtil from "./util/generalUtil.js";
 import ProjectWatcher from "./components/projectWatcher.js";
 import ImageUtil from "./util/imageUtil.js";
 import ReferenceImage from "./models/referenceImage.js";
+import AboutModalDialogue from "./ui/aboutModalDialogue.js";
 
 
 /* ****************************************************************************************************
@@ -81,18 +83,20 @@ const instanceState = {
 const undoManager = new UndoManager(50);
 const watcher = new ProjectWatcher(instanceState.sessionId);
 
-const headerBar = new HeaderBar(document.querySelector('[data-smsgfx-component-id=header-bar]'));
-const exportDialogue = new ExportModalDialogue(document.getElementById('tbExportDialogue'));
-const colourPickerDialogue = new ColourPickerDialogue(document.getElementById('tbColourPickerDialogue'));
-const colourPickerToolbox = new ColourPickerToolbox(document.querySelector('[data-smsgfx-component-id=colour-picker-toolbox]'));
-const paletteEditor = new PaletteEditor(document.querySelector('[data-smsgfx-component-id=palette-editor]'));
-const paletteImportDialogue = new PaletteModalDialogue(document.querySelector('[data-smsgfx-component-id=palette-import-dialogue]'));
-const tileEditor = new TileEditor(document.querySelector('[data-smsgfx-component-id=tile-editor]'));
-const tileEditorToolbar = new TileEditorToolbar(document.querySelector('[data-smsgfx-component-id=tile-editor-toolbar]'));
-const tileEditorBottomToolbar = new TileEditorToolbar(document.querySelector('[data-smsgfx-component-id=tile-editor-bottom-toolbar]'));
-const tileImportDialogue = new TileSetImportModalDialogue(document.querySelector('[data-smsgfx-component-id=tile-import-dialogue]'));
-const tileContextToolbar = new TileContextToolbar(document.querySelector('[data-smsgfx-component-id=tile-context-toolbar]'));
-const importImageModalDialogue = new ImportImageModalDialogue(document.querySelector('[data-smsgfx-component-id=import-image-modal]'));
+/** @type {ProjectToolbar} */ let projectToolbar;
+/** @type {ExportToolbar} */ let exportToolbar;
+/** @type {ExportModalDialogue} */ let exportDialogue;
+/** @type {ColourPickerDialogue} */ let colourPickerDialogue;
+/** @type {ColourPickerToolbox} */ let colourPickerToolbox;
+/** @type {PaletteEditor} */ let paletteEditor;
+/** @type {PaletteModalDialogue} */ let paletteImportDialogue;
+/** @type {TileEditor} */ let tileEditor;
+/** @type {TileEditorToolbar} */ let tileEditorToolbar;
+/** @type {TileEditorToolbar} */ let tileEditorBottomToolbar;
+/** @type {TileContextToolbar} */ let tileContextToolbar;
+/** @type {TileSetImportModalDialogue} */ let tileImportDialogue;
+/** @type {ImportImageModalDialogue} */ let importImageModalDialogue;
+/** @type {AboutModalDialogue} */ let aboutDialogue;
 
 
 
@@ -107,7 +111,9 @@ function wireUpEventHandlers() {
 
     state.addHandlerOnEvent(handleStateEvent);
 
-    headerBar.addHandlerOnCommand(handleHeaderBarOnCommand);
+    projectToolbar.addHandlerOnCommand(handleProjectToolbarOnCommand);
+
+    exportToolbar.addHandlerOnCommand(handleExportToolbarOnCommand);
 
     paletteEditor.addHandlerOnCommand(handlePaletteEditorOnCommand);
 
@@ -442,43 +448,52 @@ function handleStateEvent(args) {
 }
 
 
-/** @param {import('./ui/headerBar.js').HeaderBarCommandEventArgs} args */
-function handleHeaderBarOnCommand(args) {
+/** @param {import('./ui/projectToolbar').ProjectToolbarCommandEventArgs} args */
+function handleProjectToolbarOnCommand(args) {
 
     switch (args.command) {
 
-        case HeaderBar.Commands.title:
+        case ProjectToolbar.Commands.title:
             if (args.title) setProjectTitle(args.title);
             break;
 
-        case HeaderBar.Commands.projectNew:
+        case ProjectToolbar.Commands.projectNew:
             newProject();
             break;
 
-        case HeaderBar.Commands.projectLoadFromFile:
+        case ProjectToolbar.Commands.projectLoadFromFile:
             importProjectFromJson();
             break;
 
-        case HeaderBar.Commands.projectSaveToFile:
+        case ProjectToolbar.Commands.projectSaveToFile:
             exportProjectToJson();
             break;
 
-        case HeaderBar.Commands.exportCode:
-            exportProjectToAssembly();
-            break;
-
-        case HeaderBar.Commands.exportImage:
-            exportImage();
-            break;
-
-        case HeaderBar.Commands.projectLoadById:
+        case ProjectToolbar.Commands.projectLoadById:
             const projects = state.getProjectsFromLocalStorage();
             const project = projects.getProjectById(args.projectId);
             state.setProject(project);
             break;
 
-        case HeaderBar.Commands.projectDelete:
+        case ProjectToolbar.Commands.projectDelete:
             state.deleteProjectFromStorage(args.projectId);
+            break;
+
+    }
+}
+
+
+/** @param {import('./ui/exportToolbar.js').ExportToolbarCommandEventArgs} args */
+function handleExportToolbarOnCommand(args) {
+
+    switch (args.command) {
+
+        case ExportToolbar.Commands.exportCode:
+            exportProjectToAssembly();
+            break;
+
+        case ExportToolbar.Commands.exportImage:
+            exportImage();
             break;
 
     }
@@ -966,7 +981,7 @@ function handleImageImportModalOnConfirm(args) {
         palette: getPalette(),
         tileSet: getTileSet()
     });
-    headerBar.setState({
+    projectToolbar.setState({
         projectTitle: getProject().title
     });
 
@@ -1078,8 +1093,11 @@ function formatForProject() {
     const tileSet = getTileSet();
     const colour = palette.getColour(instanceState.colourIndex);
 
-    headerBar.setState({
+    projectToolbar.setState({
         projectTitle: getProject().title,
+        enabled: true
+    });
+    exportToolbar.setState({
         enabled: true
     });
     paletteEditor.setState({
@@ -1124,14 +1142,17 @@ function formatForProject() {
 
 function formatForNoProject() {
     const dummyProject = createEmptyProject();
-    headerBar.setState({
+    projectToolbar.setState({
         enabled: false,
         projectTitle: '',
         enabledCommands: [
-            HeaderBar.Commands.projectNew,
-            HeaderBar.Commands.projectLoadFromFile,
-            HeaderBar.Commands.projectLoadById, HeaderBar.Commands.projectDelete
+            ProjectToolbar.Commands.projectNew,
+            ProjectToolbar.Commands.projectLoadFromFile,
+            ProjectToolbar.Commands.projectLoadById, ProjectToolbar.Commands.projectDelete
         ]
+    });
+    exportToolbar.setState({
+        enabled: false
     });
     paletteEditor.setState({
         paletteList: dummyProject.paletteList,
@@ -1178,7 +1199,7 @@ function displaySelectedProject() {
 
 function displayProjectList() {
     const projects = state.getProjectsFromLocalStorage();
-    headerBar.setState({
+    projectToolbar.setState({
         projects: projects
     });
 }
@@ -1809,7 +1830,7 @@ function newProject() {
     instanceState.tileIndex = -1;
     instanceState.colourIndex = 0;
 
-    headerBar.setState({
+    projectToolbar.setState({
         projectTitle: getProject().title
     });
     paletteEditor.setState({
@@ -1900,7 +1921,7 @@ function undoOrRedo(undoOrRedo) {
         }
 
         // Set UI state
-        headerBar.setState({
+        projectToolbar.setState({
             projectTitle: getProject().title
         });
         tileEditor.setState({
@@ -2307,7 +2328,22 @@ function setCommonTileToolbarStates(state) {
    Initilisation
 */
 
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
+
+    projectToolbar = await ProjectToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=project-toolbar]'));
+    exportToolbar = await ExportToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=export-toolbar]'));
+    exportDialogue = await ExportModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=export-dialogue]'));
+    colourPickerDialogue = await ColourPickerDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=colour-picker-dialogue]'));
+    colourPickerToolbox = await ColourPickerToolbox.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=colour-picker-toolbox]'));
+    paletteEditor = await PaletteEditor.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=palette-editor]'));
+    paletteImportDialogue = await PaletteModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=palette-import-dialogue]'));
+    tileEditor = await TileEditor.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-editor]'));
+    tileEditorToolbar = await TileEditorToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-editor-toolbar]'));
+    tileEditorBottomToolbar = await TileEditorToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-editor-bottom-toolbar]'));
+    tileContextToolbar = await TileContextToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-context-toolbar]'));
+    tileImportDialogue = await TileSetImportModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-import-dialogue]'));
+    importImageModalDialogue = await ImportImageModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=import-image-modal]'));
+    aboutDialogue = await AboutModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=about-modal]'));
 
     instanceState.tool = 'pencil';
     instanceState.colourToolboxTab = 'rgb';
@@ -2323,7 +2359,7 @@ window.addEventListener('load', () => {
 
     // Load initial projects
     const projects = state.getProjectsFromLocalStorage();
-    headerBar.setState({
+    projectToolbar.setState({
         projects: projects
     });
 

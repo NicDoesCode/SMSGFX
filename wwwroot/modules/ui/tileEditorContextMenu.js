@@ -1,4 +1,5 @@
 import EventDispatcher from "../components/eventDispatcher.js";
+import TemplateUtil from "../util/templateUtil.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -42,6 +43,17 @@ export default class TileEditorContextMenu {
                 this.#dispatcher.dispatch(EVENT_OnCommand, args);
             }
         });
+    }
+
+
+    /**
+     * Creates an instance of the object inside a container element.
+     * @param {HTMLElement} element - Container element.
+     * @returns {Promise<TileEditorContextMenu>}
+     */
+     static async loadIntoAsync(element) {
+        await TemplateUtil.loadURLIntoAsync('./modules/ui/tileEditorContextMenu.html', element);
+        return new TileEditorContextMenu(element);
     }
 
 

@@ -1,5 +1,6 @@
 import EventDispatcher from "../components/eventDispatcher.js";
 import ColourUtil from "../util/colourUtil.js";
+import TemplateUtil from "../util/templateUtil.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -46,10 +47,10 @@ export default class ColourPickerToolbox {
 
 
     /**
-     * Initialises a new instance of the AddPaletteModalDialogue class.
-     * @param {HTMLElement} element The DIV that contains the modal.
+     * Initialises a new instance of this class.
+     * @param {HTMLElement} element - Element that contains the DOM.
      */
-    constructor(element) {
+     constructor(element) {
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 
@@ -88,6 +89,17 @@ export default class ColourPickerToolbox {
 
         this.#makeSMSColourButtons();
         this.#showCurrentTab();
+    }
+
+
+    /**
+     * Creates an instance of the object inside a container element.
+     * @param {HTMLElement} element - Container element.
+     * @returns {Promise<ColourPickerToolbox>}
+     */
+     static async loadIntoAsync(element) {
+        await TemplateUtil.loadURLIntoAsync('./modules/ui/colourPickerToolbox.html', element);
+        return new ColourPickerToolbox(element); 
     }
 
 

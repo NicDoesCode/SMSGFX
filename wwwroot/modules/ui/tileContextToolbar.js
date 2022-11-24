@@ -1,4 +1,5 @@
 import EventDispatcher from "../components/eventDispatcher.js";
+import TemplateUtil from "../util/templateUtil.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -43,7 +44,7 @@ export default class TileContextToolbar {
 
     /**
      * Initialises a new instance of this class.
-     * @param {HTMLElement} element - HTML element that contains the toolbar markup.
+     * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
         this.#element = element;
@@ -72,6 +73,17 @@ export default class TileContextToolbar {
                 this.#dispatcher.dispatch(EVENT_OnCommand, args);
             };
         });
+    }
+
+
+    /**
+     * Creates an instance of the object inside a container element.
+     * @param {HTMLElement} element - Container element.
+     * @returns {Promise<TileContextToolbar>}
+     */
+     static async loadIntoAsync(element) {
+        await TemplateUtil.loadURLIntoAsync('./modules/ui/tileContextToolbar.html', element);
+        return new TileContextToolbar(element);
     }
 
 

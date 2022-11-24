@@ -2,6 +2,7 @@ import EventDispatcher from "../components/eventDispatcher.js";
 import Palette from "../models/palette.js";
 import ColourUtil from "../util/colourUtil.js";
 import ModalDialogue from "./modalDialogue.js";
+import TemplateUtil from "../util/templateUtil.js";
 
 const EVENT_OnChange = 'EVENT_OnChange';
 
@@ -43,11 +44,11 @@ export default class ColourPickerDialogue extends ModalDialogue {
 
 
     /**
-     * Initialises a new instance of the AddPaletteModalDialogue class.
-     * @param {HTMLDivElement} element The DIV that contains the modal.
+     * Initialises a new instance of this class.
+     * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
-        super(element);
+        super(element.querySelector('[data-smsgfx-id=modal]'));
         this.#dispatcher = new EventDispatcher();
 
         this.#tbColourPickerRedSlider = element.querySelector('#tbColourPickerRedSlider');
@@ -72,6 +73,17 @@ export default class ColourPickerDialogue extends ModalDialogue {
 
         this.#tbPreviewSelected = element.querySelector('[data-colour-preview=selected]');
         this.#tbPreviewNative = element.querySelector('[data-colour-preview=native]');
+    }
+
+
+    /**
+     * Creates an instance of the object inside a container element.
+     * @param {HTMLElement} element - Container element.
+     * @returns {Promise<ColourPickerDialogue>}
+     */
+     static async loadIntoAsync(element) {
+        await TemplateUtil.loadURLIntoAsync('./modules/ui/colourPickerDialogue.html', element);
+        return new ColourPickerDialogue(element); 
     }
 
 

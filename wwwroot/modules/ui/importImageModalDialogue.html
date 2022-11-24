@@ -1,0 +1,205 @@
+<div data-smsgfx-id="modal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Import an image into your project</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col col-3 p-0">
+                            <!-- Inputs -->
+                            <label class="form-label form-label-sm m-0">Input</label>
+                            <div class="mb-3">
+                                <button data-smsgfx-id="import-file-button" type="button"
+                                    class="btn btn-sm btn-secondary">Load image from a file</button>
+                                <button data-smsgfx-id="import-clipboard-button" type="button"
+                                    class="btn btn-sm btn-secondary visually-hidden">From clipboard</button>
+                                <input data-smsgfx-id="import-file" type="file"
+                                    class="form-control form-control-sm visually-hidden" />
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label form-label-sm m-0">Palette</label>
+                                <select data-smsgfx-id="import-palette-select" class="form-select form-select-sm">
+                                    <option value="ms">Create new Master System palette</option>
+                                    <option value="gg">Create new Game Gear palette</option>
+                                </select>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label form-label-sm m-0">Output dimensions</label>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text" style="width: 85px">Width</span>
+                                    <input data-smsgfx-id="import-width" type="text" class="form-control" />
+                                    <input data-smsgfx-id="import-width-percent" type="text"
+                                        class="form-control visually-hidden" />
+                                    <select data-smsgfx-id="import-unit-width" class="form-select">
+                                        <option value="px" selected>px</option>
+                                        <option value="%">%</option>
+                                    </select>
+                                    <button data-smsgfx-id="import-width-revert" type="button"
+                                        class="btn btn-outline-secondary">
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                    </button>
+                                </div>
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text" style="width: 85px">Height</span>
+                                    <input data-smsgfx-id="import-height" type="text" class="form-control" />
+                                    <input data-smsgfx-id="import-height-percent" type="text"
+                                        class="form-control visually-hidden" />
+                                    <select data-smsgfx-id="import-unit-height" class="form-select">
+                                        <option value="px" selected>px</option>
+                                        <option value="%">%</option>
+                                    </select>
+                                    <button data-smsgfx-id="import-height-revert" type="button"
+                                        class="btn btn-outline-secondary">
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                    </button>
+                                </div>
+                                <div class="form-check form-check-sm">
+                                    <input data-smsgfx-id="import-ratio-lock" class="form-check-input"
+                                        type="checkbox" value="" id="importImageDialogueLockAspect"
+                                        checked="checked">
+                                    <label class="form-check-label" for="importImageDialogueLockAspect">
+                                        <small>Lock aspect ratio</small>
+                                    </label>
+                                </div>
+                                <div data-smsgfx-id="image-resize-warning"
+                                    class="alert alert-warning p-2 visually-hidden" role="alert">
+                                    <small><i class="bi bi-exclamation-triangle-fill"></i> Your image has been
+                                        automatically resized, to restore original size click the revert
+                                        button.</small>
+                                </div>
+                            </div>
+                            <div class="accordion accordion-flush mb-2">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="flush-headingOne">
+                                        <button class="accordion-button collapsed m-0 p-0" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#flush-collapseOne"
+                                            aria-expanded="false" aria-controls="flush-collapseOne">
+                                            Tile origin
+                                        </button>
+                                    </h2>
+                                    <div id="flush-collapseOne" class="accordion-collapse collapse"
+                                        aria-labelledby="flush-headingOne" data-bs-parent="#accordionFlushExample">
+                                        <div class="accordion-body p-0 pt-2 m-0">
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text" style="width: 85px">Top</span>
+                                                <input data-smsgfx-id="offset-top" type="number"
+                                                    class="form-control" />
+                                                <span class="input-group-text" style="width: 60px">px</span>
+                                            </div>
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text" style="width: 85px">Left</span>
+                                                <input data-smsgfx-id="offset-left" type="number"
+                                                    class="form-control" />
+                                                <span class="input-group-text" style="width: 60px">px</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion accordion-flush mb-2">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="flush-headingTwo">
+                                        <button class="accordion-button collapsed m-0 p-0" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo"
+                                            aria-expanded="false" aria-controls="flush-collapseTwo">
+                                            Number of tiles
+                                        </button>
+                                    </h2>
+                                    <div id="flush-collapseTwo" class="accordion-collapse collapse"
+                                        aria-labelledby="flush-headingTwo" data-bs-parent="#accordionFlushExample">
+                                        <div class="accordion-body p-0 pt-2 m-0">
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text" style="width: 85px">Wide</span>
+                                                <input data-smsgfx-id="tiles-wide" type="number"
+                                                    class="form-control" />
+                                                <span class="input-group-text" style="width: 60px">tiles</span>
+                                            </div>
+                                            <div class="input-group input-group-sm">
+                                                <span class="input-group-text" style="width: 85px">High</span>
+                                                <input data-smsgfx-id="tiles-high" type="number"
+                                                    class="form-control" />
+                                                <span class="input-group-text" style="width: 60px">tiles</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <label class="form-label form-label-sm m-0">Preview</label>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text" style="width: 85px">Scale</span>
+                                <select data-smsgfx-id="preview-scale" class="form-select">
+                                    <option value="1" selected>1:1</option>
+                                    <option value="2">2:1</option>
+                                    <option value="5">5:1</option>
+                                    <option value="10">10:1</option>
+                                    <option value="15">15:1</option>
+                                    <option value="20">20:1</option>
+                                </select>
+                            </div>
+                            <div class="form-check form-check-sm">
+                                <input data-smsgfx-id="preview-display-tiles" class="form-check-input"
+                                    type="checkbox" value="" id="importImageDialogueDisplayTiles" checked="checked">
+                                <label class="form-check-label" for="importImageDialogueDisplayTiles">
+                                    <small>Display tiles</small>
+                                </label>
+                            </div>
+                            <!-- End: Inputs -->
+                        </div>
+                        <div class="col col-9 p-0">
+
+                            <div class="container-fluid">
+                                <!-- Button row -->
+                                <div class="row">
+                                    <div class="col">
+                                        <nav class="mb-2">
+                                            <div class="nav nav-tabs" role="tablist">
+                                                <button data-smsgfx-type="preview-tab"
+                                                    data-smsgfx-value="preview-mode-original"
+                                                    class="nav-link active" aria-current="page">Original</button>
+                                                <button data-smsgfx-type="preview-tab"
+                                                    data-smsgfx-value="preview-mode-preview"
+                                                    class="nav-link">Preview</button>
+                                                <button data-smsgfx-type="preview-tab"
+                                                    data-smsgfx-value="preview-mode-split"
+                                                    class="nav-link">Split</button>
+                                            </div>
+                                        </nav>
+                                        <div class="tab-content">
+                                            <div data-smsgfx-id="container-canvas-source" class="d-inline-block">
+                                                <!-- Original image -->
+                                                <canvas data-smsgfx-id="canvas-source" width="800" height="600"
+                                                    class="d-inline-block"
+                                                    style="border: 1px solid #AAAAAA"></canvas>
+                                                <!-- End: Original image -->
+                                            </div>
+                                            <div data-smsgfx-id="container-canvas-preview" class="d-inline-block">
+                                                <!-- Preview image -->
+                                                <canvas data-smsgfx-id="canvas-preview" width="800" height="600"
+                                                    class="d-inline-block"
+                                                    style="border: 1px solid #AAAAAA"></canvas>
+                                                <!-- End: Preview image -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- End: Button row -->
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button data-smsgfx-id="button-import-as-new-project" type="button" class="btn btn-primary">Import
+                    as new project</button>
+                <button data-smsgfx-id="button-import-into-existing-project" type="button"
+                    class="btn btn-primary">Import into existing project</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>

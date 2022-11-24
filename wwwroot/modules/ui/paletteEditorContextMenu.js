@@ -1,4 +1,5 @@
 import EventDispatcher from "../components/eventDispatcher.js";
+import TemplateUtil from "../util/templateUtil.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -17,6 +18,8 @@ export default class PaletteEditorContextMenu {
 
     /** @type {HTMLDivElement} */
     #element;
+    /** @type {HTMLDivElement} */
+    #dropDownElement;
     /** @type {HTMLButtonElement} */
     #btnMenuActivate;
     /** @type {EventDispatcher} */
@@ -25,11 +28,17 @@ export default class PaletteEditorContextMenu {
     #colourIndex = -1;
 
 
-    constructor(element) {
+    /**
+     * Initialises a new instance of this class.
+     * @param {HTMLElement} element - Element that contains the DOM.
+     */
+     constructor(element) {
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 
-        this.#btnMenuActivate = element.querySelector('[data-smsgfx-id=button-palette-editor-activate]');
+        this.#dropDownElement = this.#element.querySelector('[data-smsgfx-id=dropdown]');
+
+        this.#btnMenuActivate = this.#element.querySelector('[data-smsgfx-id=button-palette-editor-activate]');
         this.#dropDown = new bootstrap.Dropdown(this.#btnMenuActivate);
 
         this.#element.querySelector('button[data-command=swap-colour]').onclick = (event) => {
@@ -59,6 +68,17 @@ export default class PaletteEditorContextMenu {
 
 
     /**
+     * Creates an instance of the object inside a container element.
+     * @param {HTMLElement} element - Container element.
+     * @returns {Promise<PaletteEditorContextMenu>}
+     */
+     static async loadIntoAsync(element) {
+        await TemplateUtil.loadURLIntoAsync('./modules/ui/paletteEditorContextMenu.html', element);
+        return new PaletteEditorContextMenu(element); 
+    }
+
+
+    /**
      * Shows the context menu.
      * @param {number} clientX - X coordinate relative to the client viewport.
      * @param {number} clientY - Y coordinate relative to the client viewport.
@@ -66,7 +86,7 @@ export default class PaletteEditorContextMenu {
      */
     show(clientX, clientY) {
         // Position menu to mouse pointer
-        const rect = this.#element.getBoundingClientRect();
+        const rect = this.#dropDownElement.getBoundingClientRect();
         this.#btnMenuActivate.style.top = `${(clientY - rect.top - 5)}px`;
         this.#btnMenuActivate.style.left = `${(clientX - rect.left - 5)}px`;
 
@@ -93,7 +113,7 @@ export default class PaletteEditorContextMenu {
         if (state?.position && typeof state.position.x === 'number' && typeof state.position.y === 'number') {
             // Position menu to mouse pointer
             const position = state.position;
-            const rect = this.#element.getBoundingClientRect();
+            const rect = this.#dropDownElement.getBoundingClientRect();
             this.#btnMenuActivate.style.left = `${position.x - rect.left - 5}px`;
             this.#btnMenuActivate.style.top = `${position.y - rect.top - 5}px`;
         }

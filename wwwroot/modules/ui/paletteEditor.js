@@ -3,6 +3,7 @@ import ColourUtil from "../util/colourUtil.js";
 import EventDispatcher from "../components/eventDispatcher.js";
 import PaletteList from "../models/paletteList.js";
 import PaletteEditorContextMenu from "./paletteEditorContextMenu.js";
+import TemplateUtil from "../util/templateUtil.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -45,8 +46,8 @@ export default class PaletteEditor {
 
 
     /**
-     * 
-     * @param {HTMLElement} element Element that the toolbox is to be initialised from.
+     * Initialises a new instance of this class.
+     * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
         this.#element = element;
@@ -97,8 +98,22 @@ export default class PaletteEditor {
 
         this.#createPaletteColourIndexButtons();
 
-        this.#contextMenu = new PaletteEditorContextMenu(element.querySelector('[data-smsgfx-component-id=palette-editor-context-menu]'));
-        this.#contextMenu.addHandlerOnCommand((args) => this.#handlePaletteEditorContextMenuOnCommand(args));
+        PaletteEditorContextMenu.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=palette-editor-context-menu]'))
+            .then((obj) => {
+                this.#contextMenu = obj
+                this.#contextMenu.addHandlerOnCommand((args) => this.#handlePaletteEditorContextMenuOnCommand(args));
+            });
+    }
+
+
+    /**
+     * Creates an instance of the object inside a container element.
+     * @param {HTMLElement} element - Container element.
+     * @returns {Promise<PaletteEditor>}
+     */
+     static async loadIntoAsync(element) {
+        await TemplateUtil.loadURLIntoAsync('./modules/ui/paletteEditor.html', element);
+        return new PaletteEditor(element); 
     }
 
 

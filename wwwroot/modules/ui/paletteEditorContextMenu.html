@@ -1,0 +1,76 @@
+<div data-smsgfx-id="dropdown" class="dropdown" style="position: absolute">
+    <button data-smsgfx-id="button-palette-editor-activate"
+        class="btn btn-secondary dropdown-toggle visually-hidden"
+        style="position: absolute; z-index: 100; width: 450px" type="button" data-bs-toggle="dropdown"
+        aria-expanded="false">
+        Dropdown button
+    </button>
+    <ul data-smsgfx-id="container-palette-editor-dropdown" class="dropdown-menu"
+        style="width: 200px; font-size: 0.75em;">
+        <li class="pb-0">
+            <div class="btn-toolbar justify-content-between ps-3 pe-1 m-0" role="toolbar">
+                <h5 data-smsgfx-id="heading">Colour</h5>
+            </div>
+        </li>
+        <li class="pb-2">
+            <div class="btn-toolbar justify-content-between ps-3 pe-3 m-0" role="toolbar">
+                <div class="input-group">
+                    <label class="form-label mt-2 pe-0">Swap position with colour</label>
+                </div>
+                <div class="input-group input-group-sm" role="group">
+                    <select data-value="swap-colour" class="form-select">
+                        <option value="">-</option>
+                        <option value="0">#0</option>
+                        <option value="1">#1</option>
+                        <option value="2">#2</option>
+                        <option value="3">#3</option>
+                        <option value="4">#4</option>
+                        <option value="5">#5</option>
+                        <option value="6">#6</option>
+                        <option value="7">#7</option>
+                        <option value="8">#8</option>
+                        <option value="9">#9</option>
+                        <option value="10">#10</option>
+                        <option value="11">#11</option>
+                        <option value="12">#12</option>
+                        <option value="13">#13</option>
+                        <option value="14">#14</option>
+                        <option value="15">#15</option>
+                    </select>
+                    <button data-command="swap-colour" class="btn btn-small btn-secondary"
+                        type="button">Swap</button>
+                </div>
+            </div>
+        </li>
+        <li class="pb-2">
+            <div class="btn-toolbar justify-content-between ps-3 pe-3 m-0" role="toolbar">
+                <div class="input-group">
+                    <label class="form-label mt-2">Set all instances to colour</label>
+                </div>
+                <div class="input-group input-group-sm" role="group">
+                    <select data-value="replace-colour" class="form-select">
+                        <option value="">-</option>
+                        <option value="0">#0</option>
+                        <option value="1">#1</option>
+                        <option value="2">#2</option>
+                        <option value="3">#3</option>
+                        <option value="4">#4</option>
+                        <option value="5">#5</option>
+                        <option value="6">#6</option>
+                        <option value="7">#7</option>
+                        <option value="8">#8</option>
+                        <option value="9">#9</option>
+                        <option value="10">#10</option>
+                        <option value="11">#11</option>
+                        <option value="12">#12</option>
+                        <option value="13">#13</option>
+                        <option value="14">#14</option>
+                        <option value="15">#15</option>
+                    </select>
+                    <button data-command="replace-colour" class="btn btn-small btn-secondary"
+                        type="button">Set</button>
+                </div>
+            </div>
+        </li>
+    </ul>
+</div>

@@ -1,4 +1,5 @@
 import ModalDialogue from "./modalDialogue.js";
+import TemplateUtil from "../util/templateUtil.js";
 
 export default class TileSetImportModalDialogue extends ModalDialogue {
 
@@ -12,14 +13,25 @@ export default class TileSetImportModalDialogue extends ModalDialogue {
 
 
     /**
-     * Initialises a new instance of the AddPaletteModalDialogue class.
-     * @param {HTMLDivElement} element The DIV that contains the modal.
+     * Initialises a new instance of this class.
+     * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
-        super(element);
+        super(element.querySelector('[data-smsgfx-id=modal]'));
         this.#element = element;
         this.#tbTileSetData = this.#element.querySelector('[data-smsgfx-id=text-tile-data]');
         this.#tbReplaceTiles = this.#element.querySelector('[data-smsgfx-id=check-replace-tiles]');
+    }
+
+
+    /**
+     * Creates an instance of the object inside a container element.
+     * @param {HTMLElement} element - Container element.
+     * @returns {Promise<TileSetImportModalDialogue>}
+     */
+     static async loadIntoAsync(element) {
+        await TemplateUtil.loadURLIntoAsync('./modules/ui/tileSetImportModalDialogue.html', element);
+        return new TileSetImportModalDialogue(element); 
     }
 
 

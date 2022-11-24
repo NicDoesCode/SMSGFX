@@ -1,0 +1,87 @@
+<div data-smsgfx-id="modal" class="sms-colour-picker modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Pick a colour</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                    data-button-type="cancel"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-auto">
+                        <div class="mb-3 row">
+                            <div class="col-2">
+                                <label for="tbColourPickerRedSlider" class="form-label">Red</label>
+                            </div>
+                            <div class="col-auto">
+                                <input type="range" class="form-range" id="tbColourPickerRedSlider" min="0"
+                                    max="255" step="17">
+                            </div>
+                            <div class="col-2">
+                                <input id="tbColourPickerRed" class="form-control form-control-sm" type="number"
+                                    min="0" max="255" style="width: 80px;">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <div class="col-2">
+                                <label for="tbColourPickerGreenSlider" class="form-label">Green</label>
+                            </div>
+                            <div class="col-auto">
+                                <input type="range" class="form-range" id="tbColourPickerGreenSlider" min="0"
+                                    max="255" step="17">
+                            </div>
+                            <div class="col-2">
+                                <input id="tbColourPickerGreen" class="form-control form-control-sm" type="number"
+                                    min="0" max="255" style="width: 80px;">
+                            </div>
+                        </div>
+                        <div class="mb-3 row">
+                            <div class="col-2">
+                                <label for="tbColourPickerBlueSlider" class="form-label">Blue</label>
+                            </div>
+                            <div class="col-auto">
+                                <input type="range" class="form-range" id="tbColourPickerBlueSlider" min="0"
+                                    max="255" step="17">
+                            </div>
+                            <div class="col-2">
+                                <input id="tbColourPickerBlue" class="form-control form-control-sm" type="number"
+                                    min="0" max="255" style="width: 80px;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="input-group">
+                            <span class="input-group-text">Select colour</span>
+                            <input id="btnColourPickerPick" type="color" class="form-control"
+                                style="min-height: 50px; min-width: 100px">
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="input-group">
+                            <span class="input-group-text">Hex</span>
+                            <input id="tbColourPickerHex" type="text" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <p class="mt-2 mb-0">Preview</p>
+                        <ul class="list-group list-group-horizontal w-auto">
+                            <li class="list-group-item">Selected</li>
+                            <li class="sms-colour-preview list-group-item w-auto" data-colour-preview="selected">
+                            </li>
+                            <li class="list-group-item">Native</li>
+                            <li class="sms-colour-preview list-group-item w-auto" data-colour-preview="native">
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div id="tbPreview" class="sms-colour-preview"></div>
+                <button type="button" class="btn btn-secondary" data-button-type="cancel">Cancel</button>
+                <button type="button" class="btn btn-primary" data-button-type="confirm">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>

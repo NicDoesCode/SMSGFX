@@ -1,5 +1,6 @@
 import EventDispatcher from "../components/eventDispatcher.js";
 import ProjectList from "../models/projectList.js";
+import TemplateUtil from "../util/templateUtil.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -9,12 +10,10 @@ const commands = {
     projectLoadFromFile: 'projectLoadFromFile',
     projectLoadById: 'projectLoadById',
     projectSaveToFile: 'projectSaveToFile',
-    projectDelete: 'projectDelete',
-    exportCode: 'exportCode',
-    exportImage: 'exportImage'
+    projectDelete: 'projectDelete'
 }
 
-export default class HeaderBar {
+export default class ProjectToolbar {
 
 
     static get Commands() {
@@ -30,8 +29,8 @@ export default class HeaderBar {
 
 
     /**
-     * 
-     * @param {HTMLElement} element Element that the tile editor is to be initialised from.
+     * Initialises a new instance of this class.
+     * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
         this.#element = element;
@@ -64,8 +63,19 @@ export default class HeaderBar {
 
 
     /**
-     * Updates the state of the header bar.
-     * @param {HeaderBarState} state - State to set.
+     * Creates an instance of the object inside a container element.
+     * @param {HTMLElement} element - Container element.
+     * @returns {Promise<ProjectToolbar>}
+     */
+     static async loadIntoAsync(element) {
+        await TemplateUtil.loadURLIntoAsync('./modules/ui/projectToolbar.html', element);
+        return new ProjectToolbar(element); 
+    }
+
+
+    /**
+     * Updates the state of the object.
+     * @param {ProjectToolbarState} state - State to set.
      */
     setState(state) {
         if (typeof state?.projectTitle === 'string' && state.projectTitle.length > 0 && state.projectTitle !== null) {
@@ -107,7 +117,7 @@ export default class HeaderBar {
 
     /**
      * Registers a handler for a toolbar command.
-     * @param {HeaderBarCommandCallback} callback - Callback that will receive the command.
+     * @param {ProjectToolbarCommandCallback} callback - Callback that will receive the command.
      */
     addHandlerOnCommand(callback) {
         this.#dispatcher.on(EVENT_OnCommand, callback);
@@ -116,7 +126,7 @@ export default class HeaderBar {
 
     /**
      * @param {string} command
-     * @returns {HeaderBarCommandEventArgs}
+     * @returns {ProjectToolbarCommandEventArgs}
      */
     #createArgs(command) {
         return {
@@ -167,52 +177,6 @@ export default class HeaderBar {
 
             })());
             elm.appendChild(row);
-
-
-
-            // const row = document.createElement('div');
-            // row.classList.add('row');
-            // row.appendChild((() => {
-
-            //     const col = document.createElement('div');
-            //     col.classList.add('col-auto');
-            //     col.appendChild((() => {
-
-            //         const btn = document.createElement('button');
-            //         btn.classList.add('dropdown-item');
-            //         btn.innerText = project.title;
-            //         btn.setAttribute('data-command', commands.projectLoadById);
-            //         btn.setAttribute('data-project-id', project.id);
-            //         btn.onclick = () => this.#handleProjectCommandButtonClicked(commands.projectLoadById, project.id);
-            //         return btn;
-
-            //     })());
-            //     return col;
-
-            // })());
-            // row.appendChild((() => {
-
-            //     const col = document.createElement('div');
-            //     col.classList.add('col', 'p-0', 'm-0');
-            //     col.appendChild((() => {
-
-            //         const btn = document.createElement('button');
-            //         btn.classList.add('btn', 'btn-sm', 'btn-outline-secondary');
-            //         btn.setAttribute('data-command', commands.pro);
-            //         btn.setAttribute('data-project-id', project.id);
-            //         btn.onclick = () => this.#handleProjectCommandButtonClicked(commands.projectDelete, project.id);
-            //         btn.appendChild((() => {
-            //             const i = document.createElement('i');
-            //             i.classList.add('bi', 'bi-trash-fill');
-            //             return i;
-            //         })());
-            //         return btn;
-
-            //     })());
-            //     return col;
-
-            // })());
-            // elm.appendChild(row);
         });
     }
 
@@ -232,8 +196,8 @@ export default class HeaderBar {
 
 
 /**
- * Header bar state.
- * @typedef {object} HeaderBarState
+ * Project toolbar state.
+ * @typedef {object} ProjectToolbarState
  * @property {string?} projectTitle - Project title to display.
  * @property {string[]?} enabledCommands - Array of commands that should be enabled, overrided enabled state.
  * @property {string[]?} disabledCommands - Array of commands that should be disabled, overrided enabled state.
@@ -242,13 +206,13 @@ export default class HeaderBar {
  */
 
 /**
- * Header bar callback.
- * @callback HeaderBarCommandCallback
- * @param {HeaderBarCommandEventArgs} args - Arguments.
+ * Project toolbar callback.
+ * @callback ProjectToolbarCommandCallback
+ * @param {ProjectToolbarCommandEventArgs} args - Arguments.
  * @exports
  */
 /**
- * @typedef {object} HeaderBarCommandEventArgs
+ * @typedef {object} ProjectToolbarCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string?} title - Project title.
  * @property {string?} projectId - Project ID.

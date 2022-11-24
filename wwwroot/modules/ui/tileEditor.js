@@ -5,6 +5,7 @@ import Palette from "../models/palette.js";
 import ReferenceImage from "../models/referenceImage.js";
 import TileSet from "../models/tileSet.js";
 import TileEditorContextMenu from "./tileEditorContextMenu.js";
+import TemplateUtil from "../util/templateUtil.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 const EVENT_OnEvent = 'EVENT_OnEvent';
@@ -60,8 +61,8 @@ export default class TileEditor {
 
 
     /**
-     * Initialises a new instance of the tile manager.
-     * @param {HTMLElement} element - Element that the tile editor is to be initialised from.
+     * Initialises a new instance of this class.
+     * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
         this.#element = element;
@@ -76,8 +77,22 @@ export default class TileEditor {
         this.#tbCanvas.onmouseleave = (e) => this.#handleCanvasMouseLeave(e);
         this.#tbCanvas.oncontextmenu = (e) => this.#handleCanvasContextMenu(e);
 
-        this.#tileEditorContextMenu = new TileEditorContextMenu(this.#element.querySelector('[data-smsgfx-component-id=tile-editor-context-menu]'));
-        this.#tileEditorContextMenu.addHandlerOnCommand((args) => this.#bubbleCommand(args));
+        TileEditorContextMenu.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=tile-editor-context-menu]'))
+            .then((obj) => {
+                this.#tileEditorContextMenu = obj
+                this.#tileEditorContextMenu.addHandlerOnCommand((args) => this.#bubbleCommand(args));
+            });
+    }
+
+
+    /**
+     * Creates an instance of the object inside a container element.
+     * @param {HTMLElement} element - Container element.
+     * @returns {Promise<TileEditor>}
+     */
+     static async loadIntoAsync(element) {
+        await TemplateUtil.loadURLIntoAsync('./modules/ui/tileEditor.html', element);
+        return new TileEditor(element);
     }
 
 

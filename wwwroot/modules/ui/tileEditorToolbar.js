@@ -1,5 +1,6 @@
 import GeneralUtil from "../util/generalUtil.js";
 import EventDispatcher from "../components/eventDispatcher.js";
+import TemplateUtil from "../util/templateUtil.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -56,7 +57,7 @@ export default class TileEditorToolbar {
 
 
     /**
-     * Initialises a new instance of the tile manager.
+     * Initialises a new instance of this class.
      * @param {HTMLElement} element - Element that the tile editor is to be initialised from.
      */
     constructor(element) {
@@ -88,6 +89,17 @@ export default class TileEditorToolbar {
                 element.id = id;
             }
         });
+    }
+
+
+    /**
+     * Creates an instance of the object inside a container element.
+     * @param {HTMLElement} element - Container element.
+     * @returns {Promise<TileEditorToolbar>}
+     */
+    static async loadIntoAsync(element) {
+        await TemplateUtil.loadURLIntoAsync('./modules/ui/tileEditorToolbar.html', element);
+        return new TileEditorToolbar(element);
     }
 
 
