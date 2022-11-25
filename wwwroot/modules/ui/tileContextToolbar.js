@@ -82,7 +82,7 @@ export default class TileContextToolbar {
      * @returns {Promise<TileContextToolbar>}
      */
      static async loadIntoAsync(element) {
-        await TemplateUtil.loadURLIntoAsync('./modules/ui/tileContextToolbar.html', element);
+        await TemplateUtil.injectComponentAsync('tileContextToolbar', element);
         return new TileContextToolbar(element);
     }
 

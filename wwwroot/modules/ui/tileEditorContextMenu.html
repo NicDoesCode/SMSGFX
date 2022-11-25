@@ -1,54 +1,57 @@
-<button class="btn btn-secondary dropdown-toggle visually-hidden" style="position: absolute; z-index: 100; width: 250px"
-    type="button" data-bs-toggle="dropdown" aria-expanded="false">
-    Dropdown button
-</button>
-<ul class="dropdown-menu" style="font-size: 0.75em;">
-    <li class="pb-2">
-        <div class="btn-toolbar justify-content-between ps-3 pe-3 m-0" role="toolbar">
-            <div class="input-group">
-                <label class="form-label mt-2">Mirror tile</label>
+<div data-smsgfx-component="tileEditorContextMenu">
+    <button class="btn btn-secondary dropdown-toggle visually-hidden"
+        style="position: absolute; z-index: 100; width: 250px" type="button" data-bs-toggle="dropdown"
+        aria-expanded="false">
+        Dropdown button
+    </button>
+    <ul class="dropdown-menu" style="font-size: 0.75em;">
+        <li class="pb-2">
+            <div class="btn-toolbar justify-content-between ps-3 pe-3 m-0" role="toolbar">
+                <div class="input-group">
+                    <label class="form-label mt-2">Mirror tile</label>
+                </div>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button class="btn btn-outline-secondary" data-command="mirrorHorizontal"><i
+                            class="bi bi-vr"></i></button>
+                    <button class="btn btn-outline-secondary" data-command="mirrorVertical"><i
+                            class="bi bi-hr"></i></button>
+                </div>
             </div>
-            <div class="btn-group btn-group-sm" role="group">
-                <button class="btn btn-outline-secondary" data-command="mirrorHorizontal"><i
-                        class="bi bi-vr"></i></button>
-                <button class="btn btn-outline-secondary" data-command="mirrorVertical"><i
-                        class="bi bi-hr"></i></button>
+        </li>
+        <li class="pb-2">
+            <div class="btn-toolbar justify-content-between ps-3 pe-3 m-0" role="toolbar"
+                aria-label="Toolbar with button groups">
+                <div class="input-group">
+                    <label class="form-label mt-2">Insert tile</label>
+                </div>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button class="btn btn-outline-secondary" data-command="insertBefore"><i
+                            class="bi bi-arrow-bar-left"></i></button>
+                    <button class="btn btn-outline-secondary" data-command="insertAfter"><i
+                            class="bi bi-arrow-bar-right"></i></button>
+                </div>
             </div>
-        </div>
-    </li>
-    <li class="pb-2">
-        <div class="btn-toolbar justify-content-between ps-3 pe-3 m-0" role="toolbar"
-            aria-label="Toolbar with button groups">
-            <div class="input-group">
-                <label class="form-label mt-2">Insert tile</label>
+        </li>
+        <li class="pb-2">
+            <div class="btn-toolbar justify-content-between ps-3 pe-3 m-0" role="toolbar"
+                aria-label="Toolbar with button groups">
+                <div class="input-group">
+                    <label class="form-label mt-2">Move tile</label>
+                </div>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button class="btn btn-outline-secondary" data-command="moveLeft"><i
+                            class="bi bi-arrow-left"></i></button>
+                    <button class="btn btn-outline-secondary" data-command="moveRight"><i
+                            class="bi bi-arrow-right"></i></button>
+                </div>
             </div>
-            <div class="btn-group btn-group-sm" role="group">
-                <button class="btn btn-outline-secondary" data-command="insertBefore"><i
-                        class="bi bi-arrow-bar-left"></i></button>
-                <button class="btn btn-outline-secondary" data-command="insertAfter"><i
-                        class="bi bi-arrow-bar-right"></i></button>
-            </div>
-        </div>
-    </li>
-    <li class="pb-2">
-        <div class="btn-toolbar justify-content-between ps-3 pe-3 m-0" role="toolbar"
-            aria-label="Toolbar with button groups">
-            <div class="input-group">
-                <label class="form-label mt-2">Move tile</label>
-            </div>
-            <div class="btn-group btn-group-sm" role="group">
-                <button class="btn btn-outline-secondary" data-command="moveLeft"><i
-                        class="bi bi-arrow-left"></i></button>
-                <button class="btn btn-outline-secondary" data-command="moveRight"><i
-                        class="bi bi-arrow-right"></i></button>
-            </div>
-        </div>
-    </li>
-    <li class="pb-2">
-        <button class="dropdown-item" data-command="clone">Clone tile</button>
-    </li>
-    <li class="pb-2">
-        <button class="dropdown-item" data-command="remove">Remove this
-            tile</button>
-    </li>
-</ul>
+        </li>
+        <li class="pb-2">
+            <button class="dropdown-item" data-command="clone">Clone tile</button>
+        </li>
+        <li class="pb-2">
+            <button class="dropdown-item" data-command="remove">Remove this
+                tile</button>
+        </li>
+    </ul>
+</div>

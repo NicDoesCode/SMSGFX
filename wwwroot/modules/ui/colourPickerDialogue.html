@@ -1,4 +1,4 @@
-<div data-smsgfx-id="modal" class="sms-colour-picker modal fade" tabindex="-1">
+<div data-smsgfx-component="colourPickerDialogue" data-smsgfx-id="modal" class="sms-colour-picker modal fade" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -14,11 +14,11 @@
                                 <label for="tbColourPickerRedSlider" class="form-label">Red</label>
                             </div>
                             <div class="col-auto">
-                                <input type="range" class="form-range" id="tbColourPickerRedSlider" min="0"
+                                <input type="range" class="form-range" data-smsgfx-id="tbColourPickerRedSlider" min="0"
                                     max="255" step="17">
                             </div>
                             <div class="col-2">
-                                <input id="tbColourPickerRed" class="form-control form-control-sm" type="number"
+                                <input data-smsgfx-id="tbColourPickerRed" class="form-control form-control-sm" type="number"
                                     min="0" max="255" style="width: 80px;">
                             </div>
                         </div>
@@ -27,11 +27,11 @@
                                 <label for="tbColourPickerGreenSlider" class="form-label">Green</label>
                             </div>
                             <div class="col-auto">
-                                <input type="range" class="form-range" id="tbColourPickerGreenSlider" min="0"
+                                <input type="range" class="form-range" data-smsgfx-id="tbColourPickerGreenSlider" min="0"
                                     max="255" step="17">
                             </div>
                             <div class="col-2">
-                                <input id="tbColourPickerGreen" class="form-control form-control-sm" type="number"
+                                <input data-smsgfx-id="tbColourPickerGreen" class="form-control form-control-sm" type="number"
                                     min="0" max="255" style="width: 80px;">
                             </div>
                         </div>
@@ -40,11 +40,11 @@
                                 <label for="tbColourPickerBlueSlider" class="form-label">Blue</label>
                             </div>
                             <div class="col-auto">
-                                <input type="range" class="form-range" id="tbColourPickerBlueSlider" min="0"
+                                <input type="range" class="form-range" data-smsgfx-id="tbColourPickerBlueSlider" min="0"
                                     max="255" step="17">
                             </div>
                             <div class="col-2">
-                                <input id="tbColourPickerBlue" class="form-control form-control-sm" type="number"
+                                <input data-smsgfx-id="tbColourPickerBlue" class="form-control form-control-sm" type="number"
                                     min="0" max="255" style="width: 80px;">
                             </div>
                         </div>
@@ -52,14 +52,14 @@
                     <div class="col-auto">
                         <div class="input-group">
                             <span class="input-group-text">Select colour</span>
-                            <input id="btnColourPickerPick" type="color" class="form-control"
+                            <input data-smsgfx-id="btnColourPickerPick" type="color" class="form-control"
                                 style="min-height: 50px; min-width: 100px">
                         </div>
                     </div>
                     <div class="col-auto">
                         <div class="input-group">
                             <span class="input-group-text">Hex</span>
-                            <input id="tbColourPickerHex" type="text" class="form-control">
+                            <input data-smsgfx-id="tbColourPickerHex" type="text" class="form-control">
                         </div>
                     </div>
                 </div>
@@ -78,7 +78,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <div id="tbPreview" class="sms-colour-preview"></div>
+                <div data-smsgfx-id="tbPreview" class="sms-colour-preview"></div>
                 <button type="button" class="btn btn-secondary" data-button-type="cancel">Cancel</button>
                 <button type="button" class="btn btn-primary" data-button-type="confirm">Save changes</button>
             </div>

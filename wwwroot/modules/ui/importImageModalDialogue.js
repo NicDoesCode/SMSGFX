@@ -155,7 +155,7 @@ export default class ImportImageModalDialogue extends ModalDialogue {
      * @returns {Promise<ImportImageModalDialogue>}
      */
      static async loadIntoAsync(element) {
-        await TemplateUtil.loadURLIntoAsync('./modules/ui/importImageModalDialogue.html', element);
+        await TemplateUtil.injectComponentAsync('importImageModalDialogue', element);
         return new ImportImageModalDialogue(element); 
     }
 

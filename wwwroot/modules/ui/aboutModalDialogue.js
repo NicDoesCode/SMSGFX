@@ -24,7 +24,7 @@ export default class AboutModalDialogue extends ModalDialogue {
      * @returns {Promise<AboutModalDialogue>}
      */
      static async loadIntoAsync(element) {
-        await TemplateUtil.loadURLIntoAsync('./modules/ui/aboutModalDialogue.html', element);
+        await TemplateUtil.injectComponentAsync('aboutModalDialogue', element);
         return new AboutModalDialogue(element); 
     }
 

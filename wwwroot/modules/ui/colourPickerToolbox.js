@@ -98,7 +98,7 @@ export default class ColourPickerToolbox {
      * @returns {Promise<ColourPickerToolbox>}
      */
      static async loadIntoAsync(element) {
-        await TemplateUtil.loadURLIntoAsync('./modules/ui/colourPickerToolbox.html', element);
+        await TemplateUtil.injectComponentAsync('colourPickerToolbox', element);
         return new ColourPickerToolbox(element); 
     }
 

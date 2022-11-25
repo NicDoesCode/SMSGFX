@@ -63,7 +63,7 @@ export default class ExportToolbar {
      * @returns {Promise<ExportToolbar>}
      */
      static async loadIntoAsync(element) {
-        await TemplateUtil.loadURLIntoAsync('./modules/ui/exportToolbar.html', element);
+        await TemplateUtil.injectComponentAsync('exportToolbar', element);
         return new ExportToolbar(element); 
     }
 

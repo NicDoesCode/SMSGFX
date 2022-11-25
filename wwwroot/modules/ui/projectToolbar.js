@@ -68,7 +68,7 @@ export default class ProjectToolbar {
      * @returns {Promise<ProjectToolbar>}
      */
      static async loadIntoAsync(element) {
-        await TemplateUtil.loadURLIntoAsync('./modules/ui/projectToolbar.html', element);
+        await TemplateUtil.injectComponentAsync('projectToolbar', element);
         return new ProjectToolbar(element); 
     }
 

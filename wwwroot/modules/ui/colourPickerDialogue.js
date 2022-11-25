@@ -9,6 +9,8 @@ const EVENT_OnChange = 'EVENT_OnChange';
 export default class ColourPickerDialogue extends ModalDialogue {
 
 
+    /** @type {HTMLElement} */
+    #element;
     /** @type {EventDispatcher} */
     #dispatcher;
     /** @type {number} */
@@ -48,31 +50,33 @@ export default class ColourPickerDialogue extends ModalDialogue {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
-        super(element.querySelector('[data-smsgfx-id=modal]'));
+        super(element);
+
+        this.#element = element;
         this.#dispatcher = new EventDispatcher();
 
-        this.#tbColourPickerRedSlider = element.querySelector('#tbColourPickerRedSlider');
-        this.#tbColourPickerGreenSlider = element.querySelector('#tbColourPickerGreenSlider');
-        this.#tbColourPickerBlueSlider = element.querySelector('#tbColourPickerBlueSlider');
-        this.#tbColourPickerRed = element.querySelector('#tbColourPickerRed');
-        this.#tbColourPickerGreen = element.querySelector('#tbColourPickerGreen');
-        this.#tbColourPickerBlue = element.querySelector('#tbColourPickerBlue');
-        this.#btnColourPickerPick = element.querySelector('#btnColourPickerPick');
-        this.#tbColourPickerHex = element.querySelector('#tbColourPickerHex');
+        this.#tbColourPickerRedSlider = this.#element.querySelector('[data-smsgfx-id=tbColourPickerRedSlider]');
+        this.#tbColourPickerGreenSlider = this.#element.querySelector('[data-smsgfx-id=tbColourPickerGreenSlider]');
+        this.#tbColourPickerBlueSlider = this.#element.querySelector('[data-smsgfx-id=tbColourPickerBlueSlider]');
+        this.#tbColourPickerRed = this.#element.querySelector('[data-smsgfx-id=tbColourPickerRed]');
+        this.#tbColourPickerGreen = this.#element.querySelector('[data-smsgfx-id=tbColourPickerGreen]');
+        this.#tbColourPickerBlue = this.#element.querySelector('[data-smsgfx-id=tbColourPickerBlue]');
+        this.#btnColourPickerPick = this.#element.querySelector('[data-smsgfx-id=btnColourPickerPick]');
+        this.#tbColourPickerHex = this.#element.querySelector('[data-smsgfx-id=tbColourPickerHex]');
 
-        this.#tbColourPickerRedSlider.onchange = () => this.#setFromColour('r', tbColourPickerRedSlider.value);
-        this.#tbColourPickerGreenSlider.onchange = () => this.#setFromColour('g', tbColourPickerGreenSlider.value);
-        this.#tbColourPickerBlueSlider.onchange = () => this.#setFromColour('b', tbColourPickerBlueSlider.value);
+        this.#tbColourPickerRedSlider.onchange = () => this.#setFromColour('r', this.#tbColourPickerRedSlider.value);
+        this.#tbColourPickerGreenSlider.onchange = () => this.#setFromColour('g', this.#tbColourPickerGreenSlider.value);
+        this.#tbColourPickerBlueSlider.onchange = () => this.#setFromColour('b', this.#tbColourPickerBlueSlider.value);
 
-        this.#tbColourPickerRed.onchange = () => this.#setFromColour('r', tbColourPickerRedSlider.value);
-        this.#tbColourPickerGreen.onchange = () => this.#setFromColour('g', tbColourPickerGreenSlider.value);
-        this.#tbColourPickerBlue.onchange = () => this.#setFromColour('b', tbColourPickerBlueSlider.value);
+        this.#tbColourPickerRed.onchange = () => this.#setFromColour('r', this.#tbColourPickerRed.value);
+        this.#tbColourPickerGreen.onchange = () => this.#setFromColour('g', this.#tbColourPickerGreen.value);
+        this.#tbColourPickerBlue.onchange = () => this.#setFromColour('b', this.#tbColourPickerBlue.value);
 
-        this.#btnColourPickerPick.onchange = () => this.#setFromHex(btnColourPickerPick.value);
-        this.#tbColourPickerHex.onchange = () => this.#setFromHex(tbColourPickerHex.value);
+        this.#btnColourPickerPick.onchange = () => this.#setFromHex(this.#btnColourPickerPick.value);
+        this.#tbColourPickerHex.onchange = () => this.#setFromHex(this.#tbColourPickerHex.value);
 
-        this.#tbPreviewSelected = element.querySelector('[data-colour-preview=selected]');
-        this.#tbPreviewNative = element.querySelector('[data-colour-preview=native]');
+        this.#tbPreviewSelected = this.#element.querySelector('[data-colour-preview=selected]');
+        this.#tbPreviewNative = this.#element.querySelector('[data-colour-preview=native]');
     }
 
 
@@ -82,7 +86,7 @@ export default class ColourPickerDialogue extends ModalDialogue {
      * @returns {Promise<ColourPickerDialogue>}
      */
      static async loadIntoAsync(element) {
-        await TemplateUtil.loadURLIntoAsync('./modules/ui/colourPickerDialogue.html', element);
+        await TemplateUtil.injectComponentAsync('colourPickerDialogue', element);
         return new ColourPickerDialogue(element); 
     }
 

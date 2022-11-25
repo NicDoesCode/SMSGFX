@@ -73,7 +73,7 @@ export default class PaletteEditorContextMenu {
      * @returns {Promise<PaletteEditorContextMenu>}
      */
      static async loadIntoAsync(element) {
-        await TemplateUtil.loadURLIntoAsync('./modules/ui/paletteEditorContextMenu.html', element);
+        await TemplateUtil.injectComponentAsync('paletteEditorContextMenu', element);
         return new PaletteEditorContextMenu(element); 
     }
 

@@ -4,8 +4,10 @@ import TemplateUtil from "../util/templateUtil.js";
 export default class ExportModalDialogue extends ModalDialogue {
 
 
+    /** @type {HTMLElement} */
+    #element;
     /** @type {HTMLTextAreaElement} */
-    #tbExport = document.getElementById('tbExport');
+    #tbExport;
 
 
     /**
@@ -13,7 +15,9 @@ export default class ExportModalDialogue extends ModalDialogue {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
-        super(element.querySelector('[data-smsgfx-id=modal]'));
+        super(element);
+        this.#element = element;
+        this.#tbExport = this.#element.querySelector('[data-smsgfx-id=export-text]');
     }
 
 
@@ -23,7 +27,7 @@ export default class ExportModalDialogue extends ModalDialogue {
      * @returns {Promise<ExportModalDialogue>}
      */
      static async loadIntoAsync(element) {
-        await TemplateUtil.loadURLIntoAsync('./modules/ui/exportModalDialogue.html', element);
+        await TemplateUtil.injectComponentAsync('exportModalDialogue', element);
         return new ExportModalDialogue(element); 
     }
 

@@ -30,7 +30,7 @@ export default class TileSetImportModalDialogue extends ModalDialogue {
      * @returns {Promise<TileSetImportModalDialogue>}
      */
      static async loadIntoAsync(element) {
-        await TemplateUtil.loadURLIntoAsync('./modules/ui/tileSetImportModalDialogue.html', element);
+        await TemplateUtil.injectComponentAsync('tileSetImportModalDialogue', element);
         return new TileSetImportModalDialogue(element); 
     }
 

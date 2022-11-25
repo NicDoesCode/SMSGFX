@@ -98,7 +98,7 @@ export default class TileEditorToolbar {
      * @returns {Promise<TileEditorToolbar>}
      */
     static async loadIntoAsync(element) {
-        await TemplateUtil.loadURLIntoAsync('./modules/ui/tileEditorToolbar.html', element);
+        await TemplateUtil.injectComponentAsync('tileEditorToolbar', element);
         return new TileEditorToolbar(element);
     }
 
