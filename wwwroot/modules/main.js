@@ -1268,10 +1268,12 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
                 instanceState.lastTileMapPx.y = imageY;
 
                 const tileSet = getTileSet();
+                const updatedTiles = [];
 
                 const size = instanceState.pencilSize;
                 if (size === 1) {
                     tileSet.setPixelAt(imageX, imageY, colourIndex);
+                    updatedTiles.push(tileSet.getTileIndexByCoordinate(imageX, imageY));
                 } else {
                     const startX = imageX - Math.floor(size / 2);
                     const startY = imageY - Math.floor(size / 2);
@@ -1282,11 +1284,13 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
                         const xRight = (size > 3 && (yPx === startY || yPx === endY - 1)) ? endX - 1 : endX;
                         for (let xPx = xLeft; xPx < xRight; xPx++) {
                             tileSet.setPixelAt(xPx, yPx, colourIndex);
+                            const tileIndex = tileSet.getTileIndexByCoordinate(imageX, imageY);
+                            if (!updatedTiles.includes(tileIndex)) updatedTiles.push(tileIndex);
                         }
                     }
                 }
 
-                tileEditor.setState({ tileSet: tileSet });
+                tileEditor.setState({ updatedTiles: updatedTiles });
             }
 
         } else if (tool === TileEditorToolbar.Tools.bucket) {

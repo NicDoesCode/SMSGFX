@@ -60,7 +60,6 @@ export default class CanvasManager {
         if (value != this.#selectedTileIndex) {
             if (this.#tileSet && this.tileSet.length > 0 && value >= 0 && value < this.tileSet.length) {
                 this.#selectedTileIndex = value;
-
             } else {
                 this.#selectedTileIndex = -1;
             }
@@ -111,8 +110,6 @@ export default class CanvasManager {
 
     /** @type {HTMLCanvasElement} */
     #baseCanvas;
-    /** @type {CanvasRenderingContext2D} */
-    #baseCtx;
     /** @type {boolean} */
     #needToDrawBase = true;
     /** @type {TileSet} */
@@ -129,6 +126,8 @@ export default class CanvasManager {
     #drawPixelGrid = false;
     /** @type {ReferenceImage[]} */
     #referenceImages = [];
+    /** @type {number[]} */
+    #redrawTiles = [];
 
 
     /**
@@ -138,7 +137,6 @@ export default class CanvasManager {
      */
     constructor(tileSet, palette) {
         this.#baseCanvas = document.createElement('canvas');
-        this.#baseCtx = this.#baseCanvas.getContext('2d');
         if (tileSet) this.#tileSet = tileSet;
         if (palette) this.#palette = palette;
     }
@@ -150,6 +148,14 @@ export default class CanvasManager {
     invalidateImage() {
         this.#needToDrawBase = true;
     }
+
+    /**
+     * Invalidates and forces a redraw of an individual tile on the base image.
+     */
+    invalidateTile(index) {
+        this.#redrawTiles.push(index);
+    }
+
 
     /**
      * Returns a bitmap that represents the tile set as a PNG data URL.
@@ -177,7 +183,7 @@ export default class CanvasManager {
 
 
     /**
-     * Draws a tile set and then returns the image as a base 64 URL.
+     * Refreshes the entire base image.
      */
     #refreshBaseImage() {
         const transColour = this.#referenceImages.filter(r => r.image !== null).length > 0 ? this.#transparencyIndex : -1;
@@ -190,9 +196,8 @@ export default class CanvasManager {
      * @param {number} transparencyColour - Render this colour as transparent.
      */
     #drawBaseImage(canvas, transparencyColour) {
-
         if (!this.tileSet) throw new Error('refreshBaseImage: No tile set.');
-        if (!this.tileSet) throw new Error('refreshBaseImage: No palette.');
+        if (!this.palette) throw new Error('refreshBaseImage: No palette.');
 
         const context = canvas.getContext('2d');
 
@@ -204,35 +209,62 @@ export default class CanvasManager {
         canvas.width = tiles * 8 * pxSize;
         canvas.height = rows * 8 * pxSize;
 
-        this.tileSet.getTiles().forEach((tile, tileSetIndex) => {
+        for (let tileIndex = 0; tileIndex < this.tileSet.length; tileIndex++) {
+            this.#drawTile(context, tileIndex, transparencyColour);
+        }
+    }
 
-            const tileSetCol = tileSetIndex % tiles;
-            const tileSetRow = (tileSetIndex - tileSetCol) / tiles;
+    /**
+     * Refreshes a single tile on the base image.
+     */
+    #refreshBaseImageTile(tileIndex) {
+        const transColour = this.#referenceImages.filter(r => r.image !== null).length > 0 ? this.#transparencyIndex : -1;
+        this.#drawBaseImageTile(this.#baseCanvas, tileIndex, transColour);
+    }
 
-            for (let tilePx = 0; tilePx < 64; tilePx++) {
+    /**
+     * Updates a single tile on the base image onto a canvas element.
+     * @param {HTMLCanvasElement} canvas - Canvas element to draw onto.
+     * @param {number} tileIndex - Index of the tile to update on the base image.
+     * @param {number} transparencyColour - Render this colour as transparent.
+     */
+    #drawBaseImageTile(canvas, tileIndex, transparencyColour) {
+        if (!this.tileSet) throw new Error('refreshBaseImage: No tile set.');
+        if (!this.palette) throw new Error('refreshBaseImage: No palette.');
 
-                const tileCol = tilePx % 8;
-                const tileRow = (tilePx - tileCol) / 8;
+        const context = canvas.getContext('2d');
+        this.#drawTile(context, tileIndex, transparencyColour);
+    }
 
-                const x = ((tileSetCol * 8) + tileCol) * pxSize;
-                const y = ((tileSetRow * 8) + tileRow) * pxSize;
+    #drawTile(context, tileindex, transparencyColour) {
+        const pxSize = this.scale;
+        const tile = this.tileSet.getTile(tileindex);
+        const tileCount = Math.max(this.tileSet.tileWidth, 1);
+        const tileSetCol = tileindex % tileCount;
+        const tileSetRow = (tileindex - tileSetCol) / tileCount;
 
-                let pixelPaletteIndex = tile.readAt(tilePx);
+        for (let tilePx = 0; tilePx < 64; tilePx++) {
 
-                // Set colour
-                if (pixelPaletteIndex >= 0 && pixelPaletteIndex < 16) {
-                    const colour = this.palette.getColour(pixelPaletteIndex);
-                    const hex = ColourUtil.toHex(colour.r, colour.g, colour.b);
-                    context.fillStyle = hex;
-                }
+            const tileCol = tilePx % 8;
+            const tileRow = (tilePx - tileCol) / 8;
 
-                if (transparencyColour === -1 || pixelPaletteIndex !== transparencyColour) {
-                    context.moveTo(0, 0);
-                    context.fillRect(x, y, pxSize, pxSize);
-                }
+            const x = ((tileSetCol * 8) + tileCol) * pxSize;
+            const y = ((tileSetRow * 8) + tileRow) * pxSize;
+
+            let pixelPaletteIndex = tile.readAt(tilePx);
+
+            // Set colour
+            if (pixelPaletteIndex >= 0 && pixelPaletteIndex < 16) {
+                const colour = this.palette.getColour(pixelPaletteIndex);
+                const hex = ColourUtil.toHex(colour.r, colour.g, colour.b);
+                context.fillStyle = hex;
             }
 
-        });
+            if (transparencyColour === -1 || pixelPaletteIndex !== transparencyColour) {
+                context.moveTo(0, 0);
+                context.fillRect(x, y, pxSize, pxSize);
+            }
+        }
     }
 
     /**
@@ -257,6 +289,13 @@ export default class CanvasManager {
 
         if (this.#needToDrawBase) {
             this.#refreshBaseImage();
+            this.#redrawTiles = [];
+            this.#needToDrawBase = false;
+        }
+
+        while (this.#redrawTiles.length > 0) {
+            const tileIndex = this.#redrawTiles.pop();
+            this.#refreshBaseImageTile(tileIndex);
         }
 
         const pxSize = this.scale;

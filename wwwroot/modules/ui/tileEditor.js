@@ -47,6 +47,8 @@ export default class TileEditor {
     #tileEditorContextMenu;
     /** @type {Palette} */
     #palette = null;
+    /** @type {Palette} */
+    #nativePalette = null;
     /** @type {TileSet} */
     #tileSet = null;
     /** @type {Coordinates} */
@@ -113,6 +115,7 @@ export default class TileEditor {
         if (palette && typeof palette.getColour === 'function') {
             this.#canvasManager.invalidateImage();
             this.#palette = palette;
+            this.#nativePalette = PaletteFactory.convertToNative(this.#palette);
             dirty = true;
         }
         // Changing tile set
@@ -120,6 +123,14 @@ export default class TileEditor {
         if (tileSet && typeof tileSet.getPixelAt === 'function') {
             this.#canvasManager.invalidateImage();
             this.#tileSet = tileSet;
+            dirty = true;
+        }
+        // Updated tiles
+        if (state?.updatedTiles && Array.isArray(state?.updatedTiles)) {
+            const updatedTiles = state.updatedTiles;
+            updatedTiles.forEach((tileIndex) => {
+                this.#canvasManager.invalidateTile(tileIndex);
+            });
             dirty = true;
         }
         // Changing scale?
@@ -178,10 +189,16 @@ export default class TileEditor {
         }
         // Refresh image?
         if (dirty && this.#palette && this.#tileSet) {
-            let palette = !this.#displayNative ? this.#palette : PaletteFactory.convertToNative(this.#palette);
-            this.#canvasManager.palette = palette;
-            this.#canvasManager.tileSet = this.#tileSet;
-            this.#canvasManager.scale = this.#scale;
+            let palette = !this.#displayNative ? this.#palette : this.#nativePalette;
+            if (this.#canvasManager.palette !== palette) {
+                this.#canvasManager.palette = palette;
+            }
+            if (this.#canvasManager.tileSet !== this.#tileSet) {
+                this.#canvasManager.tileSet = this.#tileSet;
+            }
+            if (this.#canvasManager.scale !== this.#scale) {
+                this.#canvasManager.scale = this.#scale;
+            }
             if (this.#lastCoords) {
                 this.#canvasManager.drawUI(this.#tbCanvas, this.#lastCoords.x, this.#lastCoords.y);
             } else {
@@ -449,6 +466,7 @@ export default class TileEditor {
  * @property {boolean?} showPixelGrid - Should the pixel grid be drawn?
  * @property {boolean?} enabled - Is the control enabled or disabled?
  * @property {number?} focusedTile - Will ensure that this tile is shown on the screen.
+ * @property {number[]?} updatedTiles - When passing updated tiles, the entire image will not be updated and instead only these tiles will be updated.
  * @exports 
  */
 
