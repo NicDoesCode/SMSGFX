@@ -759,10 +759,12 @@ function handleTileEditorOnCommand(args) {
 
         case TileEditor.Commands.zoomIn:
             increaseScale();
+            tileEditor.setState({ focusedTile: args.tileIndex });
             break;
 
         case TileEditor.Commands.zoomOut:
             decreaseScale();
+            tileEditor.setState({ focusedTile: args.tileIndex });
             break;
     }
 }

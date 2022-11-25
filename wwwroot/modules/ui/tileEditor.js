@@ -39,6 +39,8 @@ export default class TileEditor {
 
     /** @type {HTMLElement} */
     #element;
+    /** @type {HTMLElement} */
+    #canvasContainer;
     /** @type {HTMLCanvasElement} */
     #tbCanvas;
     /** @type {TileEditorContextMenu} */
@@ -68,6 +70,8 @@ export default class TileEditor {
     constructor(element) {
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
+
+        this.#canvasContainer = this.#element.classList.contains('sms-canvas-container') ? this.#element : this.#element.querySelector('.sms-canvas-container');
 
         this.#tbCanvas = this.#element.querySelector('[data-sms-id=tile-editor-canvas]');
         this.#canvasManager = new CanvasManager();
@@ -187,6 +191,10 @@ export default class TileEditor {
 
         if (typeof state?.enabled === 'boolean') {
             this.#enabled = state?.enabled;
+        }
+
+        if (typeof state?.focusedTile === 'number') {
+            this.#focusTile(state?.focusedTile);
         }
     }
 
@@ -360,11 +368,17 @@ export default class TileEditor {
             /** @type {TileEditorCommandEventArgs} */
             const args = {};
 
+            // Get the tile index
+            const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(event.clientX, event.clientY);
+            const tile = this.#tileSet.getTileByCoordinate(coords.x, coords.y);
+            args.tileIndex = this.#tileSet.getTileIndex(tile);
+
             if (event.deltaY > 0) {
                 args.command = commands.zoomIn;
             } else {
                 args.command = commands.zoomOut;
             }
+
             this.#dispatcher.dispatch(EVENT_OnCommand, args);
 
             return false;
@@ -405,6 +419,17 @@ export default class TileEditor {
         return { x: imageX, y: imageY };
     }
 
+    #focusTile(index) {
+        const col = index % this.#tileSet.tileWidth;
+        const row = Math.floor(index / this.#tileSet.tileWidth);
+        const pxPerTile = this.#canvasManager.scale * 8;
+        const tileX = (col * pxPerTile) + (this.#canvasManager.scale / 2);
+        const tileY = (row * pxPerTile) + (this.#canvasManager.scale / 2);
+        const rect = this.#canvasContainer.getBoundingClientRect();
+        this.#canvasContainer.scrollLeft = Math.max(tileX - (rect.width / 2), 0);
+        this.#canvasContainer.scrollTop = Math.max(tileY - (rect.height / 2), 0);
+    }
+
 
 }
 
@@ -423,6 +448,7 @@ export default class TileEditor {
  * @property {boolean?} showTileGrid - Should the tile grid be drawn?
  * @property {boolean?} showPixelGrid - Should the pixel grid be drawn?
  * @property {boolean?} enabled - Is the control enabled or disabled?
+ * @property {number?} focusedTile - Will ensure that this tile is shown on the screen.
  * @exports 
  */
 
