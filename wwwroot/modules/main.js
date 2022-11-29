@@ -31,6 +31,7 @@ import ProjectWatcher from "./components/projectWatcher.js";
 import ImageUtil from "./util/imageUtil.js";
 import ReferenceImage from "./models/referenceImage.js";
 import AboutModalDialogue from "./ui/aboutModalDialogue.js";
+import Palette from "./models/palette.js";
 
 
 /* ****************************************************************************************************

@@ -75,7 +75,7 @@ export default class ImageUtil {
      * Gets a new image using a colour palette.
      * @param {ColourMatch} palette - Palette of colours.
      * @param {HTMLImageElement} image - Image to display.
-     * @returns {HTMLImageElement}
+     * @returns {Promise<HTMLImageElement>}
      */
     static async resizeImageAsync(image, width, height) {
         return await new Promise(async (resolve, reject) => {
@@ -87,7 +87,8 @@ export default class ImageUtil {
             context.imageSmoothingEnabled = false;
             context.drawImage(image, 0, 0, width, height);
 
-            resolve(await canvasToImageAsync(canvas));
+            const result = await canvasToImageAsync(canvas);
+            resolve(result);
         });
     }
 
@@ -116,6 +117,8 @@ export default class ImageUtil {
                 });
             });
 
+            const noMatch = []; // TMP 
+
             let x = 0, y = -1;
             for (let i = 0; i < imageData.data.length; i += 4) {
 
@@ -130,6 +133,7 @@ export default class ImageUtil {
                 if (colourHexLookup[pixel.hex]) {
                     context.fillStyle = colourHexLookup[pixel.hex];
                 } else {
+                    if (!noMatch.includes(pixel.hex)) noMatch.push(pixel.hex); // TMP 
                     context.fillStyle = 'yellow';
                 }
                 context.fillRect(x, y, 1, 1);
@@ -137,6 +141,7 @@ export default class ImageUtil {
                 x++;
             }
 
+            console.log('noMatch', noMatch); // TMP 
             resolve(await canvasToImageAsync(canvas));
         });
     }
@@ -278,15 +283,15 @@ export default class ImageUtil {
     }
 
     /**
-     * Reads an image from a file.
-     * @param {HTMLImageElement} image - Image to calculate the size of.
+     * Calculates an image size given a maxiumum width and height that respects aspect ratio.
+     * @param {HTMLImageElement} sourceImage - Image to calculate the size of.
      * @param {number} maximumWidth - Maximum width of the image.
      * @param {number} maximumHeight - Maximum height of the image.
      * @returns {{width: number, height: number}}
      */
-    static calculateImageSize(image, maximumWidth, maximumHeight) {
-        let width = image.width;
-        let height = image.height;
+    static calculateAspectRatioDimensions(sourceImage, maximumWidth, maximumHeight) {
+        let width = sourceImage.width;
+        let height = sourceImage.height;
         if (width > maximumWidth || height > maximumHeight) {
             const widthGreaterThanHeight = width > height;
             if (widthGreaterThanHeight) {
@@ -345,7 +350,7 @@ export default class ImageUtil {
      * Extracts a 16 colour native system palette from an image.
      * @param {HTMLImageElement} image - Input image.
      * @param {string} system - Target system, either 'ms' or 'gg'.
-     * @returns {ColourMatch[]}
+     * @returns {Promise<ColourMatch[]>}
      */
     static async extractNativePaletteFromImageAsync(image, system) {
         return await new Promise((resolve, reject) => {
@@ -522,27 +527,34 @@ function matchColours(sourceColours, coloursToMatch) {
     // the source colour is omitted from the result.
 
     /** @type {ColourMatch[]} */
-    const sourceColoursCopy = sourceColours.map(c => convertToColourMatch(JSON.parse(JSON.stringify(c))));
+    sourceColours = sourceColours.map(c => convertToColourMatch(JSON.parse(JSON.stringify(c))));
     /** @type {ColourMatch[]} */
-    let coloursToMatchDeepCopy = JSON.parse(JSON.stringify(coloursToMatch));
+    let coloursLeftToMatch = JSON.parse(JSON.stringify(coloursToMatch));
 
     /** @type {ColourMapping} */
     const result = { hexLookup: {}, matches: [] };
 
     // Loop till all colours added or our similarity range is at maxiumum
+    const already = []; // TMP 
     const matchRangeStep = 16;
     let matchRangeFactor = matchRangeStep;
-    while (coloursToMatchDeepCopy.length > 0 && matchRangeFactor < 255) {
+    while (coloursLeftToMatch.length > 0 && matchRangeFactor < 255) {
 
-        // Check each palette colour for matching image colours
-        sourceColoursCopy.forEach(sourceColour => {
+        // Check each source colour for colours to match to
+        sourceColours.forEach(sourceColour => {
 
-            if (result.hexLookup[sourceColour.hex]) return; // ?? 
+            if (result.hexLookup[sourceColour.hex]) {
+                // const matchColour = result.matches.find(m => m.hex === sourceColour.hex);
+                // result.matches.push(sourceColour);
+                if (!already.includes(sourceColour.hex)) already.push(sourceColour.hex); // TMP
+                return;
+            }
+            // if (result.hexLookup[sourceColour.hex]) return; // ?? 
 
             const matchRange = createMatchRange(sourceColour, matchRangeFactor);
             const unmatchedColours = [];
 
-            coloursToMatchDeepCopy.forEach(colourToMatch => {
+            coloursLeftToMatch.forEach(colourToMatch => {
 
                 if (isSimilar(colourToMatch, matchRange)) {
 
@@ -586,12 +598,14 @@ function matchColours(sourceColours, coloursToMatch) {
                 // }
 
             });
-            coloursToMatchDeepCopy = unmatchedColours;
+            coloursLeftToMatch = unmatchedColours;
 
         });
 
         matchRangeFactor += matchRangeStep;
     }
+
+    console.log('Already', already); // TMP 
 
     return result;
 }
@@ -718,7 +732,7 @@ function groupSimilarColours(coloursToGroup, matchRangeFactor) {
 /**
  * Creates an image from a canvas object.
  * @param {HTMLCanvasElement} canvas - Inoput canvas to make the image from.
- * @returns {HTMLImageElement}
+ * @returns {Promise<HTMLImageElement>}
  */
 async function canvasToImageAsync(canvas) {
     return new Promise((resolve, reject) => {
@@ -873,7 +887,7 @@ function getSimilaritry(colour, range) {
  * @property {string[]} matchedColours - HEX values of all colours that are similar and hence replaced by this colour.
  */
 /** 
- * @typedef {Object.<string, colourMatch>} ColourMatchDictionary
+ * @typedef {Object.<string, ColourMatch>} ColourMatchDictionary
  */
 /** 
  * @typedef {object} ColourRange 
