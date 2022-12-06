@@ -1,6 +1,7 @@
 import EventDispatcher from "../components/eventDispatcher.js";
 import ProjectList from "../models/projectList.js";
 import TemplateUtil from "../util/templateUtil.js";
+import ModalDialogue from "./modalDialogue.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -10,11 +11,10 @@ const commands = {
     projectLoadFromFile: 'projectLoadFromFile',
     projectLoadById: 'projectLoadById',
     projectSaveToFile: 'projectSaveToFile',
-    projectDelete: 'projectDelete',
-    showDropdown: 'showDropdown'
+    projectDelete: 'projectDelete'
 }
 
-export default class ProjectToolbar {
+export default class ProjectDropdown extends ModalDialogue {
 
 
     static get Commands() {
@@ -26,6 +26,7 @@ export default class ProjectToolbar {
     #element;
     /** @type {EventDispatcher} */
     #dispatcher;
+    #projectListTemplate;
     #enabled = true;
 
 
@@ -34,9 +35,13 @@ export default class ProjectToolbar {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
+        super(element.querySelector('[data-smsgfx-id=modal]'));
         this.#element = element;
 
         this.#dispatcher = new EventDispatcher();
+
+        const source = this.#element.querySelector('[data-smsgfx-id=project-list-template]').innerHTML;
+        this.#projectListTemplate = Handlebars.compile(source);
 
         this.#element.querySelectorAll('button[data-command]').forEach(element => {
             element.onclick = () => {
@@ -66,17 +71,17 @@ export default class ProjectToolbar {
     /**
      * Creates an instance of the object inside a container element.
      * @param {HTMLElement} element - Container element.
-     * @returns {Promise<ProjectToolbar>}
+     * @returns {Promise<ProjectDropdown>}
      */
-     static async loadIntoAsync(element) {
-        await TemplateUtil.injectComponentAsync('projectToolbar', element);
-        return new ProjectToolbar(element); 
+    static async loadIntoAsync(element) {
+        await TemplateUtil.injectComponentAsync('projectDropdown', element);
+        return new ProjectDropdown(element);
     }
 
 
     /**
      * Updates the state of the object.
-     * @param {ProjectToolbarState} state - State to set.
+     * @param {ProjectDropdownState} state - State to set.
      */
     setState(state) {
         if (typeof state?.projectTitle === 'string' && state.projectTitle.length > 0 && state.projectTitle !== null) {
@@ -94,6 +99,14 @@ export default class ProjectToolbar {
             this.#element.querySelectorAll('[data-command]').forEach(element => {
                 element.disabled = !this.#enabled;
             });
+        }
+
+        if (typeof state?.visible === 'boolean') {
+            if (state.visible) {
+                super.show();
+            } else {
+                super.hide();
+            }
         }
 
         if (Array.isArray(state?.enabledCommands)) {
@@ -117,8 +130,8 @@ export default class ProjectToolbar {
 
 
     /**
-     * Registers a handler for a toolbar command.
-     * @param {ProjectToolbarCommandCallback} callback - Callback that will receive the command.
+     * Registers a handler for a dropdown command.
+     * @param {ProjectDropdownCommandCallback} callback - Callback that will receive the command.
      */
     addHandlerOnCommand(callback) {
         this.#dispatcher.on(EVENT_OnCommand, callback);
@@ -127,7 +140,7 @@ export default class ProjectToolbar {
 
     /**
      * @param {string} command
-     * @returns {ProjectToolbarCommandEventArgs}
+     * @returns {ProjectDropdownCommandEventArgs}
      */
     #createArgs(command) {
         return {
@@ -142,42 +155,27 @@ export default class ProjectToolbar {
      * @param {ProjectList} projects
      */
     #displayProjects(projects) {
-        const elm = this.#element.querySelector('[data-smsgfx-id=project-list]');
-        while (elm.childNodes.length > 0) {
-            elm.childNodes[0].remove();
-        }
-        projects.getProjects().forEach(project => {
-            const row = document.createElement('div');
-            row.classList.add('dropdown-item', 'd-flex', 'justify-content-between', 'pt-0', 'pb-0', 'mb-1', 'ps-2', 'pe-2');
-            row.appendChild((() => {
 
-                const btn = document.createElement('button');
-                btn.classList.add('btn', 'btn-sm', 'btn-link', 'ms-0', 'ps-0');
-                btn.type = 'button';
-                btn.innerText = project.title;
-                btn.setAttribute('data-command', commands.projectLoadById);
-                btn.setAttribute('data-project-id', project.id);
-                btn.onclick = () => this.#handleProjectCommandButtonClicked(commands.projectLoadById, project.id);
-                return btn;
+        const renderList = projects.getProjects().map((p) => {
+            return {
+                title: p.title,
+                id: p.id
+            };
+        });
+        const html = this.#projectListTemplate(renderList);
 
-            })());
-            row.appendChild((() => {
+        const listElm = this.#element.querySelector('[data-smsgfx-id=project-list]');
+        listElm.innerHTML = html;
 
-                const btn = document.createElement('button');
-                btn.classList.add('btn', 'btn-sm', 'btn-outline-secondary');
-                btn.type = 'button';
-                btn.setAttribute('data-command', commands.pro);
-                btn.setAttribute('data-project-id', project.id);
-                btn.onclick = () => this.#handleProjectCommandButtonClicked(commands.projectDelete, project.id);
-                btn.appendChild((() => {
-                    const i = document.createElement('i');
-                    i.classList.add('bi', 'bi-trash-fill');
-                    return i;
-                })());
-                return btn;
-
-            })());
-            elm.appendChild(row);
+        listElm.querySelectorAll('[data-command]').forEach((elm) => {
+            const command = elm.getAttribute('data-command');
+            const id = elm.getAttribute('data-project-id');
+            if (command && id) {
+                elm.onclick = (ev) => { 
+                    this.#handleProjectCommandButtonClicked(command, id);  
+                    ev.stopImmediatePropagation();
+                }
+            }
         });
     }
 
@@ -197,23 +195,24 @@ export default class ProjectToolbar {
 
 
 /**
- * Project toolbar state.
- * @typedef {object} ProjectToolbarState
+ * Project dropdown state.
+ * @typedef {object} ProjectDropdownState
  * @property {string?} projectTitle - Project title to display.
  * @property {string[]?} enabledCommands - Array of commands that should be enabled, overrided enabled state.
  * @property {string[]?} disabledCommands - Array of commands that should be disabled, overrided enabled state.
  * @property {ProjectList} projects - List of projects to display in the menu.
  * @property {boolean?} enabled - Is the control enabled or disabled?
+ * @property {boolean?} visible - Is the control visible?
  */
 
 /**
- * Project toolbar callback.
- * @callback ProjectToolbarCommandCallback
- * @param {ProjectToolbarCommandEventArgs} args - Arguments.
+ * Project dropdown callback.
+ * @callback ProjectDropdownCommandCallback
+ * @param {ProjectDropdownCommandEventArgs} args - Arguments.
  * @exports
  */
 /**
- * @typedef {object} ProjectToolbarCommandEventArgs
+ * @typedef {object} ProjectDropdownCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string?} title - Project title.
  * @property {string?} projectId - Project ID.

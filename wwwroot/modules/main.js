@@ -32,6 +32,7 @@ import ImageUtil from "./util/imageUtil.js";
 import ReferenceImage from "./models/referenceImage.js";
 import AboutModalDialogue from "./ui/aboutModalDialogue.js";
 import Palette from "./models/palette.js";
+import ProjectDropdown from "./ui/projectDropdown.js";
 
 
 /* ****************************************************************************************************
@@ -85,6 +86,7 @@ const undoManager = new UndoManager(50);
 const watcher = new ProjectWatcher(instanceState.sessionId);
 
 /** @type {ProjectToolbar} */ let projectToolbar;
+/** @type {ProjectDropdown} */ let projectDropdown;
 /** @type {ExportToolbar} */ let exportToolbar;
 /** @type {ExportModalDialogue} */ let exportDialogue;
 /** @type {ColourPickerDialogue} */ let colourPickerDialogue;
@@ -101,6 +103,7 @@ const watcher = new ProjectWatcher(instanceState.sessionId);
 
 async function initialiseComponents() {
     projectToolbar = await ProjectToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=project-toolbar]'));
+    projectDropdown = await ProjectDropdown.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=project-dropdown]'));
     exportToolbar = await ExportToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=export-toolbar]'));
     exportDialogue = await ExportModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=export-dialogue]'));
     colourPickerDialogue = await ColourPickerDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=colour-picker-dialogue]'));
@@ -142,6 +145,7 @@ function wireUpEventHandlers() {
     state.addHandlerOnEvent(handleStateEvent);
 
     projectToolbar.addHandlerOnCommand(handleProjectToolbarOnCommand);
+    projectDropdown.addHandlerOnCommand(handleProjectDropdownOnCommand);
 
     exportToolbar.addHandlerOnCommand(handleExportToolbarOnCommand);
 
@@ -509,9 +513,46 @@ function handleProjectToolbarOnCommand(args) {
             state.deleteProjectFromStorage(args.projectId);
             break;
 
+        case ProjectToolbar.Commands.showDropdown:
+            projectDropdown.show();
+            break;
+
     }
 }
 
+/** @param {import('./ui/projectDropdown').ProjectDropdownCommandEventArgs} args */
+function handleProjectDropdownOnCommand(args) {
+
+    switch (args.command) {
+
+        case ProjectDropdown.Commands.title:
+            if (args.title) setProjectTitle(args.title);
+            break;
+
+        case ProjectDropdown.Commands.projectNew:
+            newProject();
+            break;
+
+        case ProjectDropdown.Commands.projectLoadFromFile:
+            importProjectFromJson();
+            break;
+
+        case ProjectDropdown.Commands.projectSaveToFile:
+            exportProjectToJson();
+            break;
+
+        case ProjectDropdown.Commands.projectLoadById:
+            const projects = state.getProjectsFromLocalStorage();
+            const project = projects.getProjectById(args.projectId);
+            state.setProject(project);
+            break;
+
+        case ProjectDropdown.Commands.projectDelete:
+            state.deleteProjectFromStorage(args.projectId);
+            break;
+
+    }
+}
 
 /** @param {import('./ui/exportToolbar.js').ExportToolbarCommandEventArgs} args */
 function handleExportToolbarOnCommand(args) {
@@ -1023,6 +1064,9 @@ function handleImageImportModalOnConfirm(args) {
     projectToolbar.setState({
         projectTitle: getProject().title
     });
+    projectDropdown.setState({
+        projectTitle: getProject().title
+    });
 
     importImageModalDialogue.hide();
 }
@@ -1136,6 +1180,10 @@ function formatForProject() {
         projectTitle: getProject().title,
         enabled: true
     });
+    projectDropdown.setState({
+        projectTitle: getProject().title,
+        enabled: true
+    });
     exportToolbar.setState({
         enabled: true
     });
@@ -1182,6 +1230,15 @@ function formatForProject() {
 function formatForNoProject() {
     const dummyProject = createEmptyProject();
     projectToolbar.setState({
+        enabled: false,
+        projectTitle: '',
+        enabledCommands: [
+            ProjectToolbar.Commands.projectNew,
+            ProjectToolbar.Commands.projectLoadFromFile,
+            ProjectToolbar.Commands.projectLoadById, ProjectToolbar.Commands.projectDelete
+        ]
+    });
+    projectDropdown.setState({
         enabled: false,
         projectTitle: '',
         enabledCommands: [
@@ -1239,6 +1296,9 @@ function displaySelectedProject() {
 function displayProjectList() {
     const projects = state.getProjectsFromLocalStorage();
     projectToolbar.setState({
+        projects: projects
+    });
+    projectDropdown.setState({
         projects: projects
     });
 }
@@ -1876,6 +1936,10 @@ function newProject() {
     projectToolbar.setState({
         projectTitle: getProject().title
     });
+    projectDropdown.setState({
+        projectTitle: getProject().title,
+        visible: false
+    });
     paletteEditor.setState({
         paletteList: getPaletteList(),
         selectedColourIndex: instanceState.colourIndex,
@@ -1909,6 +1973,9 @@ function importProjectFromJson() {
                 getUIState().paletteIndex = 0;
 
                 displaySelectedProject();
+                projectDropdown.setState({
+                    visible: false
+                });
             });
         }
     }
@@ -1965,6 +2032,9 @@ function undoOrRedo(undoOrRedo) {
 
         // Set UI state
         projectToolbar.setState({
+            projectTitle: getProject().title
+        });
+        projectDropdown.setState({
             projectTitle: getProject().title
         });
         tileEditor.setState({
@@ -2390,6 +2460,9 @@ window.addEventListener('load', async () => {
     // Load initial projects
     const projects = state.getProjectsFromLocalStorage();
     projectToolbar.setState({
+        projects: projects
+    });
+    projectDropdown.setState({
         projects: projects
     });
 
