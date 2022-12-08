@@ -1,22 +1,35 @@
-<div data-smsgfx-component="projectToolbar" class="input-group input-group-sm">
-    <button class="btn btn-outline-secondary dropdown-toggle bg-light text-dark border-secondary" type="button"
-        data-bs-toggle="dropdown" aria-expanded="false"><span class="fw-bold">Project</span></button>
-    <div class="dropdown-menu sms-smaller-font">
-        <button data-command="projectNew" class="dropdown-item" title="New project." type="button">
-            <i class="bi bi-file-earmark-plus"></i> New project
-        </button>
-        <hr class="dropdown-divider">
-        <button data-command="projectLoadFromFile" class="dropdown-item" title="Load project from file." type="button">
-            <i class="bi bi-upload"></i> Load from local file
-        </button>
-        <button data-command="projectSaveToFile" class="dropdown-item" title="Save project to file." type="button">
-            <i class="bi bi-download"></i> Save to local file
-        </button>
-        <hr class="dropdown-divider">
-        <p class="m-0 ps-2 mb-1"><small><strong><em>Local projects</em></strong></small></p>
-        <div data-smsgfx-id="project-list" class="container m-0 p-0">
+<div data-smsgfx-component="projectToolbar">
+    <div class="input-group input-group-sm">
+        <button data-command="showDropdown"
+            class="btn btn-outline-secondary dropdown-toggle bg-light text-dark border-secondary" type="button"><span
+                class="fw-bold">Project</span></button>
+        <div class="dropdown-menu sms-smaller-font">
+            <button data-command="projectNew" class="dropdown-item" title="New project." type="button">
+                <i class="bi bi-file-earmark-plus"></i> New project
+            </button>
+            <hr class="dropdown-divider">
+            <button data-command="projectLoadFromFile" class="dropdown-item" title="Load project from file."
+                type="button">
+                <i class="bi bi-upload"></i> Load from local file
+            </button>
+            <button data-command="projectSaveToFile" class="dropdown-item" title="Save project to file." type="button">
+                <i class="bi bi-download"></i> Save to local file
+            </button>
+            <hr class="dropdown-divider">
+            <p class="m-0 ps-2 mb-1"><small><strong><em>Local projects</em></strong></small></p>
+            <div data-smsgfx-id="project-list" class="container m-0 p-0">
+            </div>
         </div>
+        <input data-command="title" type="text" class="form-control border-secondary" placeholder="Project title"
+            aria-label="Project title">
     </div>
-    <input data-command="title" type="text" class="form-control border-secondary" placeholder="Project title"
-        aria-label="Project title">
+    <style>
+        [data-smsgfx-component=projectToolbar] .input-group {
+            width: 400px;
+        }
+
+        [data-smsgfx-component=projectToolbar] button.dropdown-toggle {
+            width: 80px;
+        }
+    </style>
 </div>
