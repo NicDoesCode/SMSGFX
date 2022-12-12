@@ -1,6 +1,6 @@
 import State from "./state.js";
 import AssemblyUtil from "./util/assemblyUtil.js";
-import TileSetColourFillUtil from "./util/tileSetColourFillUtil.js";
+import PaintUtil from "./util/paintUtil.js";
 import ColourPickerDialogue from "./ui/colourPickerDialogue.js";
 import ColourPickerToolbox from "./ui/colourPickerToolbox.js";
 import PaletteModalDialogue from "./ui/paletteImportModalDialogue.js";
@@ -33,7 +33,7 @@ import ReferenceImage from "./models/referenceImage.js";
 import AboutModalDialogue from "./ui/aboutModalDialogue.js";
 import Palette from "./models/palette.js";
 import ProjectDropdown from "./ui/projectDropdown.js";
-import TileSetDraw from "./components/tileSetDraw.js";
+import PaintUtil from "./util/paintUtil.js";
 
 
 /* ****************************************************************************************************
@@ -1331,7 +1331,7 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
 
                 const tileSet = getTileSet();
                 const size = instanceState.pencilSize;
-                const updatedTiles = TileSetDraw.drawOntoTileSet(tileSet, imageX, imageY, colourIndex, size, { affectAdjacentTiles: true });
+                const updatedTiles = PaintUtil.drawOnTileSet(tileSet, imageX, imageY, colourIndex, { brushSize: size, affectAdjacentTiles: true });
 
                 tileEditor.setState({ updatedTiles: updatedTiles.affectedTileIndexes });
             }
@@ -1339,7 +1339,7 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
         } else if (tool === TileEditorToolbar.Tools.bucket) {
 
             addUndoState();
-            TileSetColourFillUtil.fill(getTileSet(), imageX, imageY, colourIndex)
+            PaintUtil.fillOnTileSet(getTileSet(), imageX, imageY, colourIndex)
             tileEditor.setState({ tileSet: getTileSet() });
 
             instanceState.lastTileMapPx.x = -1;
