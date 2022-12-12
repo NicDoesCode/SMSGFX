@@ -33,6 +33,7 @@ import ReferenceImage from "./models/referenceImage.js";
 import AboutModalDialogue from "./ui/aboutModalDialogue.js";
 import Palette from "./models/palette.js";
 import ProjectDropdown from "./ui/projectDropdown.js";
+import TileSetDraw from "./components/tileSetDraw.js";
 
 
 /* ****************************************************************************************************
@@ -1329,29 +1330,10 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
                 instanceState.lastTileMapPx.y = imageY;
 
                 const tileSet = getTileSet();
-                const updatedTiles = [];
-
                 const size = instanceState.pencilSize;
-                if (size === 1) {
-                    tileSet.setPixelAt(imageX, imageY, colourIndex);
-                    updatedTiles.push(tileSet.getTileIndexByCoordinate(imageX, imageY));
-                } else {
-                    const startX = imageX - Math.floor(size / 2);
-                    const startY = imageY - Math.floor(size / 2);
-                    const endX = imageX + Math.ceil(size / 2);
-                    const endY = imageY + Math.ceil(size / 2);
-                    for (let yPx = startY; yPx < endY; yPx++) {
-                        const xLeft = (size > 3 && (yPx === startY || yPx === endY - 1)) ? startX + 1 : startX;
-                        const xRight = (size > 3 && (yPx === startY || yPx === endY - 1)) ? endX - 1 : endX;
-                        for (let xPx = xLeft; xPx < xRight; xPx++) {
-                            tileSet.setPixelAt(xPx, yPx, colourIndex);
-                            const tileIndex = tileSet.getTileIndexByCoordinate(imageX, imageY);
-                            if (!updatedTiles.includes(tileIndex)) updatedTiles.push(tileIndex);
-                        }
-                    }
-                }
+                const updatedTiles = TileSetDraw.drawOntoTileSet(tileSet, imageX, imageY, colourIndex, size, { affectAdjacentTiles: true });
 
-                tileEditor.setState({ updatedTiles: updatedTiles });
+                tileEditor.setState({ updatedTiles: updatedTiles.affectedTileIndexes });
             }
 
         } else if (tool === TileEditorToolbar.Tools.bucket) {
