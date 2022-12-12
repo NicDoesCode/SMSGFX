@@ -1,0 +1,73 @@
+<div data-smsgfx-component="projectDropdown" data-smsgfx-id="modal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog mt-0">
+        <div class="modal-content rounded-0 rounded-bottom">
+            <div class="modal-header pt-2 pb-2">
+                <div data-smsgfx-id="this-project" class="mx-auto input-group input-group-sm">
+                    <span class="input-group-text bg-light text-dark border-secondary"><strong>Project</strong></span>
+                    <input data-command="title" type="text" class="form-control border-secondary"
+                        placeholder="Project title" aria-label="Project title">
+                </div>
+            </div>
+            <div class="modal-body mx-auto">
+
+                <div class="btn-toolbar mb-3" role="toolbar" aria-label="Project options.">
+                    <div class="btn-group me-2" role="group" aria-label="First group">
+                        <button data-command="projectNew" class="btn btn-sm btn-secondary" title="New project."
+                            type="button">
+                            <i class="bi bi-file-earmark-plus"></i> New project
+                        </button>
+                    </div>
+                    <div class="btn-group me-2" role="group" aria-label="Second group">
+                        <button data-command="projectLoadFromFile" class="btn btn-sm btn-outline-secondary"
+                            title="Load project from file." type="button">
+                            <i class="bi bi-upload"></i> Load from file
+                        </button>
+                        <button data-command="projectSaveToFile" class="btn btn-sm btn-outline-secondary"
+                            title="Save project to file." type="button">
+                            <i class="bi bi-download"></i> Save to file
+                        </button>
+                    </div>
+
+                </div>
+
+                <div class="card" style="font-size: 0.9em;">
+                    <div class="card-header">Local projects</div>
+                    <ul data-smsgfx-id="project-list" class="list-group list-group-flush">
+                    </ul>
+                </div>
+
+                <script data-smsgfx-id="project-list-template" type="text/x-handlebars-template">
+                    {{#each this}}
+                        <li data-command="projectLoadById" data-project-id="{{id}}" class="list-group-item d-flex justify-content-between align-items-start list-group-item-action pt-1 pb-1">
+                            {{title}}
+                            <button data-command="projectDelete" data-project-id="{{id}}" class="btn btn-sm btn-secondary p-0 px-2" title="Delete this project.">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
+                        </li>
+                    {{/each}}
+                </script>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+    <style>
+        [data-smsgfx-component=projectDropdown] [data-smsgfx-id=this-project].input-group {
+            width: 400px;
+        }
+
+        [data-smsgfx-component=projectDropdown] [data-smsgfx-id=this-project].input-group .input-group-text {
+            width: 80px;
+        }
+
+        [data-smsgfx-component=projectDropdown] [data-smsgfx-id=project-list] {
+            height: 190px;
+            overflow-y: scroll;
+        }
+
+        [data-smsgfx-component=projectDropdown] [data-smsgfx-id=project-list] .list-group-item {
+            cursor: pointer;
+        }
+    </style>
+</div>

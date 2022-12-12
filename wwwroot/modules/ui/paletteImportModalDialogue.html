@@ -1,0 +1,31 @@
+<div data-smsgfx-component="paletteImportModalDialogue" data-smsgfx-id="modal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Import palette from assembly code</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Copy and paste the HEX tile data from your WLA-DX project below and it will be decoded.</p>
+                <p>This will add a new colour palette to your project.</p>
+                <p>Make sure that you select the appropriate system or there may be unintended results.</p>
+                <div class="mb-3">
+                    <label>Select the system</label>
+                    <select data-smsgfx-id="select-palette-system" class="form-select">
+                        <option value="gg" selected>Game Gear</option>
+                        <option value="ms">Master System</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label>Copy and paste the HEX palette data from your WLA-DX project
+                        below</label>
+                    <textarea data-smsgfx-id="text-palette-data" class="form-control" rows="4"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" data-button-type="confirm" class="btn btn-primary">Import palette</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>

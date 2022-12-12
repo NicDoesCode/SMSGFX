@@ -1,0 +1,76 @@
+<div data-smsgfx-component="colourPickerToolbox" class="card mt-2 sms-smaller-font">
+    <div class="card-header">
+        <p class="mb-1">Customise colour slot</p>
+        <ul class="nav nav-tabs card-header-tabs" data-colour-toolbox-tabs>
+            <li class="nav-item" data-colour-toolbox-tab="rgb">
+                <a class="nav-link p-1 ps-2 pe-2" aria-current="page" href="#">RGB</a>
+            </li>
+            <li class="nav-item" data-colour-toolbox-tab="sms">
+                <a class="nav-link p-1 ps-2 pe-2" href="#">SMS colours</a>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body p-2">
+        <div class="sms-colour-toolbox">
+            <div class="container visually-hidden" data-colour-toolbox-tab-content="rgb">
+                <div class="row">
+                    <div class="col-2 pe-1">
+                        R
+                    </div>
+                    <div class="col-7 p-0">
+                        <input data-smsgfx-id="redSlider" type="range" class="form-range" min="0"
+                            max="255" step="17">
+                    </div>
+                    <div class="col-3 ps-1">
+                        <input data-smsgfx-id="inputRedValue" type="text"
+                            class="form-control form-control-sm">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-2 pe-1">
+                        G
+                    </div>
+                    <div class="col-7 p-0">
+                        <input data-smsgfx-id="greenSlider" type="range" class="form-range" min="0"
+                            max="255" step="17">
+                    </div>
+                    <div class="col-3 ps-1">
+                        <input data-smsgfx-id="inputGreenValue" type="text"
+                            class="form-control form-control-sm">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-2 pe-1">
+                        B
+                    </div>
+                    <div class="col-7 p-0">
+                        <input data-smsgfx-id="blueSlider" type="range" class="form-range" min="0"
+                            max="255" step="17">
+                    </div>
+                    <div class="col-3 ps-1">
+                        <input data-smsgfx-id="inputBlueValue" type="text"
+                            class="form-control form-control-sm">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-3 pe-1">
+                        HEX
+                    </div>
+                    <div class="col-6 p-0">
+                        <input data-smsgfx-id="inputHex" type="text"
+                            class="form-control form-control-sm">
+                    </div>
+                    <div class="col-3 ps-1">
+                        <input data-smsgfx-id="colourPicker" type="color"
+                            class="form-control form-control-sm p-0">
+                    </div>
+                </div>
+            </div>
+            <div data-smsgfx-id="smsColourContainer" class="container visually-hidden mb-2"
+                data-colour-toolbox-tab-content="sms">
+                <div data-smsgfx-id="smsColourPalette" class="sms-colour-box">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

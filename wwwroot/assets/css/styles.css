@@ -1,16 +1,194 @@
-.smsgfx-canvas {
+body {}
+
+button:disabled img {
+    opacity: 0.5;
 }
 
-.smsgfx-palette button.smsgfx-palette-button {
-    width: 36px;
+.sms-container .sms-smaller-font,
+.sms-container .sms-smaller-font.input-group-text,
+.sms-container .sms-smaller-font input,
+.sms-container .sms-smaller-font select {
+    font-size: 10pt;
+}
+
+.sms-container .sms-dropdown-menu {
+    font-size: 10pt;
+}
+
+.sms-container .sms-dropdown-menu li i.bi {
+    font-size: 1.25em;
+    margin-right: 4px;
+}
+
+.sms-container .sms-header-bar {
+    position: absolute;
+    width: 100%;
+    min-height: 50px;
+    z-index: 20;
+}
+
+.sms-console-icon {
+    width: 60px;
+    height: auto;
+}
+
+.sms-container .sms-header-bar .sms-navbar {
+    background-color: #EEEEEE;
+    box-shadow: 0px 0px 6px #888888;
+}
+
+.sms-container .sms-header-bar .sms-navbar .navbar-brand {
+    margin-left: 4px;
+    font-size: 25px;
+    text-shadow: 0px 0px 2px #FFFFFF, 1px 1px 5px #555555;
+}
+
+.sms-container .sms-header-bar .sms-navbar .navbar-brand img {
+    float: left;
+    margin: 4px 10px 0 5px;
+}
+
+.sms-container .sms-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    padding-top: 50px;
+    z-index: 10;
+}
+
+.sms-container .sms-content .sms-content-col {
+    padding: 15px;
+}
+
+.sms-container .sms-content .sms-content-col.sms-left {
+    width: 250px;
+}
+
+.sms-container .sms-content .sms-content-col.sms-right {
+    position: relative;
+    flex-grow: 1;
+    min-width: 250px;
+    padding-left: 0;
+}
+
+.sms-container .sms-content .sms-rows {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.sms-container .sms-content .sms-rows .sms-row {
+    position: relative;
+    box-sizing: border-box;
+}
+
+.sms-container .sms-content .sms-rows .sms-row.sms-grow {
+    flex-grow: 1;
+}
+
+/* Palette buttons */
+.sms-palette .sms-palette-colours td {
+    border-radius: 2px;
+    border: 1px solid #FFFFFF;
+}
+
+.sms-palette .sms-palette-colours button.sms-palette-button {
+    width: 38px;
     height: 40px;
     white-space: nowrap;
-    padding: 5px 0;
+    padding: 0;
     margin: 0;
 }
 
-.smsgfx-palette button.smsgfx-palette-button span {
-    left: 17px; 
-    top: 8px;
-    width: 36px;
+.sms-palette .sms-palette-colours button.sms-palette-button span {
+    left: 18px;
+    top: 4px;
+    width: 38px;
+    padding: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    background-color: #222222;
+}
+
+.sms-palette .sms-palette-colours td.sms-selected {}
+
+.sms-palette .sms-palette-colours td.sms-selected button.sms-palette-button {
+    background-color: #888888;
+    border-radius: 5px;
+    border: 4px solid #FFFFFF;
+    box-sizing: content-box;
+    width: 30px;
+    height: 32px;
+    box-shadow: 0px 0px 2px 2px #000000;
+}
+
+.sms-palette .sms-palette-colours td.sms-selected button.sms-palette-button span {
+    left: 15px;
+    top: 1px;
+    background-color: #FFFFFF;
+    color: #000000;
+}
+
+.sms-palette .sms-palette-colours td.sms-highlight button {
+    box-shadow: 0px 0px 6px 2px #444444;
+}
+
+/* Colour toolbox */
+.sms-container .sms-colour-toolbox input[type=text] {
+    font-size: 7pt;
+}
+
+.sms-container .sms-colour-toolbox .sms-colour-box {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.sms-container .sms-colour-toolbox .sms-colour-box button {
+    width: 12.5%;
+    box-sizing: border-box;
+    height: 20px;
+    border: 1px solid #FFFFFF;
+}
+
+.sms-container .sms-colour-toolbox .sms-colour-box button:hover {
+    border: 1px solid #666666;
+}
+
+
+.sms-canvas-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow: scroll;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    border: 1px solid #dfdfdf;
+    border-top-left-radius: 5px;
+    margin: 0;
+    background-color: #f7f7f7;
+}
+
+.sms-canvas-container .sms-canvas-container-item {
+    height: 40px;
+    width: 100%;
+}
+
+.sms-canvas {
+    box-shadow: 0 0 10px #555555;
+}
+
+.sms-colour-picker .sms-colour-preview {
+    min-width: 100px;
 }
