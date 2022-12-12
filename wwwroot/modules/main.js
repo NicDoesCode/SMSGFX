@@ -32,6 +32,7 @@ import ImageUtil from "./util/imageUtil.js";
 import ReferenceImage from "./models/referenceImage.js";
 import AboutModalDialogue from "./ui/aboutModalDialogue.js";
 import ProjectDropdown from "./ui/projectDropdown.js";
+import GoogleAnalyticsManager from "./components/googleAnalyticsManager.js";
 
 
 /* ****************************************************************************************************
@@ -83,6 +84,7 @@ const instanceState = {
 
 const undoManager = new UndoManager(50);
 const watcher = new ProjectWatcher(instanceState.sessionId);
+const googleAnalytics = new GoogleAnalyticsManager();
 
 /** @type {ProjectToolbar} */ let projectToolbar;
 /** @type {ProjectDropdown} */ let projectDropdown;
@@ -101,6 +103,8 @@ const watcher = new ProjectWatcher(instanceState.sessionId);
 /** @type {AboutModalDialogue} */ let aboutDialogue;
 
 async function initialiseComponents() {
+    await googleAnalytics.injectIfConfiguredAsync();
+
     projectToolbar = await ProjectToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=project-toolbar]'));
     projectDropdown = await ProjectDropdown.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=project-dropdown]'));
     exportToolbar = await ExportToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=export-toolbar]'));
