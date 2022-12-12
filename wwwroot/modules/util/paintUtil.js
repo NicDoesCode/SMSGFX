@@ -14,8 +14,12 @@ export default class PaintUtil {
      */
     static drawOnTileSet(tileSet, x, y, colourIndex, options) {
         const updatedTiles = [];
+        
         const tileIndex = tileSet.getTileIndexByCoordinate(x, y);
         if (tileIndex === null || tileIndex < 0) return;
+
+        const brushSize = options.brushSize ?? 1;
+        if (brushSize < 1 || brushSize > 100) throw new Error('Brush size must be between 1 and 100 px.');
 
         if (brushSize === 1) {
             tileSet.setPixelAt(x, y, colourIndex);
@@ -187,7 +191,7 @@ function setColourOnPixel(tileSet, x, y, colour) {
 /**
  * @typedef DrawOptions
  * @type {object}
- * @property {number} brushSize - Size of the brush in pixels.
+ * @property {number} brushSize - Size of the brush in pixels, between 1 and 100.
  * @property {boolean} affectAdjacentTiles - Default: true. Will neigbouring tiles also be drawn onto?
  * @exports
  */
