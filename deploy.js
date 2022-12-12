@@ -1,18 +1,45 @@
-const AzureStorageBlob = require('@azure/storage-blob');
 const { BlobServiceClient } = require('@azure/storage-blob');
 const fs = require('fs');
 const path = require('path');
 
 const instanceFileRegex = /\.instance\.[A-z0-9]{1,20}$/i;
 
+
+// Load environment variables
+
 require('dotenv').config();
 
-const connStr = process.env.AZURE_STORAGE_CONNECTION_STRING_dev;
+
+// Get environment variables
+
+const environment = getEnvironment();
+if (!environment) {
+    console.error(`ERROR: Please specify an environment using the '-environment XXX' or '--e XXX' parameter.`);
+    process.exit();
+}
+
+const connStr = process.env[`AZURE_STORAGE_CONNECTION_STRING_${environment}`];
+if (!connStr) {
+    console.error(`ERROR: No connection string set in 'AZURE_STORAGE_CONNECTION_STRING_${environment}' environment variable.`);
+    process.exit();
+}
+
+const containerName = process.env[`AZURE_STORAGE_CONTAINER_NAME_${environment}`];
+if (!containerName) {
+    console.error(`ERROR: No container name set in 'AZURE_STORAGE_CONTAINER_NAME_${environment}' environment variable.`);
+    process.exit();
+}
+
+
+// Set client
+
 const blobServiceClient = BlobServiceClient.fromConnectionString(connStr);
+const localDeployPath = './wwwroot';
 
-const containerName = process.env.AZURE_STORAGE_CONTAINER_NAME_dev;
-const deployFilePath = './wwwroot';
 
+/**
+ * Main method.
+ */
 async function main() {
     const containerClient = blobServiceClient.getContainerClient(containerName);
 
@@ -30,11 +57,11 @@ async function main() {
     console.log('Finished!');
     console.log();
 
-    console.log(`Upload new files from '${deployFilePath}' to container '${containerName}':`);
+    console.log(`Upload new files from '${localDeployPath}' to container '${containerName}':`);
     console.log();
 
-    const files = getAllFilesRecursive(deployFilePath);
-    const basePath = path.join(__dirname, deployFilePath);
+    const files = getAllFilesRecursive(localDeployPath);
+    const basePath = path.join(__dirname, localDeployPath);
     for (let i = 0; i < files.length; i++) {
         const file = files[i];
         if (file.startsWith(__dirname)) {
@@ -51,6 +78,7 @@ async function main() {
     console.log('Finished!');
     console.log();
 }
+
 
 /**
  * Gets the content type of a file.
@@ -108,4 +136,25 @@ function blobIsInstanceConfig(blobName) {
     return instanceFileRegex.test(fileName);
 }
 
+/**
+ * Gets the environment from the '-environment' or '--e' parameter.
+ * @returns {string}
+ */
+function getEnvironment() {
+    let result = null;
+    process.argv.forEach((arg, index, args) => {
+        if (arg === '-environment' || arg === '--e') {
+            if (index + 1 < args.length) {
+                const env = args[index + 1];
+                if (!env.startsWith('-')) {
+                     result = env;
+                }
+            }
+        }
+    });
+    return result;
+}
+
+
+// Call main function
 main();
