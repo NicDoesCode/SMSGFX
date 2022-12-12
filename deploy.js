@@ -18,7 +18,7 @@ async function main() {
 
     console.log(`Delete existing files from container '${containerName}':`);
     console.log();
-    
+
     let blobs = containerClient.listBlobsFlat();
     for await (const blob of blobs) {
         if (!blobIsInstanceConfig(blob.name)) {
@@ -26,7 +26,7 @@ async function main() {
             await containerClient.deleteBlob(blob.name);
         }
     }
-    
+
     console.log('Finished!');
     console.log();
 
@@ -42,13 +42,35 @@ async function main() {
             if (!blobIsInstanceConfig(blobName)) {
                 console.log(`> Uploading blob: ${blobName}`)
                 const blobClient = containerClient.getBlockBlobClient(blobName);
-                await blobClient.uploadFile(file);
+                const contentType = getContentType(file);
+                await blobClient.uploadFile(file, { blobHTTPHeaders: { 'blobContentType': contentType } });
             }
         }
     }
-    
+
     console.log('Finished!');
     console.log();
+}
+
+/**
+ * Gets the content type of a file.
+ * @param {string} fileName - File name to query.
+ * @returns {string}
+ */
+function getContentType(fileName) {
+    const extension = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+    switch (extension) {
+        case '.html': case '.htm': return 'text/html';
+        case '.js': return 'application/javascript';
+        case '.json': return 'application/json';
+        case '.css': return 'text/css';
+        case '.jpeg': case '.jpg': return 'image/jpeg';
+        case '.gif': return 'image/gif';
+        case '.png': return 'image/png';
+        case '.svg': return 'image/svg+xml';
+        case '.ico': return 'image/ico';
+    }
+    return 'application/octet-stream';
 }
 
 /**
