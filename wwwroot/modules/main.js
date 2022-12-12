@@ -1,6 +1,6 @@
 import State from "./state.js";
 import AssemblyUtil from "./util/assemblyUtil.js";
-import TileSetColourFillUtil from "./util/tileSetColourFillUtil.js";
+import PaintUtil from "./util/paintUtil.js";
 import ColourPickerDialogue from "./ui/colourPickerDialogue.js";
 import ColourPickerToolbox from "./ui/colourPickerToolbox.js";
 import PaletteModalDialogue from "./ui/paletteImportModalDialogue.js";
@@ -31,7 +31,6 @@ import ProjectWatcher from "./components/projectWatcher.js";
 import ImageUtil from "./util/imageUtil.js";
 import ReferenceImage from "./models/referenceImage.js";
 import AboutModalDialogue from "./ui/aboutModalDialogue.js";
-import Palette from "./models/palette.js";
 import ProjectDropdown from "./ui/projectDropdown.js";
 
 
@@ -1329,35 +1328,16 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
                 instanceState.lastTileMapPx.y = imageY;
 
                 const tileSet = getTileSet();
-                const updatedTiles = [];
-
                 const size = instanceState.pencilSize;
-                if (size === 1) {
-                    tileSet.setPixelAt(imageX, imageY, colourIndex);
-                    updatedTiles.push(tileSet.getTileIndexByCoordinate(imageX, imageY));
-                } else {
-                    const startX = imageX - Math.floor(size / 2);
-                    const startY = imageY - Math.floor(size / 2);
-                    const endX = imageX + Math.ceil(size / 2);
-                    const endY = imageY + Math.ceil(size / 2);
-                    for (let yPx = startY; yPx < endY; yPx++) {
-                        const xLeft = (size > 3 && (yPx === startY || yPx === endY - 1)) ? startX + 1 : startX;
-                        const xRight = (size > 3 && (yPx === startY || yPx === endY - 1)) ? endX - 1 : endX;
-                        for (let xPx = xLeft; xPx < xRight; xPx++) {
-                            tileSet.setPixelAt(xPx, yPx, colourIndex);
-                            const tileIndex = tileSet.getTileIndexByCoordinate(imageX, imageY);
-                            if (!updatedTiles.includes(tileIndex)) updatedTiles.push(tileIndex);
-                        }
-                    }
-                }
+                const updatedTiles = PaintUtil.drawOnTileSet(tileSet, imageX, imageY, colourIndex, { brushSize: size, affectAdjacentTiles: true });
 
-                tileEditor.setState({ updatedTiles: updatedTiles });
+                tileEditor.setState({ updatedTiles: updatedTiles.affectedTileIndexes });
             }
 
         } else if (tool === TileEditorToolbar.Tools.bucket) {
 
             addUndoState();
-            TileSetColourFillUtil.fill(getTileSet(), imageX, imageY, colourIndex)
+            PaintUtil.fillOnTileSet(getTileSet(), imageX, imageY, colourIndex)
             tileEditor.setState({ tileSet: getTileSet() });
 
             instanceState.lastTileMapPx.x = -1;

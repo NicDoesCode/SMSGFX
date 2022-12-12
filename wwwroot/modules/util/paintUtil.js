@@ -1,6 +1,53 @@
 import TileSet from '../models/tileSet.js'
 
-export default class TileSetColourFillUtil {
+export default class PaintUtil {
+
+
+    /**
+     * Draws onto a tile set, returns any updated tiles.
+     * @param {TileSet} tileSet - Tile set to draw onto.
+     * @param {number} x - X coordinate in the tile set.
+     * @param {number} y - Y coordinate in the tile set.
+     * @param {number} colourIndex - Colour palette index, 0 to 15.
+     * @param {DrawOptions} options - Options for drawing onto the tile set.
+     * @returns {DrawResult}
+     */
+    static drawOnTileSet(tileSet, x, y, colourIndex, options) {
+        const updatedTiles = [];
+        
+        const tileIndex = tileSet.getTileIndexByCoordinate(x, y);
+        if (tileIndex === null || tileIndex < 0) return;
+
+        const brushSize = options.brushSize ?? 1;
+        if (brushSize < 1 || brushSize > 100) throw new Error('Brush size must be between 1 and 100 px.');
+
+        if (brushSize === 1) {
+            tileSet.setPixelAt(x, y, colourIndex);
+            updatedTiles.push(tileIndex);
+        } else {
+            const affect = options?.affectAdjacentTiles ?? true;
+            const startX = x - Math.floor(brushSize / 2);
+            const startY = y - Math.floor(brushSize / 2);
+            const endX = x + Math.ceil(brushSize / 2);
+            const endY = y + Math.ceil(brushSize / 2);
+            for (let yPx = startY; yPx < endY; yPx++) {
+                const xLeft = (brushSize > 3 && (yPx === startY || yPx === endY - 1)) ? startX + 1 : startX;
+                const xRight = (brushSize > 3 && (yPx === startY || yPx === endY - 1)) ? endX - 1 : endX;
+                for (let xPx = xLeft; xPx < xRight; xPx++) {
+                    const thisTileIndex = tileSet.getTileIndexByCoordinate(xPx, yPx);
+                    if (thisTileIndex !== null && thisTileIndex >= 0) {
+                        const differentTile = thisTileIndex !== tileIndex;
+                        if (!differentTile || affect) {
+                            tileSet.setPixelAt(xPx, yPx, colourIndex);
+                            if (!updatedTiles.includes(thisTileIndex)) updatedTiles.push(thisTileIndex);
+                        }
+                    }
+                }
+            }
+        }
+
+        return { affectedTileIndexes: updatedTiles };
+    }
 
 
     /**
@@ -10,7 +57,7 @@ export default class TileSetColourFillUtil {
      * @param {number} y - Origin Y coordinate.
      * @param {number} fillColour - Palette index to fill with.
      */
-    static fill(tileSet, x, y, fillColour) {
+    static fillOnTileSet(tileSet, x, y, fillColour) {
         const w = tileSet.tileWidth * 8;
         const h = tileSet.tileHeight * 8;
         if (x < 0 || x >= w || y < 0 || y >= h) throw 'Invalid origin coordinates.';
@@ -22,7 +69,7 @@ export default class TileSetColourFillUtil {
 
         if (pxIsInsideImageAndMatchesOriginColour(x, y, props)) {
 
-            /** @type {coordinate[]} */
+            /** @type {Coordinate[]} */
             let scanCoords = [{ x, y }];
             while (scanCoords.length > 0) {
 
@@ -70,10 +117,10 @@ const oneBelow = line => line + 1;
  * @param {number} rightX - Right X coordinate to end scan at.
  * @param {number} y - Vertical line number to perform the scan on.
  * @param {FillProps} props - Object containing fill properties.
- * @returns {coordinate[]}
+ * @returns {Coordinate[]}
  */
 function scanLineForBlocksOfPixelsWithSameOriginColour(leftX, rightX, y, props) {
-    /** @type {coordinate[]} */
+    /** @type {Coordinate[]} */
     const singlePixelFromEachFoundBlockOfSameColourPixels = [];
     let isNewLineOfSameColourPixels = false;
     for (let x = leftX; x <= rightX; x++) {
@@ -135,7 +182,22 @@ function setColourOnPixel(tileSet, x, y, colour) {
  */
 
 /**
- * @typedef {object} coordinate
+ * @typedef Coordinate
+ * @type {object}
  * @property {number} x - X coordinate.
  * @property {number} y - Y coordinate.
+ */
+
+/**
+ * @typedef DrawOptions
+ * @type {object}
+ * @property {number} brushSize - Size of the brush in pixels, between 1 and 100.
+ * @property {boolean} affectAdjacentTiles - Default: true. Will neigbouring tiles also be drawn onto?
+ * @exports
+ */
+
+/**
+ * @typedef DrawResult
+ * @type {object}
+ * @property {number[]} affectedTileIndexes - The tiles that were affected by the draw operation.
  */
