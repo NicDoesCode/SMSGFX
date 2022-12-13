@@ -2,31 +2,25 @@
 # See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
+orbs:
+  node: circleci/node@5.0.3
+
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
-  deploy-azure:
-    # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
-    # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
-    docker:
-      - image: cimg/base:stable
-    # Add steps to the job
-    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
+  build-and-test:
+    executor: node/default
     steps:
       - checkout
-      - run:
-          name: "npm install"
-          command: "npm install"
+      - node/install-packages:
+          pkg_manager: npm
       - run: 
-          name: "npm run build"
-          command: "npm run build"
-      - run: 
-          name: "deploy"
-          command: "# node ./deploy-to-azure-storage.js"
+          name: Build app
+          command: npm run build
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
-  deploy-azure-workflow:
+  build-and-test-workflow:
     jobs:
-      - deploy-azure
+      - build-and-test
