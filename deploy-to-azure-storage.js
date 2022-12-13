@@ -55,7 +55,7 @@ async function main() {
         }
     }
 
-    const localDeployPath = path.join(tmpdir, 'dist');
+    const localDeployPath = path.join(__dirname, 'dist');
 
     console.log(`Upload new files from '${localDeployPath}' to container '${CONTAINER_NAME}':`);
 
