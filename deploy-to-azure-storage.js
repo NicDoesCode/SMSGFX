@@ -9,10 +9,7 @@
  */
 const { BlobServiceClient } = require('@azure/storage-blob');
 const fs = require('fs');
-const os = require('os');
 const path = require('path');
-const gitClone = require('git-clone/promise');
-const { exec } = require('node:child_process');
 
 const instanceFileRegex = /\.instance\.[A-z0-9]{1,20}$/i;
 
@@ -36,46 +33,15 @@ if (!CONTAINER_NAME) {
     process.exit();
 }
 
-const GIT_URL = process.env[`GIT_URL`];
-if (!GIT_URL) {
-    console.error(`ERROR: No Git URL set in 'GIT_URL' environment variable.`);
-    process.exit();
-}
-
-const GIT_BRANCH = process.env[`GIT_BRANCH`];
-if (!GIT_BRANCH) {
-    console.error(`ERROR: No Git branch set in 'GIT_BRANCH' environment variable.`);
-    process.exit();
-}
-
 
 // Set client
 
-const appPrefix = 'smsgfx';
 const blobServiceClient = BlobServiceClient.fromConnectionString(CONTAINER_CONN_STRING);
-const tmpdir = fs.mkdtempSync(path.join(os.tmpdir(), appPrefix));
 
 /**
  * Main method.
  */
 async function main() {
-
-    if (!tmpdir) {
-        console.error(`No tempory directory was given!`);
-        return;
-    }
-
-    console.log(`Clone GIT repo '${GIT_URL}' '${GIT_BRANCH}' branch to '${tmpdir}'.`);
-
-    await gitClone(GIT_URL, tmpdir, { checkout: GIT_BRANCH })
-
-    console.log(`NPM install...`);
-
-    await runProcess('npm install', tmpdir);
-
-    console.log(`NPM build...`);
-
-    await runProcess('npm run build', tmpdir);
 
     console.log(`Delete existing files from container '${CONTAINER_NAME}':`);
 
@@ -89,7 +55,7 @@ async function main() {
         }
     }
 
-    const localDeployPath = path.join(tmpdir, 'dist');
+    const localDeployPath = path.join(__dirname, 'dist');
 
     console.log(`Upload new files from '${localDeployPath}' to container '${CONTAINER_NAME}':`);
 
@@ -105,12 +71,6 @@ async function main() {
                 await blobClient.uploadFile(file, { blobHTTPHeaders: { 'blobContentType': contentType } });
             }
         }
-    }
-
-    console.log(`Remove temp directory '${tmpdir}'.`);
-
-    if (fs.existsSync(tmpdir)) {
-        fs.rmSync(tmpdir, { recursive: true });
     }
 
     console.log('Finished!');
@@ -171,43 +131,6 @@ function blobIsInstanceConfig(blobName) {
 
     const fileName = nameParts[nameParts.length - 1];
     return instanceFileRegex.test(fileName);
-}
-
-/**
- * Gets the environment from the '-environment' or '--e' parameter.
- * @returns {string}
- */
-function getEnvironment() {
-    let result = null;
-    process.argv.forEach((arg, index, args) => {
-        if (arg === '-environment' || arg === '--e') {
-            if (index + 1 < args.length) {
-                const env = args[index + 1];
-                if (!env.startsWith('-')) {
-                    result = env;
-                }
-            }
-        }
-    });
-    return result;
-}
-
-/**
- * Runs a process using Promise.
- * @param {string} command - Command to execute.
- * @param {string} workingDirectory - Working directory (CWD).
- * @returns {Promise}
- */
-async function runProcess(command, workingDirectory) {
-    return new Promise((resolve, reject) => {
-        const process = exec(command, { cwd: workingDirectory }, (error, stdout, stderr) => {
-            if (error) {
-                reject(error);
-            } else {
-                resolve();
-            }
-        });
-    });
 }
 
 
