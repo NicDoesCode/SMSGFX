@@ -31,6 +31,7 @@ import ProjectWatcher from "./components/projectWatcher.js";
 import ImageUtil from "./util/imageUtil.js";
 import ReferenceImage from "./models/referenceImage.js";
 import AboutModalDialogue from "./ui/aboutModalDialogue.js";
+import PrivacyModalDialogue from "./ui/privacyModalDialogue.js";
 import ProjectDropdown from "./ui/projectDropdown.js";
 import GoogleAnalyticsManager from "./components/googleAnalyticsManager.js";
 
@@ -101,6 +102,7 @@ const googleAnalytics = new GoogleAnalyticsManager();
 /** @type {TileSetImportModalDialogue} */ let tileImportDialogue;
 /** @type {ImportImageModalDialogue} */ let importImageModalDialogue;
 /** @type {AboutModalDialogue} */ let aboutDialogue;
+/** @type {PrivacyModalDialogue} */ let privacyModalDialogue;
 
 async function initialiseComponents() {
     await googleAnalytics.injectIfConfiguredAsync();
@@ -120,6 +122,7 @@ async function initialiseComponents() {
     tileImportDialogue = await TileSetImportModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-import-dialogue]'));
     importImageModalDialogue = await ImportImageModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=import-image-modal]'));
     aboutDialogue = await AboutModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=about-modal]'));
+    privacyModalDialogue = await PrivacyModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=privacy-modal]'));
 }
 
 function wireUpGenericComponents() {
@@ -128,6 +131,12 @@ function wireUpGenericComponents() {
         if (command === 'about' && ['A', 'BUTTON'].includes(element.tagName)) {
             element.onclick = () => {
                 aboutDialogue.show();
+                return false;
+            }
+        }
+        if (command === 'privacy' && ['A', 'BUTTON'].includes(element.tagName)) {
+            element.onclick = () => {
+                privacyModalDialogue.show();
                 return false;
             }
         }
