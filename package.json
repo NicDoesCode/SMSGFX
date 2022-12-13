@@ -18,21 +18,18 @@
   },
   "homepage": "https://github.com/NicDoesCode/SMSGFX#readme",
   "dependencies": {
-    "@azure/storage-blob": "^12.12.0",
-    "dotenv": "^16.0.3",
-    "express": "^4.17.3",
-    "nodegit": "^0.26.5"
+    "express": "^4.17.3"
   },
   "devDependencies": {
+    "@azure/storage-blob": "^12.12.0",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.7.2",
+    "dotenv": "^16.0.3",
+    "git-clone": "^0.2.0",
     "html-loader": "^4.2.0",
     "html-webpack-plugin": "^5.5.0",
-    "html-webpack-skip-assets-plugin": "^1.0.3",
-    "html-webpack-tags-plugin": "^3.0.2",
     "style-loader": "^3.3.1",
     "webpack": "^5.75.0",
-    "webpack-cli": "^5.0.1",
-    "webpack-concat-files-plugin": "^0.5.2"
+    "webpack-cli": "^5.0.1"
   }
 }
