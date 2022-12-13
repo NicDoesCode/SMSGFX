@@ -17,6 +17,9 @@ jobs:
       - run: 
          name: Build app
          command: npm run build
+      - run: 
+         name: Deploy to Azure
+         command: node ./deploy-to-azure-storage.js
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows

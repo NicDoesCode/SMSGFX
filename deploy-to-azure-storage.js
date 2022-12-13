@@ -9,10 +9,7 @@
  */
 const { BlobServiceClient } = require('@azure/storage-blob');
 const fs = require('fs');
-const os = require('os');
 const path = require('path');
-const gitClone = require('git-clone/promise');
-const { exec } = require('node:child_process');
 
 const instanceFileRegex = /\.instance\.[A-z0-9]{1,20}$/i;
 
@@ -46,14 +43,6 @@ const blobServiceClient = BlobServiceClient.fromConnectionString(CONTAINER_CONN_
  */
 async function main() {
 
-    console.log(`NPM install...`);
-
-    await runProcess('npm install', tmpdir);
-
-    console.log(`NPM build...`);
-
-    await runProcess('npm run build', tmpdir);
-
     console.log(`Delete existing files from container '${CONTAINER_NAME}':`);
 
     const containerClient = blobServiceClient.getContainerClient(CONTAINER_NAME);
@@ -82,12 +71,6 @@ async function main() {
                 await blobClient.uploadFile(file, { blobHTTPHeaders: { 'blobContentType': contentType } });
             }
         }
-    }
-
-    console.log(`Remove temp directory '${tmpdir}'.`);
-
-    if (fs.existsSync(tmpdir)) {
-        fs.rmSync(tmpdir, { recursive: true });
     }
 
     console.log('Finished!');
@@ -148,43 +131,6 @@ function blobIsInstanceConfig(blobName) {
 
     const fileName = nameParts[nameParts.length - 1];
     return instanceFileRegex.test(fileName);
-}
-
-/**
- * Gets the environment from the '-environment' or '--e' parameter.
- * @returns {string}
- */
-function getEnvironment() {
-    let result = null;
-    process.argv.forEach((arg, index, args) => {
-        if (arg === '-environment' || arg === '--e') {
-            if (index + 1 < args.length) {
-                const env = args[index + 1];
-                if (!env.startsWith('-')) {
-                    result = env;
-                }
-            }
-        }
-    });
-    return result;
-}
-
-/**
- * Runs a process using Promise.
- * @param {string} command - Command to execute.
- * @param {string} workingDirectory - Working directory (CWD).
- * @returns {Promise}
- */
-async function runProcess(command, workingDirectory) {
-    return new Promise((resolve, reject) => {
-        const process = exec(command, { cwd: workingDirectory }, (error, stdout, stderr) => {
-            if (error) {
-                reject(error);
-            } else {
-                resolve();
-            }
-        });
-    });
 }
 
 
