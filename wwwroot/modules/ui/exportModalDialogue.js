@@ -15,7 +15,7 @@ export default class ExportModalDialogue extends ModalDialogue {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
-        super(element);
+        super(element.querySelector('[data-smsgfx-id=modal]'));
         this.#element = element;
         this.#tbExport = this.#element.querySelector('[data-smsgfx-id=export-text]');
     }

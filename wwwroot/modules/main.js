@@ -749,7 +749,7 @@ function handleTileContextToolbarCommand(args) {
         updateReferenceImage(args.referenceBounds, args.referenceTransparency);
     }
     if (args.command === TileContextToolbar.Commands.referenceImageRevert) {
-        const drawDimensions = ImageUtil.calculateImageSize(instanceState.referenceImageOriginal, getTileSet().tileWidth * 8, getTileSet().tileHeight * 8);
+        const drawDimensions = ImageUtil.calculateAspectRatioDimensions(instanceState.referenceImageOriginal, getTileSet().tileWidth * 8, getTileSet().tileHeight * 8);
         const restoredBounds = new DOMRect(0, 0, drawDimensions.width, drawDimensions.height);
         updateReferenceImage(restoredBounds, args.referenceTransparency);
     }
@@ -1567,9 +1567,9 @@ function selectReferenceImage() {
         const sourceImg = await ImageUtil.fileInputToImageAsync(fileInput);
         instanceState.referenceImageOriginal = sourceImg;
 
-        const dimensions = ImageUtil.calculateImageSize(sourceImg, 1024, 1024);
+        const dimensions = ImageUtil.calculateAspectRatioDimensions(sourceImg, 1024, 1024);
         const resizedImg = await ImageUtil.resizeImageAsync(sourceImg, dimensions.width, dimensions.height);
-        const drawDimensions = ImageUtil.calculateImageSize(sourceImg, getTileSet().tileWidth * 8, getTileSet().tileHeight * 8);
+        const drawDimensions = ImageUtil.calculateAspectRatioDimensions(sourceImg, getTileSet().tileWidth * 8, getTileSet().tileHeight * 8);
 
         if (!instanceState.referenceImage) {
             instanceState.referenceImage = new ReferenceImage();
