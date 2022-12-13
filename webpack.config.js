@@ -1,8 +1,5 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const HtmlWebpackSkipAssetsPlugin = require('html-webpack-skip-assets-plugin').HtmlWebpackSkipAssetsPlugin;
 const CopyPlugin = require("copy-webpack-plugin");
-const WebpackConcatPlugin = require('webpack-concat-files-plugin');
-const HtmlWebpackTagsPlugin = require('html-webpack-tags-plugin');
 const path = require('path');
 const fs = require('fs');
 

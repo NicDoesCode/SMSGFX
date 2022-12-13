@@ -2,8 +2,9 @@ const { BlobServiceClient } = require('@azure/storage-blob');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const Git = require('nodegit');
-const { spawn } = require('node:child_process');
+// const Git = require('nodegit');
+const gitClone = require('git-clone/promise');
+const { exec } = require('node:child_process');
 
 const instanceFileRegex = /\.instance\.[A-z0-9]{1,20}$/i;
 
@@ -58,34 +59,16 @@ async function main() {
 
     console.log(`Clone GIT repo '${GIT_URL}' '${GIT_BRANCH}' branch to '${tmpdir}'.`);
 
-    await Git.Clone.clone(GIT_URL, tmpdir, { checkoutBranch: GIT_BRANCH });
-    const localDeployPath = path.join(tmpdir, 'dist');
+    // await Git.Clone.clone(GIT_URL, tmpdir, { checkoutBranch: GIT_BRANCH });
+    await gitClone(GIT_URL, tmpdir, { checkout: GIT_BRANCH })
 
-    console.log(`Webpack install...`);
+    console.log(`NPM install...`);
 
-    await new Promise((resolve, reject) => {
-        const process = spawn('npm install', { cwd: tmpdir });
-        process.on('close', (code) => {
-            if (code === 0) {
-                resolve();
-            } else {
-                reject(`install: child process exited with code ${code}`);
-            }
-        });
-    });
+    await runProcess('npm install', tmpdir);
 
-    console.log(`Webpack build...`);
+    console.log(`NPM build...`);
 
-    await new Promise((resolve, reject) => {
-        const process = spawn('npm run build', { cwd: tmpdir });
-        process.on('close', (code) => {
-            if (code === 0) {
-                resolve();
-            } else {
-                reject(`install: child process exited with code ${code}`);
-            }
-        });
-    });
+    await runProcess('npm run build', tmpdir);
 
     console.log(`Delete existing files from container '${CONTAINER_NAME}':`);
 
@@ -98,6 +81,8 @@ async function main() {
             await containerClient.deleteBlob(blob.name);
         }
     }
+
+    const localDeployPath = path.join(tmpdir, 'dist');
 
     console.log(`Upload new files from '${localDeployPath}' to container '${CONTAINER_NAME}':`);
 
@@ -198,6 +183,24 @@ function getEnvironment() {
         }
     });
     return result;
+}
+
+/**
+ * Runs a process using Promise.
+ * @param {string} command - Command to execute.
+ * @param {string} workingDirectory - Working directory (CWD).
+ * @returns {Promise}
+ */
+async function runProcess(command, workingDirectory) {
+    return new Promise((resolve, reject) => {
+        const process = exec(command, { cwd: workingDirectory }, (error, stdout, stderr) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve();
+            }
+        });
+    });
 }
 
 
