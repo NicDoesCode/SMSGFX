@@ -1,6 +1,9 @@
 const { BlobServiceClient } = require('@azure/storage-blob');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
+const Git = require('nodegit');
+const { spawn } = require('node:child_process');
 
 const instanceFileRegex = /\.instance\.[A-z0-9]{1,20}$/i;
 
@@ -12,39 +15,81 @@ require('dotenv').config();
 
 // Get environment variables
 
-const environment = getEnvironment();
-if (!environment) {
-    console.error(`ERROR: Please specify an environment using the '-environment XXX' or '--e XXX' parameter.`);
+const CONTAINER_CONN_STRING = process.env[`AZURE_STORAGE_CONNECTION_STRING`];
+if (!CONTAINER_CONN_STRING) {
+    console.error(`ERROR: No connection string set in 'AZURE_STORAGE_CONNECTION_STRING' environment variable.`);
     process.exit();
 }
 
-const connStr = process.env[`AZURE_STORAGE_CONNECTION_STRING_${environment}`];
-if (!connStr) {
-    console.error(`ERROR: No connection string set in 'AZURE_STORAGE_CONNECTION_STRING_${environment}' environment variable.`);
+const CONTAINER_NAME = process.env[`AZURE_STORAGE_CONTAINER_NAME`];
+if (!CONTAINER_NAME) {
+    console.error(`ERROR: No container name set in 'AZURE_STORAGE_CONTAINER_NAME' environment variable.`);
     process.exit();
 }
 
-const containerName = process.env[`AZURE_STORAGE_CONTAINER_NAME_${environment}`];
-if (!containerName) {
-    console.error(`ERROR: No container name set in 'AZURE_STORAGE_CONTAINER_NAME_${environment}' environment variable.`);
+const GIT_URL = process.env[`GIT_URL`];
+if (!GIT_URL) {
+    console.error(`ERROR: No Git URL set in 'GIT_URL' environment variable.`);
+    process.exit();
+}
+
+const GIT_BRANCH = process.env[`GIT_BRANCH`];
+if (!GIT_BRANCH) {
+    console.error(`ERROR: No Git branch set in 'GIT_BRANCH' environment variable.`);
     process.exit();
 }
 
 
 // Set client
 
-const blobServiceClient = BlobServiceClient.fromConnectionString(connStr);
-const localDeployPath = './wwwroot';
-
+const appPrefix = 'smsgfx';
+const blobServiceClient = BlobServiceClient.fromConnectionString(CONTAINER_CONN_STRING);
+const tmpdir = fs.mkdtempSync(path.join(os.tmpdir(), appPrefix));
 
 /**
  * Main method.
  */
 async function main() {
-    const containerClient = blobServiceClient.getContainerClient(containerName);
 
-    console.log(`Delete existing files from container '${containerName}':`);
-    console.log();
+    if (!tmpdir) {
+        console.error(`No tempory directory was given!`);
+        return;
+    }
+
+    console.log(`Clone GIT repo '${GIT_URL}' '${GIT_BRANCH}' branch to '${tmpdir}'.`);
+
+    await Git.Clone.clone(GIT_URL, tmpdir, { checkoutBranch: GIT_BRANCH });
+    const localDeployPath = path.join(tmpdir, 'dist');
+
+    console.log(`Webpack install...`);
+
+    await new Promise((resolve, reject) => {
+        const process = spawn('npm install', { cwd: tmpdir });
+        process.on('close', (code) => {
+            if (code === 0) {
+                resolve();
+            } else {
+                reject(`install: child process exited with code ${code}`);
+            }
+        });
+    });
+
+    console.log(`Webpack build...`);
+
+    await new Promise((resolve, reject) => {
+        const process = spawn('npm run build', { cwd: tmpdir });
+        process.on('close', (code) => {
+            if (code === 0) {
+                resolve();
+            } else {
+                reject(`install: child process exited with code ${code}`);
+            }
+        });
+    });
+
+    console.log(`Delete existing files from container '${CONTAINER_NAME}':`);
+
+    const containerClient = blobServiceClient.getContainerClient(CONTAINER_NAME);
 
     let blobs = containerClient.listBlobsFlat();
     for await (const blob of blobs) {
@@ -54,18 +99,13 @@ async function main() {
         }
     }
 
-    console.log('Finished!');
-    console.log();
-
-    console.log(`Upload new files from '${localDeployPath}' to container '${containerName}':`);
-    console.log();
+    console.log(`Upload new files from '${localDeployPath}' to container '${CONTAINER_NAME}':`);
 
     const files = getAllFilesRecursive(localDeployPath);
-    const basePath = path.join(__dirname, localDeployPath);
     for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        if (file.startsWith(__dirname)) {
-            const blobName = file.substring(basePath.length + 1);
+        if (file.startsWith(localDeployPath)) {
+            const blobName = file.substring(localDeployPath.length + 1);
             if (!blobIsInstanceConfig(blobName)) {
                 console.log(`> Uploading blob: ${blobName}`)
                 const blobClient = containerClient.getBlockBlobClient(blobName);
@@ -75,8 +115,13 @@ async function main() {
         }
     }
 
+    console.log(`Remove temp directory '${tmpdir}'.`);
+
+    if (fs.existsSync(tmpdir)) {
+        fs.rmSync(tmpdir, { recursive: true });
+    }
+
     console.log('Finished!');
-    console.log();
 }
 
 
@@ -116,7 +161,7 @@ function getAllFilesRecursive(scanDirectory, outputArray) {
         if (stat.isDirectory()) {
             outputArray = getAllFilesRecursive(relativePath, outputArray);
         } else {
-            outputArray.push(path.join(__dirname, scanDirectory, '/', fileName));
+            outputArray.push(path.join(scanDirectory, '/', fileName));
         }
     });
     return outputArray;
@@ -147,7 +192,7 @@ function getEnvironment() {
             if (index + 1 < args.length) {
                 const env = args[index + 1];
                 if (!env.startsWith('-')) {
-                     result = env;
+                    result = env;
                 }
             }
         }
