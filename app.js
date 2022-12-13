@@ -6,7 +6,6 @@ const portHttp = 8080;
 const portHttps = 8443;
 
 app.use(express.static('wwwroot'));
-// app.use(express.static('dist'));
 
 if (fs.existsSync('./cert/server.key') && fs.existsSync('./cert/server.cert')) {
     https.createServer({
