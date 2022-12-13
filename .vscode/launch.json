@@ -37,6 +37,16 @@
             ]
         },
         {
+            "name": "Launch Firefox (HTTPS) build",
+            "type": "firefox",
+            "request": "launch",
+            "reAttach": true,
+            "url": "https://localhost:8443/index.html",
+            "webRoot": "${workspaceFolder}/dist",
+            "profile": "debug",
+            "keepProfileChanges": true
+        },
+        {
             "name": "Attach Firefox (HTTP)",
             "type": "firefox",
             "request": "attach",
