@@ -20,16 +20,15 @@ button:disabled img {
     margin-right: 4px;
 }
 
-.sms-container .sms-header-bar {
-    position: absolute;
-    width: 100%;
-    min-height: 50px;
-    z-index: 20;
+.sms-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-.sms-console-icon {
-    width: 60px;
-    height: auto;
+.sms-container .sms-header-bar {
+    min-height: 50px;
+    z-index: 20;
 }
 
 .sms-container .sms-header-bar .sms-navbar {
@@ -49,17 +48,13 @@ button:disabled img {
 }
 
 .sms-container .sms-content {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: flex-start;
-    padding-top: 50px;
     z-index: 10;
+    width: 100%;
+    flex-grow: 1;
 }
 
 .sms-container .sms-content .sms-content-col {
@@ -191,4 +186,10 @@ button:disabled img {
 
 .sms-colour-picker .sms-colour-preview {
     min-width: 100px;
+}
+
+
+.sms-console-icon {
+    width: 60px;
+    height: auto;
 }
