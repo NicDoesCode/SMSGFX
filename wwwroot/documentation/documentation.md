@@ -82,3 +82,5 @@ Displays the tools and houses the graphics editor that you can use to draw onto 
 The first time that you use the app on a new browser a new project will be automatically created and opened for you.
 
 With this project you can start drawing and customising palettes right away, however you might also want to bring in graphics from image files or modify graphics from your existing game. We'll go over how to perform these operations later. 
+
+With your 
