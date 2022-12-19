@@ -1,15 +1,56 @@
 
 # SMSGFX Documentation
 
-**Welcome to SMSGFX!** This documentation will assist you with performing simple tasks associated with the product.
+## Outline
 
-## What is SMSGFX?
+### Welcome
+* What is SMSGFX
 
-SMSGFX is a browser based tile editor that allows you to make graphics for Sega Master System and Sega Game Gear.
+### Concepts
+* Projects
+* Palette
+* Colours
+* Tile map 
+* Sprite
+* Tile set
 
-You can import graphics from image files, the clipboard, assembly code or simply draw something from scratch, and when you're done you can export the graphics in a format that the Sega Master System and Game Gear understands.
+### Getting started
+* User interface
+  * Project zone
+  * Palette zone
+  * Tile zone
+* Key bindings
+* Working with projects
+  * Create a new project
+  * Create a new project from an image
+  * Setting a project name
+  * Save a project to a file
+  * Load a project from a file
+  * Remove a project
+  * Exporting a project to assembly code
+* Working with palettes
+  * Palette limitations
+  * Create a new palette
+  * Import a palette from code
+  * Naming palettes
+  * Removal of palettes
+  * System limitations
+  * Re-ordering colours
+  * Replacing colours
+* Working with the tile editor
+  * About tiles
+  * How tiles work with palettes
+  * Working with the viewport (zoom, grid, moving around etc)
+  * Import tiles from code
+  * Drawing onto tiles (pencil and fill tools)
+  * Choosing colours (eyedropper tool)
+  * Selecting, moving, inserting, mirroring tiles (select tool)
+  * Using a reference image
+  * Tile width
+  
 
-Projects are automatically saved in your browser as you work, you can load and save projects from files.
+## Welcome
+
 
 ## Concepts
 
