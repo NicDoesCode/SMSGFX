@@ -158,38 +158,54 @@ A reference image can be placed into the background of the tile editor to assist
 
 The image can be resized, and you can choose whether to overlay the image over your current image (make it transparent) or you can draw the image in the place of another colour index. 
 
-To set a reference image: 
+#### To set a reference image: 
 
 * Select the "Reference image" toolbar button.
 * Click the "Select a new reference image" context toolbar button.
 * Choose your image using the file picker.
 * When you confirm the file picker, the image will appear centred in the middle of the tile editor. 
 
-To move and resize the reference image using the context toolbar: 
+#### To move and resize the reference image using the context toolbar: 
 
 * Select the "Reference image" toolbar button.
 * On the context toolbar modify the "X", "Y", "W" and "H" values.
 * You can maintain or ignore aspect ratio by clicking the "Maintain aspect" button on the context toolbar.
 
-To move the reference image using the mouse:
+#### To move the reference image using the mouse:
 
 * Select the "Reference image" toolbar button.
 * To move the image, position the mouse inside the reference image in the tile editor viewport, the mouse cursor will change to a move icon.
 * Click and drag using the primary button.
 
-To resize the reference image using the mouse:
+#### To resize the reference image using the mouse:
 
 * Select the "Reference image" toolbar button.
 * To move the image, position the mouse inside the desired edge of the reference image in the tile editor viewport, the mouse cursor will change to a resize icon.
 * Click and drag using the primary button.
 * If you would like to maintain the aspect ratio, hold the `Ctrl` key.
 
-To remove a reference image:
+#### To remove a reference image:
 
 * Select the "Reference image" toolbar button.
 * Click on the "Remove the reference image" button on the context toolbar.
 
-To revert the reference image to it's original dimensions:
+#### To revert the reference image to it's original dimensions:
 
 * Select the "Reference image" toolbar button.
 * Click on the "Revert proportions" button on the context toolbar.
+
+#### To change how a referenve image is displayed:
+
+##### Draw the reference image over the top of a specific colour on your palette:
+
+* Select the "Reference image" toolbar button.
+* At the end of the context toolbar, select "Draw over colour #X" from the drop down menu. 
+
+Now that specific colour will be replaced by the reference image.
+
+##### Overlay the reference image over your entire image:
+
+* Select the "Reference image" toolbar button.
+* At the end of the context toolbar, select "Overlay above image" from the drop down menu. 
+
+Now the reference image will be drawn on-top of your tile set.
