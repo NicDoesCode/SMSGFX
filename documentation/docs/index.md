@@ -1,4 +1,4 @@
-# SMSGFX Documentation
+# Home
 
 **Welcome to SMSGFX!** This documentation will assist you with performing simple tasks associated with the product.
 
