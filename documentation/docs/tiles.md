@@ -1,2 +1,0 @@
-## the tile editor
-Hello
