@@ -99,7 +99,7 @@ export default class TileEditor {
      * @returns {Promise<TileEditor>}
      */
     static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.injectComponentAsync('tileEditor', element);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('tileEditor', element);
         return new TileEditor(componentElement);
     }
 

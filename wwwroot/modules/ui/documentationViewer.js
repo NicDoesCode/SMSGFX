@@ -46,7 +46,7 @@ export default class DocumentationViewer {
      * @returns {Promise<DocumentationViewer>}
      */
     static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.injectComponentAsync('documentationViewer', element);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('documentationViewer', element);
         return new DocumentationViewer(componentElement);
     }
 

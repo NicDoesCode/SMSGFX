@@ -24,7 +24,7 @@ export default class PrivacyModalDialogue extends ModalDialogue {
      * @returns {Promise<PrivacyModalDialogue>}
      */
      static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.injectComponentAsync('privacyModalDialogue', element);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('privacyModalDialogue', element);
         return new PrivacyModalDialogue(componentElement);
     }
 

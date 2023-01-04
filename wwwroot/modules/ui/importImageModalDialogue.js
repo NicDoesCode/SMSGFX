@@ -154,8 +154,8 @@ export default class ImportImageModalDialogue extends ModalDialogue {
      * @param {HTMLElement} element - Container element.
      * @returns {Promise<ImportImageModalDialogue>}
      */
-     static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.injectComponentAsync('importImageModalDialogue', element);
+    static async loadIntoAsync(element) {
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('importImageModalDialogue', element);
         return new ImportImageModalDialogue(componentElement);
     }
 
@@ -581,7 +581,7 @@ export default class ImportImageModalDialogue extends ModalDialogue {
      */
     async #handleSourceImageUpdatedAsync() {
         this.#showImageSizeWarning(false);
-      
+
         if (this.#sourceImageIsSet()) {
             const max = MAX_INITIAL_IMPORT_WIDTH;
             let width = this.#sourceImage.width;

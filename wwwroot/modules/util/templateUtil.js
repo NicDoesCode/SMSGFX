@@ -7,7 +7,7 @@ export default class TemplateUtil {
 
     
     /**
-     * Loads a component into an element, 
+     * Replaces a given element with the loaded markup for a component, 
      * first page embedded components are tried, 
      * if that fails global components will be searched, 
      * if that fails individual component file will be loaded.
@@ -15,7 +15,7 @@ export default class TemplateUtil {
      * @param {HTMLElement} element - Element to load the content into (note, all child elements will be removed).
      * @returns {HTMLElement}
      */
-    static async injectComponentAsync(componentName, element) {
+    static async replaceElementWithComponentAsync(componentName, element) {
         if (!componentName) throw new Error('Must supply a component name.');
         if (!componentRegex.test(componentName)) throw new Error(`Component name '${componentName}' was not valid.`);
 

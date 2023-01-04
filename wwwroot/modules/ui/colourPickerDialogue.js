@@ -86,7 +86,7 @@ export default class ColourPickerDialogue extends ModalDialogue {
      * @returns {Promise<ColourPickerDialogue>}
      */
      static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.injectComponentAsync('colourPickerDialogue', element);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('colourPickerDialogue', element);
         return new ColourPickerDialogue(componentElement);
     }
 

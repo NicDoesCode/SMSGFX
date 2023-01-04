@@ -30,7 +30,7 @@ export default class PaletteModalDialogue extends ModalDialogue {
      * @returns {Promise<PaletteModalDialogue>}
      */
      static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.injectComponentAsync('paletteImportModalDialogue', element);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('paletteImportModalDialogue', element);
         return new PaletteModalDialogue(componentElement);
     }
 

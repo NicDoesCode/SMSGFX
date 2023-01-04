@@ -63,7 +63,7 @@ export default class ExportToolbar {
      * @returns {Promise<ExportToolbar>}
      */
      static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.injectComponentAsync('exportToolbar', element);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('exportToolbar', element);
         return new ExportToolbar(componentElement);
     }
 

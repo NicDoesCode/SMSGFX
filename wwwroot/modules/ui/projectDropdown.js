@@ -74,7 +74,7 @@ export default class ProjectDropdown extends ModalDialogue {
      * @returns {Promise<ProjectDropdown>}
      */
     static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.injectComponentAsync('projectDropdown', element);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('projectDropdown', element);
         return new ProjectDropdown(componentElement);
     }
 

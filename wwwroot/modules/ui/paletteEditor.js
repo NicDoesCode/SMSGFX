@@ -112,7 +112,7 @@ export default class PaletteEditor {
      * @returns {Promise<PaletteEditor>}
      */
      static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.injectComponentAsync('paletteEditor', element);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('paletteEditor', element);
         return new PaletteEditor(componentElement);
     }
 
