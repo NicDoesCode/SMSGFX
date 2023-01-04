@@ -35,7 +35,7 @@ export default class ProjectDropdown extends ModalDialogue {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
-        super(element.querySelector('[data-smsgfx-id=modal]'));
+        super(element);
         this.#element = element;
 
         this.#dispatcher = new EventDispatcher();
@@ -74,8 +74,8 @@ export default class ProjectDropdown extends ModalDialogue {
      * @returns {Promise<ProjectDropdown>}
      */
     static async loadIntoAsync(element) {
-        await TemplateUtil.injectComponentAsync('projectDropdown', element);
-        return new ProjectDropdown(element);
+        const componentElement = await TemplateUtil.injectComponentAsync('projectDropdown', element);
+        return new ProjectDropdown(componentElement);
     }
 
 

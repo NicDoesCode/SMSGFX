@@ -15,7 +15,7 @@ export default class ExportModalDialogue extends ModalDialogue {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
-        super(element.querySelector('[data-smsgfx-id=modal]'));
+        super(element);
         this.#element = element;
         this.#tbExport = this.#element.querySelector('[data-smsgfx-id=export-text]');
     }
@@ -27,8 +27,8 @@ export default class ExportModalDialogue extends ModalDialogue {
      * @returns {Promise<ExportModalDialogue>}
      */
      static async loadIntoAsync(element) {
-        await TemplateUtil.injectComponentAsync('exportModalDialogue', element);
-        return new ExportModalDialogue(element); 
+        const componentElement = await TemplateUtil.injectComponentAsync('exportModalDialogue', element);
+        return new ExportModalDialogue(componentElement);
     }
 
 

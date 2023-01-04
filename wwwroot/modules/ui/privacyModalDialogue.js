@@ -13,7 +13,7 @@ export default class PrivacyModalDialogue extends ModalDialogue {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
-        super(element.querySelector('[data-smsgfx-id=modal]'));
+        super(element);
         this.#element = element;
     }
 
@@ -24,8 +24,8 @@ export default class PrivacyModalDialogue extends ModalDialogue {
      * @returns {Promise<PrivacyModalDialogue>}
      */
      static async loadIntoAsync(element) {
-        await TemplateUtil.injectComponentAsync('privacyModalDialogue', element);
-        return new PrivacyModalDialogue(element); 
+        const componentElement = await TemplateUtil.injectComponentAsync('privacyModalDialogue', element);
+        return new PrivacyModalDialogue(componentElement);
     }
 
 

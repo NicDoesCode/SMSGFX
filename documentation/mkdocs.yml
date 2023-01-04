@@ -1,7 +1,8 @@
 site_name: SMSGFX
 site_description: Documentation for the SMSGFX tile editor.
 site_author: Nicholas Furgiuele
-site_dir: ./../dist/docs
+# site_dir: ./../dist/docs
+site_dir: ./../wwwroot/docs
 repo_url: https://github.com/NicDoesCode/SMSGFX
 repo_name: 'GitHub'
 edit_uri: 'documentation/docs/'

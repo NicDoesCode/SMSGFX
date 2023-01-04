@@ -13,6 +13,7 @@ export default class TemplateUtil {
      * if that fails individual component file will be loaded.
      * @param {string} componentName - Name of the component to load.
      * @param {HTMLElement} element - Element to load the content into (note, all child elements will be removed).
+     * @returns {HTMLElement}
      */
     static async injectComponentAsync(componentName, element) {
         if (!componentName) throw new Error('Must supply a component name.');
@@ -36,13 +37,17 @@ export default class TemplateUtil {
         }
 
         if (component) {
-            while (element.hasChildNodes()) {
-                element.childNodes[0].remove();
-            }
             const clonedComponent = component.cloneNode(true);
-            element.appendChild(clonedComponent);
+            element.after(clonedComponent);
+            element.remove();
+            return clonedComponent;
+            // while (element.hasChildNodes()) {
+            //     element.childNodes[0].remove();
+            // }
+            // element.appendChild(clonedComponent);
         } else {
             console.error(`Failed to load component '${componentName}'.`);
+            return element;
         }
     }
 

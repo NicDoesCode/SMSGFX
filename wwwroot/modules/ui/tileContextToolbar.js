@@ -82,8 +82,8 @@ export default class TileContextToolbar {
      * @returns {Promise<TileContextToolbar>}
      */
      static async loadIntoAsync(element) {
-        await TemplateUtil.injectComponentAsync('tileContextToolbar', element);
-        return new TileContextToolbar(element);
+        const componentElement = await TemplateUtil.injectComponentAsync('tileContextToolbar', element);
+        return new TileContextToolbar(componentElement);
     }
 
 
