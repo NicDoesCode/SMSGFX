@@ -10,3 +10,10 @@ markdown_extensions:
     - toc:
         permalink: '#'
         baselevel: 0
+nav:
+    - 'Home': 'index.md'
+    - 'Concepts' : 'concepts.md'
+    - 'Functions': 
+        - 'Tile editor': 'tile-editor.md'
+        - 'Palette editor': 'palette-editor.md'
+    - 'Interface': 'interface.md'

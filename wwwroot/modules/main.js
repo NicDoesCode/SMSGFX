@@ -2489,4 +2489,11 @@ window.addEventListener('load', async () => {
     selectTool(instanceState.tool);
 
     displaySelectedProject();
+
+    document.querySelectorAll('[data-smsgfx-command=openDocumentationViewer]').forEach((elm) => {
+        elm.onclick = () => {
+            documentationViewer.setState({ visible: true });
+            return false;
+        };
+    });
 });

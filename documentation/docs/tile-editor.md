@@ -194,7 +194,7 @@ The image can be resized, and you can choose whether to overlay the image over y
 * Select the "Reference image" toolbar button.
 * Click on the "Revert proportions" button on the context toolbar.
 
-#### To change how a referenve image is displayed:
+#### To change how a reference image is displayed:
 
 ##### Draw the reference image over the top of a specific colour on your palette:
 
