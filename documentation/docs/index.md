@@ -27,14 +27,14 @@ The following is a quick video overview of the key features of SMSGFX.
 | Ctrl + Shift + N | Create a new blank project. |
 
 ### Viewport and editor
-| Key | Function | 
+| Key | Function |
 | --- | -------- |
-| Ctrl + X | Cut selected tile. | 
-| Ctrl + C | Copy selected tile. | 
-| Ctrl + V | Paste tile or import image from clipboard. | 
-| Ctrl + D | Clone / duplicate selected tile. | 
-| Ctrl + Z | Undo last change. | 
-| Ctrl + Y | Redo last change. | 
+| Ctrl + X | Cut selected tile. |
+| Ctrl + C | Copy selected tile. |
+| Ctrl + V | Paste tile or import image from clipboard. |
+| Ctrl + D | Clone / duplicate selected tile. |
+| Ctrl + Z | Undo last change. |
+| Ctrl + Y | Redo last change. |
 | F or B | Change to fill / bucket tool. |
 | S | Change to select tool. |
 | P | Change to pencil tool. |
