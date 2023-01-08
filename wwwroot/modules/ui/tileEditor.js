@@ -1,4 +1,5 @@
 import CanvasManager from "../components/canvasManager.js";
+import CanvasManager2 from "../components/canvasManager2.js";
 import EventDispatcher from "../components/eventDispatcher.js";
 import PaletteFactory from "../factory/paletteFactory.js";
 import Palette from "../models/palette.js";
@@ -73,10 +74,10 @@ export default class TileEditor {
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 
-        this.#canvasContainer = this.#element.classList.contains('sms-canvas-container') ? this.#element : this.#element.querySelector('.sms-canvas-container');
+        this.#canvasContainer = this.#element.classList.contains('sms-tile-editor-container') ? this.#element : this.#element.querySelector('.sms-tile-editor-container');
 
         this.#tbCanvas = this.#element.querySelector('[data-sms-id=tile-editor-canvas]');
-        this.#canvasManager = new CanvasManager();
+        this.#canvasManager = new CanvasManager2();
 
         this.#tbCanvas.onmousemove = (e) => this.#handleCanvasMouseMove(e);
         this.#tbCanvas.onmousedown = (e) => this.#handleCanvasMouseDown(e);

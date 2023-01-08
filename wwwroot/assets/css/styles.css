@@ -160,30 +160,6 @@ button:disabled img {
 }
 
 
-.sms-canvas-container {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    overflow: scroll;
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box;
-    border: 1px solid #dfdfdf;
-    border-top-left-radius: 5px;
-    margin: 0;
-    background-color: #f7f7f7;
-}
-
-.sms-canvas-container .sms-canvas-container-item {
-    height: 40px;
-    width: 100%;
-}
-
-.sms-canvas {
-    box-shadow: 0 0 10px #555555;
-}
-
 .sms-colour-picker .sms-colour-preview {
     min-width: 100px;
 }
@@ -193,3 +169,54 @@ button:disabled img {
     width: 60px;
     height: auto;
 }
+
+
+/* Tile editor */
+
+.sms-tile-editor-container {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    /* flex-wrap: nowrap; */
+    /* justify-content: flex-start; */
+    /* overflow: scroll; */
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    border: 1px solid #dfdfdf;
+    border-top-left-radius: 5px;
+    margin: 0;
+    background-color: #f7f7f7;
+    background-color: lime; /* TMP */
+}
+
+.sms-tile-editor-container .sms-tile-editor-viewport {
+    overflow: scroll;
+    /* flex-shrink: 1; */
+    /* flex-grow: 1; */
+    /* align-self: stretch; */
+    /* box-sizing: content-box; */
+    /* flex-grow: 1; */
+    height: 100%;
+    width: 100%;
+    /* height: 100px; */
+    /* height: 100vb; */
+    background-color: aqua; /* TMP */
+}
+
+.sms-tile-editor-container .sms-tile-editor-viewport .sms-tile-editor-canvas {
+    box-shadow: 0 0 10px #555555;
+    /* position: absolute; */
+    /* position: relative; */
+    /* left: 100px; */
+    /* top: 100px;  */
+}
+
+/* .sms-tile-editor-container {
+    background-color: lime; 
+    flex-grow: 1;
+    height: 100%;
+    overflow: scroll;
+}
+.sms-tile-editor-container {
+} */
