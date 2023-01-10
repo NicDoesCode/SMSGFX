@@ -44,7 +44,7 @@ module.exports = {
             minify: false
         }),
         new HtmlWebpackPlugin({
-            template: './wwwroot/documentation.html',
+            template: './wwwroot/documentation/documentation.html',
             filename: 'documentation.html',
             inject: false
         }),
