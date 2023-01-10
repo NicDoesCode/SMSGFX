@@ -20,7 +20,8 @@ export default class PersistentUIStateJsonSerialiser {
             scale: appUI.scale,
             displayNativeColour: appUI.displayNativeColour,
             showTileGrid: appUI.showTileGrid,
-            showPixelGrid: appUI.showPixelGrid
+            showPixelGrid: appUI.showPixelGrid,
+            documentationVisibleOnStartup: appUI.documentationVisibleOnStartup
         };
         return JSON.stringify(result);
     }
@@ -62,6 +63,9 @@ export default class PersistentUIStateJsonSerialiser {
             if (typeof deserialised.showPixelGrid === 'boolean') {
                 result.showPixelGrid = deserialised.showPixelGrid;
             } 
+            if (typeof deserialised.documentationVisibleOnStartup === 'boolean') {
+                result.documentationVisibleOnStartup = deserialised.documentationVisibleOnStartup;
+            } 
         }
         return result;
     }
@@ -81,4 +85,5 @@ export default class PersistentUIStateJsonSerialiser {
  * @property {boolean} displayNativeColour
  * @property {boolean} showTileGrid
  * @property {boolean} showPixelGrid
+ * @property {boolean} documentationVisibleOnStartup
  */

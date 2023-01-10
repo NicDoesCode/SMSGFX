@@ -1093,6 +1093,8 @@ function handleImageImportModalOnConfirm(args) {
 function documentationViewerOnCommand(args) {
     if (args.command === DocumentationViewer.Commands.close) {
         documentationViewer.setState({ visible: false });
+        getUIState().documentationVisibleOnStartup = false;
+        state.saveToLocalStorage();
     }
 }
 
@@ -2493,7 +2495,11 @@ window.addEventListener('load', async () => {
     document.querySelectorAll('[data-smsgfx-command=openDocumentationViewer]').forEach((elm) => {
         elm.onclick = () => {
             documentationViewer.setState({ visible: true });
+            getUIState().documentationVisibleOnStartup = true;
+            state.saveToLocalStorage();
             return false;
         };
     });
+
+    documentationViewer.setState({ visible: getUIState().documentationVisibleOnStartup });
 });
