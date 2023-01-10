@@ -107,6 +107,27 @@ export default class CanvasManager {
         this.#transparencyIndex = value;
     }
 
+    get offsetX() {
+        return this.#offsetX;
+    }
+    set offsetX(value) {
+        this.#offsetX = value;
+    }
+
+    get offsetY() {
+        return this.#offsetY;
+    }
+    set offsetY(value) {
+        this.#offsetY = value;
+    }
+
+    get backgroundColour() {
+        return this.#backgroundColour;
+    }
+    set backgroundColour(value) {
+        this.#backgroundColour = value;
+    }
+
 
     /** @type {HTMLCanvasElement} */
     #baseCanvas;
@@ -128,6 +149,9 @@ export default class CanvasManager {
     #referenceImages = [];
     /** @type {number[]} */
     #redrawTiles = [];
+    #offsetX = 0;
+    #offsetY = 0;
+    #backgroundColour = '#FFFFFF';
 
 
     /**
@@ -179,6 +203,29 @@ export default class CanvasManager {
 
     clearReferenceImages() {
         this.#referenceImages = [];
+    }
+
+
+    resolveMouseX(canvas, value) {
+        if (this.#baseCanvas && this.#baseCanvas.width && this.#baseCanvas.height) {
+            const drawX = ((canvas.width - this.#baseCanvas.width) / 2) + this.#offsetX;
+            const result = value - drawX;
+            if (result >= 0 && result < this.#baseCanvas.width) {
+                return result;
+            }
+        }
+        return null;
+    }
+
+    resolveMouseY(canvas, value) {
+        if (this.#baseCanvas && this.#baseCanvas.width && this.#baseCanvas.height) {
+            const drawY = ((canvas.height - this.#baseCanvas.height) / 2) + this.#offsetY;
+            const result = value - drawY;
+            if (result >= 0 && result < this.#baseCanvas.height) {
+                return result;
+            }
+        }
+        return null;
     }
 
 
@@ -276,6 +323,8 @@ export default class CanvasManager {
      * @property {number} tileX
      * @property {number} tileY
      * @property {number} pxSize
+     * @property {number} drawX
+     * @property {number} drawY
      */
 
     /**
@@ -300,24 +349,30 @@ export default class CanvasManager {
 
         const pxSize = this.scale;
 
-        /** @type {CanvCoords} */
-        const coords = {
-            x: mouseX, y: mouseY,
-            pxX: mouseX * pxSize,
-            pxY: mouseY * pxSize,
-            tileX: (mouseX - (mouseX % 8)) * pxSize,
-            tileY: (mouseY - (mouseY % 8)) * pxSize,
-            pxSize: pxSize
-        }
-
         const baseCanvas = this.#baseCanvas;
         const context = canvas.getContext('2d');
 
-        // Equalise width and height
-        canvas.width = baseCanvas.width;
-        canvas.height = baseCanvas.height;
+        // Ensure the canvas itself is the correct height
+        if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+        }
 
-        context.fillStyle = '#FFFFFF';
+        const drawX = ((canvas.width - baseCanvas.width) / 2) + this.#offsetX;
+        const drawY = ((canvas.height - baseCanvas.height) / 2) + this.#offsetY;
+
+        /** @type {CanvCoords} */
+        const coords = {
+            x: mouseX, y: mouseY,
+            pxX: (mouseX * pxSize),
+            pxY: (mouseY * pxSize),
+            tileX: (mouseX - (mouseX % 8)) * pxSize,
+            tileY: (mouseY - (mouseY % 8)) * pxSize,
+            pxSize: pxSize,
+            drawX: drawX, drawY: drawY
+        }
+
+        context.fillStyle = this.backgroundColour;
         context.fillRect(0, 0, canvas.width, canvas.height);
 
         // Draw the reference image below
@@ -326,7 +381,9 @@ export default class CanvasManager {
         }
 
         // Draw the cached image
-        context.drawImage(baseCanvas, 0, 0);
+        context.filter = 'drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.5))';
+        context.drawImage(baseCanvas, drawX, drawY);
+        context.filter = 'none';
         context.moveTo(0, 0);
 
         // If drawing reference images above
@@ -338,13 +395,13 @@ export default class CanvasManager {
         if (this.showTileGrid) {
             context.strokeStyle = 'rgba(0, 0, 0, 0.4)';
             context.beginPath();
-            for (let x = 0; x < this.#baseCanvas.width; x += pxSize * 8) {
-                context.moveTo(x, 0);
-                context.lineTo(x, this.#baseCanvas.height);
+            for (let x = 0; x <= this.#baseCanvas.width; x += pxSize * 8) {
+                context.moveTo(x + drawX, drawY);
+                context.lineTo(x + drawX, this.#baseCanvas.height + drawY);
             }
-            for (let y = 0; y < this.#baseCanvas.height; y += pxSize * 8) {
-                context.moveTo(0, y);
-                context.lineTo(this.#baseCanvas.width, y);
+            for (let y = 0; y <= this.#baseCanvas.height; y += pxSize * 8) {
+                context.moveTo(0 + drawX, y + drawY);
+                context.lineTo(this.#baseCanvas.width + drawX, y + drawY);
             }
             context.closePath();
             context.stroke();
@@ -354,13 +411,13 @@ export default class CanvasManager {
         if (this.showPixelGrid && this.scale >= 5) {
             context.strokeStyle = 'rgba(0, 0, 0, 0.2)';
             context.beginPath();
-            for (let x = 0; x < this.#baseCanvas.width; x += pxSize) {
-                context.moveTo(x, 0);
-                context.lineTo(x, this.#baseCanvas.height);
+            for (let x = 0; x <= this.#baseCanvas.width; x += pxSize) {
+                context.moveTo(x + drawX, 0 + drawY);
+                context.lineTo(x + drawX, this.#baseCanvas.height + drawY);
             }
-            for (let y = 0; y < this.#baseCanvas.height; y += pxSize) {
-                context.moveTo(0, y);
-                context.lineTo(this.#baseCanvas.width, y);
+            for (let y = 0; y <= this.#baseCanvas.height; y += pxSize) {
+                context.moveTo(0 + drawX, y + drawY);
+                context.lineTo(this.#baseCanvas.width + drawX, y + drawY);
             }
             context.closePath();
             context.stroke();
@@ -368,7 +425,7 @@ export default class CanvasManager {
 
         // Highlight the entire tile
         context.strokeStyle = 'yellow';
-        context.strokeRect(coords.tileX, coords.tileY, (8 * pxSize), (8 * pxSize));
+        context.strokeRect(coords.tileX + drawX, coords.tileY + drawY, (8 * pxSize), (8 * pxSize));
 
         // Draw the cursor
         context.strokeStyle = 'white';
@@ -385,10 +442,10 @@ export default class CanvasManager {
 
             // Highlight the pixel
             context.strokeStyle = 'black';
-            context.strokeRect(tileX, tileY, (8 * pxSize), (8 * pxSize));
+            context.strokeRect(tileX + drawX, tileY + drawY, (8 * pxSize), (8 * pxSize));
             context.strokeStyle = 'yellow';
             context.setLineDash([2, 2]);
-            context.strokeRect(tileX, tileY, (8 * pxSize), (8 * pxSize));
+            context.strokeRect(tileX + drawX, tileY + drawY, (8 * pxSize), (8 * pxSize));
             context.setLineDash([]);
         }
     }
@@ -404,7 +461,9 @@ export default class CanvasManager {
         this.#referenceImages.forEach(ref => {
             if (ref.image) {
                 const bounds = ref.getBounds();
-                context.drawImage(ref.image, bounds.x * pxSize, bounds.y * pxSize, bounds.width * pxSize, bounds.height * pxSize);
+                const x = (bounds.x * pxSize) + coords.drawX;
+                const y = (bounds.y * pxSize) + coords.drawY;
+                context.drawImage(ref.image, x, y, bounds.width * pxSize, bounds.height * pxSize);
             }
         });
         context.globalAlpha = 1;
@@ -416,10 +475,11 @@ export default class CanvasManager {
      * @param {number} drawOffset 
      */
     drawBrushBorder(context, coords, drawOffset) {
+        const drawX = coords.drawX, drawY = coords.drawY;
         const offset = drawOffset;
         const pxSize = coords.pxSize;
-        const startX = (coords.pxX - (pxSize * Math.floor(this.#cursorSize / 2)));
-        const startY = coords.pxY - (pxSize * Math.floor(this.#cursorSize / 2));
+        const startX = (coords.pxX - (pxSize * Math.floor(this.#cursorSize / 2))) + drawX;
+        const startY = coords.pxY - (pxSize * Math.floor(this.#cursorSize / 2)) + drawY;
         if (this.#cursorSize < 4) {
             context.strokeRect(startX - offset, startY - offset, (pxSize * this.#cursorSize) + (offset * 2), (pxSize * this.#cursorSize) + (offset * 2));
         } else {

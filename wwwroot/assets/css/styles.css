@@ -173,13 +173,13 @@ button:disabled img {
 
 /* Tile editor */
 
-.sms-tile-editor2 {
+.sms-tile-editor {
     display: flex;
     height: 100%;
     /* border: 1px solid #AAAAAA; */
 }
 
-.sms-tile-editor2 .sms-tile-editor2-canvas {
+.sms-tile-editor .sms-tile-editor-canvas {
     width: 100%;
     height: 100%;
 }
