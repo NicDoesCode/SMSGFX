@@ -7,3 +7,4 @@ node_modules/
 cert/
 *.instance.*
 .env
+wwwroot/docs/

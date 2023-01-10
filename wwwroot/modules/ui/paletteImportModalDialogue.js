@@ -17,7 +17,7 @@ export default class PaletteModalDialogue extends ModalDialogue {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
-        super(element.querySelector('[data-smsgfx-id=modal]'));
+        super(element);
         this.#element = element;
         this.#tbPaletteSystem = this.#element.querySelector('[data-smsgfx-id=select-palette-system]');
         this.#tbPaletteData = this.#element.querySelector('[data-smsgfx-id=text-palette-data]');
@@ -30,8 +30,8 @@ export default class PaletteModalDialogue extends ModalDialogue {
      * @returns {Promise<PaletteModalDialogue>}
      */
      static async loadIntoAsync(element) {
-        await TemplateUtil.injectComponentAsync('paletteImportModalDialogue', element);
-        return new PaletteModalDialogue(element); 
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('paletteImportModalDialogue', element);
+        return new PaletteModalDialogue(componentElement);
     }
 
 

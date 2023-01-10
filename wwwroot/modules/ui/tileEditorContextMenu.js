@@ -52,8 +52,8 @@ export default class TileEditorContextMenu {
      * @returns {Promise<TileEditorContextMenu>}
      */
      static async loadIntoAsync(element) {
-        await TemplateUtil.injectComponentAsync('tileEditorContextMenu', element);
-        return new TileEditorContextMenu(element);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('tileEditorContextMenu', element);
+        return new TileEditorContextMenu(componentElement);
     }
 
 

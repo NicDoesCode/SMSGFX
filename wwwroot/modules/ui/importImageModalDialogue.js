@@ -81,7 +81,7 @@ export default class ImportImageModalDialogue extends ModalDialogue {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
-        super(element.querySelector('[data-smsgfx-id=modal]'));
+        super(element);
         this.#element = element;
 
         this.#dispatcher = new EventDispatcher();
@@ -154,9 +154,9 @@ export default class ImportImageModalDialogue extends ModalDialogue {
      * @param {HTMLElement} element - Container element.
      * @returns {Promise<ImportImageModalDialogue>}
      */
-     static async loadIntoAsync(element) {
-        await TemplateUtil.injectComponentAsync('importImageModalDialogue', element);
-        return new ImportImageModalDialogue(element); 
+    static async loadIntoAsync(element) {
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('importImageModalDialogue', element);
+        return new ImportImageModalDialogue(componentElement);
     }
 
 
@@ -581,7 +581,7 @@ export default class ImportImageModalDialogue extends ModalDialogue {
      */
     async #handleSourceImageUpdatedAsync() {
         this.#showImageSizeWarning(false);
-      
+
         if (this.#sourceImageIsSet()) {
             const max = MAX_INITIAL_IMPORT_WIDTH;
             let width = this.#sourceImage.width;

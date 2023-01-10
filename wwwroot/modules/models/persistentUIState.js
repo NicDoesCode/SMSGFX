@@ -101,6 +101,16 @@ export default class PersistentUIState {
         this.#showPixelGrid = value;
     }
 
+    /**
+     * Gets or sets whether the documentation is visible on startup.
+     */
+    get documentationVisibleOnStartup() {
+        return this.#documentationVisibleOnStartup;
+    }
+    set documentationVisibleOnStartup(value) {
+        this.#documentationVisibleOnStartup = value;
+    }
+
 
     /** @type {string} */
     #lastProjectId = null;
@@ -122,6 +132,8 @@ export default class PersistentUIState {
     #showTileGrid = true;
     /** @type {boolean} */
     #showPixelGrid = true;
+    /** @type {boolean} */
+    #documentationVisibleOnStartup = true;
 
 
     constructor() {

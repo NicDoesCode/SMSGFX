@@ -17,7 +17,7 @@ export default class TileSetImportModalDialogue extends ModalDialogue {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
-        super(element.querySelector('[data-smsgfx-id=modal]'));
+        super(element);
         this.#element = element;
         this.#tbTileSetData = this.#element.querySelector('[data-smsgfx-id=text-tile-data]');
         this.#tbReplaceTiles = this.#element.querySelector('[data-smsgfx-id=check-replace-tiles]');
@@ -30,8 +30,8 @@ export default class TileSetImportModalDialogue extends ModalDialogue {
      * @returns {Promise<TileSetImportModalDialogue>}
      */
      static async loadIntoAsync(element) {
-        await TemplateUtil.injectComponentAsync('tileSetImportModalDialogue', element);
-        return new TileSetImportModalDialogue(element); 
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('tileSetImportModalDialogue', element);
+        return new TileSetImportModalDialogue(componentElement);
     }
 
 

@@ -34,6 +34,7 @@ import AboutModalDialogue from "./ui/aboutModalDialogue.js";
 import PrivacyModalDialogue from "./ui/privacyModalDialogue.js";
 import ProjectDropdown from "./ui/projectDropdown.js";
 import GoogleAnalyticsManager from "./components/googleAnalyticsManager.js";
+import DocumentationViewer from "./ui/documentationViewer.js";
 
 
 /* ****************************************************************************************************
@@ -103,6 +104,7 @@ const googleAnalytics = new GoogleAnalyticsManager();
 /** @type {ImportImageModalDialogue} */ let importImageModalDialogue;
 /** @type {AboutModalDialogue} */ let aboutDialogue;
 /** @type {PrivacyModalDialogue} */ let privacyModalDialogue;
+/** @type {DocumentationViewer} */ let documentationViewer;
 
 async function initialiseComponents() {
     await googleAnalytics.injectIfConfiguredAsync();
@@ -123,6 +125,7 @@ async function initialiseComponents() {
     importImageModalDialogue = await ImportImageModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=import-image-modal]'));
     aboutDialogue = await AboutModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=about-modal]'));
     privacyModalDialogue = await PrivacyModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=privacy-modal]'));
+    documentationViewer = await DocumentationViewer.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=documentation-viewer]'));
 }
 
 function wireUpGenericComponents() {
@@ -179,7 +182,9 @@ function wireUpEventHandlers() {
 
     tileImportDialogue.addHandlerOnConfirm(handleImportTileSet);
 
-    importImageModalDialogue.addHandlerOnConfirm(handleImageImportModalOnConfirm)
+    importImageModalDialogue.addHandlerOnConfirm(handleImageImportModalOnConfirm);
+
+    documentationViewer.addHandlerOnCommand(documentationViewerOnCommand);
 }
 
 function createEventListeners() {
@@ -1081,6 +1086,16 @@ function handleImageImportModalOnConfirm(args) {
     });
 
     importImageModalDialogue.hide();
+}
+
+
+/** @param {import("./ui/documentationViewer").DocumentationViewerCommandEventArgs} args */
+function documentationViewerOnCommand(args) {
+    if (args.command === DocumentationViewer.Commands.close) {
+        documentationViewer.setState({ visible: false });
+        getUIState().documentationVisibleOnStartup = false;
+        state.saveToLocalStorage();
+    }
 }
 
 
@@ -2476,4 +2491,15 @@ window.addEventListener('load', async () => {
     selectTool(instanceState.tool);
 
     displaySelectedProject();
+
+    document.querySelectorAll('[data-smsgfx-command=openDocumentationViewer]').forEach((elm) => {
+        elm.onclick = () => {
+            documentationViewer.setState({ visible: true });
+            getUIState().documentationVisibleOnStartup = true;
+            state.saveToLocalStorage();
+            return false;
+        };
+    });
+
+    documentationViewer.setState({ visible: getUIState().documentationVisibleOnStartup });
 });

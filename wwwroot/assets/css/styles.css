@@ -20,16 +20,15 @@ button:disabled img {
     margin-right: 4px;
 }
 
-.sms-container .sms-header-bar {
-    position: absolute;
-    width: 100%;
-    min-height: 50px;
-    z-index: 20;
+.sms-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
-.sms-console-icon {
-    width: 60px;
-    height: auto;
+.sms-container .sms-header-bar {
+    min-height: 50px;
+    z-index: 20;
 }
 
 .sms-container .sms-header-bar .sms-navbar {
@@ -49,17 +48,13 @@ button:disabled img {
 }
 
 .sms-container .sms-content {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: flex-start;
-    padding-top: 50px;
     z-index: 10;
+    width: 100%;
+    flex-grow: 1;
 }
 
 .sms-container .sms-content .sms-content-col {
@@ -165,30 +160,26 @@ button:disabled img {
 }
 
 
-.sms-canvas-container {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    overflow: scroll;
-    width: 100%;
-    height: 100%;
-    box-sizing: border-box;
-    border: 1px solid #dfdfdf;
-    border-top-left-radius: 5px;
-    margin: 0;
-    background-color: #f7f7f7;
-}
-
-.sms-canvas-container .sms-canvas-container-item {
-    height: 40px;
-    width: 100%;
-}
-
-.sms-canvas {
-    box-shadow: 0 0 10px #555555;
-}
-
 .sms-colour-picker .sms-colour-preview {
     min-width: 100px;
+}
+
+
+.sms-console-icon {
+    width: 60px;
+    height: auto;
+}
+
+
+/* Tile editor */
+
+.sms-tile-editor {
+    display: flex;
+    height: 100%;
+    /* border: 1px solid #AAAAAA; */
+}
+
+.sms-tile-editor .sms-tile-editor-canvas {
+    width: 100%;
+    height: 100%;
 }
