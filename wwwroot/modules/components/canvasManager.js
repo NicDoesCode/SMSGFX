@@ -380,10 +380,25 @@ export default class CanvasManager {
             this.#drawReferenceImages(context, coords);
         }
 
+        // Determine the crop of the base image to use
+        const baseX = Math.max(0, -drawX);
+        const baseY = Math.max(0, -drawY);
+        const canvX = Math.max(0, drawX);
+        const canvY = Math.max(0, drawY);
+        const baseW = Math.min(baseCanvas.width, baseCanvas.width - baseX);
+        const baseH = Math.min(baseCanvas.height, baseCanvas.height - baseY);
+
+        // Draw the border around the canvas
+        context.lineWidth = 1;
+        context.strokeStyle = '#888888';
+        context.strokeRect(canvX - 1, canvY - 1, baseW + 2, baseH + 2);
+        context.strokeStyle = '#CCCCCC';
+        context.strokeRect(canvX - 2, canvY - 2, baseW + 4, baseH + 4);
+
         // Draw the cached image
-        // Temp disabled for render speed
-        // context.filter = 'drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.5))';
-        context.drawImage(baseCanvas, drawX, drawY);
+        context.drawImage(baseCanvas, baseX, baseY, baseW, baseH, canvX, canvY, baseW, baseH);
+
+        // Reset things
         context.filter = 'none';
         context.moveTo(0, 0);
 
