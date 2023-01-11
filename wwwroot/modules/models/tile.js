@@ -1,4 +1,3 @@
-
 /**
  * Single 8x8 tile.
  */
@@ -71,12 +70,17 @@ export default class Tile {
      * Sets the palette index of a pixel at the given index.
      * @param {number} index Index of the pixel to set.
      * @param {number} paletteIndex Palette index of the pixel to set.
+     * @returns {boolean} true if the value was updated, otherwise false.
      */
     setValueAt(index, paletteIndex) {
         if (index === null) throw new Error('Read index not specified.');
         if (index < 0 || index > 63) throw new Error('Read index must be between 0 and 63.');
         if (paletteIndex < 0 || paletteIndex > 255) throw new Error('Value must be between 0 and 255.');
-        this.#data[index] = paletteIndex;
+        if (this.#data[index] !== paletteIndex) {
+            this.#data[index] = paletteIndex;
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -84,13 +88,14 @@ export default class Tile {
      * @param {number} x X coordinate to read from (0 to 7).
      * @param {number} y Y coordinate to read from (0 to 7).
      * @param {number} value Palette index of the pixel to set.
+     * @returns {boolean} true if the value was updated, otherwise false.
      */
     setValueAtCoord(x, y, value) {
         if (x === null) throw new Error('X coordinate not specified.');
         if (x < 0 || x > 8) throw new Error('X coordinate must be between 0 and 8.');
         if (y === null) throw new Error('Y coordinate not specified.');
         if (y < 0 || y > 8) throw new Error('Y coordinate must be between 0 and 8.');
-        this.setValueAt(y * 8 + x, value);
+        return this.setValueAt(y * 8 + x, value);
     }
 
 
@@ -104,9 +109,9 @@ export default class Tile {
         if (sourceColourIndex < 0 || sourceColourIndex > 15) throw new Error('Source colour index must be between 0 and 15.');
         if (typeof targetColourIndex !== 'number') throw new Error('Invalid target colour index.');
         if (targetColourIndex < 0 || targetColourIndex > 15) throw new Error('Target colour index must be between 0 and 15.');
-      
+
         if (sourceColourIndex === targetColourIndex) return;
-        
+
         const data = this.#data;
         for (let i = 0; i < data.length; i++) {
             if (data[i] === sourceColourIndex) {
@@ -125,9 +130,9 @@ export default class Tile {
         if (firstColourIndex < 0 || firstColourIndex > 15) throw new Error('First colour index must be between 0 and 15.');
         if (typeof secondColourIndex !== 'number') throw new Error('Invalid second colour index.');
         if (secondColourIndex < 0 || secondColourIndex > 15) throw new Error('Second colour index must be between 0 and 15.');
-    
+
         if (firstColourIndex === secondColourIndex) return;
-        
+
         const data = this.#data;
         for (let i = 0; i < data.length; i++) {
             if (data[i] === firstColourIndex) {
