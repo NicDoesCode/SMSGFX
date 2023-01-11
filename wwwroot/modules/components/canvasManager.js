@@ -381,7 +381,8 @@ export default class CanvasManager {
         }
 
         // Draw the cached image
-        context.filter = 'drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.5))';
+        // Temp disabled for render speed
+        // context.filter = 'drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.5))';
         context.drawImage(baseCanvas, drawX, drawY);
         context.filter = 'none';
         context.moveTo(0, 0);
