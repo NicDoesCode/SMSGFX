@@ -14,7 +14,7 @@ export default class PaintUtil {
      */
     static drawOnTileSet(tileSet, x, y, colourIndex, options) {
         const updatedTiles = [];
-        
+
         const tileIndex = tileSet.getTileIndexByCoordinate(x, y);
         if (tileIndex === null || tileIndex < 0) return;
 
@@ -22,8 +22,9 @@ export default class PaintUtil {
         if (brushSize < 1 || brushSize > 100) throw new Error('Brush size must be between 1 and 100 px.');
 
         if (brushSize === 1) {
-            tileSet.setPixelAt(x, y, colourIndex);
-            updatedTiles.push(tileIndex);
+            if (tileSet.setPixelAt(x, y, colourIndex)) {
+                updatedTiles.push(tileIndex);
+            }
         } else {
             const affect = options?.affectAdjacentTiles ?? true;
             const startX = x - Math.floor(brushSize / 2);
@@ -38,8 +39,9 @@ export default class PaintUtil {
                     if (thisTileIndex !== null && thisTileIndex >= 0) {
                         const differentTile = thisTileIndex !== tileIndex;
                         if (!differentTile || affect) {
-                            tileSet.setPixelAt(xPx, yPx, colourIndex);
-                            if (!updatedTiles.includes(thisTileIndex)) updatedTiles.push(thisTileIndex);
+                            if (tileSet.setPixelAt(xPx, yPx, colourIndex)) {
+                                if (!updatedTiles.includes(thisTileIndex)) updatedTiles.push(thisTileIndex);
+                            }
                         }
                     }
                 }

@@ -1359,7 +1359,9 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
                 const size = instanceState.pencilSize;
                 const updatedTiles = PaintUtil.drawOnTileSet(tileSet, imageX, imageY, colourIndex, { brushSize: size, affectAdjacentTiles: true });
 
-                tileEditor.setState({ updatedTiles: updatedTiles.affectedTileIndexes });
+                if (updatedTiles.affectedTileIndexes.length > 0) {
+                    tileEditor.setState({ updatedTiles: updatedTiles.affectedTileIndexes });
+                }
             }
 
         } else if (tool === TileEditorToolbar.Tools.bucket) {
