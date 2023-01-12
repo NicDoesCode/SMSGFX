@@ -18,21 +18,28 @@ const instanceFileRegex = /\.instance\.[A-z0-9]{1,20}$/i;
 
 require('dotenv').config();
 
+// Load parameters
+
+let env = '';
+process.argv.forEach((value, index, array) => {
+    if (value === '--env' && typeof array[index + 1] !== 'undefined') {
+        env = `_${array[index + 1]}`;
+    }
+});
 
 // Get environment variables
 
-const CONTAINER_CONN_STRING = process.env[`AZURE_STORAGE_CONNECTION_STRING`];
+const CONTAINER_CONN_STRING = process.env[`AZURE_STORAGE_CONNECTION_STRING${env}`];
 if (!CONTAINER_CONN_STRING) {
-    console.error(`ERROR: No connection string set in 'AZURE_STORAGE_CONNECTION_STRING' environment variable.`);
+    console.error(`ERROR: No connection string set in 'AZURE_STORAGE_CONNECTION_STRING${env}' environment variable.`);
     process.exit();
 }
 
-const CONTAINER_NAME = process.env[`AZURE_STORAGE_CONTAINER_NAME`];
+const CONTAINER_NAME = process.env[`AZURE_STORAGE_CONTAINER_NAME${env}`];
 if (!CONTAINER_NAME) {
-    console.error(`ERROR: No container name set in 'AZURE_STORAGE_CONTAINER_NAME' environment variable.`);
+    console.error(`ERROR: No container name set in 'AZURE_STORAGE_CONTAINER_NAME${env}' environment variable.`);
     process.exit();
 }
-
 
 // Set client
 
