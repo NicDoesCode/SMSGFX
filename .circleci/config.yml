@@ -8,7 +8,7 @@ orbs:
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
-  build-and-test:
+  build-and-deploy-prod:
     executor: node/default
     steps:
       - checkout
@@ -19,14 +19,32 @@ jobs:
          command: npm run build
       - run: 
          name: Deploy to Azure
-         command: node ./deploy-to-azure-storage.js
+         command: node ./deploy-to-azure-storage.js --env prod
+
+  build-and-deploy-dev:
+    executor: node/default
+    steps:
+      - checkout
+      - node/install-packages:
+          pkg-manager: npm
+      - run: 
+         name: Build app
+         command: npm run build
+      - run: 
+         name: Deploy to Azure
+         command: node ./deploy-to-azure-storage.js --env dev
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
   build-and-test-workflow:
     jobs:
-      - build-and-test:
+      - build-and-deploy-prod:
+          filters: 
+            branches:
+              only: 
+                - master 
+      - build-and-deploy-dev:
           filters: 
             branches:
               only: 
