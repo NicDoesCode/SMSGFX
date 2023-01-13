@@ -13,7 +13,7 @@ export default class AboutModalDialogue extends ModalDialogue {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
-        super(element.querySelector('[data-smsgfx-id=modal]'));
+        super(element);
         this.#element = element;
     }
 
@@ -24,8 +24,8 @@ export default class AboutModalDialogue extends ModalDialogue {
      * @returns {Promise<AboutModalDialogue>}
      */
      static async loadIntoAsync(element) {
-        await TemplateUtil.injectComponentAsync('aboutModalDialogue', element);
-        return new AboutModalDialogue(element); 
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('aboutModalDialogue', element);
+        return new AboutModalDialogue(componentElement);
     }
 
 

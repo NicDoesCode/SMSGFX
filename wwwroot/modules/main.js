@@ -31,8 +31,10 @@ import ProjectWatcher from "./components/projectWatcher.js";
 import ImageUtil from "./util/imageUtil.js";
 import ReferenceImage from "./models/referenceImage.js";
 import AboutModalDialogue from "./ui/aboutModalDialogue.js";
+import PrivacyModalDialogue from "./ui/privacyModalDialogue.js";
 import ProjectDropdown from "./ui/projectDropdown.js";
 import GoogleAnalyticsManager from "./components/googleAnalyticsManager.js";
+import DocumentationViewer from "./ui/documentationViewer.js";
 
 
 /* ****************************************************************************************************
@@ -101,6 +103,8 @@ const googleAnalytics = new GoogleAnalyticsManager();
 /** @type {TileSetImportModalDialogue} */ let tileImportDialogue;
 /** @type {ImportImageModalDialogue} */ let importImageModalDialogue;
 /** @type {AboutModalDialogue} */ let aboutDialogue;
+/** @type {PrivacyModalDialogue} */ let privacyModalDialogue;
+/** @type {DocumentationViewer} */ let documentationViewer;
 
 async function initialiseComponents() {
     await googleAnalytics.injectIfConfiguredAsync();
@@ -120,6 +124,8 @@ async function initialiseComponents() {
     tileImportDialogue = await TileSetImportModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-import-dialogue]'));
     importImageModalDialogue = await ImportImageModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=import-image-modal]'));
     aboutDialogue = await AboutModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=about-modal]'));
+    privacyModalDialogue = await PrivacyModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=privacy-modal]'));
+    documentationViewer = await DocumentationViewer.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=documentation-viewer]'));
 }
 
 function wireUpGenericComponents() {
@@ -128,6 +134,12 @@ function wireUpGenericComponents() {
         if (command === 'about' && ['A', 'BUTTON'].includes(element.tagName)) {
             element.onclick = () => {
                 aboutDialogue.show();
+                return false;
+            }
+        }
+        if (command === 'privacy' && ['A', 'BUTTON'].includes(element.tagName)) {
+            element.onclick = () => {
+                privacyModalDialogue.show();
                 return false;
             }
         }
@@ -170,7 +182,9 @@ function wireUpEventHandlers() {
 
     tileImportDialogue.addHandlerOnConfirm(handleImportTileSet);
 
-    importImageModalDialogue.addHandlerOnConfirm(handleImageImportModalOnConfirm)
+    importImageModalDialogue.addHandlerOnConfirm(handleImageImportModalOnConfirm);
+
+    documentationViewer.addHandlerOnCommand(documentationViewerOnCommand);
 }
 
 function createEventListeners() {
@@ -749,7 +763,7 @@ function handleTileContextToolbarCommand(args) {
         updateReferenceImage(args.referenceBounds, args.referenceTransparency);
     }
     if (args.command === TileContextToolbar.Commands.referenceImageRevert) {
-        const drawDimensions = ImageUtil.calculateImageSize(instanceState.referenceImageOriginal, getTileSet().tileWidth * 8, getTileSet().tileHeight * 8);
+        const drawDimensions = ImageUtil.calculateAspectRatioDimensions(instanceState.referenceImageOriginal, getTileSet().tileWidth * 8, getTileSet().tileHeight * 8);
         const restoredBounds = new DOMRect(0, 0, drawDimensions.width, drawDimensions.height);
         updateReferenceImage(restoredBounds, args.referenceTransparency);
     }
@@ -1075,6 +1089,16 @@ function handleImageImportModalOnConfirm(args) {
 }
 
 
+/** @param {import("./ui/documentationViewer").DocumentationViewerCommandEventArgs} args */
+function documentationViewerOnCommand(args) {
+    if (args.command === DocumentationViewer.Commands.close) {
+        documentationViewer.setState({ visible: false });
+        getUIState().documentationVisibleOnStartup = false;
+        state.saveToLocalStorage();
+    }
+}
+
+
 /**
  * Creates a default tile set and palettes when the data store doesn't contain any.
  */
@@ -1335,7 +1359,9 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
                 const size = instanceState.pencilSize;
                 const updatedTiles = PaintUtil.drawOnTileSet(tileSet, imageX, imageY, colourIndex, { brushSize: size, affectAdjacentTiles: true });
 
-                tileEditor.setState({ updatedTiles: updatedTiles.affectedTileIndexes });
+                if (updatedTiles.affectedTileIndexes.length > 0) {
+                    tileEditor.setState({ updatedTiles: updatedTiles.affectedTileIndexes });
+                }
             }
 
         } else if (tool === TileEditorToolbar.Tools.bucket) {
@@ -1567,9 +1593,9 @@ function selectReferenceImage() {
         const sourceImg = await ImageUtil.fileInputToImageAsync(fileInput);
         instanceState.referenceImageOriginal = sourceImg;
 
-        const dimensions = ImageUtil.calculateImageSize(sourceImg, 1024, 1024);
+        const dimensions = ImageUtil.calculateAspectRatioDimensions(sourceImg, 1024, 1024);
         const resizedImg = await ImageUtil.resizeImageAsync(sourceImg, dimensions.width, dimensions.height);
-        const drawDimensions = ImageUtil.calculateImageSize(sourceImg, getTileSet().tileWidth * 8, getTileSet().tileHeight * 8);
+        const drawDimensions = ImageUtil.calculateAspectRatioDimensions(sourceImg, getTileSet().tileWidth * 8, getTileSet().tileHeight * 8);
 
         if (!instanceState.referenceImage) {
             instanceState.referenceImage = new ReferenceImage();
@@ -2467,4 +2493,15 @@ window.addEventListener('load', async () => {
     selectTool(instanceState.tool);
 
     displaySelectedProject();
+
+    document.querySelectorAll('[data-smsgfx-command=openDocumentationViewer]').forEach((elm) => {
+        elm.onclick = () => {
+            documentationViewer.setState({ visible: true });
+            getUIState().documentationVisibleOnStartup = true;
+            state.saveToLocalStorage();
+            return false;
+        };
+    });
+
+    documentationViewer.setState({ visible: getUIState().documentationVisibleOnStartup });
 });

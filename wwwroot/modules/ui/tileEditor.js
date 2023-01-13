@@ -39,8 +39,8 @@ export default class TileEditor {
 
     /** @type {HTMLElement} */
     #element;
-    /** @type {HTMLElement} */
-    #canvasContainer;
+    // /** @type {HTMLElement} */
+    // #canvasContainer;
     /** @type {HTMLCanvasElement} */
     #tbCanvas;
     /** @type {TileEditorContextMenu} */
@@ -55,6 +55,7 @@ export default class TileEditor {
     #lastCoords;
     #scale = 1;
     #canvasManager;
+    #panCanvasOnMouseMove = false;
     #canvasMouseLeftDown = false;
     #canvasMouseMiddleDown = false;
     #canvasMouseRightDown = false;
@@ -73,17 +74,23 @@ export default class TileEditor {
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 
-        this.#canvasContainer = this.#element.classList.contains('sms-canvas-container') ? this.#element : this.#element.querySelector('.sms-canvas-container');
-
         this.#tbCanvas = this.#element.querySelector('[data-sms-id=tile-editor-canvas]');
         this.#canvasManager = new CanvasManager();
+        this.#canvasManager.backgroundColour = window.getComputedStyle(this.#element).backgroundColor;
 
-        this.#tbCanvas.onmousemove = (e) => this.#handleCanvasMouseMove(e);
-        this.#tbCanvas.onmousedown = (e) => this.#handleCanvasMouseDown(e);
-        this.#tbCanvas.onmouseup = (e) => this.#handleCanvasMouseUp(e);
-        this.#tbCanvas.onmouseleave = (e) => this.#handleCanvasMouseLeave(e);
-        this.#tbCanvas.oncontextmenu = (e) => this.#handleCanvasContextMenu(e);
-        this.#element.onwheel = (e) => this.#handleCanvasMouseWheel(e);
+        document.addEventListener('mousedown', (ev) => this.#handleCanvasMouseDown(ev));
+        document.addEventListener('mouseup', (ev) => this.#handleCanvasMouseUp(ev));
+        document.addEventListener('mousemove', (ev) => this.#handleCanvasMouseMove(ev));
+        this.#tbCanvas.addEventListener('mouseleave', (ev) => this.#handleCanvasMouseLeave(ev));
+        this.#tbCanvas.addEventListener('contextmenu', (ev) => this.#handleCanvasContextMenu(ev));
+        this.#tbCanvas.addEventListener('wheel', (ev) => this.#handleCanvasMouseWheel(ev));
+
+        const canvasObserver = new ResizeObserver((entries) => {
+            if (this.#enabled && this.#canvasManager.canDraw) {
+                this.#canvasManager.drawUI(this.#tbCanvas);
+            }
+        });
+        canvasObserver.observe(this.#tbCanvas);
 
         TileEditorContextMenu.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=tile-editor-context-menu]'))
             .then((obj) => {
@@ -99,8 +106,8 @@ export default class TileEditor {
      * @returns {Promise<TileEditor>}
      */
     static async loadIntoAsync(element) {
-        await TemplateUtil.injectComponentAsync('tileEditor', element);
-        return new TileEditor(element);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('tileEditor', element);
+        return new TileEditor(componentElement);
     }
 
 
@@ -240,94 +247,104 @@ export default class TileEditor {
     }
 
 
-    /** @param {MouseEvent} event */
-    #handleCanvasMouseMove(event) {
+    /** @param {MouseEvent} ev */
+    #handleCanvasMouseMove(ev) {
         if (this.#enabled && this.#tileSet) {
-            const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(event.clientX, event.clientY);
-            const lastCoords = this.#lastCoords;
-            if (!lastCoords || lastCoords.x !== coords.x || lastCoords.y !== coords.y) {
-                /** @type {TileEditorEventArgs} */
-                const args = {
-                    event: events.pixelMouseOver,
-                    x: coords.x, y: coords.y,
-                    mousePrimaryIsDown: this.#canvasMouseLeftDown,
-                    isPrimaryButton: event.button === 0,
-                    isSecondaryButton: event.button === 2,
-                    isAuxButton: event.button === 1,
-                    ctrlKeyPressed: event.ctrlKey
-                };
-                this.#dispatcher.dispatch(EVENT_OnEvent, args);
-                this.#lastCoords = coords;
-                if (this.#canvasManager.canDraw) {
-                    this.#canvasManager.drawUI(this.#tbCanvas, coords.x, coords.y);
+            if (ev.target === this.#tbCanvas) {
+                const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(ev.clientX, ev.clientY);
+                if (coords) {
+                    const lastCoords = this.#lastCoords;
+                    if (!lastCoords || lastCoords.x !== coords.x || lastCoords.y !== coords.y) {
+                        /** @type {TileEditorEventArgs} */
+                        const args = {
+                            event: events.pixelMouseOver,
+                            x: coords.x, y: coords.y,
+                            mousePrimaryIsDown: this.#canvasMouseLeftDown,
+                            isPrimaryButton: ev.button === 0,
+                            isSecondaryButton: ev.button === 2,
+                            isAuxButton: ev.button === 1,
+                            ctrlKeyPressed: ev.ctrlKey
+                        };
+                        this.#dispatcher.dispatch(EVENT_OnEvent, args);
+                        this.#lastCoords = coords;
+                        if (this.#canvasManager.canDraw) {
+                            this.#canvasManager.drawUI(this.#tbCanvas, coords.x, coords.y);
+                        }
+                    }
                 }
             }
-        }
-        if (this.#enabled && this.#canvasMouseMiddleDown) {
-            this.#element.scrollBy(-event.movementX, -event.movementY);
+            if (this.#panCanvasOnMouseMove)
+                this.panCanvas(ev.movementX, ev.movementY);
         }
     }
 
-    /** @param {MouseEvent} event */
-    #handleCanvasMouseDown(event) {
+    /** @param {MouseEvent} ev */
+    #handleCanvasMouseDown(ev) {
         if (!this.#enabled) return;
 
-        if (event.button === 0) {
-            this.#canvasMouseLeftDown = true;
-        } else if (event.button === 1) {
-            this.#canvasMouseMiddleDown = true;
-        } else if (event.button === 2) {
-            this.#canvasMouseRightDown = true;
+        if (ev.target === this.#tbCanvas) {
+            if (ev.button === 0) {
+                this.#canvasMouseLeftDown = true;
+            } else if (ev.button === 1) {
+                this.#canvasMouseMiddleDown = true;
+                this.#panCanvasOnMouseMove = true;
+            } else if (ev.button === 2) {
+                this.#canvasMouseRightDown = true;
+            }
         }
 
-        const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(event.clientX, event.clientY);
-
-        /** @type {TileEditorEventArgs} */
-        const args = {
-            event: events.pixelMouseDown,
-            x: coords.x, y: coords.y,
-            mousePrimaryIsDown: this.#canvasMouseLeftDown,
-            mouseSecondaryIsDown: this.#canvasMouseRightDown,
-            mouseAuxIsDown: this.#canvasMouseMiddleDown,
-            isPrimaryButton: event.button === 0,
-            isSecondaryButton: event.button === 2,
-            isAuxButton: event.button === 1,
-            ctrlKeyPressed: event.ctrlKey
-        };
-        this.#dispatcher.dispatch(EVENT_OnEvent, args);
+        const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(ev.clientX, ev.clientY);
+        if (coords) {
+            /** @type {TileEditorEventArgs} */
+            const args = {
+                event: events.pixelMouseDown,
+                x: coords.x, y: coords.y,
+                mousePrimaryIsDown: this.#canvasMouseLeftDown,
+                mouseSecondaryIsDown: this.#canvasMouseRightDown,
+                mouseAuxIsDown: this.#canvasMouseMiddleDown,
+                isPrimaryButton: ev.button === 0,
+                isSecondaryButton: ev.button === 2,
+                isAuxButton: ev.button === 1,
+                ctrlKeyPressed: ev.ctrlKey
+            };
+            this.#dispatcher.dispatch(EVENT_OnEvent, args);
+        }
     }
 
-    /** @param {MouseEvent} event */
-    #handleCanvasMouseUp(event) {
+    /** @param {MouseEvent} ev */
+    #handleCanvasMouseUp(ev) {
+        this.#panCanvasOnMouseMove = false;
+
         if (!this.#enabled) return;
 
-        if (event.button === 0) {
+        if (ev.button === 0) {
             this.#canvasMouseLeftDown = false;
-        } else if (event.button === 1) {
+        } else if (ev.button === 1) {
             this.#canvasMouseMiddleDown = false;
-        } else if (event.button === 2) {
+        } else if (ev.button === 2) {
             this.#canvasMouseRightDown = false;
         }
 
-        const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(event.clientX, event.clientY);
-
-        /** @type {TileEditorEventArgs} */
-        const args = {
-            event: events.pixelMouseUp,
-            x: coords.x, y: coords.y,
-            mousePrimaryIsDown: this.#canvasMouseLeftDown,
-            mouseSecondaryIsDown: this.#canvasMouseRightDown,
-            mouseAuxIsDown: this.#canvasMouseMiddleDown,
-            isPrimaryButton: event.button === 0,
-            isSecondaryButton: event.button === 2,
-            isAuxButton: event.button === 1,
-            ctrlKeyPressed: event.ctrlKey
-        };
-        this.#dispatcher.dispatch(EVENT_OnEvent, args);
+        const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(ev.clientX, ev.clientY);
+        if (coords) {
+            /** @type {TileEditorEventArgs} */
+            const args = {
+                event: events.pixelMouseUp,
+                x: coords.x, y: coords.y,
+                mousePrimaryIsDown: this.#canvasMouseLeftDown,
+                mouseSecondaryIsDown: this.#canvasMouseRightDown,
+                mouseAuxIsDown: this.#canvasMouseMiddleDown,
+                isPrimaryButton: ev.button === 0,
+                isSecondaryButton: ev.button === 2,
+                isAuxButton: ev.button === 1,
+                ctrlKeyPressed: ev.ctrlKey
+            };
+            this.#dispatcher.dispatch(EVENT_OnEvent, args);
+        }
     }
 
-    /** @param {MouseEvent} event */
-    #handleCanvasMouseLeave(event) {
+    /** @param {MouseEvent} ev */
+    #handleCanvasMouseLeave(ev) {
         if (!this.#enabled) return;
 
         /** @type {TileEditorEventArgs} */
@@ -340,7 +357,7 @@ export default class TileEditor {
             isPrimaryButton: this.#canvasMouseLeftDown,
             isSecondaryButton: this.#canvasMouseRightDown,
             isAuxButton: this.#canvasMouseMiddleDown,
-            ctrlKeyPressed: event.ctrlKey
+            ctrlKeyPressed: ev.ctrlKey
         };
         if (this.#lastCoords) {
             args.x = this.#lastCoords.x;
@@ -354,50 +371,62 @@ export default class TileEditor {
         this.#lastCoords = null;
     }
 
-    /** @param {MouseEvent} event */
-    #handleCanvasContextMenu(event) {
+    /** @param {MouseEvent} ev */
+    #handleCanvasContextMenu(ev) {
         if (!this.#enabled) return;
 
-        const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(event.clientX, event.clientY);
+        const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(ev.clientX, ev.clientY);
+        if (coords) {
+            // Get the tile index
+            const tile = this.#tileSet.getTileByCoordinate(coords.x, coords.y);
+            const tileIndex = this.#tileSet.getTileIndex(tile);
 
-        // Get the tile index
-        const tile = this.#tileSet.getTileByCoordinate(coords.x, coords.y);
-        const tileIndex = this.#tileSet.getTileIndex(tile);
+            /** @type {TileEditorCommandEventArgs} */
+            const tileArgs = {
+                command: commands.selectTile,
+                tileIndex: tileIndex
+            };
+            this.#dispatcher.dispatch(EVENT_OnCommand, tileArgs);
 
-        /** @type {TileEditorCommandEventArgs} */
-        const tileArgs = {
-            command: commands.selectTile,
-            tileIndex: tileIndex
-        };
-        this.#dispatcher.dispatch(EVENT_OnCommand, tileArgs);
+            this.#tileEditorContextMenu.show(ev.clientX, ev.clientY, coords.x, coords.y);
 
-        this.#tileEditorContextMenu.show(event.clientX, event.clientY, coords.x, coords.y);
-
+            ev.preventDefault();
+        }
         return false;
     }
 
-    /** @param {WheelEvent} event */
-    #handleCanvasMouseWheel(event) {
-        if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey) {
-            event.stopImmediatePropagation();
-            event.preventDefault();
+    /** @param {WheelEvent} ev */
+    #handleCanvasMouseWheel(ev) {
+        if ((ev.ctrlKey || ev.metaKey) && !ev.altKey && !ev.shiftKey) {
+            ev.stopImmediatePropagation();
+            ev.preventDefault();
 
             /** @type {TileEditorCommandEventArgs} */
             const args = {};
 
             // Get the tile index
-            const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(event.clientX, event.clientY);
-            const tile = this.#tileSet.getTileByCoordinate(coords.x, coords.y);
-            args.tileIndex = this.#tileSet.getTileIndex(tile);
+            const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(ev.clientX, ev.clientY);
+            if (coords) {
+                const tile = this.#tileSet.getTileByCoordinate(coords.x, coords.y);
+                args.tileIndex = this.#tileSet.getTileIndex(tile);
 
-            if (event.deltaY > 0) {
-                args.command = commands.zoomIn;
-            } else {
-                args.command = commands.zoomOut;
+                if (ev.deltaY > 0) {
+                    args.command = commands.zoomIn;
+                } else {
+                    args.command = commands.zoomOut;
+                }
+
+                this.#dispatcher.dispatch(EVENT_OnCommand, args);
             }
-
-            this.#dispatcher.dispatch(EVENT_OnCommand, args);
-
+            return false;
+        } else {
+            if (ev.deltaX !== 0) {
+                this.#canvasManager.offsetX += ev.deltaX > 0 ? 25 : -25;
+            }
+            if (ev.deltaY !== 0) {
+                this.#canvasManager.offsetY += ev.deltaY > 0 ? 25 : -25;
+            }
+            this.#canvasManager.drawUI(this.#tbCanvas);
             return false;
         }
     }
@@ -421,19 +450,38 @@ export default class TileEditor {
 
 
     /**
+     * Pans the canvas.
+     * @param {number} amountX - Movement of the mouse on the X axis.
+     * @param {number} amountY - Movement of the mouse on the Y axis.
+     */
+    panCanvas(amountX, amountY) {
+        this.#canvasManager.offsetX += amountX;
+        this.#canvasManager.offsetY += amountY;
+        if (this.#canvasManager.canDraw) {
+            this.#canvasManager.drawUI(this.#tbCanvas);
+        }
+    }
+
+
+    /**
      * Converts a mouse position within the application viewport to the corresponding tile set x/y.
      * @param {number} mouseClientX - Mouse horizontal coordinate within the application's viewport.
      * @param {number} mouseClientY - Mouse vertical coordinate within the application's viewport.
-     * @returns {Coordinates}
+     * @returns {Coordinates|null}
      */
     #convertMouseClientCoordsToTileSetPixelCoords(mouseClientX, mouseClientY) {
         const rect = this.#tbCanvas.getBoundingClientRect();
-        const canvasX = mouseClientX - rect.left;
-        const canvasY = mouseClientY - rect.top;
-        const scale = this.#canvasManager.scale;
-        const imageX = Math.floor(canvasX / scale);
-        const imageY = Math.floor(canvasY / scale);
-        return { x: imageX, y: imageY };
+        const canvMgr = this.#canvasManager;
+        const canvasX = canvMgr.resolveMouseX(this.#tbCanvas, mouseClientX - rect.left);
+        const canvasY = canvMgr.resolveMouseY(this.#tbCanvas, mouseClientY - rect.top);
+        if (canvasX !== null && canvasY !== null) {
+            const scale = this.#canvasManager.scale;
+            const imageX = Math.floor(canvasX / scale);
+            const imageY = Math.floor(canvasY / scale);
+            return { x: imageX, y: imageY };
+        } else {
+            return null;
+        }
     }
 
     #focusTile(index) {
@@ -442,9 +490,9 @@ export default class TileEditor {
         const pxPerTile = this.#canvasManager.scale * 8;
         const tileX = (col * pxPerTile) + (this.#canvasManager.scale / 2);
         const tileY = (row * pxPerTile) + (this.#canvasManager.scale / 2);
-        const rect = this.#canvasContainer.getBoundingClientRect();
-        this.#canvasContainer.scrollLeft = Math.max(tileX - (rect.width / 2), 0);
-        this.#canvasContainer.scrollTop = Math.max(tileY - (rect.height / 2), 0);
+        // const rect = this.#canvasContainer.getBoundingClientRect();
+        // this.#canvasContainer.scrollLeft = Math.max(tileX - (rect.width / 2), 0);
+        // this.#canvasContainer.scrollTop = Math.max(tileY - (rect.height / 2), 0);
     }
 
 

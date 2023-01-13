@@ -3,35 +3,41 @@
         <div class="modal-content rounded-0 rounded-bottom">
             <div class="modal-header pt-2 pb-2">
                 <div data-smsgfx-id="this-project" class="mx-auto input-group input-group-sm">
-                    <span class="input-group-text bg-light text-dark border-secondary"><strong>Project</strong></span>
+                    <span class="input-group-text bg-light text-dark border-secondary"><strong>Current
+                            project</strong></span>
                     <input data-command="title" type="text" class="form-control border-secondary"
                         placeholder="Project title" aria-label="Project title">
+                    <button data-command="projectSaveToFile" class="btn btn-sm btn-outline-secondary"
+                        title="Save project to file." type="button">
+                        <i class="bi bi-download"></i> Save to file
+                    </button>
                 </div>
             </div>
-            <div class="modal-body mx-auto">
-
-                <div class="btn-toolbar mb-3" role="toolbar" aria-label="Project options.">
-                    <div class="btn-group me-2" role="group" aria-label="First group">
-                        <button data-command="projectNew" class="btn btn-sm btn-secondary" title="New project."
-                            type="button">
-                            <i class="bi bi-file-earmark-plus"></i> New project
-                        </button>
-                    </div>
-                    <div class="btn-group me-2" role="group" aria-label="Second group">
-                        <button data-command="projectLoadFromFile" class="btn btn-sm btn-outline-secondary"
-                            title="Load project from file." type="button">
-                            <i class="bi bi-upload"></i> Load from file
-                        </button>
-                        <button data-command="projectSaveToFile" class="btn btn-sm btn-outline-secondary"
-                            title="Save project to file." type="button">
-                            <i class="bi bi-download"></i> Save to file
-                        </button>
-                    </div>
-
-                </div>
+            <div class="modal-body">
 
                 <div class="card" style="font-size: 0.9em;">
-                    <div class="card-header">Local projects</div>
+                    <div class="card-header">
+                        <div class="container-fluid p-0 m-0">
+                            <div class="row">
+                                <div class="col col-4 pt-1">
+                                    <strong>Local projects</strong>
+                                </div>
+                                <div class="col col-8 text-end p-0">
+                                    <div class="btn-group border-border-0" role="group" aria-label="Basic outlined example">
+                                        <button data-command="projectNew" class="btn btn-sm"
+                                            title="New project." type="button">
+                                            <i class="bi bi-file-earmark-plus"></i> New project
+                                        </button>
+                                        <button data-command="projectLoadFromFile"
+                                            class="btn btn-sm" title="Load project from file."
+                                            type="button">
+                                            <i class="bi bi-upload"></i> Load from file
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <ul data-smsgfx-id="project-list" class="list-group list-group-flush">
                     </ul>
                 </div>
@@ -53,14 +59,6 @@
         </div>
     </div>
     <style>
-        [data-smsgfx-component=projectDropdown] [data-smsgfx-id=this-project].input-group {
-            width: 400px;
-        }
-
-        [data-smsgfx-component=projectDropdown] [data-smsgfx-id=this-project].input-group .input-group-text {
-            width: 80px;
-        }
-
         [data-smsgfx-component=projectDropdown] [data-smsgfx-id=project-list] {
             height: 190px;
             overflow-y: scroll;

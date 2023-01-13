@@ -27,8 +27,8 @@ export default class ExportModalDialogue extends ModalDialogue {
      * @returns {Promise<ExportModalDialogue>}
      */
      static async loadIntoAsync(element) {
-        await TemplateUtil.injectComponentAsync('exportModalDialogue', element);
-        return new ExportModalDialogue(element); 
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('exportModalDialogue', element);
+        return new ExportModalDialogue(componentElement);
     }
 
 

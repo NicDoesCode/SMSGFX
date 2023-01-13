@@ -294,6 +294,7 @@ export default class TileSet {
      * @param {number} x X coordinate.
      * @param {number} y Y coordinate.
      * @param {number} paletteIndex Palette index of the colour, 0 to 15.
+     * @returns {boolean} true if the value was updated, otherwise false.
      */
     setPixelAt(x, y, paletteIndex) {
         if (paletteIndex < 0 || paletteIndex > 15) throw new Error('setPixelAt: Palette index must be between 0 and 15.');
@@ -313,7 +314,7 @@ export default class TileSet {
         y = y % 8;
         const byteNum = (y * 8) + x;
 
-        this.getTile(tileNum).setValueAt(byteNum, paletteIndex);
+        return this.getTile(tileNum).setValueAt(byteNum, paletteIndex);
     }
 
     /** Clears the tile set. */

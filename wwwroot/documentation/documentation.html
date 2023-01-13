@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>SMSGFX Documentation</title>
+    <link rel="icon" href="./../assets/image/controller.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/css/bootstrap.min.css"
+        integrity="sha512-SbiR/eusphKoMVVXysTKG/7VseWii+Y3FdHrt0EpKgpToZeemhqHeZeLWLhJutz/2ut2Vw1uQEj2MbRF+TVBUA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.2/font/bootstrap-icons.min.css"
+        integrity="sha512-YFENbnqHbCRmJt5d+9lHimyEMt8LKSNTMLSaHjvsclnZGICeY/0KYEeiHwD1Ux4Tcao0h60tdcMv+0GljvWyHg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="./../assets/css/styles.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="container m-0 p-4">
+        <h1>SMSGFX Documentation</h1>
+        <p><strong>Welcome to SMSGFX!</strong> This documentation will assist you with performing simple tasks
+            associated with the product.</p>
+
+        <h3>What is SMSGFX?</h3>
+        <p>SMSGFX is a browser based tile editor that allows you to make graphics for Sega Master System and Sega Game
+            Gear.</p>
+        <p>You can import graphics from image files, the clipboard, assembly code or simply draw something from scratch,
+            and when you're done you can export the graphics in a format that the Sega Master System and Game Gear
+            understands.</p>
+        <p>Projects are automatically saved in your browser as you work, you can load and save projects from files.</p>
+
+        <h3>Concepts</h3>
+        <h5>Projects</h5>
+        <p>SMSGFX works with objects called "Projects", a project is a container for the colour palettes and graphics
+            tiles that you've defined.</p>
+        <h5>Palette</h5>
+        <p>The Sega Master System and Game Gear use palettes with 16 colour slots per palette. Each slot contains the
+            RGB
+            value for a colour. You can use the same colour in multiple slots.</p>
+        <p>When you paint an image it is important to note that each 'pixel' does not store a colour, but instead it
+            stores the slot number of the colour used from 1 to 16. You will notice that as you change colour palettes
+            the colours in your image will also update to reflect the colour palette used.</p>
+        <h5>Colours</h5>
+        <p>The Sega Master System uses 6-bit colour, this gives you a total count of 64 colours that you can use with
+            your graphics, this limited amount of colours gives Master System games their signature bright and cartoony
+            look.</p>
+        <p>The Sega Game Gear uses 12-bit colour, this gives you a total count of 4096 colours that you can use with
+            your graphics, this expanded range of colours allows you to pick more complementary colours than the Master
+            System.</p>
+        <p>Despite the total colours available to you remember that you may only use 16 of these colours per palette
+            meaning that each tile may show a maximum of 16 colours.</p>
+        <h5>Tiles</h5>
+        <p>The Sega Master System and Game Gear construct their graphics using a mosaic of 8x8 pixel tiles.</p>
+        <p>To construct a scene we lay out these tiles out in a 'tile map'. You can not draw on individual
+            pixels on these systems, your scene is constructed from these tiles.</p>
+        <p>In almost all games a single tile is repeated multiple times.</p>
+        <h5>Tile map</h5>
+        <p>This is a grid constructed of individual 8x8 graphics tiles that you define. Each tile may be repeated
+            any number of times. Each entry in a tile map also tells the system which colour palette to use and
+            whether the tile is to be flipped horizontally or vertically, or appear on-top of or behind sprites.</p>
+        <p>You cannot place a tile anywhere on the screen, each tile must be placed into a tile map.</p>
+        <h5>Sprite</h5>
+        <p>A sprite is a single 8x8 tile from your tile set, unlike a tile map, a sprite may be moved to any position
+            onto the screen.</p>
+        <p>In a game, usually the player's character is a sprite, depending on the size of the player's character,
+            several tiles and sprites may be used to act as one large sprite.</p>
+        <p>There are limitations on sprites, with only 64 allowed at once, and no more than 8 can appear side by side,
+            if there are more than 8 side by side you will experience flickering graphics.</p>
+        <h5>Tile set</h5>
+        <p>A tile set is a concept used by SMSGFX which refers to the entire collection of tiles for your project
+            regardless of the tile map that they're used on.
+        </p>
+
+        <h3>Getting started</h3>
+        <h4>Creating a new project</h4>
+        <p>The first time that you use the app on a new browser a new project will be automatically created and opened
+            for you.</p>
+        <p>With this project you can start drawing and customising palettes right away, however you might also want top
+            bring in graphics from image files or
+        </p>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.bundle.min.js"
+        integrity="sha512-i9cEfJwUwViEPFKdC1enz4ZRGBj8YQo6QByFTF92YXHi7waCqyexvRD75S5NVTsSiTv7rKWqG9Y5eFxmRsOn0A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</body>
+
+</html>
