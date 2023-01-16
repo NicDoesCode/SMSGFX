@@ -39,8 +39,6 @@ export default class TileEditor {
 
     /** @type {HTMLElement} */
     #element;
-    // /** @type {HTMLElement} */
-    // #canvasContainer;
     /** @type {HTMLCanvasElement} */
     #tbCanvas;
     /** @type {TileEditorContextMenu} */
@@ -60,8 +58,6 @@ export default class TileEditor {
     #canvasMouseMiddleDown = false;
     #canvasMouseRightDown = false;
     #displayNative = true;
-    /** @type {ReferenceImage} */
-    #referenceImage;
     #dispatcher;
     #enabled = true;
 
@@ -249,6 +245,9 @@ export default class TileEditor {
 
     /** @param {MouseEvent} ev */
     #handleCanvasMouseMove(ev) {
+
+        console.log('mouse move', ev.buttons);
+
         if (this.#enabled && this.#tileSet) {
             if (ev.target === this.#tbCanvas) {
                 const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(ev.clientX, ev.clientY);
@@ -420,12 +419,17 @@ export default class TileEditor {
             }
             return false;
         } else {
+            console.log(`Scroll, ctrl:${ev.ctrlKey}, x:${ev.deltaX}, y:${ev.deltaY}, z:${ev.deltaZ}`); // TMP 
+            const speeds = [0, 5, 10, 15, 20, 25];
             if (ev.deltaX !== 0) {
-                this.#canvasManager.offsetX += ev.deltaX > 0 ? 25 : -25;
+                // this.#canvasManager.offsetX += ev.deltaX > 0 ? -25 : 25;
+                this.#canvasManager.offsetX -= ev.deltaX * 5;
             }
             if (ev.deltaY !== 0) {
-                this.#canvasManager.offsetY += ev.deltaY > 0 ? 25 : -25;
+                // this.#canvasManager.offsetY += ev.deltaY > 0 ? -25 : 25;
+                this.#canvasManager.offsetY -= ev.deltaY * 5;
             }
+            ev.preventDefault();
             this.#canvasManager.drawUI(this.#tbCanvas);
             return false;
         }
