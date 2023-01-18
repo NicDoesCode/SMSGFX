@@ -230,6 +230,44 @@ export default class CanvasManager {
 
 
     /**
+     * 
+     * @param {HTMLCanvasElement} canvas - The canvas to measure against.
+     */
+    clipCanvas(canvas) {
+
+        // if (drawX < 10 - baseCanvas.width) drawX = 10 - baseCanvas.width;
+        // if (drawX > canvas.width - 10) drawX = canvas.width - 10;
+        // if (drawY < 10 - baseCanvas.height) drawY = 10 - baseCanvas.height;
+        // if (drawY > canvas.height - 10) drawY = canvas.height - 10;
+
+        const padding = 10;
+        // const clipL = 0 - (canvas.width / 2) + padding;
+        const clipL = 0 - (canvas.width / 2) + padding;
+        const clipR = (this.#baseCanvas.width * 1.5) - padding;
+        
+        // image left + width > 0 - half canvas width 
+        // this.offsetX = clipL + 1000;
+
+        if (this.offsetX < clipL) this.offsetX = clipL;
+        if (this.offsetX > clipR) this.offsetX = clipR;
+
+        console.log({offsetX: this.offsetX, clipL});
+
+        // const diff = this.#baseCanvas.width - (this.#baseCanvas.width / 4);
+        // if (this.#offsetX > diff) this.#offsetX = diff;
+        // if (this.#offsetX < -diff) this.#offsetX = -diff;
+
+        // const diff = this.#baseCanvas.height - (this.#baseCanvas.height / 4);
+        // if (this.#offsetY > diff) this.#offsetY = diff;
+        // if (this.#offsetY < -diff) this.#offsetY = -diff;
+
+        // this.#offsetX = drawX + (baseCanvas.width / 2);
+        // this.#offsetY = drawY + (baseCanvas.height / 2);
+
+    }
+
+
+    /**
      * Refreshes the entire base image.
      */
     #refreshBaseImage() {
@@ -336,6 +374,8 @@ export default class CanvasManager {
     drawUI(canvas, mouseX, mouseY) {
         if (!canvas) throw new Error('drawUI: No canvas.');
 
+        this.clipCanvas(canvas)
+
         if (this.#needToDrawBase) {
             this.#refreshBaseImage();
             this.#redrawTiles = [];
@@ -358,8 +398,8 @@ export default class CanvasManager {
             canvas.height = canvas.clientHeight;
         }
 
-        const drawX = ((canvas.width - baseCanvas.width) / 2) + this.#offsetX;
-        const drawY = ((canvas.height - baseCanvas.height) / 2) + this.#offsetY;
+        let drawX = ((canvas.width - baseCanvas.width) / 2) + this.#offsetX;
+        let drawY = ((canvas.height - baseCanvas.height) / 2) + this.#offsetY;
 
         /** @type {CanvCoords} */
         const coords = {
