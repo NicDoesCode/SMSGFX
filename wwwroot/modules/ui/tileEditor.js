@@ -417,10 +417,10 @@ export default class TileEditor {
             return false;
         } else {
             if (ev.deltaX !== 0) {
-                this.#canvasManager.offsetX -= ev.deltaX * 5;
+                this.#canvasManager.offsetX -= ev.deltaX * 3;
             }
             if (ev.deltaY !== 0) {
-                this.#canvasManager.offsetY -= ev.deltaY * 5;
+                this.#canvasManager.offsetY -= ev.deltaY * 3;
             }
             ev.preventDefault();
             this.#canvasManager.drawUI(this.#tbCanvas);
