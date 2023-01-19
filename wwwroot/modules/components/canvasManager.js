@@ -234,36 +234,17 @@ export default class CanvasManager {
      * @param {HTMLCanvasElement} canvas - The canvas to measure against.
      */
     clipCanvas(canvas) {
-
-        // if (drawX < 10 - baseCanvas.width) drawX = 10 - baseCanvas.width;
-        // if (drawX > canvas.width - 10) drawX = canvas.width - 10;
-        // if (drawY < 10 - baseCanvas.height) drawY = 10 - baseCanvas.height;
-        // if (drawY > canvas.height - 10) drawY = canvas.height - 10;
-
         const padding = 10;
-        // const clipL = 0 - (canvas.width / 2) + padding;
-        const clipL = 0 - (canvas.width / 2) + padding;
-        const clipR = (this.#baseCanvas.width * 1.5) - padding;
-        
-        // image left + width > 0 - half canvas width 
-        // this.offsetX = clipL + 1000;
+
+        const clipL = 0 - (canvas.width / 2) - (this.#baseCanvas.width / 2) + padding;
+        const clipR = 0 + (canvas.width / 2) + (this.#baseCanvas.width / 2) - padding;
+        const clipT = 0 - (canvas.height / 2) - (this.#baseCanvas.height / 2) + padding;
+        const clipB = 0 + (canvas.height / 2) + (this.#baseCanvas.height / 2) - padding;
 
         if (this.offsetX < clipL) this.offsetX = clipL;
         if (this.offsetX > clipR) this.offsetX = clipR;
-
-        console.log({offsetX: this.offsetX, clipL});
-
-        // const diff = this.#baseCanvas.width - (this.#baseCanvas.width / 4);
-        // if (this.#offsetX > diff) this.#offsetX = diff;
-        // if (this.#offsetX < -diff) this.#offsetX = -diff;
-
-        // const diff = this.#baseCanvas.height - (this.#baseCanvas.height / 4);
-        // if (this.#offsetY > diff) this.#offsetY = diff;
-        // if (this.#offsetY < -diff) this.#offsetY = -diff;
-
-        // this.#offsetX = drawX + (baseCanvas.width / 2);
-        // this.#offsetY = drawY + (baseCanvas.height / 2);
-
+        if (this.offsetY < clipT) this.offsetY = clipT;
+        if (this.offsetY > clipB) this.offsetY = clipB;
     }
 
 
