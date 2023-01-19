@@ -39,8 +39,6 @@ export default class TileEditor {
 
     /** @type {HTMLElement} */
     #element;
-    // /** @type {HTMLElement} */
-    // #canvasContainer;
     /** @type {HTMLCanvasElement} */
     #tbCanvas;
     /** @type {TileEditorContextMenu} */
@@ -60,8 +58,6 @@ export default class TileEditor {
     #canvasMouseMiddleDown = false;
     #canvasMouseRightDown = false;
     #displayNative = true;
-    /** @type {ReferenceImage} */
-    #referenceImage;
     #dispatcher;
     #enabled = true;
 
@@ -421,11 +417,12 @@ export default class TileEditor {
             return false;
         } else {
             if (ev.deltaX !== 0) {
-                this.#canvasManager.offsetX += ev.deltaX > 0 ? 25 : -25;
+                this.#canvasManager.offsetX -= ev.deltaX * 3;
             }
             if (ev.deltaY !== 0) {
-                this.#canvasManager.offsetY += ev.deltaY > 0 ? 25 : -25;
+                this.#canvasManager.offsetY -= ev.deltaY * 3;
             }
+            ev.preventDefault();
             this.#canvasManager.drawUI(this.#tbCanvas);
             return false;
         }

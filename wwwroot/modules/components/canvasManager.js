@@ -230,6 +230,26 @@ export default class CanvasManager {
 
 
     /**
+     * Ensures the tile set image is displayed witin the canvas bounds.
+     * @param {HTMLCanvasElement} canvas - The canvas to measure against.
+     * @param {number} [padding=0] - Maximum amount that the image is allowed to exceed the canvas bounds.
+     */
+    clipCanvas(canvas, padding) {
+        padding = typeof padding === 'number' ? padding : 0;
+
+        const clipL = 0 - (canvas.width / 2) - (this.#baseCanvas.width / 2) - padding;
+        const clipR = 0 + (canvas.width / 2) + (this.#baseCanvas.width / 2) + padding;
+        const clipT = 0 - (canvas.height / 2) - (this.#baseCanvas.height / 2) - padding;
+        const clipB = 0 + (canvas.height / 2) + (this.#baseCanvas.height / 2) + padding;
+
+        if (this.offsetX < clipL) this.offsetX = clipL;
+        if (this.offsetX > clipR) this.offsetX = clipR;
+        if (this.offsetY < clipT) this.offsetY = clipT;
+        if (this.offsetY > clipB) this.offsetY = clipB;
+    }
+
+
+    /**
      * Refreshes the entire base image.
      */
     #refreshBaseImage() {
@@ -336,6 +356,8 @@ export default class CanvasManager {
     drawUI(canvas, mouseX, mouseY) {
         if (!canvas) throw new Error('drawUI: No canvas.');
 
+        this.clipCanvas(canvas, -10)
+
         if (this.#needToDrawBase) {
             this.#refreshBaseImage();
             this.#redrawTiles = [];
@@ -358,8 +380,8 @@ export default class CanvasManager {
             canvas.height = canvas.clientHeight;
         }
 
-        const drawX = ((canvas.width - baseCanvas.width) / 2) + this.#offsetX;
-        const drawY = ((canvas.height - baseCanvas.height) / 2) + this.#offsetY;
+        let drawX = ((canvas.width - baseCanvas.width) / 2) + this.#offsetX;
+        let drawY = ((canvas.height - baseCanvas.height) / 2) + this.#offsetY;
 
         /** @type {CanvCoords} */
         const coords = {
