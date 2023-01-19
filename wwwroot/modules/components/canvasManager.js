@@ -230,16 +230,17 @@ export default class CanvasManager {
 
 
     /**
-     * 
+     * Ensures the tile set image is displayed witin the canvas bounds.
      * @param {HTMLCanvasElement} canvas - The canvas to measure against.
+     * @param {number?} padding - Maximum amount that the image is allowed to exceed the canvas bounds.
      */
-    clipCanvas(canvas) {
-        const padding = 10;
+    clipCanvas(canvas, padding) {
+        const clipPadding = typeof padding === 'number' ? padding : 0;
 
-        const clipL = 0 - (canvas.width / 2) - (this.#baseCanvas.width / 2) + padding;
-        const clipR = 0 + (canvas.width / 2) + (this.#baseCanvas.width / 2) - padding;
-        const clipT = 0 - (canvas.height / 2) - (this.#baseCanvas.height / 2) + padding;
-        const clipB = 0 + (canvas.height / 2) + (this.#baseCanvas.height / 2) - padding;
+        const clipL = 0 - (canvas.width / 2) - (this.#baseCanvas.width / 2) - clipPadding;
+        const clipR = 0 + (canvas.width / 2) + (this.#baseCanvas.width / 2) + clipPadding;
+        const clipT = 0 - (canvas.height / 2) - (this.#baseCanvas.height / 2) - clipPadding;
+        const clipB = 0 + (canvas.height / 2) + (this.#baseCanvas.height / 2) + clipPadding;
 
         if (this.offsetX < clipL) this.offsetX = clipL;
         if (this.offsetX > clipR) this.offsetX = clipR;
