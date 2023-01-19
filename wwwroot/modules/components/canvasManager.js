@@ -356,7 +356,7 @@ export default class CanvasManager {
     drawUI(canvas, mouseX, mouseY) {
         if (!canvas) throw new Error('drawUI: No canvas.');
 
-        this.clipCanvas(canvas)
+        this.clipCanvas(canvas, -10)
 
         if (this.#needToDrawBase) {
             this.#refreshBaseImage();
