@@ -23,14 +23,14 @@
                                     <strong>Local projects</strong>
                                 </div>
                                 <div class="col col-8 text-end p-0">
-                                    <div class="btn-group border-border-0" role="group" aria-label="Basic outlined example">
-                                        <button data-command="projectNew" class="btn btn-sm"
-                                            title="New project." type="button">
+                                    <div class="btn-group border-border-0" role="group"
+                                        aria-label="Basic outlined example">
+                                        <button data-command="projectNew" class="btn btn-sm" title="New project."
+                                            type="button">
                                             <i class="bi bi-file-earmark-plus"></i> New project
                                         </button>
-                                        <button data-command="projectLoadFromFile"
-                                            class="btn btn-sm" title="Load project from file."
-                                            type="button">
+                                        <button data-command="projectLoadFromFile" class="btn btn-sm"
+                                            title="Load project from file." type="button">
                                             <i class="bi bi-upload"></i> Load from file
                                         </button>
                                     </div>
@@ -54,7 +54,15 @@
                 </script>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                <div class="row m-0 p-0">
+                    <div class="col m-0 p-0 text-start">
+                        <button type="button" class="btn btn-sm btn-link"
+                            data-command="showWelcomeScreen">Show welcome screen</button>
+                    </div>
+                    <div class="col-auto m-0 p-0 text-end">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -35,6 +35,7 @@ import PrivacyModalDialogue from "./ui/privacyModalDialogue.js";
 import ProjectDropdown from "./ui/projectDropdown.js";
 import GoogleAnalyticsManager from "./components/googleAnalyticsManager.js";
 import DocumentationViewer from "./ui/documentationViewer.js";
+import WelcomeScreen from "./ui/welcomeScreen.js";
 
 
 /* ****************************************************************************************************
@@ -105,6 +106,7 @@ const googleAnalytics = new GoogleAnalyticsManager();
 /** @type {AboutModalDialogue} */ let aboutDialogue;
 /** @type {PrivacyModalDialogue} */ let privacyModalDialogue;
 /** @type {DocumentationViewer} */ let documentationViewer;
+/** @type {WelcomeScreen} */ let welcomeScreen;
 
 async function initialiseComponents() {
     await googleAnalytics.injectIfConfiguredAsync();
@@ -126,6 +128,7 @@ async function initialiseComponents() {
     aboutDialogue = await AboutModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=about-modal]'));
     privacyModalDialogue = await PrivacyModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=privacy-modal]'));
     documentationViewer = await DocumentationViewer.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=documentation-viewer]'));
+    welcomeScreen = await WelcomeScreen.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=welcome-screen]'));
 }
 
 function wireUpGenericComponents() {
@@ -161,6 +164,7 @@ function wireUpEventHandlers() {
 
     projectToolbar.addHandlerOnCommand(handleProjectToolbarOnCommand);
     projectDropdown.addHandlerOnCommand(handleProjectDropdownOnCommand);
+    projectDropdown.addHandlerOnHidden(handleProjectDropdownOnHidden);
 
     exportToolbar.addHandlerOnCommand(handleExportToolbarOnCommand);
 
@@ -185,6 +189,8 @@ function wireUpEventHandlers() {
     importImageModalDialogue.addHandlerOnConfirm(handleImageImportModalOnConfirm);
 
     documentationViewer.addHandlerOnCommand(documentationViewerOnCommand);
+
+    welcomeScreen.addHandlerOnCommand(welcomeScreenOnCommand);
 }
 
 function createEventListeners() {
@@ -569,6 +575,17 @@ function handleProjectDropdownOnCommand(args) {
             state.deleteProjectFromStorage(args.projectId);
             break;
 
+        case ProjectDropdown.Commands.showWelcomeScreen:
+            welcomeScreen.setState({ visible: true });
+            projectDropdown.setState({ visible: false });
+            break;
+
+    }
+}
+
+function handleProjectDropdownOnHidden() {
+    if (getProject() instanceof Project === false) {
+        welcomeScreen.setState({ visible: true });
     }
 }
 
@@ -1037,6 +1054,9 @@ function handleImportTileSet(args) {
     tileEditor.setState({
         tileSet: getTileSet()
     });
+    if (getProject() instanceof Project) {
+        welcomeScreen.setState({ visible: false });
+    }
 
     tileImportDialogue.hide();
 }
@@ -1085,6 +1105,9 @@ function handleImageImportModalOnConfirm(args) {
     projectDropdown.setState({
         projectTitle: getProject().title
     });
+    welcomeScreen.setState({
+        visible: false
+    });
 
     importImageModalDialogue.hide();
 }
@@ -1096,6 +1119,39 @@ function documentationViewerOnCommand(args) {
         documentationViewer.setState({ visible: false });
         getUIState().documentationVisibleOnStartup = false;
         state.saveToLocalStorage();
+    }
+}
+
+
+/** @param {import("./ui/welcomeScreen").WelcomeScreenStateCommandEventArgs} args */
+function welcomeScreenOnCommand(args) {
+    switch (args.command) {
+
+        case WelcomeScreen.Commands.dismiss:
+            welcomeScreen.setState({ visible: false });
+            break;
+
+        case WelcomeScreen.Commands.changeShowOnStartUp:
+            getUIState().welcomeVisibleOnStartup = args.showOnStartUp;
+            state.saveToLocalStorage();
+            break;
+
+        case WelcomeScreen.Commands.projectNew:
+            newProject();
+            break;
+
+        case WelcomeScreen.Commands.projectLoadFromFile:
+            importProjectFromJson();
+            break;
+
+        case WelcomeScreen.Commands.tileImageImport:
+            tileImportImage();
+            break;
+
+        case WelcomeScreen.Commands.showDocumentation:
+            documentationViewer.setState({ visible: true });
+            break;
+
     }
 }
 
@@ -1264,7 +1320,7 @@ function formatForNoProject() {
             ProjectToolbar.Commands.showDropdown,
             ProjectToolbar.Commands.projectNew,
             ProjectToolbar.Commands.projectLoadFromFile,
-            ProjectToolbar.Commands.projectLoadById, 
+            ProjectToolbar.Commands.projectLoadById,
             ProjectToolbar.Commands.projectDelete
         ]
     });
@@ -1272,9 +1328,11 @@ function formatForNoProject() {
         enabled: false,
         projectTitle: '',
         enabledCommands: [
-            ProjectToolbar.Commands.projectNew,
-            ProjectToolbar.Commands.projectLoadFromFile,
-            ProjectToolbar.Commands.projectLoadById, ProjectToolbar.Commands.projectDelete
+            ProjectDropdown.Commands.projectNew,
+            ProjectDropdown.Commands.projectLoadFromFile,
+            ProjectDropdown.Commands.projectLoadById,
+            ProjectDropdown.Commands.projectDelete,
+            ProjectDropdown.Commands.showWelcomeScreen
         ]
     });
     exportToolbar.setState({
@@ -1966,6 +2024,7 @@ function newProject() {
         tileSet: getTileSet(),
         selectedTileIndex: instanceState.tileIndex
     });
+    welcomeScreen.setState({ visible: false });
 }
 
 /**
@@ -1986,9 +2045,8 @@ function importProjectFromJson() {
                 getUIState().paletteIndex = 0;
 
                 displaySelectedProject();
-                projectDropdown.setState({
-                    visible: false
-                });
+                projectDropdown.setState({ visible: false });
+                welcomeScreen.setState({ visible: false });
             });
         }
     }
@@ -2467,7 +2525,6 @@ window.addEventListener('load', async () => {
     // Load and set state
     state.loadFromLocalStorage();
 
-    createDefaultProjectIfNoneExists();
     checkPersistentUIValues();
 
     // Load initial projects
@@ -2506,5 +2563,13 @@ window.addEventListener('load', async () => {
         };
     });
 
-    documentationViewer.setState({ visible: getUIState().documentationVisibleOnStartup });
+    documentationViewer.setState({
+        visible: getUIState().documentationVisibleOnStartup
+    });
+
+    welcomeScreen.setState({
+        visible: getUIState().welcomeVisibleOnStartup || getProject() instanceof Project === false,
+        showWelcomeScreenOnStartUpChecked: getUIState().welcomeVisibleOnStartup
+    });
+
 });
