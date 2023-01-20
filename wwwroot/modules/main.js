@@ -164,6 +164,7 @@ function wireUpEventHandlers() {
 
     projectToolbar.addHandlerOnCommand(handleProjectToolbarOnCommand);
     projectDropdown.addHandlerOnCommand(handleProjectDropdownOnCommand);
+    projectDropdown.addHandlerOnHidden(handleProjectDropdownOnHidden);
 
     exportToolbar.addHandlerOnCommand(handleExportToolbarOnCommand);
 
@@ -188,6 +189,7 @@ function wireUpEventHandlers() {
     importImageModalDialogue.addHandlerOnConfirm(handleImageImportModalOnConfirm);
 
     documentationViewer.addHandlerOnCommand(documentationViewerOnCommand);
+
     welcomeScreen.addHandlerOnCommand(welcomeScreenOnCommand);
 }
 
@@ -578,6 +580,12 @@ function handleProjectDropdownOnCommand(args) {
             projectDropdown.setState({ visible: false });
             break;
 
+    }
+}
+
+function handleProjectDropdownOnHidden() {
+    if (getProject() instanceof Project === false) {
+        welcomeScreen.setState({ visible: true });
     }
 }
 
@@ -2488,7 +2496,6 @@ window.addEventListener('load', async () => {
     // Load and set state
     state.loadFromLocalStorage();
 
-    createDefaultProjectIfNoneExists();
     checkPersistentUIValues();
 
     // Load initial projects
@@ -2532,8 +2539,8 @@ window.addEventListener('load', async () => {
     });
 
     welcomeScreen.setState({
-        visible: getUIState().welcomeVisibleOnStartup,
+        visible: getUIState().welcomeVisibleOnStartup || getProject() instanceof Project === false,
         showWelcomeScreenOnStartUpChecked: getUIState().welcomeVisibleOnStartup
     });
-    
+
 });

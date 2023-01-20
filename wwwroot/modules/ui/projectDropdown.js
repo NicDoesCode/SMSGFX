@@ -131,7 +131,7 @@ export default class ProjectDropdown extends ModalDialogue {
 
 
     /**
-     * Registers a handler for a dropdown command.
+     * Registers a handler for a command.
      * @param {ProjectDropdownCommandCallback} callback - Callback that will receive the command.
      */
     addHandlerOnCommand(callback) {
@@ -208,7 +208,7 @@ export default class ProjectDropdown extends ModalDialogue {
  */
 
 /**
- * Project dropdown callback.
+ * Command callback.
  * @callback ProjectDropdownCommandCallback
  * @param {ProjectDropdownCommandEventArgs} args - Arguments.
  * @exports
@@ -220,4 +220,3 @@ export default class ProjectDropdown extends ModalDialogue {
  * @property {string?} projectId - Project ID.
  * @exports
  */
-
