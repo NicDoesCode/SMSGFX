@@ -123,7 +123,7 @@ export default class TileEditor {
         }
         // Changing tile set
         const tileSet = state?.tileSet;
-        if (tileSet && typeof tileSet.getPixelAt === 'function') {
+        if (tileSet instanceof TileSet || tileSet === null) {
             this.#canvasManager.invalidateImage();
             this.#tileSet = tileSet;
             dirty = true;
@@ -191,14 +191,12 @@ export default class TileEditor {
             dirty = true;
         }
         // Refresh image?
-        if (dirty && this.#palette && this.#tileSet) {
+        if (dirty && this.#palette) {
             let palette = !this.#displayNative ? this.#palette : this.#nativePalette;
             if (this.#canvasManager.palette !== palette) {
                 this.#canvasManager.palette = palette;
             }
-            if (this.#canvasManager.tileSet !== this.#tileSet) {
-                this.#canvasManager.tileSet = this.#tileSet;
-            }
+            this.#canvasManager.tileSet = this.#tileSet;
             if (this.#canvasManager.scale !== this.#scale) {
                 this.#canvasManager.scale = this.#scale;
             }
@@ -276,7 +274,7 @@ export default class TileEditor {
 
     /** @param {MouseEvent} ev */
     #handleCanvasMouseDown(ev) {
-        if (!this.#enabled) return;
+        if (!this.#enabled || ev.target !== this.#tbCanvas) return;
 
         if (ev.target === this.#tbCanvas) {
             if (ev.button === 0) {
