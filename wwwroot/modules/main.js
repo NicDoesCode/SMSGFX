@@ -576,7 +576,7 @@ function handleProjectDropdownOnCommand(args) {
             break;
 
         case ProjectDropdown.Commands.showWelcomeScreen:
-            welcomeScreen.setState({ visible: true });
+            welcomeScreen.setState({ visible: true, visibleCommands: ['dismiss'] });
             projectDropdown.setState({ visible: false });
             break;
 
@@ -585,7 +585,7 @@ function handleProjectDropdownOnCommand(args) {
 
 function handleProjectDropdownOnHidden() {
     if (getProject() instanceof Project === false) {
-        welcomeScreen.setState({ visible: true });
+        welcomeScreen.setState({ visible: true, invisibleCommands: ['dismiss'] });
     }
 }
 
@@ -2569,7 +2569,8 @@ window.addEventListener('load', async () => {
 
     welcomeScreen.setState({
         visible: getUIState().welcomeVisibleOnStartup || getProject() instanceof Project === false,
-        showWelcomeScreenOnStartUpChecked: getUIState().welcomeVisibleOnStartup
+        showWelcomeScreenOnStartUpChecked: getUIState().welcomeVisibleOnStartup,
+        invisibleCommands: ['dismiss']
     });
 
 });

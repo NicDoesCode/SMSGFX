@@ -58,7 +58,7 @@ export default class WelcomeScreen {
      * @param {HTMLElement} element - Container element.
      * @returns {Promise<WelcomeScreen>}
      */
-     static async loadIntoAsync(element) {
+    static async loadIntoAsync(element) {
         const componentElement = await TemplateUtil.replaceElementWithComponentAsync('welcomeScreen', element);
         return new WelcomeScreen(componentElement);
     }
@@ -76,8 +76,45 @@ export default class WelcomeScreen {
                 this.#element.classList.add('visually-hidden');
             }
         }
+
         if (typeof state?.showWelcomeScreenOnStartUpChecked === 'boolean') {
             this.#showOnStartupCheckbox.checked = state.showWelcomeScreenOnStartUpChecked;
+        }
+
+        if (Array.isArray(state?.enabledCommands)) {
+            const enabled = state.enabledCommands;
+            this.#element.querySelectorAll('[data-command]').forEach(element => {
+                if (enabled.includes(element.getAttribute('data-command'))) {
+                    element.removeAttribute('disabled');
+                }
+            });
+        }
+
+        if (Array.isArray(state?.disabledCommands)) {
+            const disabled = state.disabledCommands;
+            this.#element.querySelectorAll('[data-command]').forEach(element => {
+                if (disabled.includes(element.getAttribute('data-command'))) {
+                    element.setAttribute('disabled', 'disabled');
+                }
+            });
+        }
+
+        if (Array.isArray(state?.visibleCommands)) {
+            const visible = state.visibleCommands;
+            this.#element.querySelectorAll('[data-command]').forEach(element => {
+                if (visible.includes(element.getAttribute('data-command'))) {
+                    element.classList.remove('visually-hidden');
+                }
+            });
+        }
+
+        if (Array.isArray(state?.invisibleCommands)) {
+            const invisible = state.invisibleCommands;
+            this.#element.querySelectorAll('[data-command]').forEach(element => {
+                if (invisible.includes(element.getAttribute('data-command'))) {
+                    element.classList.add('visually-hidden');
+                }
+            });
         }
     }
 
@@ -112,6 +149,10 @@ export default class WelcomeScreen {
  * @typedef {object} WelcomeScreenState
  * @property {boolean?} showWelcomeScreenOnStartUpChecked 
  * @property {boolean?} visible - Is the welcome screen visible?
+ * @property {string[]?} enabledCommands - Array of commands that should be enabled, overrided enabled state.
+ * @property {string[]?} disabledCommands - Array of commands that should be disabled, overrided enabled state.
+ * @property {string[]?} visibleCommands - Array of commands that should be made visible, overrided enabled state.
+ * @property {string[]?} invisibleCommands - Array of commands that should be made invisible, overrided enabled state.
  * @exports
  */
 
