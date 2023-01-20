@@ -111,6 +111,16 @@ export default class PersistentUIState {
         this.#documentationVisibleOnStartup = value;
     }
 
+    /**
+     * Gets or sets whether the welcome screen is visible on startup.
+     */
+    get welcomeVisibleOnStartup() {
+        return this.#welcomeVisibleOnStartup;
+    }
+    set welcomeVisibleOnStartup(value) {
+        this.#welcomeVisibleOnStartup = value;
+    }
+
 
     /** @type {string} */
     #lastProjectId = null;
@@ -134,6 +144,8 @@ export default class PersistentUIState {
     #showPixelGrid = true;
     /** @type {boolean} */
     #documentationVisibleOnStartup = true;
+    /** @type {boolean} */
+    #welcomeVisibleOnStartup = true;
 
 
     constructor() {

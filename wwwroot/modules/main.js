@@ -35,6 +35,7 @@ import PrivacyModalDialogue from "./ui/privacyModalDialogue.js";
 import ProjectDropdown from "./ui/projectDropdown.js";
 import GoogleAnalyticsManager from "./components/googleAnalyticsManager.js";
 import DocumentationViewer from "./ui/documentationViewer.js";
+import WelcomeScreen from "./ui/welcomeScreen.js";
 
 
 /* ****************************************************************************************************
@@ -105,6 +106,7 @@ const googleAnalytics = new GoogleAnalyticsManager();
 /** @type {AboutModalDialogue} */ let aboutDialogue;
 /** @type {PrivacyModalDialogue} */ let privacyModalDialogue;
 /** @type {DocumentationViewer} */ let documentationViewer;
+/** @type {WelcomeScreen} */ let welcomeScreen;
 
 async function initialiseComponents() {
     await googleAnalytics.injectIfConfiguredAsync();
@@ -126,6 +128,7 @@ async function initialiseComponents() {
     aboutDialogue = await AboutModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=about-modal]'));
     privacyModalDialogue = await PrivacyModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=privacy-modal]'));
     documentationViewer = await DocumentationViewer.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=documentation-viewer]'));
+    welcomeScreen = await WelcomeScreen.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=welcome-screen]'));
 }
 
 function wireUpGenericComponents() {
@@ -185,6 +188,7 @@ function wireUpEventHandlers() {
     importImageModalDialogue.addHandlerOnConfirm(handleImageImportModalOnConfirm);
 
     documentationViewer.addHandlerOnCommand(documentationViewerOnCommand);
+    welcomeScreen.addHandlerOnCommand(welcomeScreenOnCommand);
 }
 
 function createEventListeners() {
@@ -567,6 +571,11 @@ function handleProjectDropdownOnCommand(args) {
 
         case ProjectDropdown.Commands.projectDelete:
             state.deleteProjectFromStorage(args.projectId);
+            break;
+
+        case ProjectDropdown.Commands.showWelcomeScreen:
+            welcomeScreen.setState({ visible: true });
+            projectDropdown.setState({ visible: false });
             break;
 
     }
@@ -1100,6 +1109,18 @@ function documentationViewerOnCommand(args) {
 }
 
 
+/** @param {import("./ui/welcomeScreen").WelcomeScreenStateCommandEventArgs} args */
+function welcomeScreenOnCommand(args) {
+    if (args.command === WelcomeScreen.Commands.dismiss) {
+        welcomeScreen.setState({ visible: false });
+    }
+    if (args.command === WelcomeScreen.Commands.changeShowOnStartUp) {
+        getUIState().welcomeVisibleOnStartup = args.showOnStartUp;
+        state.saveToLocalStorage();
+    }
+}
+
+
 /**
  * Creates a default tile set and palettes when the data store doesn't contain any.
  */
@@ -1264,7 +1285,7 @@ function formatForNoProject() {
             ProjectToolbar.Commands.showDropdown,
             ProjectToolbar.Commands.projectNew,
             ProjectToolbar.Commands.projectLoadFromFile,
-            ProjectToolbar.Commands.projectLoadById, 
+            ProjectToolbar.Commands.projectLoadById,
             ProjectToolbar.Commands.projectDelete
         ]
     });
@@ -2506,5 +2527,13 @@ window.addEventListener('load', async () => {
         };
     });
 
-    documentationViewer.setState({ visible: getUIState().documentationVisibleOnStartup });
+    documentationViewer.setState({
+        visible: getUIState().documentationVisibleOnStartup
+    });
+
+    welcomeScreen.setState({
+        visible: getUIState().welcomeVisibleOnStartup,
+        showWelcomeScreenOnStartUpChecked: getUIState().welcomeVisibleOnStartup
+    });
+    
 });

@@ -11,7 +11,8 @@ const commands = {
     projectLoadFromFile: 'projectLoadFromFile',
     projectLoadById: 'projectLoadById',
     projectSaveToFile: 'projectSaveToFile',
-    projectDelete: 'projectDelete'
+    projectDelete: 'projectDelete',
+    showWelcomeScreen: 'showWelcomeScreen'
 }
 
 export default class ProjectDropdown extends ModalDialogue {
