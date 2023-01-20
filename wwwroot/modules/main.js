@@ -1301,9 +1301,11 @@ function formatForNoProject() {
         enabled: false,
         projectTitle: '',
         enabledCommands: [
-            ProjectToolbar.Commands.projectNew,
-            ProjectToolbar.Commands.projectLoadFromFile,
-            ProjectToolbar.Commands.projectLoadById, ProjectToolbar.Commands.projectDelete
+            ProjectDropdown.Commands.projectNew,
+            ProjectDropdown.Commands.projectLoadFromFile,
+            ProjectDropdown.Commands.projectLoadById, 
+            ProjectDropdown.Commands.projectDelete,
+            ProjectDropdown.Commands.showWelcomeScreen
         ]
     });
     exportToolbar.setState({
