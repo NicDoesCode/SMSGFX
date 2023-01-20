@@ -1054,6 +1054,9 @@ function handleImportTileSet(args) {
     tileEditor.setState({
         tileSet: getTileSet()
     });
+    if (getProject() instanceof Project) {
+        welcomeScreen.setState({ visible: false });
+    }
 
     tileImportDialogue.hide();
 }
@@ -1102,6 +1105,9 @@ function handleImageImportModalOnConfirm(args) {
     projectDropdown.setState({
         projectTitle: getProject().title
     });
+    welcomeScreen.setState({
+        visible: false
+    });
 
     importImageModalDialogue.hide();
 }
@@ -1119,12 +1125,33 @@ function documentationViewerOnCommand(args) {
 
 /** @param {import("./ui/welcomeScreen").WelcomeScreenStateCommandEventArgs} args */
 function welcomeScreenOnCommand(args) {
-    if (args.command === WelcomeScreen.Commands.dismiss) {
-        welcomeScreen.setState({ visible: false });
-    }
-    if (args.command === WelcomeScreen.Commands.changeShowOnStartUp) {
-        getUIState().welcomeVisibleOnStartup = args.showOnStartUp;
-        state.saveToLocalStorage();
+    switch (args.command) {
+
+        case WelcomeScreen.Commands.dismiss:
+            welcomeScreen.setState({ visible: false });
+            break;
+
+        case WelcomeScreen.Commands.changeShowOnStartUp:
+            getUIState().welcomeVisibleOnStartup = args.showOnStartUp;
+            state.saveToLocalStorage();
+            break;
+
+        case WelcomeScreen.Commands.projectNew:
+            newProject();
+            break;
+
+        case WelcomeScreen.Commands.projectLoadFromFile:
+            importProjectFromJson();
+            break;
+
+        case WelcomeScreen.Commands.tileImageImport:
+            tileImportImage();
+            break;
+
+        case WelcomeScreen.Commands.showDocumentation:
+            documentationViewer.setState({ visible: true });
+            break;
+
     }
 }
 
@@ -1303,7 +1330,7 @@ function formatForNoProject() {
         enabledCommands: [
             ProjectDropdown.Commands.projectNew,
             ProjectDropdown.Commands.projectLoadFromFile,
-            ProjectDropdown.Commands.projectLoadById, 
+            ProjectDropdown.Commands.projectLoadById,
             ProjectDropdown.Commands.projectDelete,
             ProjectDropdown.Commands.showWelcomeScreen
         ]
@@ -1997,6 +2024,7 @@ function newProject() {
         tileSet: getTileSet(),
         selectedTileIndex: instanceState.tileIndex
     });
+    welcomeScreen.setState({ visible: false });
 }
 
 /**
@@ -2017,9 +2045,8 @@ function importProjectFromJson() {
                 getUIState().paletteIndex = 0;
 
                 displaySelectedProject();
-                projectDropdown.setState({
-                    visible: false
-                });
+                projectDropdown.setState({ visible: false });
+                welcomeScreen.setState({ visible: false });
             });
         }
     }

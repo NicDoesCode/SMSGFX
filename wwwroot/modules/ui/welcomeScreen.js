@@ -5,7 +5,11 @@ const EVENT_OnCommand = 'EVENT_OnCommand';
 
 const commands = {
     dismiss: 'dismiss',
-    changeShowOnStartUp: 'changeShowOnStartUp'
+    changeShowOnStartUp: 'changeShowOnStartUp',
+    projectNew: 'projectNew',
+    projectLoadFromFile: 'projectLoadFromFile',
+    tileImageImport: 'tileImageImport',
+    showDocumentation: 'showDocumentation'
 }
 
 export default class WelcomeScreen {
