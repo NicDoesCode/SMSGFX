@@ -465,8 +465,10 @@ function handleWatcherEvent(args) {
             const project = getProject();
             if (project && args.project && args.project.id === project.id) {
                 state.setProject(args.project);
-                formatForProject();
+            } else {
+                tileEditor.setState({ tileSet: null });
             }
+            formatForProject();
             break;
 
         case ProjectWatcher.Events.projectListChanged:
@@ -539,7 +541,6 @@ function handleProjectToolbarOnCommand(args) {
 
 /** @param {import('./ui/projectDropdown').ProjectDropdownCommandEventArgs} args */
 function handleProjectDropdownOnCommand(args) {
-
     switch (args.command) {
 
         case ProjectDropdown.Commands.title:
@@ -1260,9 +1261,11 @@ function formatForNoProject() {
         enabled: false,
         projectTitle: '',
         enabledCommands: [
+            ProjectToolbar.Commands.showDropdown,
             ProjectToolbar.Commands.projectNew,
             ProjectToolbar.Commands.projectLoadFromFile,
-            ProjectToolbar.Commands.projectLoadById, ProjectToolbar.Commands.projectDelete
+            ProjectToolbar.Commands.projectLoadById, 
+            ProjectToolbar.Commands.projectDelete
         ]
     });
     projectDropdown.setState({
@@ -1296,7 +1299,7 @@ function formatForNoProject() {
         enabled: false
     });
     tileEditor.setState({
-        tileSet: dummyProject.tileSet,
+        tileSet: null,
         enabled: false
     });
 }

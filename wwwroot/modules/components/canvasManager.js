@@ -130,9 +130,9 @@ export default class CanvasManager {
 
 
     /** @type {HTMLCanvasElement} */
-    #baseCanvas;
+    #tileCanvas;
     /** @type {boolean} */
-    #needToDrawBase = true;
+    #needToDrawTileImage = true;
     /** @type {TileSet} */
     #tileSet = null;
     /** @type {Palette} */
@@ -160,7 +160,7 @@ export default class CanvasManager {
      * @param {Palette} [palette] Colour palette to use.
      */
     constructor(tileSet, palette) {
-        this.#baseCanvas = document.createElement('canvas');
+        this.#tileCanvas = document.createElement('canvas');
         if (tileSet) this.#tileSet = tileSet;
         if (palette) this.#palette = palette;
     }
@@ -170,11 +170,11 @@ export default class CanvasManager {
      * Invalidates the tile set image and forces a redraw.
      */
     invalidateImage() {
-        this.#needToDrawBase = true;
+        this.#needToDrawTileImage = true;
     }
 
     /**
-     * Invalidates and forces a redraw of an individual tile on the base image.
+     * Invalidates and forces a redraw of an individual tile on the tile set image.
      */
     invalidateTile(index) {
         this.#redrawTiles.push(index);
@@ -186,7 +186,7 @@ export default class CanvasManager {
      */
     toDataURL() {
         const canvas = document.createElement('canvas');
-        this.#drawBaseImage(canvas, -1);
+        this.#drawTileImage(canvas, -1);
         return canvas.toDataURL('image/png');
     }
 
@@ -207,10 +207,10 @@ export default class CanvasManager {
 
 
     resolveMouseX(canvas, value) {
-        if (this.#baseCanvas && this.#baseCanvas.width && this.#baseCanvas.height) {
-            const drawX = ((canvas.width - this.#baseCanvas.width) / 2) + this.#offsetX;
+        if (this.#tileCanvas && this.#tileCanvas.width && this.#tileCanvas.height) {
+            const drawX = ((canvas.width - this.#tileCanvas.width) / 2) + this.#offsetX;
             const result = value - drawX;
-            if (result >= 0 && result < this.#baseCanvas.width) {
+            if (result >= 0 && result < this.#tileCanvas.width) {
                 return result;
             }
         }
@@ -218,10 +218,10 @@ export default class CanvasManager {
     }
 
     resolveMouseY(canvas, value) {
-        if (this.#baseCanvas && this.#baseCanvas.width && this.#baseCanvas.height) {
-            const drawY = ((canvas.height - this.#baseCanvas.height) / 2) + this.#offsetY;
+        if (this.#tileCanvas && this.#tileCanvas.width && this.#tileCanvas.height) {
+            const drawY = ((canvas.height - this.#tileCanvas.height) / 2) + this.#offsetY;
             const result = value - drawY;
-            if (result >= 0 && result < this.#baseCanvas.height) {
+            if (result >= 0 && result < this.#tileCanvas.height) {
                 return result;
             }
         }
@@ -237,10 +237,10 @@ export default class CanvasManager {
     clipCanvas(canvas, padding) {
         padding = typeof padding === 'number' ? padding : 0;
 
-        const clipL = 0 - (canvas.width / 2) - (this.#baseCanvas.width / 2) - padding;
-        const clipR = 0 + (canvas.width / 2) + (this.#baseCanvas.width / 2) + padding;
-        const clipT = 0 - (canvas.height / 2) - (this.#baseCanvas.height / 2) - padding;
-        const clipB = 0 + (canvas.height / 2) + (this.#baseCanvas.height / 2) + padding;
+        const clipL = 0 - (canvas.width / 2) - (this.#tileCanvas.width / 2) - padding;
+        const clipR = 0 + (canvas.width / 2) + (this.#tileCanvas.width / 2) + padding;
+        const clipT = 0 - (canvas.height / 2) - (this.#tileCanvas.height / 2) - padding;
+        const clipB = 0 + (canvas.height / 2) + (this.#tileCanvas.height / 2) + padding;
 
         if (this.offsetX < clipL) this.offsetX = clipL;
         if (this.offsetX > clipR) this.offsetX = clipR;
@@ -250,21 +250,21 @@ export default class CanvasManager {
 
 
     /**
-     * Refreshes the entire base image.
+     * Refreshes the entire tile image.
      */
-    #refreshBaseImage() {
+    #refreshTileImage() {
         const transColour = this.#referenceImages.filter(r => r.image !== null).length > 0 ? this.#transparencyIndex : -1;
-        this.#drawBaseImage(this.#baseCanvas, transColour);
+        this.#drawTileImage(this.#tileCanvas, transColour);
     }
 
     /**
-     * Draws the base image onto a canvas element.
+     * Draws the tile image onto a canvas element.
      * @param {HTMLCanvasElement} canvas - Canvas element to draw onto.
      * @param {number} transparencyColour - Render this colour as transparent.
      */
-    #drawBaseImage(canvas, transparencyColour) {
-        if (!this.tileSet) throw new Error('refreshBaseImage: No tile set.');
-        if (!this.palette) throw new Error('refreshBaseImage: No palette.');
+    #drawTileImage(canvas, transparencyColour) {
+        if (!this.tileSet) throw new Error('drawTileImage: No tile set.');
+        if (!this.palette) throw new Error('drawTileImage: No palette.');
 
         const context = canvas.getContext('2d');
 
@@ -282,22 +282,22 @@ export default class CanvasManager {
     }
 
     /**
-     * Refreshes a single tile on the base image.
+     * Refreshes a single tile on the tile image.
      */
-    #refreshBaseImageTile(tileIndex) {
+    #refreshSingleTile(tileIndex) {
         const transColour = this.#referenceImages.filter(r => r.image !== null).length > 0 ? this.#transparencyIndex : -1;
-        this.#drawBaseImageTile(this.#baseCanvas, tileIndex, transColour);
+        this.#drawIndividualTile(this.#tileCanvas, tileIndex, transColour);
     }
 
     /**
-     * Updates a single tile on the base image onto a canvas element.
+     * Updates a single tile on the main tile canvas.
      * @param {HTMLCanvasElement} canvas - Canvas element to draw onto.
-     * @param {number} tileIndex - Index of the tile to update on the base image.
+     * @param {number} tileIndex - Index of the tile to update on the tile image.
      * @param {number} transparencyColour - Render this colour as transparent.
      */
-    #drawBaseImageTile(canvas, tileIndex, transparencyColour) {
-        if (!this.tileSet) throw new Error('refreshBaseImage: No tile set.');
-        if (!this.palette) throw new Error('refreshBaseImage: No palette.');
+    #drawIndividualTile(canvas, tileIndex, transparencyColour) {
+        if (!this.tileSet) throw new Error('drawIndividualTile: No tile set.');
+        if (!this.palette) throw new Error('drawIndividualTile: No palette.');
 
         const context = canvas.getContext('2d');
         this.#drawTile(context, tileIndex, transparencyColour);
@@ -356,23 +356,31 @@ export default class CanvasManager {
     drawUI(canvas, mouseX, mouseY) {
         if (!canvas) throw new Error('drawUI: No canvas.');
 
+        const tileCanvas = this.#tileCanvas;
+        const context = canvas.getContext('2d');
+
+        // Fill canvas background
+        context.fillStyle = this.backgroundColour;
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Leave if no tile set
+        if (!this.tileSet) return;
+
+        // Otherwise continue drawing
+        const pxSize = this.scale;
+
         this.clipCanvas(canvas, -10)
 
-        if (this.#needToDrawBase) {
-            this.#refreshBaseImage();
+        if (this.#needToDrawTileImage) {
+            this.#refreshTileImage();
             this.#redrawTiles = [];
-            this.#needToDrawBase = false;
+            this.#needToDrawTileImage = false;
         }
 
         while (this.#redrawTiles.length > 0) {
             const tileIndex = this.#redrawTiles.pop();
-            this.#refreshBaseImageTile(tileIndex);
+            this.#refreshSingleTile(tileIndex);
         }
-
-        const pxSize = this.scale;
-
-        const baseCanvas = this.#baseCanvas;
-        const context = canvas.getContext('2d');
 
         // Ensure the canvas itself is the correct height
         if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
@@ -380,8 +388,8 @@ export default class CanvasManager {
             canvas.height = canvas.clientHeight;
         }
 
-        let drawX = ((canvas.width - baseCanvas.width) / 2) + this.#offsetX;
-        let drawY = ((canvas.height - baseCanvas.height) / 2) + this.#offsetY;
+        let drawX = ((canvas.width - tileCanvas.width) / 2) + this.#offsetX;
+        let drawY = ((canvas.height - tileCanvas.height) / 2) + this.#offsetY;
 
         /** @type {CanvCoords} */
         const coords = {
@@ -394,9 +402,6 @@ export default class CanvasManager {
             drawX: drawX, drawY: drawY
         }
 
-        context.fillStyle = this.backgroundColour;
-        context.fillRect(0, 0, canvas.width, canvas.height);
-
         // Draw the reference image below
         if (this.transparencyIndex >= 0 && this.transparencyIndex < 16) {
             this.#drawReferenceImages(context, coords);
@@ -407,8 +412,8 @@ export default class CanvasManager {
         const baseY = Math.max(0, -drawY);
         const canvX = Math.max(0, drawX);
         const canvY = Math.max(0, drawY);
-        const baseW = Math.min(baseCanvas.width, baseCanvas.width - baseX);
-        const baseH = Math.min(baseCanvas.height, baseCanvas.height - baseY);
+        const baseW = Math.min(tileCanvas.width, tileCanvas.width - baseX);
+        const baseH = Math.min(tileCanvas.height, tileCanvas.height - baseY);
 
         // Draw the border around the canvas
         context.lineWidth = 1;
@@ -418,7 +423,7 @@ export default class CanvasManager {
         context.strokeRect(canvX - 2, canvY - 2, baseW + 4, baseH + 4);
 
         // Draw the cached image
-        context.drawImage(baseCanvas, baseX, baseY, baseW, baseH, canvX, canvY, baseW, baseH);
+        context.drawImage(tileCanvas, baseX, baseY, baseW, baseH, canvX, canvY, baseW, baseH);
 
         // Reset things
         context.filter = 'none';
@@ -433,13 +438,13 @@ export default class CanvasManager {
         if (this.showTileGrid) {
             context.strokeStyle = 'rgba(0, 0, 0, 0.4)';
             context.beginPath();
-            for (let x = 0; x <= this.#baseCanvas.width; x += pxSize * 8) {
+            for (let x = 0; x <= this.#tileCanvas.width; x += pxSize * 8) {
                 context.moveTo(x + drawX, drawY);
-                context.lineTo(x + drawX, this.#baseCanvas.height + drawY);
+                context.lineTo(x + drawX, this.#tileCanvas.height + drawY);
             }
-            for (let y = 0; y <= this.#baseCanvas.height; y += pxSize * 8) {
+            for (let y = 0; y <= this.#tileCanvas.height; y += pxSize * 8) {
                 context.moveTo(0 + drawX, y + drawY);
-                context.lineTo(this.#baseCanvas.width + drawX, y + drawY);
+                context.lineTo(this.#tileCanvas.width + drawX, y + drawY);
             }
             context.closePath();
             context.stroke();
@@ -449,13 +454,13 @@ export default class CanvasManager {
         if (this.showPixelGrid && this.scale >= 5) {
             context.strokeStyle = 'rgba(0, 0, 0, 0.2)';
             context.beginPath();
-            for (let x = 0; x <= this.#baseCanvas.width; x += pxSize) {
+            for (let x = 0; x <= this.#tileCanvas.width; x += pxSize) {
                 context.moveTo(x + drawX, 0 + drawY);
-                context.lineTo(x + drawX, this.#baseCanvas.height + drawY);
+                context.lineTo(x + drawX, this.#tileCanvas.height + drawY);
             }
-            for (let y = 0; y <= this.#baseCanvas.height; y += pxSize) {
+            for (let y = 0; y <= this.#tileCanvas.height; y += pxSize) {
                 context.moveTo(0 + drawX, y + drawY);
-                context.lineTo(this.#baseCanvas.width + drawX, y + drawY);
+                context.lineTo(this.#tileCanvas.width + drawX, y + drawY);
             }
             context.closePath();
             context.stroke();

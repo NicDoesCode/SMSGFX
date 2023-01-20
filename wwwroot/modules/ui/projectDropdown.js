@@ -155,7 +155,6 @@ export default class ProjectDropdown extends ModalDialogue {
      * @param {ProjectList} projects
      */
     #displayProjects(projects) {
-
         const renderList = projects.getProjects().map((p) => {
             return {
                 title: p.title,
@@ -171,9 +170,11 @@ export default class ProjectDropdown extends ModalDialogue {
             const command = elm.getAttribute('data-command');
             const id = elm.getAttribute('data-project-id');
             if (command && id) {
+                /** @param {MouseEvent} ev */
                 elm.onclick = (ev) => { 
                     this.#handleProjectCommandButtonClicked(command, id);  
                     ev.stopImmediatePropagation();
+                    ev.preventDefault();
                 }
             }
         });
