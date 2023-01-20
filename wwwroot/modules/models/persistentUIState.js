@@ -143,7 +143,7 @@ export default class PersistentUIState {
     /** @type {boolean} */
     #showPixelGrid = true;
     /** @type {boolean} */
-    #documentationVisibleOnStartup = true;
+    #documentationVisibleOnStartup = false;
     /** @type {boolean} */
     #welcomeVisibleOnStartup = true;
 
