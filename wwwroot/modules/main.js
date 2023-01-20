@@ -2570,7 +2570,8 @@ window.addEventListener('load', async () => {
     welcomeScreen.setState({
         visible: getUIState().welcomeVisibleOnStartup || getProject() instanceof Project === false,
         showWelcomeScreenOnStartUpChecked: getUIState().welcomeVisibleOnStartup,
-        invisibleCommands: ['dismiss']
+        visibleCommands: getProject() instanceof Project === true ? ['dismiss'] : [],
+        invisibleCommands: getProject() instanceof Project === false ? ['dismiss'] : []
     });
 
 });
