@@ -121,6 +121,18 @@ export default class PersistentUIState {
         this.#welcomeVisibleOnStartup = value;
     }
 
+    /**
+     * Gets or sets whether the theme (either 'light', 'dark' or 'system').
+     */
+    get theme() {
+        return this.#theme;
+    }
+    set theme(value) {
+        if (['light', 'dark', 'system'].includes(value)) {
+            this.#theme = value;
+        }
+    }
+
 
     /** @type {string} */
     #lastProjectId = null;
@@ -146,6 +158,8 @@ export default class PersistentUIState {
     #documentationVisibleOnStartup = false;
     /** @type {boolean} */
     #welcomeVisibleOnStartup = true;
+    /** @type {string} */
+    #theme = 'system';
 
 
     constructor() {

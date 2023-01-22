@@ -37,6 +37,7 @@ import GoogleAnalyticsManager from "./components/googleAnalyticsManager.js";
 import DocumentationViewer from "./ui/documentationViewer.js";
 import WelcomeScreen from "./ui/welcomeScreen.js";
 import ThemeManager from "./components/themeManager.js";
+import OptionsToolbar from "./ui/optionsToolbar.js";
 
 
 /* ****************************************************************************************************
@@ -94,6 +95,7 @@ const themeManager = new ThemeManager();
 /** @type {ProjectToolbar} */ let projectToolbar;
 /** @type {ProjectDropdown} */ let projectDropdown;
 /** @type {ExportToolbar} */ let exportToolbar;
+/** @type {OptionsToolbar} */ let optionsToolbar;
 /** @type {ExportModalDialogue} */ let exportDialogue;
 /** @type {ColourPickerDialogue} */ let colourPickerDialogue;
 /** @type {ColourPickerToolbox} */ let colourPickerToolbox;
@@ -116,6 +118,7 @@ async function initialiseComponents() {
     projectToolbar = await ProjectToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=project-toolbar]'));
     projectDropdown = await ProjectDropdown.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=project-dropdown]'));
     exportToolbar = await ExportToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=export-toolbar]'));
+    optionsToolbar = await OptionsToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=options-toolbar]'));
     exportDialogue = await ExportModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=export-dialogue]'));
     colourPickerDialogue = await ColourPickerDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=colour-picker-dialogue]'));
     colourPickerToolbox = await ColourPickerToolbox.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=colour-picker-toolbox]'));
@@ -171,6 +174,8 @@ function wireUpEventHandlers() {
     projectDropdown.addHandlerOnHidden(handleProjectDropdownOnHidden);
 
     exportToolbar.addHandlerOnCommand(handleExportToolbarOnCommand);
+
+    optionsToolbar.addHandlerOnCommand(handleOptionsToolbarOnCommand);
 
     paletteEditor.addHandlerOnCommand(handlePaletteEditorOnCommand);
 
@@ -621,6 +626,29 @@ function handleExportToolbarOnCommand(args) {
     }
 }
 
+/** @param {import('./ui/optionsToolbar').OptionsToolbarCommandEventArgs} args */
+function handleOptionsToolbarOnCommand(args) {
+
+    switch (args.command) {
+
+        case OptionsToolbar.Commands.changeTheme:
+            getUIState().theme = args.theme;
+            state.saveToLocalStorage();
+            themeManager.setTheme(args.theme);
+            break;
+
+        case OptionsToolbar.Commands.changeWelcomeOnStartUp:
+            getUIState().welcomeVisibleOnStartup = args.welcomeOnStartUp;
+            state.saveToLocalStorage();
+            break;
+
+        case OptionsToolbar.Commands.changeDocumentationOnStartUp:
+            getUIState().documentationVisibleOnStartup = args.documentationOnStartUp;
+            state.saveToLocalStorage();
+            break;
+
+    }
+}
 
 /** @param {import('./ui/paletteEditor').PaletteEditorCommandEventArgs} args */
 function handlePaletteEditorOnCommand(args) {
@@ -2590,5 +2618,11 @@ window.addEventListener('load', async () => {
         invisibleCommands: getProject() instanceof Project === false ? ['dismiss'] : []
     });
 
-    setTimeout(() => themeManager.setTheme('dark'), 50);
+    optionsToolbar.setState({
+        theme: getUIState().theme,
+        welcomeOnStartUp: getUIState().welcomeVisibleOnStartup,
+        documentationOnStartUp: getUIState().documentationVisibleOnStartup
+    });
+
+    setTimeout(() => themeManager.setTheme(getUIState().theme), 50);
 });

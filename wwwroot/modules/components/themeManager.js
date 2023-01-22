@@ -28,17 +28,32 @@ export default class ThemeManager {
      */
     addHandlerOnEvent(callback) {
         this.#dispatcher.on(EVENT_OnEvent, callback);
+
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            const theme = event.matches ? "dark" : "light";
+            this.setTheme(theme);
+            this.#dispatcher.dispatch(EVENT_OnEvent, {
+                event: events.themeChange,
+                theme: theme
+            });
+        });
     }
 
 
     /**
      * Sets the theme.
-     * @param {string} lightOrDark - Theme to use, either 'light' or 'dark'.
+     * @param {string} lightDarkOrSystem - Theme to use, either 'light', 'dark' or 'system'.
      */
-    setTheme(lightOrDark) {
-        if (['light', 'dark'].includes(lightOrDark)) {
-            const antiThemeSelector = `data-smsgfx-theme-${lightOrDark === 'light' ? 'dark' : 'light'}`;
-            document.querySelector('html').setAttribute('data-bs-theme', lightOrDark);
+    setTheme(lightDarkOrSystem) {
+        if (lightDarkOrSystem === 'system') {
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                this.setTheme('dark');
+            } else {
+                this.setTheme('light');
+            }
+        } else if (['light', 'dark'].includes(lightDarkOrSystem)) {
+            const antiThemeSelector = `data-smsgfx-theme-${lightDarkOrSystem === 'light' ? 'dark' : 'light'}`;
+            document.querySelector('html').setAttribute('data-bs-theme', lightDarkOrSystem);
             document.querySelectorAll(antiThemeSelector).forEach((element) => {
                 if (element.hasAttribute(antiThemeSelector)) {
                     element.getAttribute(antiThemeSelector).split(' ').forEach((cssClass) => {
@@ -46,7 +61,7 @@ export default class ThemeManager {
                     });
                 }
             });
-            const themeSelector = `data-smsgfx-theme-${lightOrDark}`;
+            const themeSelector = `data-smsgfx-theme-${lightDarkOrSystem}`;
             document.querySelectorAll(`[${themeSelector}]`).forEach((element) => {
                 if (element.hasAttribute(themeSelector)) {
                     element.getAttribute(themeSelector).split(' ').forEach((cssClass) => {
@@ -57,10 +72,10 @@ export default class ThemeManager {
             // Raise event
             this.#dispatcher.dispatch(EVENT_OnEvent, {
                 event: events.themeChange,
-                theme: lightOrDark
+                theme: lightDarkOrSystem
             });
         } else {
-            throw new Error(`Theme must be either 'light' or 'dark'.`);
+            throw new Error(`Theme must be either 'light', 'dark' or 'system'.`);
         }
     }
 
@@ -76,6 +91,6 @@ export default class ThemeManager {
 /**
  * @typedef {object} ThemeManagerOnEventEventArgs
  * @property {string} event - The event that was raised.
- * @property {string} theme - Theme that was chosen, either 'light' or 'dark'.
+ * @property {string} theme - Theme that was chosen, either 'light', 'dark' or 'system'.
  * @exports
  */
