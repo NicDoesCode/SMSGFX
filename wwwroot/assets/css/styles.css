@@ -146,6 +146,7 @@ button:disabled img {
     border: none;
     box-sizing: border-box;
     padding: 0;
+    width: 100%;
 }
 
 .sms-palette .sms-palette-colours td.sms-selected button.sms-palette-button {
