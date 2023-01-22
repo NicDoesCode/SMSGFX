@@ -359,6 +359,12 @@ export default class CanvasManager {
         const tileCanvas = this.#tileCanvas;
         const context = canvas.getContext('2d');
 
+        // Ensure the canvas itself is the correct height
+        if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+        }
+
         // Fill canvas background
         context.fillStyle = this.backgroundColour;
         context.fillRect(0, 0, canvas.width, canvas.height);
@@ -380,12 +386,6 @@ export default class CanvasManager {
         while (this.#redrawTiles.length > 0) {
             const tileIndex = this.#redrawTiles.pop();
             this.#refreshSingleTile(tileIndex);
-        }
-
-        // Ensure the canvas itself is the correct height
-        if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
-            canvas.width = canvas.clientWidth;
-            canvas.height = canvas.clientHeight;
         }
 
         let drawX = ((canvas.width - tileCanvas.width) / 2) + this.#offsetX;

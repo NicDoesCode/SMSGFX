@@ -36,6 +36,7 @@ import ProjectDropdown from "./ui/projectDropdown.js";
 import GoogleAnalyticsManager from "./components/googleAnalyticsManager.js";
 import DocumentationViewer from "./ui/documentationViewer.js";
 import WelcomeScreen from "./ui/welcomeScreen.js";
+import ThemeManager from "./components/themeManager.js";
 
 
 /* ****************************************************************************************************
@@ -88,6 +89,7 @@ const instanceState = {
 const undoManager = new UndoManager(50);
 const watcher = new ProjectWatcher(instanceState.sessionId);
 const googleAnalytics = new GoogleAnalyticsManager();
+const themeManager = new ThemeManager();
 
 /** @type {ProjectToolbar} */ let projectToolbar;
 /** @type {ProjectDropdown} */ let projectDropdown;
@@ -161,6 +163,8 @@ function wireUpEventHandlers() {
     watcher.addHandlerOnEvent(handleWatcherEvent);
 
     state.addHandlerOnEvent(handleStateEvent);
+
+    themeManager.addHandlerOnEvent(handleThemeManagerEvent);
 
     projectToolbar.addHandlerOnCommand(handleProjectToolbarOnCommand);
     projectDropdown.addHandlerOnCommand(handleProjectDropdownOnCommand);
@@ -501,6 +505,18 @@ function handleStateEvent(args) {
         case State.Events.projectListChanged:
             displayProjectList();
             watcher.sendProjectListChanged();
+            break;
+
+    }
+}
+
+
+/** @param {import('./components/themeManager.js').ThemeManagerOnEventEventArgs} args */
+function handleThemeManagerEvent(args) {
+    switch (args.event) {
+
+        case ThemeManager.Events.themeChange:
+            tileEditor.setState({ theme: args.theme });
             break;
 
     }
@@ -2574,29 +2590,5 @@ window.addEventListener('load', async () => {
         invisibleCommands: getProject() instanceof Project === false ? ['dismiss'] : []
     });
 
-    setTimeout(() => setTheme('dark'), 50);
+    setTimeout(() => themeManager.setTheme('dark'), 50);
 });
-
-function setTheme(theme) {
-    if (['light', 'dark'].includes(theme)) {
-        const antiThemeSelector = `data-smsgfx-theme-${theme === 'light' ? 'dark' : 'light'}`;
-        document.querySelector('html').setAttribute('data-bs-theme', theme);
-        document.querySelectorAll(antiThemeSelector).forEach((element) => {
-            console.log(antiThemeSelector, element);
-            if (element.hasAttribute(antiThemeSelector)) {
-                element.getAttribute(antiThemeSelector).split(' ').forEach((cssClass) => {
-                    element.classList.remove(cssClass);
-                });
-            }
-        });
-        const themeSelector = `data-smsgfx-theme-${theme}`;
-        document.querySelectorAll(`[${themeSelector}]`).forEach((element) => {
-            console.log(themeSelector, element);
-            if (element.hasAttribute(themeSelector)) {
-                element.getAttribute(themeSelector).split(' ').forEach((cssClass) => {
-                    element.classList.add(cssClass);
-                });
-            }
-        });
-    }
-}
