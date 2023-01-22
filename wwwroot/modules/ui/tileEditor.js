@@ -190,6 +190,17 @@ export default class TileEditor {
             this.#canvasManager.invalidateImage();
             dirty = true;
         }
+        // Theme
+        if (typeof state?.theme === 'string') {
+            if (state.theme === 'light') {
+                this.#canvasManager.backgroundColour = '#e9ecef';
+                dirty = true;
+            }
+            if (state.theme === 'dark') {
+                this.#canvasManager.backgroundColour = '#151719';
+                dirty = true;
+            }
+        }
         // Refresh image?
         if (dirty && this.#palette) {
             let palette = !this.#displayNative ? this.#palette : this.#nativePalette;
@@ -510,6 +521,7 @@ export default class TileEditor {
  * @property {boolean?} enabled - Is the control enabled or disabled?
  * @property {number?} focusedTile - Will ensure that this tile is shown on the screen.
  * @property {number[]?} updatedTiles - When passing updated tiles, the entire image will not be updated and instead only these tiles will be updated.
+ * @property {string?} theme - Name of the theme being used.
  * @exports 
  */
 

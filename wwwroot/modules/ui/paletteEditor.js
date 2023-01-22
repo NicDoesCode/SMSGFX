@@ -370,7 +370,8 @@ export default class PaletteEditor {
             tr.appendChild(td);
 
             const btnColour = document.createElement('button');
-            btnColour.classList.add('btn', 'btn-sm', 'btn-outline-secondary', 'position-relative', 'sms-palette-button');
+            btnColour.classList.add('sms-palette-button');
+            // btnColour.classList.add('btn', 'btn-sm', 'btn-outline-secondary', 'position-relative', 'sms-palette-button');
             btnColour.setAttribute('data-colour-index', idx.toString());
             btnColour.onclick = () => {
                 const colourCurrentlySelected = this.#currentColourIndex === idx;
@@ -388,7 +389,7 @@ export default class PaletteEditor {
             td.appendChild(btnColour);
 
             const lblContent = document.createElement('span');
-            lblContent.classList.add('position-absolute', 'translate-middle', 'badge');
+            // lblContent.classList.add('position-absolute', 'translate-middle', 'badge');
             lblContent.innerHTML = `#${idx}`;
             btnColour.appendChild(lblContent);
 

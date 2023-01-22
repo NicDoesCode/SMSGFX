@@ -3,8 +3,10 @@
         <div class="modal-content rounded-0 rounded-bottom">
             <div class="modal-header pt-2 pb-2">
                 <div data-smsgfx-id="this-project" class="mx-auto input-group input-group-sm">
-                    <span class="input-group-text bg-light text-dark border-secondary"><strong>Current
-                            project</strong></span>
+                    <span class="input-group-text border-secondary"
+                        data-smsgfx-theme-light="bg-light text-dark" data-smsgfx-theme-dark="bg-dark text-reset">
+                        <strong>Current project</strong>
+                    </span>
                     <input data-command="title" type="text" class="form-control border-secondary"
                         placeholder="Project title" aria-label="Project title">
                     <button data-command="projectSaveToFile" class="btn btn-sm btn-outline-secondary"
@@ -26,11 +28,11 @@
                                     <div class="btn-group border-border-0" role="group"
                                         aria-label="Basic outlined example">
                                         <button data-command="projectNew" class="btn btn-sm" title="New project."
-                                            type="button">
+                                            type="button" data-smsgfx-theme-dark="text-light">
                                             <i class="bi bi-file-earmark-plus"></i> New project
                                         </button>
                                         <button data-command="projectLoadFromFile" class="btn btn-sm"
-                                            title="Load project from file." type="button">
+                                            title="Load project from file." type="button" data-smsgfx-theme-dark="text-light">
                                             <i class="bi bi-upload"></i> Load from file
                                         </button>
                                     </div>
