@@ -54,7 +54,7 @@ export default class ThemeManager {
         } else if (['light', 'dark'].includes(lightDarkOrSystem)) {
             const antiThemeSelector = `data-smsgfx-theme-${lightDarkOrSystem === 'light' ? 'dark' : 'light'}`;
             document.querySelector('html').setAttribute('data-bs-theme', lightDarkOrSystem);
-            document.querySelectorAll(antiThemeSelector).forEach((element) => {
+            document.querySelectorAll(`[${antiThemeSelector}]`).forEach((element) => {
                 if (element.hasAttribute(antiThemeSelector)) {
                     element.getAttribute(antiThemeSelector).split(' ').forEach((cssClass) => {
                         element.classList.remove(cssClass);
