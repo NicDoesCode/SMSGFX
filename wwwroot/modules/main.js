@@ -2574,19 +2574,29 @@ window.addEventListener('load', async () => {
         invisibleCommands: getProject() instanceof Project === false ? ['dismiss'] : []
     });
 
-    // Dark theme
-    document.querySelector('html').setAttribute('data-bs-theme', 'dark');
-    document.querySelectorAll('[data-sms-theme-dark]').forEach((element) => {
-        element.getAttribute('data-sms-theme-light').split(' ').forEach((cssClass) => {
-            element.classList.remove(cssClass);
-        });
-        // if (element.hasAttribute('data-sms-theme-light')) {
-        //     element.classList.remove(element.getAttribute('data-sms-theme-light').split(' '));
-        // }
-        element.getAttribute('data-sms-theme-dark').split(' ').forEach((cssClass) => {
-            element.classList.add(cssClass);
-        });
-        // element.classList.add(element.getAttribute('data-sms-theme-dark').split(' '));
-    });
-
+    setTimeout(() => setTheme('dark'), 50);
 });
+
+function setTheme(theme) {
+    if (['light', 'dark'].includes(theme)) {
+        const antiThemeSelector = `data-smsgfx-theme-${theme === 'light' ? 'dark' : 'light'}`;
+        document.querySelector('html').setAttribute('data-bs-theme', theme);
+        document.querySelectorAll(antiThemeSelector).forEach((element) => {
+            console.log(antiThemeSelector, element);
+            if (element.hasAttribute(antiThemeSelector)) {
+                element.getAttribute(antiThemeSelector).split(' ').forEach((cssClass) => {
+                    element.classList.remove(cssClass);
+                });
+            }
+        });
+        const themeSelector = `data-smsgfx-theme-${theme}`;
+        document.querySelectorAll(`[${themeSelector}]`).forEach((element) => {
+            console.log(themeSelector, element);
+            if (element.hasAttribute(themeSelector)) {
+                element.getAttribute(themeSelector).split(' ').forEach((cssClass) => {
+                    element.classList.add(cssClass);
+                });
+            }
+        });
+    }
+}
