@@ -2574,4 +2574,19 @@ window.addEventListener('load', async () => {
         invisibleCommands: getProject() instanceof Project === false ? ['dismiss'] : []
     });
 
+    // Dark theme
+    document.querySelector('html').setAttribute('data-bs-theme', 'dark');
+    document.querySelectorAll('[data-sms-theme-dark]').forEach((element) => {
+        element.getAttribute('data-sms-theme-light').split(' ').forEach((cssClass) => {
+            element.classList.remove(cssClass);
+        });
+        // if (element.hasAttribute('data-sms-theme-light')) {
+        //     element.classList.remove(element.getAttribute('data-sms-theme-light').split(' '));
+        // }
+        element.getAttribute('data-sms-theme-dark').split(' ').forEach((cssClass) => {
+            element.classList.add(cssClass);
+        });
+        // element.classList.add(element.getAttribute('data-sms-theme-dark').split(' '));
+    });
+
 });

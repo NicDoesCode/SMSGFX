@@ -36,15 +36,31 @@ button:disabled img {
     box-shadow: 0px 0px 6px #888888;
 }
 
+[data-bs-theme=dark] .sms-container .sms-header-bar .sms-navbar {
+    background-color: #222222;
+    box-shadow: 0px 0px 6px #000000;
+}
+
 .sms-container .sms-header-bar .sms-navbar .navbar-brand {
     margin-left: 4px;
     font-size: 25px;
     text-shadow: 0px 0px 2px #FFFFFF, 1px 1px 5px #555555;
 }
 
+[data-bs-theme=dark] .sms-container .sms-header-bar .sms-navbar .navbar-brand {
+    text-shadow: 0px 0px 2px #000000, 1px 1px 5px #000000;
+}
+
 .sms-container .sms-header-bar .sms-navbar .navbar-brand img {
     float: left;
     margin: 4px 10px 0 5px;
+    height: 22px;
+    width: auto;
+    box-shadow: 1px 1px 4px #444444;
+}
+
+[data-bs-theme=dark] .sms-container .sms-header-bar .sms-navbar .navbar-brand img {
+    box-shadow: 1px 1px 4px #000000;
 }
 
 .sms-container .sms-content {
@@ -96,6 +112,10 @@ button:disabled img {
     border: 1px solid #FFFFFF;
 }
 
+[data-bs-theme=dark] .sms-palette .sms-palette-colours td {
+    border-color: transparent;
+}
+
 .sms-palette .sms-palette-colours button.sms-palette-button {
     width: 38px;
     height: 40px;
@@ -126,6 +146,10 @@ button:disabled img {
     box-shadow: 0px 0px 2px 2px #000000;
 }
 
+[data-bs-theme=dark] .sms-palette .sms-palette-colours td.sms-selected button.sms-palette-button {
+    background-color: transparent;
+}
+
 .sms-palette .sms-palette-colours td.sms-selected button.sms-palette-button span {
     left: 15px;
     top: 1px;
@@ -135,6 +159,10 @@ button:disabled img {
 
 .sms-palette .sms-palette-colours td.sms-highlight button {
     box-shadow: 0px 0px 6px 2px #444444;
+}
+
+[data-bs-theme=dark] .sms-palette .sms-palette-colours td.sms-highlight button {
+    box-shadow: 0px 0px 6px 2px #84caff;
 }
 
 /* Colour toolbox */
@@ -153,6 +181,10 @@ button:disabled img {
     box-sizing: border-box;
     height: 20px;
     border: 1px solid #FFFFFF;
+}
+
+[data-bs-theme=dark] .sms-container .sms-colour-toolbox .sms-colour-box button {
+    border-color: #212529;
 }
 
 .sms-container .sms-colour-toolbox .sms-colour-box button:hover {
@@ -203,11 +235,13 @@ button:disabled img {
     margin-bottom: auto;
     box-shadow: 0px 0px 2px #555555;
 }
+
 .sms-welcome-screen .card-header {
     background-image: url(/assets/image/header.png);
     background-size: 100% auto;
     background-position: center center;
 }
+
 .sms-welcome-screen .card-header h5 {
     padding-top: 50px;
     padding-bottom: 50px;
