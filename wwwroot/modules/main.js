@@ -177,6 +177,8 @@ function wireUpEventHandlers() {
 
     optionsToolbar.addHandlerOnCommand(handleOptionsToolbarOnCommand);
 
+    exportDialogue.addHandlerOnCommand(handleExportDialogueOnCommand);
+
     paletteEditor.addHandlerOnCommand(handlePaletteEditorOnCommand);
 
     tileEditor.addHandlerOnCommand(handleTileEditorOnCommand);
@@ -645,6 +647,22 @@ function handleOptionsToolbarOnCommand(args) {
         case OptionsToolbar.Commands.changeDocumentationOnStartUp:
             getUIState().documentationVisibleOnStartup = args.documentationOnStartUp;
             state.saveToLocalStorage();
+            break;
+
+    }
+}
+
+/** @param {import('./ui/exportModalDialogue').ExportDialogueCommandEventArgs} args */
+function handleExportDialogueOnCommand(args) {
+
+    switch (args.command) {
+
+        case ExportModalDialogue.Commands.valueChanged:
+            getUIState().exportGenerateTileMap = args.generateTileMap;
+            getUIState().exportTileMapPaletteIndex = args.paletteIndex;
+            getUIState().exportTileMapVramOffset = args.vramOffset;
+            state.saveToLocalStorage();
+            exportProjectToAssembly();
             break;
 
     }
@@ -2108,7 +2126,11 @@ function exportProjectToJson() {
  * Shows the export to assembly dialogue.
  */
 function exportProjectToAssembly() {
-    const code = ProjectAssemblySerialiser.serialise(getProject());
+    const code = ProjectAssemblySerialiser.serialise(getProject(), {
+        generateTileMapFromTileSet: getUIState().exportGenerateTileMap,
+        paletteIndex: getUIState().exportTileMapPaletteIndex,
+        tileMapMemoryOffset: getUIState().exportTileMapVramOffset
+    });
     exportDialogue.show(code);
 }
 
@@ -2622,6 +2644,12 @@ window.addEventListener('load', async () => {
         theme: getUIState().theme,
         welcomeOnStartUp: getUIState().welcomeVisibleOnStartup,
         documentationOnStartUp: getUIState().documentationVisibleOnStartup
+    });
+
+    exportDialogue.setState({
+        generateTileMapChecked: getUIState().exportGenerateTileMap,
+        paletteIndex: getUIState().exportTileMapPaletteIndex,
+        vramOffset: getUIState().exportTileMapVramOffset
     });
 
     setTimeout(() => themeManager.setTheme(getUIState().theme), 50);

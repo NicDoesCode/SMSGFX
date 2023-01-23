@@ -9,7 +9,7 @@ export default class PersistentUIStateJsonSerialiser {
      * @param {PersistentUIState} appUI - The app UI object to serialise.
      * @returns {string}
      */
-     static serialise(appUI) {
+    static serialise(appUI) {
         /** @type {PersistentUISerialisable} */
         const result = {
             lastProjectId: appUI.lastProjectId,
@@ -23,7 +23,10 @@ export default class PersistentUIStateJsonSerialiser {
             showPixelGrid: appUI.showPixelGrid,
             documentationVisibleOnStartup: appUI.documentationVisibleOnStartup,
             welcomeVisibleOnStartup: appUI.welcomeVisibleOnStartup,
-            theme: appUI.theme
+            theme: appUI.theme,
+            exportGenerateTileMap: appUI.exportGenerateTileMap,
+            exportTileMapPaletteIndex: appUI.exportTileMapPaletteIndex,
+            exportTileMapVramOffset: appUI.exportTileMapVramOffset
         };
         return JSON.stringify(result);
     }
@@ -58,23 +61,32 @@ export default class PersistentUIStateJsonSerialiser {
             }
             if (typeof deserialised.displayNativeColour === 'boolean') {
                 result.displayNativeColour = deserialised.displayNativeColour;
-            } 
+            }
             if (typeof deserialised.showTileGrid === 'boolean') {
                 result.showTileGrid = deserialised.showTileGrid;
-            } 
+            }
             if (typeof deserialised.showPixelGrid === 'boolean') {
                 result.showPixelGrid = deserialised.showPixelGrid;
-            } 
+            }
             if (typeof deserialised.documentationVisibleOnStartup === 'boolean') {
                 result.documentationVisibleOnStartup = deserialised.documentationVisibleOnStartup;
-            } 
+            }
             if (typeof deserialised.welcomeVisibleOnStartup === 'boolean') {
                 result.welcomeVisibleOnStartup = deserialised.welcomeVisibleOnStartup;
-            } 
+            }
             if (typeof deserialised.theme === 'string') {
                 result.theme = deserialised.theme;
+            }
+            if (typeof deserialised.exportGenerateTileMap === 'boolean') {
+                result.exportGenerateTileMap = deserialised.exportGenerateTileMap;
             } 
-   }
+            if (typeof deserialised.exportTileMapPaletteIndex === 'number') {
+                result.exportTileMapPaletteIndex = deserialised.exportTileMapPaletteIndex;
+            } 
+            if (typeof deserialised.exportTileMapVramOffset === 'number') {
+                result.exportTileMapVramOffset = deserialised.exportTileMapVramOffset;
+            } 
+        }
         return result;
     }
 
@@ -96,4 +108,7 @@ export default class PersistentUIStateJsonSerialiser {
  * @property {boolean} documentationVisibleOnStartup
  * @property {boolean} welcomeVisibleOnStartup
  * @property {string} theme
+ * @property {boolean} exportGenerateTileMap
+ * @property {number} exportTileMapPaletteIndex
+ * @property {number} exportTileMapVramOffset
  */

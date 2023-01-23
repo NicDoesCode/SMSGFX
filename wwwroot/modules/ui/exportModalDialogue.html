@@ -11,6 +11,25 @@
                     <textarea data-smsgfx-id="export-text" class="form-control text-monospace"
                         style="font-family:monospace; font-size: 0.8em" rows="16"></textarea>
                 </div>
+                <div class="input-group mb-3">
+                    <div class="input-group-text">
+                        <input class="form-check-input mt-0" type="checkbox" value=""
+                            aria-label="Checkbox for following text input" id="exportIncludeTileMap"
+                            data-smsgfx-id="generate-tile-map" data-command="valueChanged">
+                        <label class="form-check-label ms-2" for="exportIncludeTileMap">
+                            Generate a tile map?
+                        </label>
+                    </div>
+                    <span class="input-group-text">Palette index</span>
+                    <select class="form-select" data-smsgfx-id="palette-index" data-command="valueChanged">
+                        <option value="0" selected>0</option>
+                        <option value="1">1</option>
+                    </select>
+                    <span class="input-group-text">VRAM memory offset (bytes)</span>
+                    <input type="number" min="0" max="255" class="form-control" placeholder="Enter number of bytes"
+                        aria-label="Enter number of bytes." value="0" data-smsgfx-id="memory-offset"
+                        data-command="valueChanged">
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
