@@ -8,6 +8,7 @@ export default class TileBinarySerialiser {
     /**
      * Serialises a tile to a planar byte array.
      * @param {Tile} tile - Tile to serialise.
+     * @returns {Uint8ClampedArray}
      */
     static serialise(tile) {
         const result = new Uint8ClampedArray(32);

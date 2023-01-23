@@ -3,6 +3,8 @@ import PaletteList from "../models/paletteList.js";
 import ColourUtil from "../util/colourUtil.js";
 import Project from "../models/project.js";
 import TileSetBinarySerialiser from "./tileSetBinarySerialiser.js";
+import TileMapBinarySerialiser from "./tileMapBinarySerialiser.js";
+import TileMapUtil from "../util/tileMapUtil.js";
 
 export default class ProjectAssemblySerialiser {
 
@@ -10,12 +12,19 @@ export default class ProjectAssemblySerialiser {
     /**
      * Exports project tile set and colour palettes as WLA-DX compatible assembly code.
      * @param {Project} project - The project to export.
+     * @param {ProjectAssemblySerialisationOptions?} options - Serialisation options.
      */
-    static serialise(project) {
+    static serialise(project, options) {
         const result = [];
         result.push(ProjectAssemblySerialiser.#exportPalettes(project.paletteList));
         result.push('');
         result.push(ProjectAssemblySerialiser.#exportTiles(project.tileSet));
+        if (options?.generateTileMapFromTileSet) {
+            const paletteIndex = options?.paletteIndex ?? 0;
+            const memOffset = options?.tileMapMemoryOffset ?? 0;
+            result.push('');
+            result.push(ProjectAssemblySerialiser.#exportTileSetTileMap(project.tileSet, paletteIndex, memOffset));
+        }
         return result.join('\r\n');
     }
 
@@ -73,15 +82,36 @@ export default class ProjectAssemblySerialiser {
         return message.join('\r\n');
     }
 
+    /**
+     * Exports tile set as WLA-DX compatible assembly code.
+     * @param {TileSet} tileMap - Tile map to export.
+     * @param {number} paletteIndex - Palette index to use for the tiles.
+     * @param {number} memoryOffset - VRAM memory offset for the tile addresses in the tile map.
+     */
+    static #exportTileSetTileMap(tileSet, paletteIndex, memoryOffset) {
+        const message = ['; TILE MAP FROM TILE SET'];
+        const tileMap = TileMapUtil.tileSetToTileMap(tileSet, paletteIndex, memoryOffset);
+        const encoded = TileMapBinarySerialiser.serialise(tileMap);
+        for (let i = 0; i < encoded.length; i += tileSet.tileWidth) {
+            message.push(`; Tile map row ${(i / tileMap.tileWidth)}`);
+            const tileMessage = ['.dw'];
+            const stopAt = Math.min(i + tileMap.tileWidth, encoded.length);
+            for (let t = i; t < stopAt; t++) {
+                tileMessage.push('$' + encoded[t].toString(16).padStart(4, '0').toUpperCase());
+            }
+            message.push(tileMessage.join(' '));
+        }
+        return message.join('\r\n');
+    }
+
 }
 
-const masks = [
-    parseInt('10000000', 2),
-    parseInt('01000000', 2),
-    parseInt('00100000', 2),
-    parseInt('00010000', 2),
-    parseInt('00001000', 2),
-    parseInt('00000100', 2),
-    parseInt('00000010', 2),
-    parseInt('00000001', 2)
-];
+/**
+ * Project assembly serialisation options.
+ * @typedef {object} ProjectAssemblySerialisationOptions
+ * @property {boolean?} generateTileMapFromTileSet - When true a tile map is generated from the tile set.
+ * @property {number?} paletteIndex - Palette index to use for the tiles.
+ * @property {number?} tileMapMemoryOffset - Memory offset of the tile map.
+ * @exports
+ */
+

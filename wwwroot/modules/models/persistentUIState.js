@@ -133,6 +133,40 @@ export default class PersistentUIState {
         }
     }
 
+    /**
+     * Gets or sets whether the project exports a tile map.
+     */
+    get exportGenerateTileMap() {
+        return this.#exportGenerateTileMap;
+    }
+    set exportGenerateTileMap(value) {
+        this.#exportGenerateTileMap = value;
+    }
+
+    /**
+     * Gets or sets the palette index for exported tile map.
+     */
+    get exportTileMapPaletteIndex() {
+        return this.#exportTileMapPaletteIndex;
+    }
+    set exportTileMapPaletteIndex(value) {
+        if ([0, 1].includes(value)) {
+            this.#exportTileMapPaletteIndex = value;
+        }
+    }
+
+    /**
+     * Gets or sets the VRAM address offset for the tile map generation.
+     */
+    get exportTileMapVramOffset() {
+        return this.#exportTileMapVramOffset;
+    }
+    set exportTileMapVramOffset(value) {
+        if (value >= 0 && value < 255) {
+            this.#exportTileMapVramOffset = value;
+        }
+    }
+
 
     /** @type {string} */
     #lastProjectId = null;
@@ -160,6 +194,12 @@ export default class PersistentUIState {
     #welcomeVisibleOnStartup = true;
     /** @type {string} */
     #theme = 'system';
+    /** @type {boolean} */
+    #exportGenerateTileMap = false;
+    /** @type {number} */
+    #exportTileMapPaletteIndex = 0;
+    /** @type {number} */
+    #exportTileMapVramOffset = 0;
 
 
     constructor() {

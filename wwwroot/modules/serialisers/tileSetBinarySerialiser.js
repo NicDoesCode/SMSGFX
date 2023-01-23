@@ -8,6 +8,7 @@ export default class TileSetBinarySerialiser {
     /**
      * Serialises the tile set to a planar byte array.
      * @param {TileSet} tileSet - Tile set to serialise.
+     * @returns {Uint8ClampedArray}
      */
      static serialise(tileSet) {
         const byteLength = tileSet.length * 32;
