@@ -21,13 +21,16 @@ To use the Configuration for a local Node.js Express based server the following 
 
 # How to run
 
-## Option 1
-1. Copy the files from `/wwwroot` to your own server. 
-2. Open `index.html`. 
+## Option 1, Docker
+1. Run `docker build . -t smsgfx`
+2. Run `docker run -p8080:80 smsgfx`
+3. Go to https://localhost:8080
 
-## Option 2
+## Option 2, with `node`
 1. Run the following from a terminal from the project root folder:<br />`node app.js`
 2. Browse to http://localhost:8080/index.html.
+
+
 
 ## To host a local HTTPS server
 For this you will require OpenSSL to be installed. 
