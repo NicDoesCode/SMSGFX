@@ -111,6 +111,62 @@ export default class PersistentUIState {
         this.#documentationVisibleOnStartup = value;
     }
 
+    /**
+     * Gets or sets whether the welcome screen is visible on startup.
+     */
+    get welcomeVisibleOnStartup() {
+        return this.#welcomeVisibleOnStartup;
+    }
+    set welcomeVisibleOnStartup(value) {
+        this.#welcomeVisibleOnStartup = value;
+    }
+
+    /**
+     * Gets or sets whether the theme (either 'light', 'dark' or 'system').
+     */
+    get theme() {
+        return this.#theme;
+    }
+    set theme(value) {
+        if (['light', 'dark', 'system'].includes(value)) {
+            this.#theme = value;
+        }
+    }
+
+    /**
+     * Gets or sets whether the project exports a tile map.
+     */
+    get exportGenerateTileMap() {
+        return this.#exportGenerateTileMap;
+    }
+    set exportGenerateTileMap(value) {
+        this.#exportGenerateTileMap = value;
+    }
+
+    /**
+     * Gets or sets the palette index for exported tile map.
+     */
+    get exportTileMapPaletteIndex() {
+        return this.#exportTileMapPaletteIndex;
+    }
+    set exportTileMapPaletteIndex(value) {
+        if ([0, 1].includes(value)) {
+            this.#exportTileMapPaletteIndex = value;
+        }
+    }
+
+    /**
+     * Gets or sets the VRAM address offset for the tile map generation.
+     */
+    get exportTileMapVramOffset() {
+        return this.#exportTileMapVramOffset;
+    }
+    set exportTileMapVramOffset(value) {
+        if (value >= 0 && value < 255) {
+            this.#exportTileMapVramOffset = value;
+        }
+    }
+
 
     /** @type {string} */
     #lastProjectId = null;
@@ -133,7 +189,17 @@ export default class PersistentUIState {
     /** @type {boolean} */
     #showPixelGrid = true;
     /** @type {boolean} */
-    #documentationVisibleOnStartup = true;
+    #documentationVisibleOnStartup = false;
+    /** @type {boolean} */
+    #welcomeVisibleOnStartup = true;
+    /** @type {string} */
+    #theme = 'system';
+    /** @type {boolean} */
+    #exportGenerateTileMap = false;
+    /** @type {number} */
+    #exportTileMapPaletteIndex = 0;
+    /** @type {number} */
+    #exportTileMapVramOffset = 0;
 
 
     constructor() {

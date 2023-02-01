@@ -35,6 +35,9 @@ import PrivacyModalDialogue from "./ui/privacyModalDialogue.js";
 import ProjectDropdown from "./ui/projectDropdown.js";
 import GoogleAnalyticsManager from "./components/googleAnalyticsManager.js";
 import DocumentationViewer from "./ui/documentationViewer.js";
+import WelcomeScreen from "./ui/welcomeScreen.js";
+import ThemeManager from "./components/themeManager.js";
+import OptionsToolbar from "./ui/optionsToolbar.js";
 
 
 /* ****************************************************************************************************
@@ -87,10 +90,12 @@ const instanceState = {
 const undoManager = new UndoManager(50);
 const watcher = new ProjectWatcher(instanceState.sessionId);
 const googleAnalytics = new GoogleAnalyticsManager();
+const themeManager = new ThemeManager();
 
 /** @type {ProjectToolbar} */ let projectToolbar;
 /** @type {ProjectDropdown} */ let projectDropdown;
 /** @type {ExportToolbar} */ let exportToolbar;
+/** @type {OptionsToolbar} */ let optionsToolbar;
 /** @type {ExportModalDialogue} */ let exportDialogue;
 /** @type {ColourPickerDialogue} */ let colourPickerDialogue;
 /** @type {ColourPickerToolbox} */ let colourPickerToolbox;
@@ -105,6 +110,7 @@ const googleAnalytics = new GoogleAnalyticsManager();
 /** @type {AboutModalDialogue} */ let aboutDialogue;
 /** @type {PrivacyModalDialogue} */ let privacyModalDialogue;
 /** @type {DocumentationViewer} */ let documentationViewer;
+/** @type {WelcomeScreen} */ let welcomeScreen;
 
 async function initialiseComponents() {
     await googleAnalytics.injectIfConfiguredAsync();
@@ -112,6 +118,7 @@ async function initialiseComponents() {
     projectToolbar = await ProjectToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=project-toolbar]'));
     projectDropdown = await ProjectDropdown.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=project-dropdown]'));
     exportToolbar = await ExportToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=export-toolbar]'));
+    optionsToolbar = await OptionsToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=options-toolbar]'));
     exportDialogue = await ExportModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=export-dialogue]'));
     colourPickerDialogue = await ColourPickerDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=colour-picker-dialogue]'));
     colourPickerToolbox = await ColourPickerToolbox.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=colour-picker-toolbox]'));
@@ -126,6 +133,7 @@ async function initialiseComponents() {
     aboutDialogue = await AboutModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=about-modal]'));
     privacyModalDialogue = await PrivacyModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=privacy-modal]'));
     documentationViewer = await DocumentationViewer.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=documentation-viewer]'));
+    welcomeScreen = await WelcomeScreen.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=welcome-screen]'));
 }
 
 function wireUpGenericComponents() {
@@ -159,10 +167,17 @@ function wireUpEventHandlers() {
 
     state.addHandlerOnEvent(handleStateEvent);
 
+    themeManager.addHandlerOnEvent(handleThemeManagerEvent);
+
     projectToolbar.addHandlerOnCommand(handleProjectToolbarOnCommand);
     projectDropdown.addHandlerOnCommand(handleProjectDropdownOnCommand);
+    projectDropdown.addHandlerOnHidden(handleProjectDropdownOnHidden);
 
     exportToolbar.addHandlerOnCommand(handleExportToolbarOnCommand);
+
+    optionsToolbar.addHandlerOnCommand(handleOptionsToolbarOnCommand);
+
+    exportDialogue.addHandlerOnCommand(handleExportDialogueOnCommand);
 
     paletteEditor.addHandlerOnCommand(handlePaletteEditorOnCommand);
 
@@ -185,6 +200,8 @@ function wireUpEventHandlers() {
     importImageModalDialogue.addHandlerOnConfirm(handleImageImportModalOnConfirm);
 
     documentationViewer.addHandlerOnCommand(documentationViewerOnCommand);
+
+    welcomeScreen.addHandlerOnCommand(welcomeScreenOnCommand);
 }
 
 function createEventListeners() {
@@ -465,8 +482,10 @@ function handleWatcherEvent(args) {
             const project = getProject();
             if (project && args.project && args.project.id === project.id) {
                 state.setProject(args.project);
-                formatForProject();
+            } else {
+                tileEditor.setState({ tileSet: null });
             }
+            formatForProject();
             break;
 
         case ProjectWatcher.Events.projectListChanged:
@@ -493,6 +512,18 @@ function handleStateEvent(args) {
         case State.Events.projectListChanged:
             displayProjectList();
             watcher.sendProjectListChanged();
+            break;
+
+    }
+}
+
+
+/** @param {import('./components/themeManager.js').ThemeManagerOnEventEventArgs} args */
+function handleThemeManagerEvent(args) {
+    switch (args.event) {
+
+        case ThemeManager.Events.themeChange:
+            tileEditor.setState({ theme: args.theme });
             break;
 
     }
@@ -539,7 +570,6 @@ function handleProjectToolbarOnCommand(args) {
 
 /** @param {import('./ui/projectDropdown').ProjectDropdownCommandEventArgs} args */
 function handleProjectDropdownOnCommand(args) {
-
     switch (args.command) {
 
         case ProjectDropdown.Commands.title:
@@ -568,6 +598,17 @@ function handleProjectDropdownOnCommand(args) {
             state.deleteProjectFromStorage(args.projectId);
             break;
 
+        case ProjectDropdown.Commands.showWelcomeScreen:
+            welcomeScreen.setState({ visible: true, visibleCommands: ['dismiss'] });
+            projectDropdown.setState({ visible: false });
+            break;
+
+    }
+}
+
+function handleProjectDropdownOnHidden() {
+    if (getProject() instanceof Project === false) {
+        welcomeScreen.setState({ visible: true, invisibleCommands: ['dismiss'] });
     }
 }
 
@@ -587,6 +628,45 @@ function handleExportToolbarOnCommand(args) {
     }
 }
 
+/** @param {import('./ui/optionsToolbar').OptionsToolbarCommandEventArgs} args */
+function handleOptionsToolbarOnCommand(args) {
+
+    switch (args.command) {
+
+        case OptionsToolbar.Commands.changeTheme:
+            getUIState().theme = args.theme;
+            state.saveToLocalStorage();
+            themeManager.setTheme(args.theme);
+            break;
+
+        case OptionsToolbar.Commands.changeWelcomeOnStartUp:
+            getUIState().welcomeVisibleOnStartup = args.welcomeOnStartUp;
+            state.saveToLocalStorage();
+            break;
+
+        case OptionsToolbar.Commands.changeDocumentationOnStartUp:
+            getUIState().documentationVisibleOnStartup = args.documentationOnStartUp;
+            state.saveToLocalStorage();
+            break;
+
+    }
+}
+
+/** @param {import('./ui/exportModalDialogue').ExportDialogueCommandEventArgs} args */
+function handleExportDialogueOnCommand(args) {
+
+    switch (args.command) {
+
+        case ExportModalDialogue.Commands.valueChanged:
+            getUIState().exportGenerateTileMap = args.generateTileMap;
+            getUIState().exportTileMapPaletteIndex = args.paletteIndex;
+            getUIState().exportTileMapVramOffset = args.vramOffset;
+            state.saveToLocalStorage();
+            exportProjectToAssembly();
+            break;
+
+    }
+}
 
 /** @param {import('./ui/paletteEditor').PaletteEditorCommandEventArgs} args */
 function handlePaletteEditorOnCommand(args) {
@@ -1036,6 +1116,9 @@ function handleImportTileSet(args) {
     tileEditor.setState({
         tileSet: getTileSet()
     });
+    if (getProject() instanceof Project) {
+        welcomeScreen.setState({ visible: false });
+    }
 
     tileImportDialogue.hide();
 }
@@ -1084,6 +1167,9 @@ function handleImageImportModalOnConfirm(args) {
     projectDropdown.setState({
         projectTitle: getProject().title
     });
+    welcomeScreen.setState({
+        visible: false
+    });
 
     importImageModalDialogue.hide();
 }
@@ -1095,6 +1181,39 @@ function documentationViewerOnCommand(args) {
         documentationViewer.setState({ visible: false });
         getUIState().documentationVisibleOnStartup = false;
         state.saveToLocalStorage();
+    }
+}
+
+
+/** @param {import("./ui/welcomeScreen").WelcomeScreenStateCommandEventArgs} args */
+function welcomeScreenOnCommand(args) {
+    switch (args.command) {
+
+        case WelcomeScreen.Commands.dismiss:
+            welcomeScreen.setState({ visible: false });
+            break;
+
+        case WelcomeScreen.Commands.changeShowOnStartUp:
+            getUIState().welcomeVisibleOnStartup = args.showOnStartUp;
+            state.saveToLocalStorage();
+            break;
+
+        case WelcomeScreen.Commands.projectNew:
+            newProject();
+            break;
+
+        case WelcomeScreen.Commands.projectLoadFromFile:
+            importProjectFromJson();
+            break;
+
+        case WelcomeScreen.Commands.tileImageImport:
+            tileImportImage();
+            break;
+
+        case WelcomeScreen.Commands.showDocumentation:
+            documentationViewer.setState({ visible: true });
+            break;
+
     }
 }
 
@@ -1260,18 +1379,22 @@ function formatForNoProject() {
         enabled: false,
         projectTitle: '',
         enabledCommands: [
+            ProjectToolbar.Commands.showDropdown,
             ProjectToolbar.Commands.projectNew,
             ProjectToolbar.Commands.projectLoadFromFile,
-            ProjectToolbar.Commands.projectLoadById, ProjectToolbar.Commands.projectDelete
+            ProjectToolbar.Commands.projectLoadById,
+            ProjectToolbar.Commands.projectDelete
         ]
     });
     projectDropdown.setState({
         enabled: false,
         projectTitle: '',
         enabledCommands: [
-            ProjectToolbar.Commands.projectNew,
-            ProjectToolbar.Commands.projectLoadFromFile,
-            ProjectToolbar.Commands.projectLoadById, ProjectToolbar.Commands.projectDelete
+            ProjectDropdown.Commands.projectNew,
+            ProjectDropdown.Commands.projectLoadFromFile,
+            ProjectDropdown.Commands.projectLoadById,
+            ProjectDropdown.Commands.projectDelete,
+            ProjectDropdown.Commands.showWelcomeScreen
         ]
     });
     exportToolbar.setState({
@@ -1296,7 +1419,7 @@ function formatForNoProject() {
         enabled: false
     });
     tileEditor.setState({
-        tileSet: dummyProject.tileSet,
+        tileSet: null,
         enabled: false
     });
 }
@@ -1963,6 +2086,7 @@ function newProject() {
         tileSet: getTileSet(),
         selectedTileIndex: instanceState.tileIndex
     });
+    welcomeScreen.setState({ visible: false });
 }
 
 /**
@@ -1983,9 +2107,8 @@ function importProjectFromJson() {
                 getUIState().paletteIndex = 0;
 
                 displaySelectedProject();
-                projectDropdown.setState({
-                    visible: false
-                });
+                projectDropdown.setState({ visible: false });
+                welcomeScreen.setState({ visible: false });
             });
         }
     }
@@ -2003,7 +2126,11 @@ function exportProjectToJson() {
  * Shows the export to assembly dialogue.
  */
 function exportProjectToAssembly() {
-    const code = ProjectAssemblySerialiser.serialise(getProject());
+    const code = ProjectAssemblySerialiser.serialise(getProject(), {
+        generateTileMapFromTileSet: getUIState().exportGenerateTileMap,
+        paletteIndex: getUIState().exportTileMapPaletteIndex,
+        tileMapMemoryOffset: getUIState().exportTileMapVramOffset
+    });
     exportDialogue.show(code);
 }
 
@@ -2464,7 +2591,6 @@ window.addEventListener('load', async () => {
     // Load and set state
     state.loadFromLocalStorage();
 
-    createDefaultProjectIfNoneExists();
     checkPersistentUIValues();
 
     // Load initial projects
@@ -2503,5 +2629,28 @@ window.addEventListener('load', async () => {
         };
     });
 
-    documentationViewer.setState({ visible: getUIState().documentationVisibleOnStartup });
+    documentationViewer.setState({
+        visible: getUIState().documentationVisibleOnStartup
+    });
+
+    welcomeScreen.setState({
+        visible: getUIState().welcomeVisibleOnStartup || getProject() instanceof Project === false,
+        showWelcomeScreenOnStartUpChecked: getUIState().welcomeVisibleOnStartup,
+        visibleCommands: getProject() instanceof Project === true ? ['dismiss'] : [],
+        invisibleCommands: getProject() instanceof Project === false ? ['dismiss'] : []
+    });
+
+    optionsToolbar.setState({
+        theme: getUIState().theme,
+        welcomeOnStartUp: getUIState().welcomeVisibleOnStartup,
+        documentationOnStartUp: getUIState().documentationVisibleOnStartup
+    });
+
+    exportDialogue.setState({
+        generateTileMapChecked: getUIState().exportGenerateTileMap,
+        paletteIndex: getUIState().exportTileMapPaletteIndex,
+        vramOffset: getUIState().exportTileMapVramOffset
+    });
+
+    setTimeout(() => themeManager.setTheme(getUIState().theme), 50);
 });

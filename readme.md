@@ -19,22 +19,62 @@ To use the Configuration for a local Node.js Express based server the following 
 * [Node.js](https://nodejs.org/en/)
 
 
-# How to run
+# How to run without compilation
+A design goal of this project is that the raw source files may be run from within a browser without any compilation steps required. 
 
-## Option 1
+## Option 1, server of your choice
 1. Copy the files from `/wwwroot` to your own server. 
 2. Open `index.html`. 
 
-## Option 2
+## Option 2, Node
 1. Run the following from a terminal from the project root folder:<br />`node app.js`
 2. Browse to http://localhost:8080/index.html.
 
-## To host a local HTTPS server
+### Use self-signed HTTPs with Node
 For this you will require OpenSSL to be installed. 
 1. Navigate to the project root folder in a terminal window.
 2. Run the command '`openssl req -nodes -new -x509 -keyout cert/server.key -out cert/server.cert`' to create the certificate.
    * Make sure you set the common name to '`localhost`'.
 3. The files '`cert/server.key` and `cert/server.cert` will be created, the `app.js` file will detect these files and automatically create a HTTPS server for you next time that you run it.
+
+## Option 3, Python
+You could run: `python -m httpserver`
+
+
+# Deploy to production
+While the goal of the project is to produce a code base that may be run from any browser without a compilation step, when deploying to a production environment it may be desirable to bundle and minify the files in order to reduce network request and transfer. 
+
+The bundled and minified output can still be served without a server-side scripting requirement.
+
+## Bundle and minify
+A Webpack config file is supplied which will build a bundled and minified version of this project into the `dist` directory. 
+
+## Azure Storage Account
+To deploy to Azure Storage Account container run the `deploy-to-azure-storage.js` file. 
+
+*Note: Before you deploy to Azurre Storage Accounts, please run Webpack to create the files for the `dist` directory.*
+
+* `node ./deploy-to-azure-storage.js`
+
+For the file to work you will need to define the following environment variables:
+
+| Variable | Description |
+| -------- | ----------- |
+| `AZURE_STORAGE_CONNECTION_STRING` | Connection string to use to connect to the Azure storage account. |
+| `AZURE_STORAGE_CONTAINER_NAME` | Name of the container that you wish to deploy the files.<br>*Note: All existing files will be deleted.* | 
+
+If you wish to use multiple environments, you can use the `--env` parameter to pass in an environment name. 
+
+For example to dploy to a `dev` environment: 
+* Append `_dev` to the above environment variables (`AZURE_STORAGE_CONNECTION_STRING_dev` and `AZURE_STORAGE_CONTAINER_NAME_dev`) with the appropriate values for the **dev** environment.
+* Run: `node ./deploy-to-azure-storage.js --env dev`.
+
+## Docker
+*Note: Before you deploy to Azurre Storage Accounts, please run Webpack to create the files for the `dist` directory.*
+
+1. Run `docker build . -t smsgfx`
+2. Run `docker run -p8080:80 smsgfx`
+3. Go to https://localhost:8080
 
 
 # Keyboard shortcuts
