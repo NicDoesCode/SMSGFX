@@ -28,11 +28,43 @@ jobs:
       - node/install-packages:
           pkg-manager: npm
       - run: 
-         name: Build app
-         command: npm run build
+          name: Build app
+          command: npm run build
       - run: 
-         name: Deploy to Azure
-         command: node ./deploy-to-azure-storage.js --env dev
+          name: Deploy to Azure
+          command: node ./deploy-to-azure-storage.js --env dev
+
+  build-and-push-quay-prod:
+    docker:
+      - image: docker
+    steps:
+      - run:
+          name: Build application Docker image
+          command: |
+            docker build -t quay.io/opsinfra/smsgfx:latest .
+      - run:
+          name: Docker login for Quay.io
+          command: |
+            docker login -u="opsinfra+nic_circle_ci" -p="${QUAY_PASSWORD}" quay.io
+      - run:
+          name: Docker push for Quay.io
+          command: |
+            docker push quay.io/opsinfra/smsgfx:latest
+
+
+  deploy-derg-prod:
+    docker:
+      - image: bitnami/kubectl
+    steps:
+      - run:
+          name: Setup kube creds
+          command: |
+            mkdir -p ~/.kube && echo "${KUBE_CFG_YML}" > ~/.kube/config
+      - run:
+          name: Deploy to prod
+          command: |
+            kubectl -n smsgfx rollout restart deploy smsgfx
+
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
@@ -40,13 +72,24 @@ workflows:
   build-and-test-workflow:
     jobs:
       - build-and-deploy-prod:
-          filters: 
-            branches:
-              only: 
-                - master 
+        filters: 
+          branches:
+            only: 
+              - master 
+      - deploy-derg-prod:
+        requires: ["build-and-push-quay-prod"]
+        filters: 
+          branches:
+            only: 
+              - master 
+      - build-and-push-quay-prod:
+        filters: 
+          branches:
+            only: 
+              - master 
       - build-and-deploy-dev:
-          filters: 
-            branches:
-              only: 
-                - develop 
+        filters: 
+          branches:
+            only: 
+              - develop 
 
