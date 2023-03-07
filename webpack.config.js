@@ -53,6 +53,11 @@ module.exports = {
             filename: 'privacy.html',
             inject: false
         }),
+        new HtmlWebpackPlugin({
+            template: './wwwroot/404.html',
+            filename: '404.html',
+            inject: false
+        }),
         new CopyPlugin({
             patterns: [
                 { from: 'wwwroot/assets/image', to: 'assets/image' },
