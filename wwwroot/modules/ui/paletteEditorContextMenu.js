@@ -113,7 +113,7 @@ export default class PaletteEditorContextMenu {
         if (state?.position && typeof state.position.x === 'number' && typeof state.position.y === 'number') {
             // Position menu to mouse pointer
             const position = state.position;
-            const rect = this.#dropDownElement.getBoundingClientRect();
+            const rect = this.#element.getBoundingClientRect();
             this.#btnMenuActivate.style.left = `${position.x - rect.left - 5}px`;
             this.#btnMenuActivate.style.top = `${position.y - rect.top - 5}px`;
         }
