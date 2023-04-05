@@ -52,6 +52,8 @@ const instanceState = {
     /** @type {number} */
     colourIndex: 0,
     /** @type {number} */
+    startingColourIndex: 0,
+    /** @type {number} */
     tileIndex: -1,
     /** @type {string} */
     tileClipboard: null,
@@ -917,7 +919,13 @@ function handleTileEditorOnEvent(args) {
 
             case TileEditor.Events.pixelMouseDown:
                 if (args.isPrimaryButton) {
-                    takeToolAction(instanceState.tool, instanceState.colourIndex, args.x, args.y);
+                    takeToolAction({
+                        tool: instanceState.tool,
+                        colourIndex: instanceState.colourIndex,
+                        imageX: args.x,
+                        imageY: args.y,
+                        event: TileEditor.Events.pixelMouseDown
+                    });
                 }
                 break;
 
@@ -925,7 +933,13 @@ function handleTileEditorOnEvent(args) {
                 const tileSet = getTileSet();
 
                 if (args.mousePrimaryIsDown) {
-                    takeToolAction(instanceState.tool, instanceState.colourIndex, args.x, args.y);
+                    takeToolAction({
+                        tool: instanceState.tool,
+                        colourIndex: instanceState.colourIndex,
+                        imageX: args.x,
+                        imageY: args.y,
+                        event: TileEditor.Events.pixelMouseOver
+                    });
                 }
 
                 // Show the palette colour
@@ -1453,7 +1467,21 @@ function displayProjectList() {
     });
 }
 
-function takeToolAction(tool, colourIndex, imageX, imageY) {
+/**
+ * Performs the action for a tool.
+ * @param {{
+ *      tool: string, 
+ *      colourIndex: number, 
+ *      imageX: number, 
+ *      imageY: number, 
+ *      event: string?
+ * }} args 
+ */
+function takeToolAction(args) {
+
+    const tool = args.tool; const colourIndex = args.colourIndex;
+    const event = args.event;
+    const imageX = args.imageX; const imageY = args.imageY;
 
     if (tool !== null && colourIndex >= 0 && colourIndex < 16) {
 
@@ -1481,6 +1509,34 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
                 const tileSet = getTileSet();
                 const size = instanceState.pencilSize;
                 const updatedTiles = PaintUtil.drawOnTileSet(tileSet, imageX, imageY, colourIndex, { brushSize: size, affectAdjacentTiles: true });
+
+                if (updatedTiles.affectedTileIndexes.length > 0) {
+                    tileEditor.setState({ updatedTiles: updatedTiles.affectedTileIndexes });
+                }
+            }
+
+        } else if (tool === TileEditorToolbar.Tools.colourReplace) {
+
+            const lastPx = instanceState.lastTileMapPx;
+            if (imageX !== lastPx.x || imageY !== lastPx.y) {
+                addUndoState();
+                if (!instanceState.undoDisabled) {
+                    instanceState.undoDisabled = true;
+                }
+
+                if (event === TileEditor.Events.pixelMouseDown) {
+                    console.log(event); // PX MOUSE DOWN 
+                    instanceState.startingColourIndex = getTileSet().getPixelAt(imageX, imageY);
+                }
+
+                instanceState.lastTileMapPx.x = imageX;
+                instanceState.lastTileMapPx.y = imageY;
+
+                const sourceColourindex = instanceState.startingColourIndex;
+                const replacementColourIndex = colourIndex;
+                const tileSet = getTileSet();
+                const size = instanceState.pencilSize;
+                const updatedTiles = PaintUtil.replaceColourOnTileSet(tileSet, imageX, imageY, sourceColourindex, replacementColourIndex, { brushSize: size, affectAdjacentTiles: true });
 
                 if (updatedTiles.affectedTileIndexes.length > 0) {
                     tileEditor.setState({ updatedTiles: updatedTiles.affectedTileIndexes });
@@ -1786,8 +1842,12 @@ function setPencilSize(brushSize) {
         tileContextToolbar.setState({
             brushSize: instanceState.pencilSize
         });
+        let cursorSize = 1;
+        if (instanceState.tool === TileEditorToolbar.Tools.pencil || instanceState.tool === TileEditorToolbar.Tools.colourReplace) {
+            cursorSize = instanceState.pencilSize;
+        }
         tileEditor.setState({
-            cursorSize: (instanceState.tool === TileEditorToolbar.Tools.pencil) ? instanceState.pencilSize : 1
+            cursorSize: cursorSize
         });
     }
 }
@@ -2452,7 +2512,7 @@ function selectTool(tool) {
         }
 
         let visibleStrips = [];
-        if ([tools.pencil, tools.eyedropper, tools.bucket].includes(tool)) {
+        if ([tools.pencil, tools.eyedropper, tools.bucket, tools.colourReplace].includes(tool)) {
             visibleStrips.push(TileContextToolbar.Toolstrips.pencil);
         }
         if ([tools.select].includes(tool)) {
@@ -2466,7 +2526,7 @@ function selectTool(tool) {
         let cursorSize = 1;
         if ([tools.eyedropper, tools.bucket].includes(tool)) {
             cursor = 'crosshair';
-        } else if (tool === tools.pencil) {
+        } else if (tool === tools.pencil || tool === tools.colourReplace) {
             cursor = 'crosshair';
             cursorSize = instanceState.pencilSize;
         }
