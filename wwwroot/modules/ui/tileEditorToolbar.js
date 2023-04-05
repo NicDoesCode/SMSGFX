@@ -19,6 +19,7 @@ const commands = {
 const tools = {
     select: 'select',
     pencil: 'pencil',
+    colourReplace: 'colourReplace',
     bucket: 'bucket',
     eyedropper: 'eyedropper',
     referenceImage: 'referenceImage'
