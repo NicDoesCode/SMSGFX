@@ -82,7 +82,9 @@ export default class DocumentationViewer {
      */
     #createArgs(element) {
         const iframe = this.#element.querySelector('iframe');
-        const iframeUrl = (iframe.contentDocument) ? iframe.contentWindow.location.href : iframe.src;
+        // TODO: Commented out till can find an issue to CORS access exception when trying to access URL of embedded help page.
+        // const iframeUrl = (iframe.contentDocument) ? iframe.contentWindow.location.href : iframe.src;
+        const iframeUrl = iframe.src;
 
         return { 
             command: element.getAttribute('data-command'),
