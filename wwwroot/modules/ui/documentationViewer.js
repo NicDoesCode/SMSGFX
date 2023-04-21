@@ -82,7 +82,7 @@ export default class DocumentationViewer {
      */
     #createArgs(element) {
         const iframe = this.#element.querySelector('iframe');
-        const iframeUrl = !!(iframe.contentDocument) ? iframe.contentWindow.location.href : iframe.src;
+        const iframeUrl = (iframe.contentDocument) ? iframe.contentWindow.location.href : iframe.src;
 
         return { 
             command: element.getAttribute('data-command'),
