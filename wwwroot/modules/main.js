@@ -1191,10 +1191,22 @@ function handleImageImportModalOnConfirm(args) {
 
 /** @param {import("./ui/documentationViewer").DocumentationViewerCommandEventArgs} args */
 function documentationViewerOnCommand(args) {
-    if (args.command === DocumentationViewer.Commands.close) {
+    const closeDocumentation = () => {
         documentationViewer.setState({ visible: false });
         getUIState().documentationVisibleOnStartup = false;
         state.saveToLocalStorage();
+    }
+    switch (args.command) {
+
+        case DocumentationViewer.Commands.popOut:
+            window.open(args.currentDocumentationUrl);
+            closeDocumentation();
+            break;
+
+        case DocumentationViewer.Commands.close:
+            closeDocumentation();
+            break;
+
     }
 }
 

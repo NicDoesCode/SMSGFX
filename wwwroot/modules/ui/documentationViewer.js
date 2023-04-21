@@ -4,7 +4,8 @@ import EventDispatcher from "../components/eventDispatcher.js";
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
 const commands = {
-    close: 'close'
+    close: 'close',
+    popOut: 'popOut'
 }
 
 export default class DocumentationViewer {
@@ -32,8 +33,7 @@ export default class DocumentationViewer {
 
         this.#element.querySelectorAll('button[data-command]').forEach(element => {
             element.onclick = () => {
-                /** @type {DocumentationViewerCommandEventArgs} */
-                const args = { command: element.getAttribute('data-command') };
+                const args = this.#createArgs(element);
                 this.#dispatcher.dispatch(EVENT_OnCommand, args);
             };
         });
@@ -75,6 +75,22 @@ export default class DocumentationViewer {
     }
 
 
+    /**
+     * Creates command arguments.
+     * @param {HTMLElement} element - Element that invoked the command.
+     * @returns {DocumentationViewerCommandEventArgs}
+     */
+    #createArgs(element) {
+        const iframe = this.#element.querySelector('iframe');
+        const iframeUrl = !!(iframe.contentDocument) ? contentWindow.location.href : iframe.src;
+
+        return { 
+            command: element.getAttribute('data-command'),
+            currentDocumentationUrl: iframeUrl
+        };
+    }
+
+
 }
 
 
@@ -94,5 +110,6 @@ export default class DocumentationViewer {
 /**
  * @typedef {object} DocumentationViewerCommandEventArgs
  * @property {string} command - The command being invoked.
+ * @property {string} currentDocumentationUrl - Current URL being displayed in the the documentation iframe.
  * @exports
  */
