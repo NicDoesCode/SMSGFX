@@ -1,6 +1,6 @@
 import TileMapTile from '../models/tileMapTile.js';
 
-export default class TileMapTileBinarySerialiser {
+export default class GameBoyTileMapTileBinarySerialiser {
 
 
     /**
