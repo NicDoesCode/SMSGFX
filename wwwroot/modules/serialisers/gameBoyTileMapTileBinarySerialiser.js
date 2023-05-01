@@ -10,11 +10,6 @@ export default class GameBoyTileMapTileBinarySerialiser {
      */
      static serialise(tileMapTile) {
         let result = tileMapTile.tileNumber;
-        result &= 511;
-        if (tileMapTile.horizontalFlip) result |= 512;
-        if (tileMapTile.verticalFlip) result |= 1024;
-        if (tileMapTile.palette === 1) result |= 2048;
-        if (tileMapTile.priority) result |= 4096;
         return result;
     }
 
