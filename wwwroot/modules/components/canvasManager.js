@@ -309,6 +309,7 @@ export default class CanvasManager {
         const tileCount = Math.max(this.tileSet.tileWidth, 1);
         const tileSetCol = tileindex % tileCount;
         const tileSetRow = (tileindex - tileSetCol) / tileCount;
+        const numColours = this.palette.getColours().length;
 
         for (let tilePx = 0; tilePx < 64; tilePx++) {
 
@@ -321,7 +322,7 @@ export default class CanvasManager {
             let pixelPaletteIndex = tile.readAt(tilePx);
 
             // Set colour
-            if (pixelPaletteIndex >= 0 && pixelPaletteIndex < 16) {
+            if (pixelPaletteIndex >= 0 && pixelPaletteIndex < numColours) {
                 const colour = this.palette.getColour(pixelPaletteIndex);
                 const hex = ColourUtil.toHex(colour.r, colour.g, colour.b);
                 context.fillStyle = hex;

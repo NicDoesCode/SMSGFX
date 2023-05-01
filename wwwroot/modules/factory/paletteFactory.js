@@ -26,10 +26,10 @@ export default class PaletteFactory {
      */
     static createNewStandardColourPalette(title, system) {
         if (!title || title.trim() === '') title = `${system.toUpperCase()} palette`;
-        if (!system || system !== 'gg' || system !== 'gb') system = 'ms';
+        if (!system || (system !== 'gg' && system !== 'gb')) system = 'ms';
 
         const palette = PaletteFactory.create(title, system);
-        for (let c = 0; c < 16; c++) {
+        for (let c = 0; c < palette.getColours().length; c++) {
             const colour = PaletteColourFactory.fromHex(defaultColours[c]);
             palette.setColour(c, colour);
         }

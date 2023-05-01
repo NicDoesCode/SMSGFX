@@ -95,6 +95,14 @@ export default class ProjectDropdown extends ModalDialogue {
             this.#displayProjects(state.projects);
         }
 
+        if (state.systemType && typeof state.systemType === 'string') {
+            if (state.systemType === 'gb') {
+                this.#element.querySelector(`[data-smsgfx-id=system-type`).value = 'gb';
+            } else {
+                this.#element.querySelector(`[data-smsgfx-id=system-type`).value = 'smsgg';
+            }
+        }
+
         if (typeof state?.enabled === 'boolean') {
             this.#enabled = state?.enabled;
             this.#element.querySelectorAll('[data-command]').forEach(element => {
@@ -147,7 +155,8 @@ export default class ProjectDropdown extends ModalDialogue {
         return {
             command: command,
             title: this.#element.querySelector(`[data-command=${commands.title}]`)?.value ?? null,
-            projectId: null
+            projectId: null,
+            systemType: this.#element.querySelector(`[data-smsgfx-id=system-type`)?.value ?? null
         };
     }
 
@@ -203,6 +212,7 @@ export default class ProjectDropdown extends ModalDialogue {
  * @property {string[]?} enabledCommands - Array of commands that should be enabled, overrided enabled state.
  * @property {string[]?} disabledCommands - Array of commands that should be disabled, overrided enabled state.
  * @property {ProjectList} projects - List of projects to display in the menu.
+ * @property {string?} systemType - System type to target, either 'smsgg' or 'gb'.
  * @property {boolean?} enabled - Is the control enabled or disabled?
  * @property {boolean?} visible - Is the control visible?
  */
@@ -218,5 +228,6 @@ export default class ProjectDropdown extends ModalDialogue {
  * @property {string} command - The command being invoked.
  * @property {string?} title - Project title.
  * @property {string?} projectId - Project ID.
+ * @property {string?} systemType - Type of system to target, either 'smsgg' or 'gb'.
  * @exports
  */

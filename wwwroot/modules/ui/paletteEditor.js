@@ -96,7 +96,7 @@ export default class PaletteEditor {
             };
         });
 
-        this.#createPaletteColourIndexButtons();
+        // this.#createPaletteColourIndexButtons();
 
         PaletteEditorContextMenu.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=palette-editor-context-menu]'))
             .then((obj) => {
@@ -111,7 +111,7 @@ export default class PaletteEditor {
      * @param {HTMLElement} element - Container element.
      * @returns {Promise<PaletteEditor>}
      */
-     static async loadIntoAsync(element) {
+    static async loadIntoAsync(element) {
         const componentElement = await TemplateUtil.replaceElementWithComponentAsync('paletteEditor', element);
         return new PaletteEditor(componentElement);
     }
@@ -326,9 +326,11 @@ export default class PaletteEditor {
 
     /**
      * Displays a given palette to the screen.
-     * @param {Palette} palette The palette to show on the buttons.
+     * @param {Palette} palette - The palette to show on the buttons.
      */
     #setPalette(palette) {
+        this.#createPaletteColourIndexButtons(palette);
+        this.#setUI(palette);
         const paletteButtons = this.#paletteButtons;
         for (let i = 0; i < 16; i++) {
             if (i < palette.getColours().length) {
@@ -348,15 +350,24 @@ export default class PaletteEditor {
         this.#updateSystemSelectVirtualList(palette.system);
     }
 
-    #createPaletteColourIndexButtons() {
+    /**
+     * @param {Palette} palette - The palette to show on the buttons.
+     */
+    #createPaletteColourIndexButtons(palette) {
 
         /** @type {HTMLTableElement} */
         const table = this.#element.querySelector('#tbPalette');
         /** @type {HTMLTableSectionElement} */
         const tbody = table.querySelector('tbody');
 
+        while (tbody.firstChild) {
+            tbody.removeChild(tbody.firstChild);
+        }
+
+        const totalColours = palette.system === 'gb' ? 4 : 16;
+
         let tr, td;
-        for (let idx = 0; idx < 16; idx++) {
+        for (let idx = 0; idx < totalColours; idx++) {
 
             if (idx % 4 === 0) {
                 tr = document.createElement('tr');
@@ -397,6 +408,18 @@ export default class PaletteEditor {
             this.#paletteButtons.push(btnColour);
         }
 
+    }
+
+    /**
+     * @param {Palette} palette - The palette to show on the buttons.
+     */
+    #setUI(palette) {
+        document.querySelectorAll('[data-smsgfx-id=system-select]').forEach(elm => {
+            elm.style.display = palette.system !== 'gb' ? '' : 'none';
+        });
+        document.querySelectorAll('[data-smsgfx-id=emulate-system-colours]').forEach(elm => {
+            elm.style.display = palette.system !== 'gb' ? '' : 'none';
+        });
     }
 
     /**

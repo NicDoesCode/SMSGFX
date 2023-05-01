@@ -30,8 +30,9 @@
             <select data-command="paletteSystem" class="form-select form-select-sm visually-hidden">
                 <option value="ms">Master System</option>
                 <option value="gg">Game Gear</option>
+                <option value="gb">Game Boy</option>
             </select>
-            <div class="row mb-2">
+            <div data-smsgfx-id="system-select" class="row mb-2">
                 <div class="col">
                     <ul class="nav nav-pills nav-fill">
                         <li class="nav-item">
@@ -46,6 +47,12 @@
                                 title="This palette is for Sega Game Gear.">
                                 <img src="./assets/image/game-gear-console.svg" alt="Sega Game Gear."
                                     class="sms-console-icon" />
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button data-linked-command="paletteSystem" data-value="gb" class="nav-link"
+                                title="This palette is for Nintendo Game Boy.">
+                                GB
                             </button>
                         </li>
                     </ul>
@@ -63,8 +70,8 @@
                     </div>
                 </div>
             </div>
-            <!-- End: Palette editor : colours -->
-            <div class="row">
+            <!-- End: Palette editor : emulate system colours -->
+            <div data-smsgfx-id="emulate-system-colours" class="row">
                 <div class="col">
                     <div class="form-check form-switch ms-2 mt-2">
                         <input id="displayNativeColours" data-command="displayNativeColours" class="form-check-input"

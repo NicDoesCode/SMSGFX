@@ -50,7 +50,7 @@ export default class ColourPickerToolbox {
      * Initialises a new instance of this class.
      * @param {HTMLElement} element - Element that contains the DOM.
      */
-     constructor(element) {
+    constructor(element) {
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 
@@ -88,6 +88,7 @@ export default class ColourPickerToolbox {
         });
 
         this.#makeSMSColourButtons();
+        this.#makeGBColourButtons();
         this.#showCurrentTab();
     }
 
@@ -97,7 +98,7 @@ export default class ColourPickerToolbox {
      * @param {HTMLElement} element - Container element.
      * @returns {Promise<ColourPickerToolbox>}
      */
-     static async loadIntoAsync(element) {
+    static async loadIntoAsync(element) {
         const componentElement = await TemplateUtil.replaceElementWithComponentAsync('colourPickerToolbox', element);
         return new ColourPickerToolbox(componentElement);
     }
@@ -109,7 +110,7 @@ export default class ColourPickerToolbox {
      */
     setState(state) {
         if (typeof state?.showTab === 'string') {
-            this.#currentTab = (state.showTab === 'sms') ? 'sms' : 'rgb';
+            this.#currentTab = (['sms', 'rgb', 'gb'].includes(state.showTab)) ? state.showTab : 'rgb';
             this.#showCurrentTab();
         }
         if (typeof state?.r === 'number') {
@@ -134,6 +135,12 @@ export default class ColourPickerToolbox {
             const box = this.#element.querySelector('[data-smsgfx-id=smsColourPalette]');
             box.querySelectorAll('button[data-colour-hex]').forEach(element => {
                 element.disabled = !this.#enabled;
+            });
+        }
+
+        if (Array.isArray(state?.visibleTabs)) {
+            document.querySelectorAll('[data-colour-toolbox-tab]').forEach(elm => {
+                elm.style.display = state.visibleTabs.includes(elm.getAttribute('data-colour-toolbox-tab')) ? '' : 'none';
             });
         }
     }
@@ -179,6 +186,31 @@ export default class ColourPickerToolbox {
         });
         const smsColourContainer = this.#element.querySelector('[data-smsgfx-id=smsColourContainer]');
         const box = smsColourContainer.querySelector('[data-smsgfx-id=smsColourPalette]');
+        colours.forEach(colour => {
+            const colourHex = ColourUtil.toHex(colour.r, colour.g, colour.b);
+            const btn = document.createElement('button');
+            btn.setAttribute('data-colour-hex', colourHex);
+            btn.style.backgroundColor = colourHex;
+            btn.onclick = () => {
+                this.#r = colour.r;
+                this.#g = colour.g;
+                this.#b = colour.b;
+                this.#tbColourToolboxHex.value = colourHex;
+                this.#setAllValues();
+                this.#handleColourChanged();
+            };
+            box.appendChild(btn);
+        });
+    }
+
+    #makeGBColourButtons() {
+        const colourValues = [0, 85, 170, 255];
+        const colours = [];
+        colourValues.forEach(c => {
+            colours.push({ r: c, g: c, b: c });
+        });
+        const gbColourContainer = this.#element.querySelector('[data-smsgfx-id=gbColourContainer]');
+        const box = gbColourContainer.querySelector('[data-smsgfx-id=gbColourPalette]');
         colours.forEach(colour => {
             const colourHex = ColourUtil.toHex(colour.r, colour.g, colour.b);
             const btn = document.createElement('button');
@@ -275,7 +307,8 @@ export default class ColourPickerToolbox {
 /**
  * @typedef {object} ColourPickerToolboxState
  * @property {boolean?} enabled - Is the toolbox enabled?
- * @property {string?} showTab - Either 'rgb' or 'sms', which content tab to show.
+ * @property {string?} showTab - Either 'rgb', 'sms' or 'gb', which content tab to show.
+ * @property {string[]?} visibleTabs - Comma separated list of tabs to show, of 'rgb', 'sms' or 'gb'.
  * @property {number?} r - Red component.
  * @property {number?} g - Green component.
  * @property {number?} b - Blue component.
