@@ -44,6 +44,7 @@ export default class ProjectJsonSerialiser {
             id: project.id, 
             version: 1, 
             title: project.title,
+            systemType: project.systemType,
             paletteList: PaletteListJsonSerialiser.toSerialisable(project.paletteList),
             tileSet: TileSetJsonSerialiser.toSerialisable(project.tileSet)
         };
@@ -58,6 +59,7 @@ export default class ProjectJsonSerialiser {
         return ProjectFactory.create({
             id: projectSerialisable.id,
             title: projectSerialisable.title, 
+            systemType: projectSerialisable.systemType, 
             tileSet: TileSetJsonSerialiser.fromSerialisable(projectSerialisable.tileSet),
             paletteList: PaletteListJsonSerialiser.fromSerialisable(projectSerialisable.paletteList)
         });
@@ -72,6 +74,7 @@ export default class ProjectJsonSerialiser {
  * @property {number} version
  * @property {string} id
  * @property {string} title
+ * @property {string} systemType
  * @property {import('./tileSetJsonSerialiser').TileSetSerialisable} tileSet
  * @property {import('./paletteJsonSerialiser').PaletteSerialisable} paletteList
  * @exports

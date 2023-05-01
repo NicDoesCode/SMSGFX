@@ -37,7 +37,7 @@ export default class ProjectAssemblySerialiser {
 
         palettes.getPalettes().forEach((p, i, a) => {
             const num = i.toString().padStart(2, '0');
-            const sys = p.system === 'gg' ? 'Game Gear' : p.system === 'ms' ? 'Master System' : 'Unknown';
+            const sys = p.system === 'gg' ? 'Sega Game Gear' : p.system === 'ms' ? 'Sega Master System' : p.system === 'gb' ? 'Nintendo Game Boy' : 'Unknown';
             const title = p.title ? ` - ${p.title}` : '';
             message.push(`; Palette ${num} - ${sys}${title}`);
             if (p.system === 'gg') {
@@ -57,7 +57,7 @@ export default class ProjectAssemblySerialiser {
             } else if (p.system === 'gb') {
                 const gbPalette = p.getColours().map(c => {
                     return ColourUtil.encodeToNativeString('gb', c.r, c.g, c.b, 'binary');
-                }).join();
+                }).join('');
                 message.push(`.db %${gbPalette}`);
             }
         });

@@ -1906,7 +1906,8 @@ function selectTile(index) {
 function newPalette() {
     addUndoState();
 
-    const newPalette = PaletteFactory.createNewStandardColourPalette('New palette', 'ms');
+    const system = getProject().systemType === 'gb' ? 'gb' : 'ms';
+    const newPalette = PaletteFactory.createNewStandardColourPalette('New palette', system);
     getPaletteList().addPalette(newPalette);
 
     state.setProject(getProject());

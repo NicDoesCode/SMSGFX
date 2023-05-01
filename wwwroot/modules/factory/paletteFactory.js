@@ -4,6 +4,7 @@ import PaletteJsonSerialiser from "../serialisers/paletteJsonSerialiser.js";
 import ColourUtil from "../util/colourUtil.js";
 
 const defaultColours = ['#000000', '#000000', '#00AA00', '#00FF00', '#000055', '#0000FF', '#550000', '#00FFFF', '#AA0000', '#FF0000', '#555500', '#FFFF00', '#005500', '#FF00FF', '#555555', '#FFFFFF'];
+const defaultColoursGB = ['#000000', '#555555', '#AAAAAA', '#FFFFFF'];
 
 export default class PaletteFactory {
 
@@ -29,8 +30,9 @@ export default class PaletteFactory {
         if (!system || (system !== 'gg' && system !== 'gb')) system = 'ms';
 
         const palette = PaletteFactory.create(title, system);
+        const systemDefaultColours = system === 'gb' ? defaultColoursGB : defaultColours;
         for (let c = 0; c < palette.getColours().length; c++) {
-            const colour = PaletteColourFactory.fromHex(defaultColours[c]);
+            const colour = PaletteColourFactory.fromHex(systemDefaultColours[c]);
             palette.setColour(c, colour);
         }
         return palette;
