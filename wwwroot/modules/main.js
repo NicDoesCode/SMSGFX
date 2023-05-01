@@ -1272,13 +1272,14 @@ function createDefaultProjectIfNoneExists() {
 function createEmptyProject(args) {
 
     const systemType = args?.systemType ?? 'smsgg';
+    const defaultTileColourIndex = systemType === 'smsgg' ? 15 : 3;
     const project = ProjectFactory.create({ title: 'New project', systemType: systemType });
 
     // Create a default tile set
     project.tileSet = TileSetFactory.create();
     project.tileSet.tileWidth = 8;
     for (let i = 0; i < 64; i++) {
-        project.tileSet.addTile(TileFactory.create());
+        project.tileSet.addTile(TileFactory.create(defaultTileColourIndex));
     }
 
     // Create a default palette 
