@@ -17,8 +17,8 @@ export default class GameBoyTileBinarySerialiser {
             const encoded = [0, 0];
             for (let col = 0; col < 8; col++) {
                 const px = tile.readAt((row * 8) + col);
-                // const shift = 7 - col;
-                const shift = col;
+                const shift = 7 - col;
+                // const shift = col;
                 encoded[1] = encoded[1] | (((px & masks[7]) >> 0) << shift);
                 encoded[0] = encoded[0] | (((px & masks[6]) >> 1) << shift);
             }

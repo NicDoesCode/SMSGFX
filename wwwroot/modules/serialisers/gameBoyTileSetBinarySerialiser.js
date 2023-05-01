@@ -11,10 +11,10 @@ export default class GameBoyTileSetBinarySerialiser {
      * @returns {Uint8ClampedArray}
      */
      static serialise(tileSet) {
-        const byteLength = tileSet.length * 32;
+        const byteLength = tileSet.length * 16;
         const result = new Uint8ClampedArray(byteLength);
         tileSet.getTiles().forEach((tile, index) => {
-            const resultArrayOffset = index * 32;
+            const resultArrayOffset = index * 16;
             const tileAsBinary = GameBoyTileBinarySerialiser.serialise(tile);
             result.set(tileAsBinary, resultArrayOffset);
         });
@@ -29,8 +29,8 @@ export default class GameBoyTileSetBinarySerialiser {
      */
      static deserialise(array) {
         const tileSet = TileSetFactory.create();
-        for (let i = 0; i < array.length; i += 32) {
-            const arraySlice = array.slice(i, i + 32);
+        for (let i = 0; i < array.length; i += 16) {
+            const arraySlice = array.slice(i, i + 16);
             const tile = GameBoyTileBinarySerialiser.deserialise(arraySlice);
             tileSet.addTile(tile);
         }
