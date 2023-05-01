@@ -332,7 +332,7 @@ export default class PaletteEditor {
         this.#createPaletteColourIndexButtons(palette);
         this.#setUI(palette);
         const paletteButtons = this.#paletteButtons;
-        for (let i = 0; i < 16; i++) {
+        for (let i = 0; i < paletteButtons.length; i++) {
             if (i < palette.getColours().length) {
                 const displayNative = this.#getElement(commands.displayNativeColours)?.checked ?? false;
                 const c = palette.getColour(i);
@@ -363,6 +363,9 @@ export default class PaletteEditor {
         while (tbody.firstChild) {
             tbody.removeChild(tbody.firstChild);
         }
+        this.#paletteCells = [];
+        this.#paletteButtons = [];
+
 
         const totalColours = palette.system === 'gb' ? 4 : 16;
 

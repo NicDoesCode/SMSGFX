@@ -101,7 +101,7 @@ export default class ColourUtil {
             b = Math.round(15 / 255 * b) * 17;
             return this.toHex(r, g, b);
         } else if (system === 'gb') {
-            const colour = Math.round(getNearestGBColour((r + g + b) / 3) / 85);
+            const colour = Math.round(getNearestGBColour((r + g + b) / 3));
             return this.toHex(colour, colour, colour);
         } else throw new Error('System was not valid.');
 
