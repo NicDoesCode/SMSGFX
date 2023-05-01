@@ -5,7 +5,7 @@ import Project from "../models/project.js";
 import TileSetBinarySerialiser from "./tileSetBinarySerialiser.js";
 import TileMapBinarySerialiser from "./tileMapBinarySerialiser.js";
 import GameBoyTileSetBinarySerialiser from "./gameBoyTileSetBinarySerialiser.js";
-import GameBoyTileMapTileBinarySerialiser from "./gameBoyTileMapTileBinarySerialiser.js";
+import GameBoyTileMapBinarySerialiser from "./gameBoyTileMapBinarySerialiser.js";
 import TileMapUtil from "../util/tileMapUtil.js";
 
 export default class ProjectAssemblySerialiser {
@@ -129,13 +129,13 @@ export default class ProjectAssemblySerialiser {
             }
         } else if (systemType === 'gb') {
             const tileMap = TileMapUtil.tileSetToTileMap(tileSet, paletteIndex, memoryOffset);
-            const encoded = GameBoyTileMapTileBinarySerialiser.serialise(tileMap);
+            const encoded = GameBoyTileMapBinarySerialiser.serialise(tileMap);
             for (let i = 0; i < encoded.length; i += tileSet.tileWidth) {
                 message.push(`; Tile map row ${(i / tileMap.tileWidth)}`);
-                const tileMessage = ['.dw'];
+                const tileMessage = ['.db'];
                 const stopAt = Math.min(i + tileMap.tileWidth, encoded.length);
                 for (let t = i; t < stopAt; t++) {
-                    tileMessage.push('$' + encoded[t].toString(16).padStart(4, '0').toUpperCase());
+                    tileMessage.push('$' + encoded[t].toString(16).padStart(2, '0').toUpperCase());
                 }
                 message.push(tileMessage.join(' '));
             }
