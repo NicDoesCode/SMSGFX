@@ -18,13 +18,13 @@ export default class Palette {
     }
 
     /**
-     * System this palette is for, either 'ms' (Sega Master) or 'gg' (Sega Game Gear).
+     * System this palette is for, either 'ms' (Sega Master), 'gg' (Sega Game Gear), 'gb' (Nintendo Game Boy).
      */
     get system() {
         return this.#system;
     }
     set system(value) {
-        if (!value || !/^ms|gg$/i.test(value)) throw new Error('System must be non null and either "ms" or "gg".');
+        if (!value || !/^ms|gg|gb$/i.test(value)) throw new Error('System must be non null and either "ms", "gg" or "gb".');
         this.#system = value.toLowerCase();
     }
 
@@ -34,17 +34,18 @@ export default class Palette {
     /** @type {number} */
     #title;
     /** @type {PaletteColour[]} */
-    #colours = new Array(16);
+    #colours;
 
 
     /**
      * Creates a new instance of a palette object.
      * @param {string} index - Title of the palette.
-     * @param {string} system - Intended system, either 'ms' (Sega Master) or 'gg' (Sega Game Gear).
+     * @param {string} system - Intended system, either 'ms' (Sega Master), 'gg' (Sega Game Gear) or 'gb (Nintendo Game Boy).
      */
     constructor(title, system) {
         this.title = title ? title : 'Palette';
         this.system = system;
+        this.#colours = new Array(system === 'gb' ? 4 : 16);
     }
 
 
@@ -62,7 +63,7 @@ export default class Palette {
      * @returns {PaletteColour}
      */
     getColour(index) {
-        if (index >= 0 && index < 16) {
+        if (index >= 0 && index < this.#colours.length) {
             return this.#colours[index];
         } else throw new Error('Colour index was out of range.');
     }
@@ -73,7 +74,7 @@ export default class Palette {
      * @param {PaletteColour} value Colour data to set.
      */
     setColour(index, value) {
-        if (index >= 0 && index < 16) {
+        if (index >= 0 && index < this.#colours.length) {
             this.#colours[index] = value;
         } else throw new Error('Colour index was out of range.');
     }

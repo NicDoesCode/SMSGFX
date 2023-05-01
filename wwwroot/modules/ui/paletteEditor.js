@@ -439,7 +439,7 @@ export default class PaletteEditor {
  * @typedef {object} PaletteEditorState
  * @property {PaletteList?} paletteList - Current list of palettes.
  * @property {string?} title - Title of the palette.
- * @property {string?} selectedSystem - Sets the selected system, either 'ms' or 'gg'.
+ * @property {string?} selectedSystem - Sets the selected system, either 'ms', 'gg', or 'gb'.
  * @property {number?} selectedPaletteIndex - Sets the selected palette index.
  * @property {number?} selectedColourIndex - Sets the selected colour index.
  * @property {number?} highlightedColourIndex - Sets the selected colour index.

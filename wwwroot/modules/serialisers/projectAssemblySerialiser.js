@@ -43,17 +43,22 @@ export default class ProjectAssemblySerialiser {
             if (p.system === 'gg') {
                 const colourMessage = ['.dw'];
                 p.getColours().forEach(c => {
-                    const colour = `$${ColourUtil.getNativeColour('gg', c.r, c.g, c.b)}`;
+                    const colour = `$${ColourUtil.encodeToNativeString('gg', c.r, c.g, c.b, 'hex')}`;
                     colourMessage.push(colour);
                 });
                 message.push(colourMessage.join(' '));
             } else if (p.system === 'ms') {
                 const colourMessage = ['.db'];
                 p.getColours().forEach(c => {
-                    const colour = `$${ColourUtil.getNativeColour('ms', c.r, c.g, c.b)}`;
+                    const colour = `$${ColourUtil.encodeToNativeString('ms', c.r, c.g, c.b, 'hex')}`;
                     colourMessage.push(colour);
                 });
                 message.push(colourMessage.join(' '));
+            } else if (p.system === 'gb') {
+                const gbPalette = p.getColours().map(c => {
+                    return ColourUtil.encodeToNativeString('gb', c.r, c.g, c.b, 'binary');
+                }).join();
+                message.push(`.db %${gbPalette}`);
             }
         });
 
