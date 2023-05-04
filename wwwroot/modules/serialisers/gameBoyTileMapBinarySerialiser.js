@@ -10,8 +10,8 @@ export default class GameBoyTileMapBinarySerialiser {
      * @returns {number[]}
      */
     static serialise(tileMap) {
-        return tileMap.tiles.map((tile) => {
-            return GameBoyTileMapTileBinarySerialiser.serialise(tile);
+        return tileMap.getTileMapTiles().map((tileMapTile) => {
+            return GameBoyTileMapTileBinarySerialiser.serialise(tileMapTile);
         });
     }
 

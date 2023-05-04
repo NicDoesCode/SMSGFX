@@ -8,8 +8,10 @@ export default class GameBoyTileMapTileBinarySerialiser {
      * @param {TileMapTile} tileMapTile - Tile map tile to serialise.
      * @returns {number}
      */
-     static serialise(tileMapTile) {
+    static serialise(tileMapTile) {
         let result = tileMapTile.tileNumber;
+        if (result < 0) result = 0;
+        if (result > 255) result = 255;
         return result;
     }
 

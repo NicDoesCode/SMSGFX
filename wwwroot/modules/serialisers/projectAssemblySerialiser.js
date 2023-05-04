@@ -7,6 +7,8 @@ import TileMapBinarySerialiser from "./tileMapBinarySerialiser.js";
 import GameBoyTileSetBinarySerialiser from "./gameBoyTileSetBinarySerialiser.js";
 import GameBoyTileMapBinarySerialiser from "./gameBoyTileMapBinarySerialiser.js";
 import TileMapUtil from "../util/tileMapUtil.js";
+import TileSetFactory from "../factory/tileSetFactory.js";
+import TileMap from "../models/tileMap.js";
 
 export default class ProjectAssemblySerialiser {
 
@@ -17,16 +19,25 @@ export default class ProjectAssemblySerialiser {
      * @param {ProjectAssemblySerialisationOptions?} options - Serialisation options.
      */
     static serialise(project, options) {
+
         const result = [];
+   
         result.push(ProjectAssemblySerialiser.#exportPalettes(project.paletteList));
         result.push('');
-        result.push(ProjectAssemblySerialiser.#exportTiles(project.tileSet, project.systemType));
-        if (options?.generateTileMapFromTileSet) {
+
+        if (!options?.generateTileMapFromTileSet) {
+            result.push(ProjectAssemblySerialiser.#exportTileSet(project.tileSet, project.systemType));
+            result.push('');
+        } else {
             const paletteIndex = options?.paletteIndex ?? 0;
             const memOffset = options?.tileMapMemoryOffset ?? 0;
+            const tileMap = TileMapUtil.tileSetToTileMap(project.tileSet, paletteIndex, memOffset);
+            result.push(ProjectAssemblySerialiser.#exportTileSet(tileMap.toTileSet(), project.systemType));
             result.push('');
-            result.push(ProjectAssemblySerialiser.#exportTileSetTileMap(project.tileSet, paletteIndex, memOffset, project.systemType));
-        }
+            result.push(ProjectAssemblySerialiser.#exportTileMap(tileMap, paletteIndex, memOffset, project.systemType));
+            result.push('');
+        }    
+
         return result.join('\r\n');
     }
 
@@ -72,7 +83,7 @@ export default class ProjectAssemblySerialiser {
      * @param {TileSet} tileSet - Tile set to export.
      * @param {string} systemType - Target system type, either 'smsgg' or 'gb'.
      */
-    static #exportTiles(tileSet, systemType) {
+    static #exportTileSet(tileSet, systemType) {
         const message = ['; TILES'];
         if (systemType === 'smsgg') {
             const encoded = TileSetBinarySerialiser.serialise(tileSet);
@@ -108,17 +119,16 @@ export default class ProjectAssemblySerialiser {
 
     /**
      * Exports tile set as WLA-DX compatible assembly code.
-     * @param {TileSet} tileMap - Tile map to export.
+     * @param {TileMap} tileMap - Tile map to export.
      * @param {number} paletteIndex - Palette index to use for the tiles.
      * @param {number} memoryOffset - VRAM memory offset for the tile addresses in the tile map.
      * @param {string} systemType - Target system type, either 'smsgg' or 'gb'.
      */
-    static #exportTileSetTileMap(tileSet, paletteIndex, memoryOffset, systemType) {
+    static #exportTileMap(tileMap, paletteIndex, memoryOffset, systemType) {
         const message = ['; TILE MAP FROM TILE SET'];
         if (systemType === 'smsgg') {
-            const tileMap = TileMapUtil.tileSetToTileMap(tileSet, paletteIndex, memoryOffset);
             const encoded = TileMapBinarySerialiser.serialise(tileMap);
-            for (let i = 0; i < encoded.length; i += tileSet.tileWidth) {
+            for (let i = 0; i < encoded.length; i += tileMap.tileWidth) {
                 message.push(`; Tile map row ${(i / tileMap.tileWidth)}`);
                 const tileMessage = ['.dw'];
                 const stopAt = Math.min(i + tileMap.tileWidth, encoded.length);
@@ -128,9 +138,8 @@ export default class ProjectAssemblySerialiser {
                 message.push(tileMessage.join(' '));
             }
         } else if (systemType === 'gb') {
-            const tileMap = TileMapUtil.tileSetToTileMap(tileSet, paletteIndex, memoryOffset);
             const encoded = GameBoyTileMapBinarySerialiser.serialise(tileMap);
-            for (let i = 0; i < encoded.length; i += tileSet.tileWidth) {
+            for (let i = 0; i < encoded.length; i += tileMap.tileWidth) {
                 message.push(`; Tile map row ${(i / tileMap.tileWidth)}`);
                 const tileMessage = ['.db'];
                 const stopAt = Math.min(i + tileMap.tileWidth, encoded.length);
