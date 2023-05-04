@@ -556,7 +556,8 @@ export default class ImportImageModalDialogue extends ModalDialogue {
                 createNew: mode === 'new',
                 title: project.title,
                 tileSet: project.tileSet,
-                palette: project.paletteList.getPalette(0)
+                palette: project.paletteList.getPalette(0),
+                systemType: project.systemType
             });
         }
     }
@@ -747,5 +748,6 @@ function resetCanvas(canvas) {
  * @property {string} title - Title of the project.
  * @property {TileSet} tileSet - Derrived tile set from the import operation.
  * @property {Palette} palette - Derrived colour palette from the import operation.
+ * @property {string} systemType - Type of system, either 'smsgg' or 'gb'.
  * @exports 
  */

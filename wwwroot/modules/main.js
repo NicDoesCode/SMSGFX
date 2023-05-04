@@ -1153,7 +1153,7 @@ function handleImageImportModalOnConfirm(args) {
 
     if (args.createNew) {
         const paletteList = PaletteListFactory.create([args.palette]);
-        const project = ProjectFactory.create({ title: args.title, tileSet: args.tileSet, paletteList: paletteList });
+        const project = ProjectFactory.create({ title: args.title, tileSet: args.tileSet, paletteList: paletteList, systemType: args.systemType });
         state.setProject(project);
         state.saveToLocalStorage();
     } else {
