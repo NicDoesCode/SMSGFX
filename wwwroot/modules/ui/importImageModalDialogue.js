@@ -4,6 +4,7 @@ import ModalDialogue from "./modalDialogue.js";
 import EventDispatcher from "../components/eventDispatcher.js";
 import TileSet from "../models/tileSet.js";
 import TemplateUtil from "../util/templateUtil.js";
+import PaletteFactory from "../factory/paletteFactory.js";
 
 const EVENT_SourceImageUpdated = 'EVENT_SourceImageUpdated';
 const EVENT_PreviewImageUpdated = 'EVENT_PreviewImageUpdated';
@@ -176,8 +177,8 @@ export default class ImportImageModalDialogue extends ModalDialogue {
             this.#paletteList.getPalettes().forEach((palette, index) => {
                 const option = document.createElement('option');
                 option.value = `palette-${index}`;
-                option.innerText = `${palette.title} (${(palette.system === 'ms' ? 'Master System' : 'Game Gear')})`;
-                option.setAttribute('data-smsgft-palette-index', index);
+                option.innerText = `${palette.title} (${(palette.system === 'ms' ? 'Master System' : palette.system === 'gg' ? 'Game Gear' : 'Game Boy')})`;
+                option.setAttribute('data-smsgfx-palette-index', index);
                 this.#tbImportPaletteSelect.options.add(option);
             });
             if (this.#tbImportPaletteSelect.selectedIndex === -1) {
@@ -533,9 +534,9 @@ export default class ImportImageModalDialogue extends ModalDialogue {
             const previewColours = this.#previewColours;
 
             let system = this.#tbImportPaletteSelect.value;
-            if (system !== 'ms' && system !== 'gg') {
+            if (system !== 'ms' && system !== 'gg' && system !== 'gb') {
                 const option = this.#tbImportPaletteSelect.selectedOptions.item(0);
-                const paletteIndex = parseInt(option.getAttribute('data-smsgft-palette-index'));
+                const paletteIndex = parseInt(option.getAttribute('data-smsgfx-palette-index'));
                 const palette = this.#paletteList.getPalette(paletteIndex);
                 system = palette.system;
             }
@@ -658,9 +659,12 @@ export default class ImportImageModalDialogue extends ModalDialogue {
             const selectedImportColours = this.#tbImportPaletteSelect.value;
             if (['ms', 'gg'].includes(selectedImportColours)) {
                 extractedColours = await ImageUtil.extractNativePaletteFromImageAsync(sourceImage, selectedImportColours);
+            } else if (['gb'].includes(selectedImportColours)) {
+                const palette = PaletteFactory.createNewStandardColourPalette('Game Boy Palette', 'gb');
+                extractedColours = await ImageUtil.matchToPaletteAsync(sourceImage, palette);
             } else {
                 const option = this.#tbImportPaletteSelect.selectedOptions.item(0);
-                const paletteIndex = parseInt(option.getAttribute('data-smsgft-palette-index'));
+                const paletteIndex = parseInt(option.getAttribute('data-smsgfx-palette-index'));
                 const palette = this.#paletteList.getPalette(paletteIndex);
                 extractedColours = await ImageUtil.matchToPaletteAsync(sourceImage, palette);
             }
