@@ -420,9 +420,6 @@ export default class PaletteEditor {
         document.querySelectorAll('[data-smsgfx-id=system-select]').forEach(elm => {
             elm.style.display = palette.system !== 'gb' ? '' : 'none';
         });
-        document.querySelectorAll('[data-smsgfx-id=emulate-system-colours]').forEach(elm => {
-            elm.style.display = palette.system !== 'gb' ? '' : 'none';
-        });
     }
 
     /**

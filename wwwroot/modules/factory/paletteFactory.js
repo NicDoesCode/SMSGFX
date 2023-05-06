@@ -91,10 +91,25 @@ export default class PaletteFactory {
      */
     static convertToNative(palette) {
         const result = new Palette(palette.title, palette.system);
-        palette.getColours().forEach((colour, index) => {
-            const nativeColour = PaletteColourFactory.convertToNative(palette.system, colour);
-            result.setColour(index, nativeColour);
-        });
+        if (palette.system !== 'gb') {
+            palette.getColours().forEach((colour, index) => {
+                const nativeColour = PaletteColourFactory.convertToNative(palette.system, colour);
+                result.setColour(index, nativeColour);
+            });
+        } else {
+            const nativeColours = [
+                PaletteColourFactory.create(22, 72, 2),
+                PaletteColourFactory.create(44, 84, 2),
+                PaletteColourFactory.create(88, 115, 3),
+                PaletteColourFactory.create(140, 153, 2)
+            ];
+            palette.getColours().forEach((colour, index) => {
+                const averageColour = Math.min(255, Math.max(0, (colour.r + colour.g + colour.b) / 3));
+                const nearest = averageColour - (averageColour % 85);
+                const nativeIndex = nearest / 85;
+                result.setColour(index, nativeColours[nativeIndex]);
+            });
+        }
         return result;
     }
 
