@@ -38,6 +38,8 @@ import DocumentationViewer from "./ui/documentationViewer.js";
 import WelcomeScreen from "./ui/welcomeScreen.js";
 import ThemeManager from "./components/themeManager.js";
 import OptionsToolbar from "./ui/optionsToolbar.js";
+import GameBoyTileBinarySerialiser from "./serialisers/gameBoyTileBinarySerialiser.js";
+import GameBoyTileSetBinarySerialiser from "./serialisers/gameBoyTileSetBinarySerialiser.js";
 
 
 /* ****************************************************************************************************
@@ -1116,7 +1118,12 @@ function handleImportTileSet(args) {
 
     const tileSetData = args.tileSetData;
     const tileSetDataArray = AssemblyUtil.readAsUint8ClampedArray(tileSetData);
-    const importedTileSet = TileSetBinarySerialiser.deserialise(tileSetDataArray);
+    let importedTileSet;
+    if (getProject().systemType !== 'gb') {
+        importedTileSet = TileSetBinarySerialiser.deserialise(tileSetDataArray);
+    } else {
+        importedTileSet = GameBoyTileSetBinarySerialiser.deserialise(tileSetDataArray);
+    }
 
     if (args.replace) {
         getProject().tileSet = importedTileSet;
