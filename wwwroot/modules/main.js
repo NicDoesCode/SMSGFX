@@ -692,7 +692,8 @@ function handlePaletteEditorOnCommand(args) {
         case PaletteEditor.Commands.paletteImport:
             paletteImportDialogue.setState({
                 paletteData: getUIState().importPaletteAssemblyCode,
-                system: getUIState().importPaletteSystem
+                system: getUIState().importPaletteSystem,
+                allowedSystems: getProject().systemType !== 'gb' ? ['ms', 'gg'] : ['gb']
             });
             paletteImportDialogue.show();
             break;
@@ -973,7 +974,7 @@ function handleTileEditorOnEvent(args) {
 
 /** @param {import('./ui/paletteImportModalDialogue').PaletteImportModalDialogueConfirmEventArgs} args */
 function handleImportPaletteModalDialogueOnConfirm(args) {
-    if (!['gg', 'ms'].includes(args.system)) throw new Error('System must be either ""ms" or "gg".');
+    if (!['gg', 'ms', 'gb'].includes(args.system)) throw new Error('System must be either ""ms", "gg" or "gb".');
 
     addUndoState();
 
@@ -986,6 +987,10 @@ function handleImportPaletteModalDialogueOnConfirm(args) {
     } else if (system === 'ms') {
         const array = AssemblyUtil.readAsUint8ClampedArray(paletteData);
         const palette = PaletteFactory.createFromMasterSystemPalette(array);
+        getPaletteList().addPalette(palette);
+    } else if (system === 'gb') {
+        const array = AssemblyUtil.readAsUint8ClampedArray(paletteData);
+        const palette = PaletteFactory.createFromGameBoyPalette(array);
         getPaletteList().addPalette(palette);
     }
 

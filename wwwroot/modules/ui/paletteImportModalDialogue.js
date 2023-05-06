@@ -10,6 +10,8 @@ export default class PaletteModalDialogue extends ModalDialogue {
     #tbPaletteData;
     /** @type {HTMLElement} */
     #element;
+    /** @type {HTMLOptionElement[]} */
+    #systemOptions = [];
 
 
     /**
@@ -20,6 +22,9 @@ export default class PaletteModalDialogue extends ModalDialogue {
         super(element);
         this.#element = element;
         this.#tbPaletteSystem = this.#element.querySelector('[data-smsgfx-id=select-palette-system]');
+        this.#tbPaletteSystem.querySelectorAll('option').forEach((option) => {
+            this.#systemOptions.push(option);
+        });
         this.#tbPaletteData = this.#element.querySelector('[data-smsgfx-id=text-palette-data]');
     }
 
@@ -29,7 +34,7 @@ export default class PaletteModalDialogue extends ModalDialogue {
      * @param {HTMLElement} element - Container element.
      * @returns {Promise<PaletteModalDialogue>}
      */
-     static async loadIntoAsync(element) {
+    static async loadIntoAsync(element) {
         const componentElement = await TemplateUtil.replaceElementWithComponentAsync('paletteImportModalDialogue', element);
         return new PaletteModalDialogue(componentElement);
     }
@@ -40,11 +45,26 @@ export default class PaletteModalDialogue extends ModalDialogue {
      * @param {PaletteImportModalDialogueState} state - State object.
      */
     setState(state) {
-        if (typeof state?.system === 'string') {
-            this.#tbPaletteSystem.value = state.system;
-        }
         if (typeof state?.paletteData === 'string') {
             this.#tbPaletteData.value = state.paletteData;
+        }
+        while (this.#tbPaletteSystem.options.length) {
+            this.#tbPaletteSystem.options.remove(0);
+        }
+        if (Array.isArray(state?.allowedSystems)) {
+            this.#systemOptions.forEach((option) => {
+                if (state.allowedSystems.includes(option.value)) this.#tbPaletteSystem.options.add(option);
+            });
+        } else {
+            this.#systemOptions.forEach((option) => {
+                this.#tbPaletteSystem.options.add(option);
+            });
+        }
+        if (typeof state?.system === 'string') {
+            this.#tbPaletteSystem.value = state.system;
+            if (this.#tbPaletteSystem.value !== state.system) {
+                this.#tbPaletteSystem.options[0].selected = true;
+            }
         }
     }
 
@@ -69,7 +89,8 @@ export default class PaletteModalDialogue extends ModalDialogue {
 /**
  * Import tile set dialogue state object.
  * @typedef {object} PaletteImportModalDialogueState
- * @property {string} system - The system to be imported, either 'ms' or 'gg'.
+ * @property {string} system - The system to be imported, either 'ms', 'gg' or 'gb'.
+ * @property {string[]} allowedSystems - Array of allowed systems, 'ms', 'gg' or 'gb'.
  * @property {string} paletteData - The WLA-DLX assembly code that contains the palette.
  */
 

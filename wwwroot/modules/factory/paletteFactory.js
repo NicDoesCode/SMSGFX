@@ -75,6 +75,34 @@ export default class PaletteFactory {
     }
 
     /**
+     * Creates a new palette from an array of Game Boy colours.
+     * @param {Uint16Array} array 
+     * @returns {Palette}
+     */
+    static createFromGameBoyPalette(array) {
+        if (array.length >= 1) {
+
+            /** @type {Palette} */
+            const result = PaletteFactory.create('Game Boy Palette', 'gb');
+
+            const colour0 = ((array[0] & parseInt('11000000', 2)) >> 6) * 85;
+            const colour1 = ((array[0] & parseInt('00110000', 2)) >> 4) * 85;
+            const colour2 = ((array[0] & parseInt('00001100', 2)) >> 2) * 85;
+            const colour3 = ((array[0] & parseInt('00000011', 2)) >> 0) * 85;
+
+            result.setColour(0, { r: colour0, g: colour0, b: colour0 });
+            result.setColour(1, { r: colour1, g: colour1, b: colour1 });
+            result.setColour(2, { r: colour2, g: colour2, b: colour2 });
+            result.setColour(3, { r: colour3, g: colour3, b: colour3 });
+
+            return result;
+
+        } else {
+            throw new Error('No palette data to read.');
+        }
+    }
+
+    /**
      * Creates a new instance of a palette object from an existing.
      * @param {Palette} palette - Palette to clone.
      * @returns {Palette}
