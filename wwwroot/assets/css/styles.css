@@ -179,10 +179,11 @@ button:disabled img {
 }
 
 .sms-container .sms-colour-toolbox .sms-colour-box button {
-    width: 12.5%;
-    box-sizing: border-box;
-    height: 20px;
-    border: 1px solid #FFFFFF;
+    width: 5.5%;
+    box-sizing: content-box;
+    height: 15px;
+    margin: 1px;
+    border: 1px solid #CCCCCC;
 }
 
 [data-bs-theme=dark] .sms-container .sms-colour-toolbox .sms-colour-box button {

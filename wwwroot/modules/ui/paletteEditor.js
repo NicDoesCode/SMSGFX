@@ -345,8 +345,12 @@ export default class PaletteEditor {
                 paletteButtons[i].style.backgroundColor = null;
             }
         }
-        this.#getElements(commands.paletteTitle).forEach(element => element.value = palette.title);
-        this.#getElements(commands.paletteSystem).forEach(element => element.value = palette.system);
+        this.#getElements(commands.paletteTitle).forEach((element) => {
+            element.value = palette.title
+        });
+        this.#getElements(commands.paletteSystem).forEach((element) => {
+            element.value = palette.system;
+        });
         this.#updateSystemSelectVirtualList(palette.system);
     }
 
