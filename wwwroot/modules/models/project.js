@@ -23,6 +23,14 @@ export default class Project {
         this.#title = value;
     }
 
+    /** Gets or sets the system type (either 'smsgg' or 'gb'). */
+    get systemType() {
+        return this.#systemType;
+    }
+    set systemType(value) {
+        this.#systemType = value;
+    }
+
     /** Gets or sets the tile set for this project. */
     get tileSet() {
         return this.#tileSet;
@@ -46,6 +54,8 @@ export default class Project {
     #id = null;
     /** @type {string} */
     #title;
+    /** @type {string} */
+    #systemType;
     /** @type {TileSet} */
     #tileSet;
     /** @type {PaletteList} */
@@ -56,10 +66,11 @@ export default class Project {
      * Creates a new instance of the project class.
      * @param {string?} id - ID of the project.
      * @param {string?} title - Title, if not supplied one will be created.
+     * @param {string?} systemType - Type of system targetted, either 'smsgg' or 'gb', default is 'smsgg'.
      * @param {TileSet?} tileSet - Tile set, if not supplied one will be created.
      * @param {PaletteList?} paletteList - Colour palettes, if not supplied one will be created.
      */
-    constructor(id, title, tileSet, paletteList) {
+    constructor(id, title, systemType, tileSet, paletteList) {
 
         if (typeof id !== 'undefined' && id !== null && id.length > 0) {
             this.#id = id;
@@ -73,6 +84,14 @@ export default class Project {
             this.title = 'New project';
         }
         
+        if (typeof systemType !== 'undefined' && systemType !== null) {
+            this.systemType = systemType;
+        } else if (systemType === 'gb') {
+            this.systemType = 'gb';
+        } else {
+            this.systemType = 'smsgg';
+        }
+
         if (tileSet) {
             this.#tileSet = tileSet;
         } else {

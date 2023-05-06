@@ -8,25 +8,28 @@ export default class TileMapUtil {
      * Turns a tile set into a tile map.
      * @param {TileSet} tileSet - Input tile set to convert to a tile map.
      * @param {number} [paletteIndex] - Palette index to use for the tiles.
-     * @param {number} [memoryOffset] - VRAM memory offset for the tile addresses in the tile map.
+     * @param {number} [vramOffset] - VRAM memory offset for the tile addresses in the tile map.
      * @returns {TileMap}
      */
-    static tileSetToTileMap(tileSet, paletteIndex, memoryOffset) {
+    static tileSetToTileMap(tileSet, paletteIndex, vramOffset) {
         if (!paletteIndex || ![0, 1].includes(paletteIndex)) paletteIndex = 0;
-        if (!memoryOffset || memoryOffset < 0 || memoryOffset >= 255) memoryOffset = 0;
+        if (!vramOffset || vramOffset < 0 || vramOffset >= 255) vramOffset = 0;
+
         const result = new TileMap();
+        result.vramOffset = vramOffset;
         result.tileWidth = tileSet.tileWidth;
         tileSet.getTiles().forEach((tile, index, array) => {
-            result.tiles.push({
+            result.addTile(tile, {
                 priority: false,
                 palette: paletteIndex,
                 verticalFlip: false,
-                horizontalFlip: false,
-                tileNumber: index + memoryOffset
+                horizontalFlip: false 
             });
         });
+
         return result;
     }
 
 
 }
+

@@ -38,6 +38,8 @@ import DocumentationViewer from "./ui/documentationViewer.js";
 import WelcomeScreen from "./ui/welcomeScreen.js";
 import ThemeManager from "./components/themeManager.js";
 import OptionsToolbar from "./ui/optionsToolbar.js";
+import GameBoyTileBinarySerialiser from "./serialisers/gameBoyTileBinarySerialiser.js";
+import GameBoyTileSetBinarySerialiser from "./serialisers/gameBoyTileSetBinarySerialiser.js";
 
 
 /* ****************************************************************************************************
@@ -323,7 +325,9 @@ function createEventListeners() {
 
                 if (keyEvent.code === 'KeyN') {
                     // Export
-                    newProject();
+                    newProject({
+                        systemType: getProject()?.systemType ?? 'smsgg'
+                    });
                     handled = true;
                 } else if (keyEvent.code === 'KeyX') {
                     // Cut tile
@@ -542,7 +546,9 @@ function handleProjectToolbarOnCommand(args) {
             break;
 
         case ProjectToolbar.Commands.projectNew:
-            newProject();
+            newProject({
+                systemType: getProject()?.systemType ?? 'smsgg'
+            });
             break;
 
         case ProjectToolbar.Commands.projectLoadFromFile:
@@ -579,7 +585,9 @@ function handleProjectDropdownOnCommand(args) {
             break;
 
         case ProjectDropdown.Commands.projectNew:
-            newProject();
+            newProject({
+                systemType: args.systemType ?? 'smsgg'
+            });
             break;
 
         case ProjectDropdown.Commands.projectLoadFromFile:
@@ -684,7 +692,8 @@ function handlePaletteEditorOnCommand(args) {
         case PaletteEditor.Commands.paletteImport:
             paletteImportDialogue.setState({
                 paletteData: getUIState().importPaletteAssemblyCode,
-                system: getUIState().importPaletteSystem
+                system: getUIState().importPaletteSystem,
+                allowedSystems: getProject().systemType !== 'gb' ? ['ms', 'gg'] : ['gb']
             });
             paletteImportDialogue.show();
             break;
@@ -965,7 +974,7 @@ function handleTileEditorOnEvent(args) {
 
 /** @param {import('./ui/paletteImportModalDialogue').PaletteImportModalDialogueConfirmEventArgs} args */
 function handleImportPaletteModalDialogueOnConfirm(args) {
-    if (!['gg', 'ms'].includes(args.system)) throw new Error('System must be either ""ms" or "gg".');
+    if (!['gg', 'ms', 'gb'].includes(args.system)) throw new Error('System must be either ""ms", "gg" or "gb".');
 
     addUndoState();
 
@@ -978,6 +987,10 @@ function handleImportPaletteModalDialogueOnConfirm(args) {
     } else if (system === 'ms') {
         const array = AssemblyUtil.readAsUint8ClampedArray(paletteData);
         const palette = PaletteFactory.createFromMasterSystemPalette(array);
+        getPaletteList().addPalette(palette);
+    } else if (system === 'gb') {
+        const array = AssemblyUtil.readAsUint8ClampedArray(paletteData);
+        const palette = PaletteFactory.createFromGameBoyPalette(array);
         getPaletteList().addPalette(palette);
     }
 
@@ -1110,7 +1123,12 @@ function handleImportTileSet(args) {
 
     const tileSetData = args.tileSetData;
     const tileSetDataArray = AssemblyUtil.readAsUint8ClampedArray(tileSetData);
-    const importedTileSet = TileSetBinarySerialiser.deserialise(tileSetDataArray);
+    let importedTileSet;
+    if (getProject().systemType !== 'gb') {
+        importedTileSet = TileSetBinarySerialiser.deserialise(tileSetDataArray);
+    } else {
+        importedTileSet = GameBoyTileSetBinarySerialiser.deserialise(tileSetDataArray);
+    }
 
     if (args.replace) {
         getProject().tileSet = importedTileSet;
@@ -1147,7 +1165,7 @@ function handleImageImportModalOnConfirm(args) {
 
     if (args.createNew) {
         const paletteList = PaletteListFactory.create([args.palette]);
-        const project = ProjectFactory.create({ title: args.title, tileSet: args.tileSet, paletteList: paletteList });
+        const project = ProjectFactory.create({ title: args.title, tileSet: args.tileSet, paletteList: paletteList, systemType: args.systemType });
         state.setProject(project);
         state.saveToLocalStorage();
     } else {
@@ -1225,7 +1243,9 @@ function welcomeScreenOnCommand(args) {
             break;
 
         case WelcomeScreen.Commands.projectNew:
-            newProject();
+            newProject({
+                systemType: getProject()?.systemType ?? 'smsgg'
+            });
             break;
 
         case WelcomeScreen.Commands.projectLoadFromFile:
@@ -1258,22 +1278,32 @@ function createDefaultProjectIfNoneExists() {
 
 /**
  * Creates a default project file.
+ * @argument {{systemType: string?}} args
  * @returns {Project}
  */
-function createEmptyProject() {
-    const project = ProjectFactory.create({ title: 'New project' });
+function createEmptyProject(args) {
+
+    const systemType = args?.systemType ?? 'smsgg';
+    const defaultTileColourIndex = systemType === 'smsgg' ? 15 : 3;
+    const project = ProjectFactory.create({ title: 'New project', systemType: systemType });
 
     // Create a default tile set
     project.tileSet = TileSetFactory.create();
     project.tileSet.tileWidth = 8;
     for (let i = 0; i < 64; i++) {
-        project.tileSet.addTile(TileFactory.create());
+        project.tileSet.addTile(TileFactory.create(defaultTileColourIndex));
     }
 
-    // Create a default palette for Game Gear and Master System
+    // Create a default palette 
     project.paletteList = PaletteListFactory.create();
-    project.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('Default Master System', 'ms'));
-    project.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('Default Game Gear', 'gg'));
+    if (project.systemType === 'smsgg') {
+        // For Game Gear and Master System
+        project.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('Default Master System', 'ms'));
+        project.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('Default Game Gear', 'gg'));
+    } else if (project.systemType === 'gb') {
+        // For Game Boy
+        project.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('Default Game Boy', 'gb'));
+    }
 
     return project;
 }
@@ -1347,6 +1377,7 @@ function formatForProject() {
     const palette = getPalette();
     const tileSet = getTileSet();
     const colour = palette.getColour(instanceState.colourIndex);
+    const visibleTabs = getPalette().system === 'gb' ? ['gb'] : ['rgb', 'sms'];
 
     projectToolbar.setState({
         projectTitle: getProject().title,
@@ -1368,11 +1399,12 @@ function formatForProject() {
         enabled: true
     });
     colourPickerToolbox.setState({
-        showTab: instanceState.colourToolboxTab,
+        showTab: getPalette().system === 'gb' ? 'gb' : instanceState.colourToolboxTab,
         r: colour.r,
         g: colour.g,
         b: colour.b,
-        enabled: true
+        enabled: true,
+        visibleTabs: visibleTabs
     });
     setCommonTileToolbarStates({
         tileWidth: tileSet.tileWidth,
@@ -1400,7 +1432,7 @@ function formatForProject() {
 }
 
 function formatForNoProject() {
-    const dummyProject = createEmptyProject();
+    const dummyProject = createEmptyProject({ systemType: 'smsgg' });
     projectToolbar.setState({
         enabled: false,
         projectTitle: '',
@@ -1887,7 +1919,8 @@ function selectTile(index) {
 function newPalette() {
     addUndoState();
 
-    const newPalette = PaletteFactory.createNewStandardColourPalette('New palette', 'ms');
+    const system = getProject().systemType === 'gb' ? 'gb' : 'ms';
+    const newPalette = PaletteFactory.createNewStandardColourPalette('New palette', system);
     getPaletteList().addPalette(newPalette);
 
     state.setProject(getProject());
@@ -2126,11 +2159,14 @@ function setProjectTitle(title) {
 
 /**
  * Imports the project from a JSON file.
+ * @argument {{systemType: string?}} args
  */
-function newProject() {
+function newProject(args) {
     addUndoState();
 
-    const newProject = createEmptyProject();
+    const newProject = createEmptyProject({
+        systemType: args.systemType
+    });
     state.setProject(newProject);
     getUIState().paletteIndex = 0;
     state.saveToLocalStorage();

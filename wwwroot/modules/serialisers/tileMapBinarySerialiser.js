@@ -14,8 +14,8 @@ export default class TileMapBinarySerialiser {
      * @returns {number[]}
      */
     static serialise(tileMap) {
-        return tileMap.tiles.map((tile) => {
-            return TileMapTileBinarySerialiser.serialise(tile);
+        return tileMap.getTileMapTiles().map((tileMapTile) => {
+            return TileMapTileBinarySerialiser.serialise(tileMapTile);
         });
     }
 

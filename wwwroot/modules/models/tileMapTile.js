@@ -40,16 +40,23 @@ export default class TileMapTile {
         this.#tileNumber = value;
     }
 
+    get sourceTile() {
+        return this.#sourceTile;
+    }
+    set sourceTile(value) {
+        this.#sourceTile = value;
+    }
+
 
     #priority = false;
     #palette = 0;
     #verticalFlip = 0;
     #horizontalFlip = 0;
     #tileNumber = 0;
+    #sourceTile = null;
 
 
     constructor() {
-
     }
 
 

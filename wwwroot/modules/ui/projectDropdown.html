@@ -3,8 +3,8 @@
         <div class="modal-content rounded-0 rounded-bottom">
             <div class="modal-header pt-2 pb-2">
                 <div data-smsgfx-id="this-project" class="mx-auto input-group input-group-sm">
-                    <span class="input-group-text border-secondary"
-                        data-smsgfx-theme-light="bg-light text-dark" data-smsgfx-theme-dark="bg-dark text-reset">
+                    <span class="input-group-text border-secondary" data-smsgfx-theme-light="bg-light text-dark"
+                        data-smsgfx-theme-dark="bg-dark text-reset">
                         <strong>Current project</strong>
                     </span>
                     <input data-command="title" type="text" class="form-control border-secondary"
@@ -17,6 +17,21 @@
             </div>
             <div class="modal-body">
 
+                <div data-smsgfx-id="new-project" class="mx-auto input-group input-group-sm mb-2">
+                    <span class="input-group-text border-secondary" data-smsgfx-theme-light="bg-light text-dark"
+                        data-smsgfx-theme-dark="bg-dark text-reset">
+                        <strong>New project</strong>
+                    </span>
+                    <select data-smsgfx-id="system-type" class="form-select">
+                        <option value="smsgg" selected>Sega Master System & Game Gear</option>
+                        <option value="gb">Nintendo Game Boy</option>
+                    </select>
+                    <button data-command="projectNew" class="btn btn-sm btn-outline-secondary"
+                        title="Save project to file." type="button">
+                        <i class="bi bi-plus-square"></i> Create
+                    </button>
+                </div>
+
                 <div class="card" style="font-size: 0.9em;">
                     <div class="card-header">
                         <div class="container-fluid p-0 m-0">
@@ -27,12 +42,9 @@
                                 <div class="col col-8 text-end p-0">
                                     <div class="btn-group border-border-0" role="group"
                                         aria-label="Basic outlined example">
-                                        <button data-command="projectNew" class="btn btn-sm" title="New project."
-                                            type="button" data-smsgfx-theme-dark="text-light">
-                                            <i class="bi bi-file-earmark-plus"></i> New project
-                                        </button>
                                         <button data-command="projectLoadFromFile" class="btn btn-sm"
-                                            title="Load project from file." type="button" data-smsgfx-theme-dark="text-light">
+                                            title="Load project from file." type="button"
+                                            data-smsgfx-theme-dark="text-light">
                                             <i class="bi bi-upload"></i> Load from file
                                         </button>
                                     </div>
@@ -58,8 +70,8 @@
             <div class="modal-footer">
                 <div class="row m-0 p-0">
                     <div class="col m-0 p-0 text-start">
-                        <button type="button" class="btn btn-sm btn-link"
-                            data-command="showWelcomeScreen">Show welcome screen</button>
+                        <button type="button" class="btn btn-sm btn-link" data-command="showWelcomeScreen">Show welcome
+                            screen</button>
                     </div>
                     <div class="col-auto m-0 p-0 text-end">
                         <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>

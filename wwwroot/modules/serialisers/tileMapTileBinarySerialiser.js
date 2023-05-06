@@ -1,8 +1,4 @@
-import TileSetFactory from '../factory/tileSetFactory.js';
-import TileSet from '../models/tileSet.js';
-import TileMap from '../models/tileMap.js';
 import TileMapTile from '../models/tileMapTile.js';
-import TileBinarySerialiser from './tileBinarySerialiser.js';
 
 export default class TileMapTileBinarySerialiser {
 

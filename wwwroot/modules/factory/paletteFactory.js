@@ -4,6 +4,7 @@ import PaletteJsonSerialiser from "../serialisers/paletteJsonSerialiser.js";
 import ColourUtil from "../util/colourUtil.js";
 
 const defaultColours = ['#000000', '#000000', '#00AA00', '#00FF00', '#000055', '#0000FF', '#550000', '#00FFFF', '#AA0000', '#FF0000', '#555500', '#FFFF00', '#005500', '#FF00FF', '#555555', '#FFFFFF'];
+const defaultColoursGB = ['#000000', '#555555', '#AAAAAA', '#FFFFFF'];
 
 export default class PaletteFactory {
 
@@ -11,7 +12,7 @@ export default class PaletteFactory {
     /**
      * Creates a new instance of a palette object.
      * @param {string} title - Title of the palette.
-     * @param {string} system - Intended system, either 'ms' (Sega Master) or 'gg' (Sega Game Gear).
+     * @param {string} system - Intended system, either 'ms' (Sega Master), 'gg' (Sega Game Gear) or 'gb' (Nintendo Game Boy).
      * @returns {Palette}
      */
     static create(title, system) {
@@ -21,16 +22,17 @@ export default class PaletteFactory {
     /**
      * Creates a new palette object with the default colours.
      * @param {string} title - Title for the new palette.
-     * @param {string} system - System the palette is for, either 'ms' or 'gg'. When invalid input 'ms' is assumed.
+     * @param {string} system - System the palette is for, either 'ms', 'gg' or 'gb'. When invalid input 'ms' is assumed.
      * @returns {Palette}
      */
     static createNewStandardColourPalette(title, system) {
         if (!title || title.trim() === '') title = `${system.toUpperCase()} palette`;
-        if (!system || system !== 'gg') system = 'ms';
+        if (!system || (system !== 'gg' && system !== 'gb')) system = 'ms';
 
         const palette = PaletteFactory.create(title, system);
-        for (let c = 0; c < 16; c++) {
-            const colour = PaletteColourFactory.fromHex(defaultColours[c]);
+        const systemDefaultColours = system === 'gb' ? defaultColoursGB : defaultColours;
+        for (let c = 0; c < palette.getColours().length; c++) {
+            const colour = PaletteColourFactory.fromHex(systemDefaultColours[c]);
             palette.setColour(c, colour);
         }
         return palette;
@@ -73,6 +75,34 @@ export default class PaletteFactory {
     }
 
     /**
+     * Creates a new palette from an array of Game Boy colours.
+     * @param {Uint16Array} array 
+     * @returns {Palette}
+     */
+    static createFromGameBoyPalette(array) {
+        if (array.length >= 1) {
+
+            /** @type {Palette} */
+            const result = PaletteFactory.create('Game Boy Palette', 'gb');
+
+            const colour0 = ((array[0] & parseInt('11000000', 2)) >> 6) * 85;
+            const colour1 = ((array[0] & parseInt('00110000', 2)) >> 4) * 85;
+            const colour2 = ((array[0] & parseInt('00001100', 2)) >> 2) * 85;
+            const colour3 = ((array[0] & parseInt('00000011', 2)) >> 0) * 85;
+
+            result.setColour(0, { r: colour0, g: colour0, b: colour0 });
+            result.setColour(1, { r: colour1, g: colour1, b: colour1 });
+            result.setColour(2, { r: colour2, g: colour2, b: colour2 });
+            result.setColour(3, { r: colour3, g: colour3, b: colour3 });
+
+            return result;
+
+        } else {
+            throw new Error('No palette data to read.');
+        }
+    }
+
+    /**
      * Creates a new instance of a palette object from an existing.
      * @param {Palette} palette - Palette to clone.
      * @returns {Palette}
@@ -89,10 +119,25 @@ export default class PaletteFactory {
      */
     static convertToNative(palette) {
         const result = new Palette(palette.title, palette.system);
-        palette.getColours().forEach((colour, index) => {
-            const nativeColour = PaletteColourFactory.convertToNative(palette.system, colour);
-            result.setColour(index, nativeColour);
-        });
+        if (palette.system !== 'gb') {
+            palette.getColours().forEach((colour, index) => {
+                const nativeColour = PaletteColourFactory.convertToNative(palette.system, colour);
+                result.setColour(index, nativeColour);
+            });
+        } else {
+            const nativeColours = [
+                PaletteColourFactory.create(22, 72, 2),
+                PaletteColourFactory.create(44, 84, 2),
+                PaletteColourFactory.create(88, 115, 3),
+                PaletteColourFactory.create(140, 153, 2)
+            ];
+            palette.getColours().forEach((colour, index) => {
+                const averageColour = Math.min(255, Math.max(0, (colour.r + colour.g + colour.b) / 3));
+                const nearest = averageColour - (averageColour % 85);
+                const nativeIndex = nearest / 85;
+                result.setColour(index, nativeColours[nativeIndex]);
+            });
+        }
         return result;
     }
 
