@@ -1124,11 +1124,9 @@ function handleImportTileSet(args) {
 
     const tileSetData = args.tileSetData;
     const tileSetDataArray = AssemblyUtil.readAsUint8ClampedArray(tileSetData);
-    let importedTileSet;
     const tileSetBinarySerialiser = SerialisationUtil.getTileSetBinarySerialiser(getProject().systemType);
-    th
-    importedTileSet = tileSetBinarySerialiser.deserialise(tileSetDataArray);
-
+    const importedTileSet = tileSetBinarySerialiser.deserialise(tileSetDataArray);
+    
     if (args.replace) {
         getProject().tileSet = importedTileSet;
     } else {
