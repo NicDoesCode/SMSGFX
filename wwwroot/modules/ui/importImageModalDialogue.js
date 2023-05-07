@@ -534,7 +534,7 @@ export default class ImportImageModalDialogue extends ModalDialogue {
             const previewColours = this.#previewColours;
 
             let system = this.#tbImportPaletteSelect.value;
-            if (system !== 'ms' && system !== 'gg' && system !== 'gb') {
+            if (!['ms', 'gg', 'gb', 'nes'].includes(system)) {
                 const option = this.#tbImportPaletteSelect.selectedOptions.item(0);
                 const paletteIndex = parseInt(option.getAttribute('data-smsgfx-palette-index'));
                 const palette = this.#paletteList.getPalette(paletteIndex);
