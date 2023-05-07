@@ -14,6 +14,10 @@ import TileAttributeBinarySerialiser from "../serialisers/tileAttributeBinarySer
 import SmsggTileAttributeBinarySerialiser from "../serialisers/smsgg/smsggTileAttributeBinarySerialiser.js";
 import GameBoyTileAttributeBinarySerialiser from "../serialisers/gameBoy/gameBoyTileAttributeBinarySerialiser.js";
 import NesTileAttributeBinarySerialiser from "../serialisers/nes/nesTileAttributeBinarySerialiser.js";
+import ProjectAssemblySerialiser from "../serialisers/projectAssemblySerialiser.js";
+import SmsggAssemblySerialiser from "../serialisers/smsgg/smsggAssemblySerialiser.js";
+import GameBoyAssemblySerialiser from "../serialisers/gameBoy/gameBoyAssemblySerialiser.js";
+import NesAssemblySerialiser from "../serialisers/nes/nesAssemblySerialiser.js";
 
 export default class SerialisationUtil {
 
@@ -75,6 +79,21 @@ export default class SerialisationUtil {
                 return NesTileAttributeBinarySerialiser;
             case 'smsgg': default:
                 return SmsggTileAttributeBinarySerialiser;
+        }
+    }
+
+    /**
+     * @param {string} systemType - System type to get the serialiser for.
+     * @returns {typeof ProjectAssemblySerialiser}
+     */
+    static getProjectAssemblySerialiser(systemType) {
+        switch (systemType) {
+            case 'gb':
+                return GameBoyAssemblySerialiser;
+            case 'nes':
+                return NesAssemblySerialiser;
+            case 'smsgg': default:
+                return SmsggAssemblySerialiser;
         }
     }
 

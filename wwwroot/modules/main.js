@@ -16,7 +16,6 @@ import ProjectUtil from "./util/projectUtil.js";
 import PaletteFactory from "./factory/paletteFactory.js";
 import TileFactory from "./factory/tileFactory.js";
 import TileSetFactory from "./factory/tileSetFactory.js";
-import ProjectAssemblySerialiser from "./serialisers/projectAssemblySerialiser.js";
 import PaletteColourFactory from "./factory/paletteColourFactory.js";
 import UndoManager from "./components/undoManager.js";
 import ProjectFactory from "./factory/projectFactory.js";
@@ -2243,8 +2242,8 @@ function exportProjectToJson() {
  * Shows the export to assembly dialogue.
  */
 function exportProjectToAssembly() {
-    const code = ProjectAssemblySerialiser.serialise(getProject(), {
-        generateTileMapFromTileSet: getUIState().exportGenerateTileMap,
+    const serialiser = SerialisationUtil.getProjectAssemblySerialiser(getProject().systemType);
+    const code = serialiser.serialise(getProject(), {
         paletteIndex: getUIState().exportTileMapPaletteIndex,
         tileMapMemoryOffset: getUIState().exportTileMapVramOffset
     });
