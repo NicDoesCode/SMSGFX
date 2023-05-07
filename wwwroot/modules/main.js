@@ -38,8 +38,8 @@ import DocumentationViewer from "./ui/documentationViewer.js";
 import WelcomeScreen from "./ui/welcomeScreen.js";
 import ThemeManager from "./components/themeManager.js";
 import OptionsToolbar from "./ui/optionsToolbar.js";
-import GameBoyTileBinarySerialiser from "./serialisers/gameBoyTileBinarySerialiser.js";
-import GameBoyTileSetBinarySerialiser from "./serialisers/gameBoyTileSetBinarySerialiser.js";
+import GameBoyTileBinarySerialiser from "./serialisers/gameBoy/GameBoyTileBinarySerialiser.js";
+import GameBoyTileSetBinarySerialiser from "./serialisers/gameBoy/gameBoyTileSetBinarySerialiser.js";
 
 
 /* ****************************************************************************************************
