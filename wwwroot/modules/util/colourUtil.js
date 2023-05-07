@@ -62,18 +62,26 @@ export default class ColourUtil {
         if (!format) format = 'hex';
         if (format !== 'hex' && format !== 'binary') throw new Error('Format must be null, "hex" or "binary".');
         if (system === 'ms') {
+            // Master System will return a 6-bit RGB value
             r = Math.round(3 / 255 * r);
             g = Math.round(3 / 255 * g) << 2;
             b = Math.round(3 / 255 * b) << 4;
             if (format === 'binary') return (r | g | b).toString(2).padStart(6, 0);
             else return (r | g | b).toString(16).padStart(2, '0');
         } else if (system === 'gg') {
+            // Game gear will return a 12-bit RGB value 
             r = Math.round(15 / 255 * r);
             g = Math.round(15 / 255 * g) << 4;
             b = Math.round(15 / 255 * b) << 8;
             if (format === 'binary') return (r | g | b).toString(2).padStart(12, 0);
             else return (r | g | b).toString(16).padStart(3, '0');
+        } else if (system === 'nes') {
+            // NES will return the index of the closest colour index from the hand-picked colour palette.
+            const colour = getNearestNESColourIndex();
+            if (format === 'binary') return colour.toString(2).padStart(8, 0);
+            else return (colour).toString(16);
         } else if (system === 'gb') {
+            // Game Boy will return a grey index between 0 and 4
             const colour = Math.round(getNearestGBColour((r + g + b) / 3) / 85);
             if (format === 'binary') return colour.toString(2).padStart(2, 0);
             else return (colour).toString(16);
@@ -100,6 +108,10 @@ export default class ColourUtil {
             g = Math.round(15 / 255 * g) * 17;
             b = Math.round(15 / 255 * b) * 17;
             return this.toHex(r, g, b);
+        } else if (system === 'nes') {
+            // NES will return the index of the closest colour index from the hand-picked colour palette.
+            const colour = getNearestNESColour();
+            return this.toHex(colour.r, colour.g, colour.b);
         } else if (system === 'gb') {
             const colour = Math.round(getNearestGBColour((r + g + b) / 3));
             return this.toHex(colour, colour, colour);
@@ -146,6 +158,14 @@ export default class ColourUtil {
     }
 
     /**
+     * Gets a Nintendo Entertainment System colour palette.
+     * @returns {ColourInformation[]}
+     */
+    static getFullNESPalette() {
+        return nesPalette;
+    }
+
+    /**
      * Gets a Game Boy colour palette.
      * @returns {ColourInformation[]}
      */
@@ -160,39 +180,76 @@ export default class ColourUtil {
         return gameBoyPalette;
     }
 
-    // /**
-    //  * 
-    //  * @param {import("./palette.js").PaletteColour} value 
-    //  * @returns 
-    //  */
-    //  #ggColour(value) {
-    //     const r = Math.floor(value.r / 16).toString(16);
-    //     const g = Math.floor(value.g / 16).toString(16);
-    //     const b = Math.floor(value.b / 16).toString(16);
-    //     return `$${b}${g}${r}`.toUpperCase();
-    // }
-
-    // /**
-    //  * 
-    //  * @param {import("./palette.js").PaletteColour} value 
-    //  * @returns 
-    //  */
-    // #msColour(value) {
-    //     const r = Math.floor(value.r / 64);
-    //     const g = Math.floor(value.g / 64);
-    //     const b = Math.floor(value.b / 64);
-    //     const result = (b << 4 | g << 2 | r).toString(16).padStart(4, '0').substring(2);
-    //     return '$' + result.toUpperCase();
-    // }
-
 
 }
+
+
 
 /** @type {ColourInformation[]} */
 let masterSystemPalette = null;
 
 /** @type {ColourInformation[]} */
 let gameGearPalette = null;
+
+/** @type {ColourInformation[]}>} */
+const nesPalette = [
+    { r: 84, g: 84, b: 84 },
+    { r: 0, g: 30, b: 116 },
+    { r: 8, g: 16, b: 144 },
+    { r: 48, g: 0, b: 136 },
+    { r: 68, g: 0, b: 100 },
+    { r: 92, g: 0, b: 48 },
+    { r: 84, g: 4, b: 0 },
+    { r: 60, g: 24, b: 0 },
+    { r: 32, g: 42, b: 0 },
+    { r: 8, g: 58, b: 0 },
+    { r: 0, g: 64, b: 0 },
+    { r: 0, g: 60, b: 0 },
+    { r: 0, g: 50, b: 60 },
+    { r: 0, g: 0, b: 0 },
+    { r: 152, g: 150, b: 152 },
+    { r: 8, g: 76, b: 196 },
+    { r: 48, g: 50, b: 236 },
+    { r: 92, g: 30, b: 228 },
+    { r: 136, g: 20, b: 176 },
+    { r: 160, g: 20, b: 100 },
+    { r: 152, g: 34, b: 32 },
+    { r: 120, g: 60, b: 0 },
+    { r: 84, g: 90, b: 0 },
+    { r: 40, g: 114, b: 0 },
+    { r: 8, g: 124, b: 0 },
+    { r: 0, g: 118, b: 40 },
+    { r: 0, g: 102, b: 120 },
+    { r: 0, g: 0, b: 0 },
+    { r: 236, g: 238, b: 236 },
+    { r: 76, g: 154, b: 236 },
+    { r: 120, g: 124, b: 236 },
+    { r: 176, g: 98, b: 236 },
+    { r: 228, g: 84, b: 236 },
+    { r: 236, g: 88, b: 180 },
+    { r: 236, g: 106, b: 100 },
+    { r: 212, g: 136, b: 32 },
+    { r: 160, g: 170, b: 0 },
+    { r: 116, g: 196, b: 0 },
+    { r: 76, g: 208, b: 32 },
+    { r: 56, g: 204, b: 108 },
+    { r: 56, g: 180, b: 204 },
+    { r: 60, g: 60, b: 60 },
+    { r: 236, g: 238, b: 236 },
+    { r: 168, g: 204, b: 236 },
+    { r: 188, g: 188, b: 236 },
+    { r: 212, g: 178, b: 236 },
+    { r: 236, g: 174, b: 236 },
+    { r: 236, g: 174, b: 212 },
+    { r: 236, g: 180, b: 176 },
+    { r: 228, g: 196, b: 144 },
+    { r: 204, g: 210, b: 120 },
+    { r: 180, g: 222, b: 120 },
+    { r: 168, g: 226, b: 144 },
+    { r: 152, g: 226, b: 180 },
+    { r: 160, g: 214, b: 228 },
+    { r: 160, g: 162, b: 160 },
+];
 
 /** @type {ColourInformation[]} */
 let gameBoyPalette = null;
@@ -210,6 +267,54 @@ function getNearestGBColour(colour) {
         return (Math.abs(curr - colour) < Math.abs(prev - colour) ? curr : prev);
     });
 }
+
+/**
+ * Gets the nearest NES colour.
+ * @param {number} r - Red.
+ * @param {number} g - Green.
+ * @param {number} b - Blue.
+ * @returns {ColourInformation}
+ */
+function getNearestNESColour(r, g, b) {
+    const rgbByCloseness = nesPalette.map((nesRGB) => {
+        const rgbDiff = [
+            { channel: 'r', value: Math.abs(r, nesRGB.r) },
+            { channel: 'g', value: Math.abs(g, nesRGB.g) },
+            { channel: 'b', value: Math.abs(b, nesRGB.b) }
+        ].sort((c1, c2) => c1.value > c2.value);
+
+        return {
+            r: nesRGB.r, g: nesRGB.g, b: nesRGB.b,
+            diff0: rgbDiff[0].value, diff1: rgbDiff[1].value, diff2: rgbDiff[2].value
+        }
+    }).sort((c1, c2) => {
+        return c1.diff0 > c1.diff0 || c1.diff1 > c1.diff1 || c1.diff2 > c1.diff2
+    });
+
+    const closestRGB = rgbByCloseness[0];
+    return {
+        r: closestRGB.r,
+        g: closestRGB.g,
+        b: closestRGB.b
+    };
+}
+
+/**
+ * Gets the nearest NES colour palette index.
+ * @param {number} r - Red.
+ * @param {number} g - Green.
+ * @param {number} b - Blue.
+ * @returns {number}
+ */
+function getNearestNESColourIndex(r, g, b) {
+    const closestRGB = getNearestNESColour(r, g, b);
+    const index = nesPalette.filter((c) => c.r === closestRGB.r && c.g === closestRGB.g && c.b === closestRGB.b)[0];
+    const row = index % 14;
+    const col = index - row;
+    const nesIndex = col & (row << 1);
+    return nesIndex;
+}
+
 
 /**
  * @typedef ColourInformation

@@ -370,10 +370,12 @@ export default class ImageUtil {
     static extractNativePaletteFromImage(image, system) {
 
         let targetSystemPalette;
-        switch (targetSystemPalette) {
-            case 'gb': targetSystemPalette = ColourUtil.getFullGameBoyPalette(); break;
+        switch (system) {
+            case 'ms': targetSystemPalette = ColourUtil.getFullMasterSystemPalette(); break;
             case 'gg': targetSystemPalette = ColourUtil.getFullGameGearPalette(); break;
-            default: targetSystemPalette = ColourUtil.getFullMasterSystemPalette(); break;
+            case 'nes': targetSystemPalette = ColourUtil.getFullNESPalette(); break;
+            case 'gb': targetSystemPalette = ColourUtil.getFullGameBoyPalette(); break;
+            default : throw new Error('Unknown system.');
         }
 
         const foundImageColoursDict = extractUniqueColours(image);

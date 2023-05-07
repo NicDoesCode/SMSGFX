@@ -3,16 +3,13 @@ import PaletteColourFactory from "../factory/paletteColourFactory.js";
 import PaletteJsonSerialiser from "../serialisers/paletteJsonSerialiser.js";
 import ColourUtil from "../util/colourUtil.js";
 
-const defaultColours = ['#000000', '#000000', '#00AA00', '#00FF00', '#000055', '#0000FF', '#550000', '#00FFFF', '#AA0000', '#FF0000', '#555500', '#FFFF00', '#005500', '#FF00FF', '#555555', '#FFFFFF'];
-const defaultColoursGB = ['#000000', '#555555', '#AAAAAA', '#FFFFFF'];
-
 export default class PaletteFactory {
 
 
     /**
      * Creates a new instance of a palette object.
      * @param {string} title - Title of the palette.
-     * @param {string} system - Intended system, either 'ms' (Sega Master), 'gg' (Sega Game Gear) or 'gb' (Nintendo Game Boy).
+     * @param {string} system - Intended system, either 'ms' (Sega Master System), 'gg' (Sega Game Gear), 'nes' (Nintendo Entertainment System) or 'gb' (Nintendo Game Boy).
      * @returns {Palette}
      */
     static create(title, system) {
@@ -20,20 +17,56 @@ export default class PaletteFactory {
     }
 
     /**
-     * Creates a new palette object with the default colours.
+     * Creates a new palette object with the default colours based on system type (rather than individual system).
+     * @param {string} systemType - System the palette is for, either 'smsgg', 'nes' or 'gb'.
+     * @returns {Palette}
+     */
+    static createNewStandardColourPaletteBySystemType(systemType) {
+        switch (systemType) {
+            case 'smsgg':
+                return PaletteFactory.createNewStandardColourPalette(`SMS palette`, 'ms');
+            case 'nes':
+                return PaletteFactory.createNewStandardColourPalette(`NES palette`, 'nes');
+            case 'gb':
+                return PaletteFactory.createNewStandardColourPalette(`GB palette`, 'gb');
+            default:
+                throw new Error('The system type was not valid.');
+        }
+    }
+
+    /**
+     * Creates a new palette object with the default colours based on system.
      * @param {string} title - Title for the new palette.
-     * @param {string} system - System the palette is for, either 'ms', 'gg' or 'gb'. When invalid input 'ms' is assumed.
+     * @param {string} system - System the palette is for, either 'ms', 'gg', 'nes' or 'gb'. When invalid input 'ms' is assumed.
      * @returns {Palette}
      */
     static createNewStandardColourPalette(title, system) {
-        if (!title || title.trim() === '') title = `${system.toUpperCase()} palette`;
-        if (!system || (system !== 'gg' && system !== 'gb')) system = 'ms';
+        if (!title || title === '' || title.length < 1) throw new Error('No value given for "title".');
+        if (!system || typeof system !== 'string') throw new Error('No value given for "system".');
 
         const palette = PaletteFactory.create(title, system);
-        const systemDefaultColours = system === 'gb' ? defaultColoursGB : defaultColours;
-        for (let c = 0; c < palette.getColours().length; c++) {
-            const colour = PaletteColourFactory.fromHex(systemDefaultColours[c]);
-            palette.setColour(c, colour);
+        switch (system) {
+            case 'ms':
+            case 'gg':
+                for (let c = 0; c < palette.getColours().length; c++) {
+                    const colour = PaletteColourFactory.fromHex(defaultColoursMS[c]);
+                    palette.setColour(c, colour);
+                }
+                break;
+            case 'nes':
+                for (let c = 0; c < palette.getColours().length; c++) {
+                    const colour = PaletteColourFactory.fromHex(defaultColourNES[c]);
+                    palette.setColour(c, colour);
+                }
+                break;
+            case 'gb':
+                for (let c = 0; c < palette.getColours().length; c++) {
+                    const colour = PaletteColourFactory.fromHex(defaultColoursGB[c]);
+                    palette.setColour(c, colour);
+                }
+                break;
+            default:
+                throw new Error('The system was not valid.');
         }
         return palette;
     }
@@ -45,7 +78,7 @@ export default class PaletteFactory {
      */
     static createFromMasterSystemPalette(array) {
         /** @type {Palette} */
-        const result = PaletteFactory.create('Master System Palette', 'ms');
+        const result = PaletteFactory.create('Master System palette', 'ms');
         for (let idx = 0; idx < 16 || idx < array.length; idx++) {
             const colour = array[idx];
             var r = Math.round(255 / 3 * (parseInt('00000011', 2) & colour));
@@ -63,7 +96,7 @@ export default class PaletteFactory {
      */
     static createFromGameGearPalette(array) {
         /** @type {Palette} */
-        const result = PaletteFactory.create('Game Gear Palette', 'gg');
+        const result = PaletteFactory.create('Game Gear palette', 'gg');
         for (let idx = 0; idx < 16 || idx < array.length; idx++) {
             const colour = array[idx];
             var r = Math.round(255 / 15 * (parseInt('0000000000001111', 2) & colour));
@@ -83,7 +116,7 @@ export default class PaletteFactory {
         if (array.length >= 1) {
 
             /** @type {Palette} */
-            const result = PaletteFactory.create('Game Boy Palette', 'gb');
+            const result = PaletteFactory.create('Game Boy palette', 'gb');
 
             const colour0 = ((array[0] & parseInt('11000000', 2)) >> 6) * 85;
             const colour1 = ((array[0] & parseInt('00110000', 2)) >> 4) * 85;
@@ -143,3 +176,9 @@ export default class PaletteFactory {
 
 
 }
+
+
+const defaultColoursMS = ['#000000', '#000000', '#00AA00', '#00FF00', '#000055', '#0000FF', '#550000', '#00FFFF', '#AA0000', '#FF0000', '#555500', '#FFFF00', '#005500', '#FF00FF', '#555555', '#FFFFFF'];
+const defaultColoursGB = ['#000000', '#555555', '#AAAAAA', '#FFFFFF'];
+const defaultColourNES = ['#38b4cc', '#000000', '#3032ec', '#FFFFFF'];
+

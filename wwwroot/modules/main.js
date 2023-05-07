@@ -1972,6 +1972,7 @@ function deletePalette(paletteIndex) {
         // Remove palette
         getPaletteList().removeAt(paletteIndex);
         const newSelectedIndex = Math.min(paletteIndex, getPaletteList().length - 1);
+        // Select a remaining palette or create a default if none exists.
         if (getPaletteList().length > 0) {
             paletteEditor.setState({
                 paletteList: getPaletteList(),
@@ -1979,7 +1980,8 @@ function deletePalette(paletteIndex) {
             });
             getUIState().paletteIndex = newSelectedIndex;
         } else {
-            getPaletteList().addPalette(PaletteFactory.createNewStandardColourPalette('ms'));
+            const newPalette = PaletteFactory.createNewStandardColourPaletteBySystemType(getProject().systemType);
+            getPaletteList().addPalette(newPalette);
             paletteEditor.setState({
                 paletteList: getPaletteList(),
                 selectedPaletteIndex: 0
