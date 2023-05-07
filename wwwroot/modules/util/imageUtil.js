@@ -333,8 +333,8 @@ export default class ImageUtil {
         const targetColours = [];
         targetPalette.getColours().forEach(colour => {
             targetColours.push({
-                r: colour.r, 
-                g: colour.g, 
+                r: colour.r,
+                g: colour.g,
                 b: colour.b,
                 hex: ColourUtil.toHex(colour.r, colour.g, colour.b)
             });
@@ -351,7 +351,7 @@ export default class ImageUtil {
     /**
      * Extracts a 16 colour native system palette from an image.
      * @param {HTMLImageElement} image - Input image.
-     * @param {string} system - Target system, either 'ms' or 'gg'.
+     * @param {string} system - Target system, either 'ms', 'gg', 'nes' or 'gb'.
      * @returns {Promise<ColourMatch[]>}
      */
     static async extractNativePaletteFromImageAsync(image, system) {
@@ -364,16 +364,18 @@ export default class ImageUtil {
     /**
      * Extracts a 16 colour native system palette from an image.
      * @param {HTMLImageElement} image - Input image.
-     * @param {string} system - Target system, either 'ms' or 'gg'.
+     * @param {string} system - Target system, either 'ms', 'gg', 'nes' or 'gb'.
      * @returns {ColourMatch[]}
      */
     static extractNativePaletteFromImage(image, system) {
 
         let targetSystemPalette;
-        switch (targetSystemPalette) {
-            case 'gb': targetSystemPalette = ColourUtil.getFullGameBoyPalette(); break;
+        switch (system) {
+            case 'ms': targetSystemPalette = ColourUtil.getFullMasterSystemPalette(); break;
             case 'gg': targetSystemPalette = ColourUtil.getFullGameGearPalette(); break;
-            default: targetSystemPalette = ColourUtil.getFullMasterSystemPalette(); break;
+            case 'nes': targetSystemPalette = ColourUtil.getFullNESPalette(); break;
+            case 'gb': targetSystemPalette = ColourUtil.getFullGameBoyPalette(); break;
+            default: throw new Error('Unknown system.');
         }
 
         const foundImageColoursDict = extractUniqueColours(image);
@@ -507,7 +509,11 @@ export default class ImageUtil {
             tileSet: TileSetFactory.fromArray(virtualData),
             paletteList: PaletteListFactory.create([projectPalette])
         });
-        project.systemType = system === 'gb' ? 'gb' : 'smsgg';
+        switch (system) {
+            case 'nes': project.systemType = 'nes'; break;
+            case 'gb': project.systemType = 'gb'; break;
+            default: project.systemType = 'smsgg'; break;
+        }
         project.tileSet.tileWidth = tiles.tilesWide;
         return project;
     }
@@ -537,8 +543,8 @@ function matchColours(desiredColours, coloursToMatch) {
     let coloursLeftToMatch = JSON.parse(JSON.stringify(coloursToMatch));
 
     /** @type {ColourMapping} */
-    const desiredColoursMapping = { 
-        hexLookup: {}, 
+    const desiredColoursMapping = {
+        hexLookup: {},
         matches: desiredColours.map(c => convertToColourMatch(JSON.parse(JSON.stringify(c))))
     };
     desiredColours.forEach((desiredColour) => {
@@ -561,7 +567,7 @@ function matchColours(desiredColours, coloursToMatch) {
                 if (isSimilar(colourToMatch, matchRange)) {
 
                     desiredColoursMapping.hexLookup[colourToMatch.hex] = desiredColour.hex;
-                
+
                     if (!desiredColour.matchedColours.includes(colourToMatch.hex)) {
                         desiredColour.matchedColours.push(colourToMatch.hex);
                     }
@@ -580,7 +586,7 @@ function matchColours(desiredColours, coloursToMatch) {
                 }
 
             });
-            
+
             coloursLeftToMatch = unmatchedColours;
 
         });

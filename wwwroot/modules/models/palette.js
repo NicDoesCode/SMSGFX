@@ -18,13 +18,13 @@ export default class Palette {
     }
 
     /**
-     * System this palette is for, either 'ms' (Sega Master), 'gg' (Sega Game Gear), 'gb' (Nintendo Game Boy).
+     * System this palette is for, either 'ms' (Sega Master), 'gg' (Sega Game Gear), 'nes' (Nintendo Entertainment System), 'gb' (Nintendo Game Boy).
      */
     get system() {
         return this.#system;
     }
     set system(value) {
-        if (!value || !/^ms|gg|gb$/i.test(value)) throw new Error('System must be non null and either "ms", "gg" or "gb".');
+        if (!value || !/^ms|gg|nes|gb$/i.test(value)) throw new Error('System must be non null and either "ms", "gg", "nes" or "gb".');
         this.#system = value.toLowerCase();
     }
 
@@ -45,7 +45,7 @@ export default class Palette {
     constructor(title, system) {
         this.title = title ? title : 'Palette';
         this.system = system;
-        this.#colours = new Array(system === 'gb' ? 4 : 16);
+        this.#colours = new Array(getSystemColourCount(system));
     }
 
 
@@ -70,8 +70,8 @@ export default class Palette {
 
     /**
      * Sets the colour at a given index.
-     * @param {number} index Index of the colour to set.
-     * @param {PaletteColour} value Colour data to set.
+     * @param {number} index - Index of the colour to set.
+     * @param {PaletteColour} value - Colour data to set.
      */
     setColour(index, value) {
         if (index >= 0 && index < this.#colours.length) {
@@ -79,5 +79,21 @@ export default class Palette {
         } else throw new Error('Colour index was out of range.');
     }
 
-    
+
+}
+
+
+/**
+ * Sets the colour at a given index.
+ * @param {string} system - Intended system.
+ * @returns {4 | 16}
+ */
+function getSystemColourCount(system) {
+    switch (system) {
+        case 'ms': return 16;
+        case 'gg': return 16;
+        case 'nes': return 4;
+        case 'gb': return 4;
+        default: throw new Error('Unknown system.');
+    }
 }

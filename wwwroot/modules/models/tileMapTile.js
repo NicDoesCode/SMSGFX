@@ -15,7 +15,7 @@ export default class TileMapTile {
         return this.#palette;
     }
     set palette(value) {
-        if (value < 0 || value > 1) throw new Error('Palette number can be only 0 or 1.');
+        if (value < 0 || value > 100) throw new Error('PInvaliud palette index.');
         this.#palette = value;
     }
 

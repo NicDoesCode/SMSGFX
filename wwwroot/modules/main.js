@@ -14,10 +14,8 @@ import ProjectToolbar from "./ui/projectToolbar.js";
 import ExportToolbar from "./ui/exportToolbar.js";
 import ProjectUtil from "./util/projectUtil.js";
 import PaletteFactory from "./factory/paletteFactory.js";
-import TileSetBinarySerialiser from "./serialisers/tileSetBinarySerialiser.js";
 import TileFactory from "./factory/tileFactory.js";
 import TileSetFactory from "./factory/tileSetFactory.js";
-import ProjectAssemblySerialiser from "./serialisers/projectAssemblySerialiser.js";
 import PaletteColourFactory from "./factory/paletteColourFactory.js";
 import UndoManager from "./components/undoManager.js";
 import ProjectFactory from "./factory/projectFactory.js";
@@ -38,8 +36,7 @@ import DocumentationViewer from "./ui/documentationViewer.js";
 import WelcomeScreen from "./ui/welcomeScreen.js";
 import ThemeManager from "./components/themeManager.js";
 import OptionsToolbar from "./ui/optionsToolbar.js";
-import GameBoyTileBinarySerialiser from "./serialisers/gameBoyTileBinarySerialiser.js";
-import GameBoyTileSetBinarySerialiser from "./serialisers/gameBoyTileSetBinarySerialiser.js";
+import SerialisationUtil from "./util/serialisationUtil.js";
 
 
 /* ****************************************************************************************************
@@ -668,7 +665,7 @@ function handleExportDialogueOnCommand(args) {
     switch (args.command) {
 
         case ExportModalDialogue.Commands.valueChanged:
-            getUIState().exportGenerateTileMap = args.generateTileMap;
+            getUIState().exportOptimiseTileMap = args.optimiseTileMap;
             getUIState().exportTileMapPaletteIndex = args.paletteIndex;
             getUIState().exportTileMapVramOffset = args.vramOffset;
             state.saveToLocalStorage();
@@ -693,7 +690,7 @@ function handlePaletteEditorOnCommand(args) {
             paletteImportDialogue.setState({
                 paletteData: getUIState().importPaletteAssemblyCode,
                 system: getUIState().importPaletteSystem,
-                allowedSystems: getProject().systemType !== 'gb' ? ['ms', 'gg'] : ['gb']
+                allowedSystems: getProject().systemType === 'gb' ? ['gb'] : getProject().systemType === 'nes' ? ['nes'] : ['ms', 'gg']
             });
             paletteImportDialogue.show();
             break;
@@ -974,7 +971,7 @@ function handleTileEditorOnEvent(args) {
 
 /** @param {import('./ui/paletteImportModalDialogue').PaletteImportModalDialogueConfirmEventArgs} args */
 function handleImportPaletteModalDialogueOnConfirm(args) {
-    if (!['gg', 'ms', 'gb'].includes(args.system)) throw new Error('System must be either ""ms", "gg" or "gb".');
+    if (!['gg', 'ms', 'gb', 'nes'].includes(args.system)) throw new Error('System must be either "ms", "gg", "gb" or "nes".');
 
     addUndoState();
 
@@ -991,6 +988,10 @@ function handleImportPaletteModalDialogueOnConfirm(args) {
     } else if (system === 'gb') {
         const array = AssemblyUtil.readAsUint8ClampedArray(paletteData);
         const palette = PaletteFactory.createFromGameBoyPalette(array);
+        getPaletteList().addPalette(palette);
+    } else if (system === 'nes') {
+        const array = AssemblyUtil.readAsUint8ClampedArray(paletteData);
+        const palette = PaletteFactory.createFromNesPalette(array);
         getPaletteList().addPalette(palette);
     }
 
@@ -1123,13 +1124,9 @@ function handleImportTileSet(args) {
 
     const tileSetData = args.tileSetData;
     const tileSetDataArray = AssemblyUtil.readAsUint8ClampedArray(tileSetData);
-    let importedTileSet;
-    if (getProject().systemType !== 'gb') {
-        importedTileSet = TileSetBinarySerialiser.deserialise(tileSetDataArray);
-    } else {
-        importedTileSet = GameBoyTileSetBinarySerialiser.deserialise(tileSetDataArray);
-    }
-
+    const tileSetBinarySerialiser = SerialisationUtil.getTileSetBinarySerialiser(getProject().systemType);
+    const importedTileSet = tileSetBinarySerialiser.deserialise(tileSetDataArray);
+    
     if (args.replace) {
         getProject().tileSet = importedTileSet;
     } else {
@@ -1303,6 +1300,9 @@ function createEmptyProject(args) {
     } else if (project.systemType === 'gb') {
         // For Game Boy
         project.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('Default Game Boy', 'gb'));
+    } else if (project.systemType === 'nes') {
+        // For Nintendo Entertainment System
+        project.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('Default NES', 'nes'));
     }
 
     return project;
@@ -1377,7 +1377,12 @@ function formatForProject() {
     const palette = getPalette();
     const tileSet = getTileSet();
     const colour = palette.getColour(instanceState.colourIndex);
-    const visibleTabs = getPalette().system === 'gb' ? ['gb'] : ['rgb', 'sms'];
+    const visibleTabs = [];
+    switch (getPalette().system) {
+        case 'ms', 'gg': visibleTabs.push('rgb', 'sms'); break;
+        case 'nes': visibleTabs.push('nes'); break;
+        case 'gb': visibleTabs.push('gb'); break;
+    }
 
     projectToolbar.setState({
         projectTitle: getProject().title,
@@ -1398,8 +1403,11 @@ function formatForProject() {
         displayNative: getUIState().displayNativeColour,
         enabled: true
     });
+    let colourPickerTab = instanceState.colourToolboxTab;
+    if (getPalette().system === 'gb') colourPickerTab = 'gb';
+    if (getPalette().system === 'nes') colourPickerTab = 'nes';
     colourPickerToolbox.setState({
-        showTab: getPalette().system === 'gb' ? 'gb' : instanceState.colourToolboxTab,
+        showTab: colourPickerTab,
         r: colour.r,
         g: colour.g,
         b: colour.b,
@@ -1972,6 +1980,7 @@ function deletePalette(paletteIndex) {
         // Remove palette
         getPaletteList().removeAt(paletteIndex);
         const newSelectedIndex = Math.min(paletteIndex, getPaletteList().length - 1);
+        // Select a remaining palette or create a default if none exists.
         if (getPaletteList().length > 0) {
             paletteEditor.setState({
                 paletteList: getPaletteList(),
@@ -1979,7 +1988,8 @@ function deletePalette(paletteIndex) {
             });
             getUIState().paletteIndex = newSelectedIndex;
         } else {
-            getPaletteList().addPalette(PaletteFactory.createNewStandardColourPalette('ms'));
+            const newPalette = PaletteFactory.createNewStandardColourPaletteBySystemType(getProject().systemType);
+            getPaletteList().addPalette(newPalette);
             paletteEditor.setState({
                 paletteList: getPaletteList(),
                 selectedPaletteIndex: 0
@@ -2234,8 +2244,9 @@ function exportProjectToJson() {
  * Shows the export to assembly dialogue.
  */
 function exportProjectToAssembly() {
-    const code = ProjectAssemblySerialiser.serialise(getProject(), {
-        generateTileMapFromTileSet: getUIState().exportGenerateTileMap,
+    const serialiser = SerialisationUtil.getProjectAssemblySerialiser(getProject().systemType);
+    const code = serialiser.serialise(getProject(), {
+        optimiseTileMap: getUIState().exportOptimiseTileMap,
         paletteIndex: getUIState().exportTileMapPaletteIndex,
         tileMapMemoryOffset: getUIState().exportTileMapVramOffset
     });
@@ -2755,7 +2766,7 @@ window.addEventListener('load', async () => {
     });
 
     exportDialogue.setState({
-        generateTileMapChecked: getUIState().exportGenerateTileMap,
+        optimiseTileMap: getUIState().exportOptimiseTileMap,
         paletteIndex: getUIState().exportTileMapPaletteIndex,
         vramOffset: getUIState().exportTileMapVramOffset
     });

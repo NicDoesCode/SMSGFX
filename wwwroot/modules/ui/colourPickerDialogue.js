@@ -204,7 +204,8 @@ export default class ColourPickerDialogue extends ModalDialogue {
         this.#tbColourPickerHex.value = hex;
         this.#btnColourPickerPick.value = hex;
         // Previews
-        const previewHex = ColourUtil.toNativeHex(this.#system, this.#r, this.#g, this.#b);
+        const closestColour = ColourUtil.getClosestNativeColour(this.#system, this.#r, this.#g, this.#b);
+        const previewHex = ColourUtil.toHex(closestColour.r, closestColour.g, closestColour.b);
         this.#tbPreviewSelected.style.backgroundColor = hex;
         this.#tbPreviewNative.style.backgroundColor = previewHex;
     }

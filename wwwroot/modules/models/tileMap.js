@@ -24,6 +24,17 @@ export default class TileMap {
         this.#tileWidth = value;
     }
 
+    get tileCount() {
+        return this.#tiles.length; 
+    }
+
+    get optimise() {
+        return this.#optimise;
+    }
+    set optimise(value) {
+        this.#optimise = value;
+    }
+
 
     #vramOffset = 0;
     #tileWidth = 1;
@@ -32,6 +43,7 @@ export default class TileMap {
     /** @type {Object.<string, { tile: Tile, index: number }} */
     #uniqueTiles = {};
     #uniqueTileCount = 0;
+    #optimise = false;
 
 
     constructor() {
@@ -44,21 +56,33 @@ export default class TileMap {
      * @param {TileMapTileParams} params - Parameters.
      */
     addTile(tile, params) {
-        const tileHex = TileUtil.toHex(tile);
-        if (!this.#uniqueTiles[tileHex]) {
-            this.#uniqueTiles[tileHex] = { tile: tile, index: this.#uniqueTileCount };
-            this.#uniqueTileCount++;
+        if (!this.optimise) {
+            // Just add all tiles
+            this.#tiles.push({
+                tileNumber: this.#tiles.length,
+                sourceTile: tile,
+                horizontalFlip: params.horizontalFlip,
+                verticalFlip: params.verticalFlip,
+                palette: params.palette,
+                priority: params.priority
+            });
+        } else {
+            // Optimise by eliminating duplicate tiles
+            const tileHex = TileUtil.toHex(tile);
+            if (!this.#uniqueTiles[tileHex]) {
+                this.#uniqueTiles[tileHex] = { tile: tile, index: this.#uniqueTileCount };
+                this.#uniqueTileCount++;
+            }
+            const uniqueTile = this.#uniqueTiles[tileHex];
+            this.#tiles.push({
+                tileNumber: uniqueTile.index,
+                sourceTile: uniqueTile.tile,
+                horizontalFlip: params.horizontalFlip,
+                verticalFlip: params.verticalFlip,
+                palette: params.palette,
+                priority: params.priority
+            });
         }
-
-        const uniqueTile = this.#uniqueTiles[tileHex];
-        this.#tiles.push({
-            tileNumber: uniqueTile.index,
-            sourceTile: uniqueTile,
-            horizontalFlip: params.horizontalFlip,
-            verticalFlip: params.verticalFlip,
-            palette: params.palette,
-            priority: params.priority
-        });
     }
 
     getTileMapTiles() {
@@ -80,9 +104,15 @@ export default class TileMap {
     toTileSet() {
         const result = new TileSet();
         result.tileWidth = this.tileWidth;
-        Object.keys(this.#uniqueTiles).forEach(key => {
-            result.addTile(this.#uniqueTiles[key].tile);
-        });
+        if (!this.optimise) {
+            this.#tiles.forEach((tile) => {
+                result.addTile(tile.sourceTile);
+            });
+        } else {
+            Object.keys(this.#uniqueTiles).forEach(key => {
+                result.addTile(this.#uniqueTiles[key].tile);
+            });
+        }
         return result;
     }
 

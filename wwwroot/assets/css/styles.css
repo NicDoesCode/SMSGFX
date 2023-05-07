@@ -178,12 +178,28 @@ button:disabled img {
     flex-wrap: wrap;
 }
 
+.sms-container .sms-colour-toolbox .sms-colour-box .sms-colour-box-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex-grow: 1;
+    width: auto;
+}
+
+.sms-container .sms-colour-toolbox .sms-colour-box.for-nes .sms-colour-box-row {
+    flex-direction: column;
+}
+
 .sms-container .sms-colour-toolbox .sms-colour-box button {
     width: 5.5%;
     box-sizing: content-box;
     height: 15px;
     margin: 1px;
     border: 1px solid #CCCCCC;
+}
+
+.sms-container .sms-colour-toolbox .sms-colour-box.for-nes .sms-colour-box-row button {
+    width: auto;
 }
 
 [data-bs-theme=dark] .sms-container .sms-colour-toolbox .sms-colour-box button {

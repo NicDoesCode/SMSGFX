@@ -1,8 +1,9 @@
-import TileSetFactory from '../factory/tileSetFactory.js';
-import TileSet from '../models/tileSet.js';
-import GameBoyTileBinarySerialiser from './gameBoyTileBinarySerialiser.js';
+import TileSetFactory from '../../factory/tileSetFactory.js';
+import TileSet from '../../models/tileSet.js';
+import TileSetBinarySerialiser from '../tileSetBinarySerialiser.js';
+import NesTileBinarySerialiser from './nesTileBinarySerialiser.js';
 
-export default class GameBoyTileSetBinarySerialiser {
+export default class NesTileSetBinarySerialiser extends TileSetBinarySerialiser {
 
 
     /**
@@ -15,7 +16,7 @@ export default class GameBoyTileSetBinarySerialiser {
         const result = new Uint8ClampedArray(byteLength);
         tileSet.getTiles().forEach((tile, index) => {
             const resultArrayOffset = index * 16;
-            const tileAsBinary = GameBoyTileBinarySerialiser.serialise(tile);
+            const tileAsBinary = NesTileBinarySerialiser.serialise(tile);
             result.set(tileAsBinary, resultArrayOffset);
         });
         return result;
@@ -31,7 +32,7 @@ export default class GameBoyTileSetBinarySerialiser {
         const tileSet = TileSetFactory.create();
         for (let i = 0; i < array.length; i += 16) {
             const arraySlice = array.slice(i, i + 16);
-            const tile = GameBoyTileBinarySerialiser.deserialise(arraySlice);
+            const tile = NesTileBinarySerialiser.deserialise(arraySlice);
             tileSet.addTile(tile);
         }
         return tileSet;

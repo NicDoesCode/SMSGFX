@@ -39,7 +39,7 @@ export default class PaletteColourFactory {
      */
     static convertToNative(system, paletteColour) {
         const originalHex = ColourUtil.toHex(paletteColour.r, paletteColour.g, paletteColour.b);
-        const nativeHex = ColourUtil.getNativeHexFromHex(system, originalHex);
+        const nativeHex = ColourUtil.getClosestNativeColourFromHex(system, originalHex);
         return PaletteColourFactory.fromHex(nativeHex);
     }
 

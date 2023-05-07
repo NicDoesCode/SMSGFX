@@ -534,7 +534,7 @@ export default class ImportImageModalDialogue extends ModalDialogue {
             const previewColours = this.#previewColours;
 
             let system = this.#tbImportPaletteSelect.value;
-            if (system !== 'ms' && system !== 'gg' && system !== 'gb') {
+            if (!['ms', 'gg', 'gb', 'nes'].includes(system)) {
                 const option = this.#tbImportPaletteSelect.selectedOptions.item(0);
                 const paletteIndex = parseInt(option.getAttribute('data-smsgfx-palette-index'));
                 const palette = this.#paletteList.getPalette(paletteIndex);
@@ -657,11 +657,14 @@ export default class ImportImageModalDialogue extends ModalDialogue {
 
             /** @type {ColourMatch[]} */
             let extractedColours;
-            const selectedImportColours = this.#tbImportPaletteSelect.value;
-            if (['ms', 'gg'].includes(selectedImportColours)) {
-                extractedColours = await ImageUtil.extractNativePaletteFromImageAsync(sourceImage, selectedImportColours);
-            } else if (['gb'].includes(selectedImportColours)) {
-                const palette = PaletteFactory.createNewStandardColourPalette('Game Boy Palette', 'gb');
+            const selectedPalette = this.#tbImportPaletteSelect.value;
+            if (['ms', 'gg'].includes(selectedPalette)) {
+                extractedColours = await ImageUtil.extractNativePaletteFromImageAsync(sourceImage, selectedPalette);
+            } else if (['nes'].includes(selectedPalette)) {
+                const palette = PaletteFactory.createNewStandardColourPalette('NES palette', 'nes');
+                extractedColours = await ImageUtil.matchToPaletteAsync(sourceImage, palette);
+            } else if (['gb'].includes(selectedPalette)) {
+                const palette = PaletteFactory.createNewStandardColourPalette('Game Boy palette', 'gb');
                 extractedColours = await ImageUtil.matchToPaletteAsync(sourceImage, palette);
             } else {
                 const option = this.#tbImportPaletteSelect.selectedOptions.item(0);

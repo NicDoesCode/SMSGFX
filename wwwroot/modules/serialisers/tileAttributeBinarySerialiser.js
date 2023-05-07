@@ -1,7 +1,7 @@
 import Tile from '../models/tile.js';
 
 
-export default class TileBinarySerialiser {
+export default class TileAttributeBinarySerialiser {
 
 
     /**

@@ -1,7 +1,8 @@
-import TileMap from '../models/tileMap.js';
+import TileMap from '../../models/tileMap.js';
+import TileMapBinarySerialiser from '../tileMapBinarySerialiser.js';
 import GameBoyTileMapTileBinarySerialiser from './gameBoyTileMapTileBinarySerialiser.js';
 
-export default class GameBoyTileMapBinarySerialiser {
+export default class GameBoyTileMapBinarySerialiser extends TileMapBinarySerialiser {
 
 
     /**

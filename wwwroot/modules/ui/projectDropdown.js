@@ -96,10 +96,10 @@ export default class ProjectDropdown extends ModalDialogue {
         }
 
         if (state.systemType && typeof state.systemType === 'string') {
-            if (state.systemType === 'gb') {
-                this.#element.querySelector(`[data-smsgfx-id=system-type`).value = 'gb';
-            } else {
-                this.#element.querySelector(`[data-smsgfx-id=system-type`).value = 'smsgg';
+            switch (state.systemType) {
+                case 'gb': this.#element.querySelector(`[data-smsgfx-id=system-type`).value = 'gb'; break;
+                case 'nes': this.#element.querySelector(`[data-smsgfx-id=system-type`).value = 'nes'; break;
+                case 'smsgg': default: this.#element.querySelector(`[data-smsgfx-id=system-type`).value = 'smsgg'; break;
             }
         }
 
@@ -181,8 +181,8 @@ export default class ProjectDropdown extends ModalDialogue {
             const id = elm.getAttribute('data-project-id');
             if (command && id) {
                 /** @param {MouseEvent} ev */
-                elm.onclick = (ev) => { 
-                    this.#handleProjectCommandButtonClicked(command, id);  
+                elm.onclick = (ev) => {
+                    this.#handleProjectCommandButtonClicked(command, id);
                     ev.stopImmediatePropagation();
                     ev.preventDefault();
                 }
@@ -212,7 +212,7 @@ export default class ProjectDropdown extends ModalDialogue {
  * @property {string[]?} enabledCommands - Array of commands that should be enabled, overrided enabled state.
  * @property {string[]?} disabledCommands - Array of commands that should be disabled, overrided enabled state.
  * @property {ProjectList} projects - List of projects to display in the menu.
- * @property {string?} systemType - System type to target, either 'smsgg' or 'gb'.
+ * @property {string?} systemType - System type to target, either 'smsgg', 'gb' or 'nes'.
  * @property {boolean?} enabled - Is the control enabled or disabled?
  * @property {boolean?} visible - Is the control visible?
  */
@@ -228,6 +228,6 @@ export default class ProjectDropdown extends ModalDialogue {
  * @property {string} command - The command being invoked.
  * @property {string?} title - Project title.
  * @property {string?} projectId - Project ID.
- * @property {string?} systemType - Type of system to target, either 'smsgg' or 'gb'.
+ * @property {string?} systemType - Type of system to target, either 'smsgg', 'gb' or 'nes'.
  * @exports
  */
