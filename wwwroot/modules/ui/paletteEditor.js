@@ -337,7 +337,8 @@ export default class PaletteEditor {
                 const displayNative = this.#getElement(commands.displayNativeColours)?.checked ?? false;
                 const c = palette.getColour(i);
                 if (displayNative) {
-                    paletteButtons[i].style.backgroundColor = ColourUtil.toNativeHex(palette.system, c.r, c.g, c.b);
+                    const nativeColour = ColourUtil.getClosestNativeColour(palette.system, c.r, c.g, c.b);
+                    paletteButtons[i].style.backgroundColor = ColourUtil.toHex(nativeColour.r, nativeColour.g, nativeColour.b);
                 } else {
                     paletteButtons[i].style.backgroundColor = ColourUtil.toHex(c.r, c.g, c.b);
                 }
