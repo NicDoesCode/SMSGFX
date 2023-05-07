@@ -24,6 +24,10 @@ export default class TileMap {
         this.#tileWidth = value;
     }
 
+    get tileCount() {
+        return this.#tiles.length;result[attrIdx]
+    }
+
 
     #vramOffset = 0;
     #tileWidth = 1;

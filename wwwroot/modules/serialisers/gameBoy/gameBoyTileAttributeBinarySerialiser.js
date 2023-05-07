@@ -7,10 +7,10 @@ export default class GameBoyTileAttributeBinarySerialiser extends TileAttributeB
     /**
      * Serialises an NES tile attribute table to a byte array.
      * @param {TileMap} tileMap - Tile map to serialise.
-     * @returns {number[]}
+     * @returns {Uint8ClampedArray}
      */
     static serialise(tileMap) {
-        return [];
+        return new Uint8ClampedArray();
     }
 
 
