@@ -3,11 +3,11 @@ import TileFactory from '../../factory/tileFactory.js';
 import TileBinarySerialiser from '../tileBinarySerialiser.js';
 
 
-export default class GameBoyTileBinarySerialiser extends TileBinarySerialiser {
+export default class NesTileBinarySerialiser extends TileBinarySerialiser {
 
 
     /**
-     * Serialises a tile to a Game Boy planar byte array.
+     * Serialises a tile to a NES planar byte array.
      * @param {Tile} tile - Tile to serialise.
      * @returns {Uint8ClampedArray}
      */
@@ -32,7 +32,7 @@ export default class GameBoyTileBinarySerialiser extends TileBinarySerialiser {
 
 
     /**
-     * Parses Game Boy tile data in planar format.
+     * Parses NES tile data in planar format.
      * @param {Uint8ClampedArray} planarByteArray - Array or tile data in planar format.
      * @returns {Tile}
      */

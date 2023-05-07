@@ -1,12 +1,19 @@
 import TileSetBinarySerialiser from "../serialisers/tileSetBinarySerialiser.js";
 import SmsggTileSetBinarySerialiser from "../serialisers/smsgg/smsggTileSetBinarySerialiser.js";
 import GameBoyTileSetBinarySerialiser from "../serialisers/gameBoy/gameBoyTileSetBinarySerialiser.js";
+import NesTileSetBinarySerialiser from "../serialisers/nes/nesTileSetBinarySerialiser.js";
 import TileMapTileBinarySerialiser from "../serialisers/tileMapTileBinarySerialiser.js";
-import MasterSystemTileMapTileBinarySerialiser from "../serialisers/smsgg/smsggTileMapTileBinarySerialiser.js";
+import SmsggTileMapTileBinarySerialiser from "../serialisers/smsgg/smsggTileMapTileBinarySerialiser.js";
 import GameBoyTileMapTileBinarySerialiser from "../serialisers/gameBoy/gameBoyTileMapTileBinarySerialiser.js";
+import NesTileMapTileBinarySerialiser from "../serialisers/nes/nesTileMapTileBinarySerialiser.js";
 import TileMapBinarySerialiser from "../serialisers/tileMapBinarySerialiser.js";
-import MasterSystemTileMapBinarySerialiser from "../serialisers/smsgg/smsggTileMapBinarySerialiser.js";
+import SmsggTileMapBinarySerialiser from "../serialisers/smsgg/smsggTileMapBinarySerialiser.js";
 import GameBoyTileMapBinarySerialiser from "../serialisers/gameBoy/gameBoyTileMapBinarySerialiser.js";
+import NesTileMapBinarySerialiser from "../serialisers/nes/nesTileMapBinarySerialiser.js";
+import TileAttributeBinarySerialiser from "../serialisers/tileAttributeBinarySerialiser.js";
+import SmsggTileAttributeBinarySerialiser from "../serialisers/smsgg/smsggTileAttributeBinarySerialiser.js";
+import GameBoyTileAttributeBinarySerialiser from "../serialisers/gameBoy/gameBoyTileAttributeBinarySerialiser.js";
+import NesTileAttributeBinarySerialiser from "../serialisers/nes/nesTileAttributeBinarySerialiser.js";
 
 export default class SerialisationUtil {
 
@@ -20,8 +27,7 @@ export default class SerialisationUtil {
             case 'gb':
                 return GameBoyTileSetBinarySerialiser;
             case 'nes':
-                // TODO 
-                throw new Error('Not implemented!');
+                return NesTileSetBinarySerialiser;
             case 'smsgg': default:
                 return SmsggTileSetBinarySerialiser;
         }
@@ -36,10 +42,9 @@ export default class SerialisationUtil {
             case 'gb':
                 return GameBoyTileMapTileBinarySerialiser;
             case 'nes':
-                // TODO 
-                throw new Error('Not implemented!');
+                return NesTileMapTileBinarySerialiser;
             case 'smsgg': default:
-                return MasterSystemTileMapTileBinarySerialiser;
+                return SmsggTileMapTileBinarySerialiser;
         }
     }
 
@@ -52,10 +57,24 @@ export default class SerialisationUtil {
             case 'gb':
                 return GameBoyTileMapBinarySerialiser;
             case 'nes':
-                // TODO 
-                throw new Error('Not implemented!');
+                return NesTileMapBinarySerialiser;
             case 'smsgg': default:
-                return MasterSystemTileMapBinarySerialiser;
+                return SmsggTileMapBinarySerialiser;
+        }
+    }
+
+    /**
+     * @param {string} systemType - System type to get the serialiser for.
+     * @returns {typeof TileAttributeBinarySerialiser}
+     */
+    static getTileAttributeBinarySerialiser(systemType) {
+        switch (systemType) {
+            case 'gb':
+                return GameBoyTileAttributeBinarySerialiser;
+            case 'nes':
+                return NesTileAttributeBinarySerialiser;
+            case 'smsgg': default:
+                return SmsggTileAttributeBinarySerialiser;
         }
     }
 
