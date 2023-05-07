@@ -1299,6 +1299,9 @@ function createEmptyProject(args) {
     } else if (project.systemType === 'gb') {
         // For Game Boy
         project.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('Default Game Boy', 'gb'));
+    } else if (project.systemType === 'nes') {
+        // For Nintendo Entertainment System
+        project.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('Default NES', 'nes'));
     }
 
     return project;
