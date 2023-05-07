@@ -665,7 +665,7 @@ function handleExportDialogueOnCommand(args) {
     switch (args.command) {
 
         case ExportModalDialogue.Commands.valueChanged:
-            getUIState().exportGenerateTileMap = args.generateTileMap;
+            getUIState().exportOptimiseTileMap = args.optimiseTileMap;
             getUIState().exportTileMapPaletteIndex = args.paletteIndex;
             getUIState().exportTileMapVramOffset = args.vramOffset;
             state.saveToLocalStorage();
@@ -2244,6 +2244,7 @@ function exportProjectToJson() {
 function exportProjectToAssembly() {
     const serialiser = SerialisationUtil.getProjectAssemblySerialiser(getProject().systemType);
     const code = serialiser.serialise(getProject(), {
+        optimiseTileMap: getUIState().exportOptimiseTileMap,
         paletteIndex: getUIState().exportTileMapPaletteIndex,
         tileMapMemoryOffset: getUIState().exportTileMapVramOffset
     });
@@ -2763,7 +2764,7 @@ window.addEventListener('load', async () => {
     });
 
     exportDialogue.setState({
-        generateTileMapChecked: getUIState().exportGenerateTileMap,
+        optimiseTileMap: getUIState().exportOptimiseTileMap,
         paletteIndex: getUIState().exportTileMapPaletteIndex,
         vramOffset: getUIState().exportTileMapVramOffset
     });

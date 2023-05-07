@@ -21,7 +21,8 @@ export default class SmsggAssemblySerialiser extends ProjectAssemblySerialiser {
 
         const paletteIndex = options?.paletteIndex ?? 0;
         const memOffset = options?.tileMapMemoryOffset ?? 0;
-        const tileMap = TileMapUtil.tileSetToTileMap(project.tileSet, paletteIndex, memOffset);
+        const optimise = options?.optimiseTileMap ?? false;
+        const tileMap = TileMapUtil.tileSetToTileMap(project.tileSet, paletteIndex, memOffset, optimise);
 
         result.push(SmsggAssemblySerialiser.#exportPalettes(project.paletteList));
         result.push('');

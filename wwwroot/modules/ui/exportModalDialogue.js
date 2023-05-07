@@ -22,7 +22,7 @@ export default class ExportModalDialogue extends ModalDialogue {
     /** @type {HTMLTextAreaElement} */
     #tbExport;
     /** @type {HTMLInputElement} */
-    #tbGenerateTileMap;
+    #tbOptimiseTileMap;
     /** @type {HTMLSelectElement} */
     #tbPaletteIndex;
     /** @type {HTMLInputElement} */
@@ -39,7 +39,7 @@ export default class ExportModalDialogue extends ModalDialogue {
         this.#dispatcher = new EventDispatcher();
 
         this.#tbExport = this.#element.querySelector('[data-smsgfx-id=export-text]');
-        this.#tbGenerateTileMap = this.#element.querySelector('[data-smsgfx-id=generate-tile-map]');
+        this.#tbOptimiseTileMap = this.#element.querySelector('[data-smsgfx-id=optimise-tile-map]');
         this.#tbPaletteIndex = this.#element.querySelector('[data-smsgfx-id=palette-index]');
         this.#tbMemoryOffset = this.#element.querySelector('[data-smsgfx-id=memory-offset]');
 
@@ -79,8 +79,8 @@ export default class ExportModalDialogue extends ModalDialogue {
      * @param {ExportDialogueState} state - State object.
      */
     setState(state) {
-        if (typeof state?.generateTileMapChecked === 'boolean') {
-            this.#tbGenerateTileMap.checked = state.generateTileMapChecked;
+        if (typeof state?.optimiseTileMap === 'boolean') {
+            this.#tbOptimiseTileMap.checked = state.optimiseTileMap;
         }
         if (typeof state?.paletteIndex === 'number') {
             if (state.paletteIndex === 0 || state.paletteIndex === 1) {
@@ -110,7 +110,7 @@ export default class ExportModalDialogue extends ModalDialogue {
         /** @type {ExportDialogueCommandEventArgs} */
         return {
             command: command,
-            generateTileMap: this.#tbGenerateTileMap.checked,
+            optimiseTileMap: this.#tbOptimiseTileMap.checked,
             paletteIndex: parseInt(this.#tbPaletteIndex.selectedIndex),
             vramOffset: parseInt(this.#tbMemoryOffset.value)
         };
@@ -123,7 +123,7 @@ export default class ExportModalDialogue extends ModalDialogue {
 /**
  * State object.
  * @typedef {object} ExportDialogueState
- * @property {boolean?} generateTileMapChecked - Will there be a tile map generated? 
+ * @property {boolean?} optimiseTileMap - Do we optimise the tile map?
  * @property {number?} paletteIndex - Index of the palette to use.
  * @property {number?} vramOffset - Offset of the tiles in the tile map in bytes.
  * @exports
@@ -138,7 +138,7 @@ export default class ExportModalDialogue extends ModalDialogue {
 /**
  * @typedef {object} ExportDialogueCommandEventArgs
  * @property {string} command - The command being invoked.
- * @property {boolean} generateTileMap - Will there be a tile map generated? 
+ * @property {boolean} optimiseTileMap - Do we optimise the tile map? 
  * @property {number} paletteIndex - Index of the palette to use.
  * @property {number} vramOffset - Offset of the tiles in the tile map in bytes.
  * @exports

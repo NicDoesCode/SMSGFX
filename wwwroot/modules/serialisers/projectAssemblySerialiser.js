@@ -14,3 +14,11 @@ export default class ProjectAssemblySerialiser {
 
 
 }
+/**
+ * Project assembly serialisation options.
+ * @typedef {object} ProjectAssemblySerialisationOptions
+ * @property {boolean?} optimiseTileMap - When true an optimised tile map is generated.
+ * @property {number?} paletteIndex - Palette index to use for the tiles.
+ * @property {number?} tileMapMemoryOffset - Memory offset of the tile map.
+ * @exports
+ */
