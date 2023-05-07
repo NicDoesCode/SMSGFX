@@ -3,7 +3,7 @@ import TileFactory from '../../factory/tileFactory.js';
 import TileBinarySerialiser from '../tileBinarySerialiser.js';
 
 
-export default class MasterSystemGameGearTileBinarySerialiser extends TileBinarySerialiser {
+export default class SmsggTileBinarySerialiser extends TileBinarySerialiser {
 
 
     /**

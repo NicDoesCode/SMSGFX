@@ -7,8 +7,9 @@ export default class TileSetBinarySerialiser {
      * Serialises the tile set to a planar byte array.
      * @param {TileSet} tileSet - Tile set to serialise.
      * @returns {Uint8ClampedArray}
+     * @static
      */
-     static serialise(tileSet) {
+    static serialise(tileSet) {
         throw new Error('This method is not implemented.');
     }
 
@@ -17,8 +18,9 @@ export default class TileSetBinarySerialiser {
      * Parses the tile data in planar format.
      * @param {Uint8ClampedArray} array - Array or tile data in planar format.
      * @returns {TileSet}
+     * @static
      */
-     static deserialise(array) {
+    static deserialise(array) {
         throw new Error('This method is not implemented.');
     }
 

@@ -1,9 +1,9 @@
 import TileSetFactory from '../../factory/tileSetFactory.js';
 import TileSet from '../../models/tileSet.js';
 import TileSetBinarySerialiser from '../tileSetBinarySerialiser.js';
-import TileBinarySerialiser from './MasterSystemGameGearTileBinarySerialiser.js';
+import TileBinarySerialiser from './smsggTileBinarySerialiser.js';
 
-export default class MasterSystemGameGearTileSetBinarySerialiser extends TileSetBinarySerialiser {
+export default class SmsggTileSetBinarySerialiser extends TileSetBinarySerialiser {
 
 
     /**

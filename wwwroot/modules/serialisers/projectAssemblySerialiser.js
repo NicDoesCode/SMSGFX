@@ -2,13 +2,10 @@ import TileSet from "../models/tileSet.js";
 import PaletteList from "../models/paletteList.js";
 import ColourUtil from "../util/colourUtil.js";
 import Project from "../models/project.js";
-import TileSetBinarySerialiser from "./tileSetBinarySerialiser.js";
-import TileMapBinarySerialiser from "./tileMapBinarySerialiser.js";
-import GameBoyTileSetBinarySerialiser from "./gameBoy/gameBoyTileSetBinarySerialiser.js";
-import GameBoyTileMapBinarySerialiser from "./gameBoy/gameBoyTileMapBinarySerialiser.js";
 import TileMapUtil from "../util/tileMapUtil.js";
 import TileSetFactory from "../factory/tileSetFactory.js";
 import TileMap from "../models/tileMap.js";
+import SerialisationUtil from "../util/serialisationUtil.js";
 
 export default class ProjectAssemblySerialiser {
 
@@ -21,7 +18,7 @@ export default class ProjectAssemblySerialiser {
     static serialise(project, options) {
 
         const result = [];
-   
+
         result.push(ProjectAssemblySerialiser.#exportPalettes(project.paletteList));
         result.push('');
 
@@ -36,7 +33,7 @@ export default class ProjectAssemblySerialiser {
             result.push('');
             result.push(ProjectAssemblySerialiser.#exportTileMap(tileMap, paletteIndex, memOffset, project.systemType));
             result.push('');
-        }    
+        }
 
         return result.join('\r\n');
     }
@@ -67,6 +64,9 @@ export default class ProjectAssemblySerialiser {
                     colourMessage.push(colour);
                 });
                 message.push(colourMessage.join(' '));
+            } else if (systemType === 'nes') {
+                // TODO 
+                throw new Error('Not implemented.');
             } else if (p.system === 'gb') {
                 const gbPalette = p.getColours().map(c => {
                     return ColourUtil.encodeColourInNativeFormat('gb', c.r, c.g, c.b, 'binary');
@@ -84,9 +84,10 @@ export default class ProjectAssemblySerialiser {
      * @param {string} systemType - Target system type, either 'smsgg' or 'gb'.
      */
     static #exportTileSet(tileSet, systemType) {
+        const tileSetBinarySerialiser = SerialisationUtil.getTileSetBinarySerialiser(systemType);
         const message = ['; TILES'];
         if (systemType === 'smsgg') {
-            const encoded = TileSetBinarySerialiser.serialise(tileSet);
+            const encoded = tileSetBinarySerialiser.serialise(tileSet);
             for (let i = 0; i < tileSet.length; i++) {
                 message.push(`; Tile index $${i.toString(16).padStart(3, 0)}`);
                 const tileMessage = ['.db'];
@@ -99,8 +100,11 @@ export default class ProjectAssemblySerialiser {
                 }
                 message.push(tileMessage.join(' '));
             }
+        } else if (systemType === 'nes') {
+            // TODO 
+            throw new Error('Not implemented.');
         } else if (systemType === 'gb') {
-            const encoded = GameBoyTileSetBinarySerialiser.serialise(tileSet);
+            const encoded = tileSetBinarySerialiser.serialise(tileSet);
             for (let i = 0; i < tileSet.length; i++) {
                 message.push(`; Tile index $${i.toString(16).padStart(3, 0)}`);
                 const tileMessage = ['.db'];
@@ -125,9 +129,10 @@ export default class ProjectAssemblySerialiser {
      * @param {string} systemType - Target system type, either 'smsgg' or 'gb'.
      */
     static #exportTileMap(tileMap, paletteIndex, memoryOffset, systemType) {
+        const serialiser = SerialisationUtil.getTileMapBinarySerialiser(systemType);
         const message = ['; TILE MAP FROM TILE SET'];
         if (systemType === 'smsgg') {
-            const encoded = TileMapBinarySerialiser.serialise(tileMap);
+            const encoded = serialiser.serialise(tileMap);
             for (let i = 0; i < encoded.length; i += tileMap.tileWidth) {
                 message.push(`; Tile map row ${(i / tileMap.tileWidth)}`);
                 const tileMessage = ['.dw'];
@@ -137,8 +142,11 @@ export default class ProjectAssemblySerialiser {
                 }
                 message.push(tileMessage.join(' '));
             }
+        } else if (systemType === 'nes') {
+            // TODO
+            throw new Error('This method is not implemented.');
         } else if (systemType === 'gb') {
-            const encoded = GameBoyTileMapBinarySerialiser.serialise(tileMap);
+            const encoded = serialiser.serialise(tileMap);
             for (let i = 0; i < encoded.length; i += tileMap.tileWidth) {
                 message.push(`; Tile map row ${(i / tileMap.tileWidth)}`);
                 const tileMessage = ['.db'];

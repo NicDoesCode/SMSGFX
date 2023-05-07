@@ -14,7 +14,6 @@ import ProjectToolbar from "./ui/projectToolbar.js";
 import ExportToolbar from "./ui/exportToolbar.js";
 import ProjectUtil from "./util/projectUtil.js";
 import PaletteFactory from "./factory/paletteFactory.js";
-import TileSetBinarySerialiser from "./serialisers/tileSetBinarySerialiser.js";
 import TileFactory from "./factory/tileFactory.js";
 import TileSetFactory from "./factory/tileSetFactory.js";
 import ProjectAssemblySerialiser from "./serialisers/projectAssemblySerialiser.js";
@@ -38,8 +37,7 @@ import DocumentationViewer from "./ui/documentationViewer.js";
 import WelcomeScreen from "./ui/welcomeScreen.js";
 import ThemeManager from "./components/themeManager.js";
 import OptionsToolbar from "./ui/optionsToolbar.js";
-import GameBoyTileBinarySerialiser from "./serialisers/gameBoy/GameBoyTileBinarySerialiser.js";
-import GameBoyTileSetBinarySerialiser from "./serialisers/gameBoy/gameBoyTileSetBinarySerialiser.js";
+import SerialisationUtil from "./util/serialisationUtil.js";
 
 
 /* ****************************************************************************************************
@@ -1124,11 +1122,9 @@ function handleImportTileSet(args) {
     const tileSetData = args.tileSetData;
     const tileSetDataArray = AssemblyUtil.readAsUint8ClampedArray(tileSetData);
     let importedTileSet;
-    if (getProject().systemType !== 'gb') {
-        importedTileSet = TileSetBinarySerialiser.deserialise(tileSetDataArray);
-    } else {
-        importedTileSet = GameBoyTileSetBinarySerialiser.deserialise(tileSetDataArray);
-    }
+    const tileSetBinarySerialiser = SerialisationUtil.getTileSetBinarySerialiser(getProject().systemType);
+    th
+    importedTileSet = tileSetBinarySerialiser.deserialise(tileSetDataArray);
 
     if (args.replace) {
         getProject().tileSet = importedTileSet;
@@ -1377,7 +1373,12 @@ function formatForProject() {
     const palette = getPalette();
     const tileSet = getTileSet();
     const colour = palette.getColour(instanceState.colourIndex);
-    const visibleTabs = getPalette().system === 'gb' ? ['gb'] : ['rgb', 'sms'];
+    const visibleTabs = [];
+    switch (getPalette().system) {
+        case 'ms', 'gg': visibleTabs.push(['rgb', 'sms']); break;
+        case 'nes': visibleTabs.push(['nes']); break;
+        case 'gb': visibleTabs.push(['gb']); break;
+    }
 
     projectToolbar.setState({
         projectTitle: getProject().title,

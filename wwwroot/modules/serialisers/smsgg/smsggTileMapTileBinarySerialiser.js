@@ -1,7 +1,7 @@
 import TileMapTile from '../../models/tileMapTile.js';
 import TileMapTileBinarySerialiser from '../tileMapTileBinarySerialiser.js';
 
-export default class MasterSystemGameGearTileMapTileBinarySerialiser extends TileMapTileBinarySerialiser {
+export default class SmsggTileMapTileBinarySerialiser extends TileMapTileBinarySerialiser {
 
 
     /**

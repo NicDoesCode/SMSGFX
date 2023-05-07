@@ -1,5 +1,4 @@
 import Tile from '../models/tile.js';
-import TileFactory from '../factory/tileFactory.js';
 
 
 export default class TileBinarySerialiser {

@@ -45,7 +45,7 @@ export default class Palette {
     constructor(title, system) {
         this.title = title ? title : 'Palette';
         this.system = system;
-        this.#colours = getSystemColourCount(system);
+        this.#colours = new Array(getSystemColourCount(system));
     }
 
 
