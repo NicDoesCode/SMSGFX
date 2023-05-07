@@ -371,8 +371,7 @@ export default class PaletteEditor {
         this.#paletteCells = [];
         this.#paletteButtons = [];
 
-
-        const totalColours = palette.system === 'gb' ? 4 : 16;
+        const totalColours = palette.getColours().length;
 
         let tr, td;
         for (let idx = 0; idx < totalColours; idx++) {
@@ -423,8 +422,17 @@ export default class PaletteEditor {
      */
     #setUI(palette) {
         document.querySelectorAll('[data-smsgfx-id=system-select]').forEach(elm => {
-            elm.style.display = palette.system !== 'gb' ? '' : 'none';
+            switch (palette.system) {
+                case 'sms' : case 'gg': elm.style.display = null; break;
+                case 'gb': elm.style.display = 'none'; break;
+                case 'nes': elm.style.display = 'none'; break;
+            }
         });
+        if (palette.system === 'nes') {
+            this.#element.querySelector('[data-smsgfx-id=emulate-system-colours]').style.display = 'none';
+        } else {
+            this.#element.querySelector('[data-smsgfx-id=emulate-system-colours]').style.display = null;
+        }
     }
 
     /**
@@ -467,7 +475,7 @@ export default class PaletteEditor {
  * @typedef {object} PaletteEditorState
  * @property {PaletteList?} paletteList - Current list of palettes.
  * @property {string?} title - Title of the palette.
- * @property {string?} selectedSystem - Sets the selected system, either 'ms', 'gg', or 'gb'.
+ * @property {string?} selectedSystem - Sets the selected system, either 'ms', 'gg', 'gb' or 'nes'.
  * @property {number?} selectedPaletteIndex - Sets the selected palette index.
  * @property {number?} selectedColourIndex - Sets the selected colour index.
  * @property {number?} highlightedColourIndex - Sets the selected colour index.
@@ -486,9 +494,9 @@ export default class PaletteEditor {
  * @property {string} command - The command being invoked.
  * @property {number?} paletteIndex - Index of the selected palette.
  * @property {string?} paletteTitle - Title value for the selected palette.
- * @property {string?} paletteSystem - Selected system value for the selected palette, either 'ms' or 'gg'.
+ * @property {string?} paletteSystem - Selected system value for the selected palette, either 'ms', 'gg', 'gb' or 'nes'.
  * @property {number?} colourIndex - Index from 0 to 15 for the given colour.
- * @property {number?} targetColourIndex - Target palette colour index from 0 to 15.
+ * @property {number?} targetColourIndex - Target palette colour index from 0 to 15 for 'sms' and 'gg', 0 to 3 for 'gb' or 'nes'.
  * @property {boolean?} displayNative - Display native colours for system?
  * @exports
  */

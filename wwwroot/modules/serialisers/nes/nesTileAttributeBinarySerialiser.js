@@ -33,7 +33,7 @@ export default class NesTileAttributeBinarySerialiser extends TileAttributeBinar
         const attrWidth = tileMap.tileWidth + (tileMap.tileWidth % 2);
         const byteWidth = attrWidth / 2;
 
-        const tileRows = Math.Ceil(tileMap.tileCount / tileWidth);
+        const tileRows = Math.ceil(tileMap.tileCount / tileWidth);
         const attrRows = tileRows + (tileRows % 2);
         const byteRows = attrRows / 2;
 
@@ -47,16 +47,17 @@ export default class NesTileAttributeBinarySerialiser extends TileAttributeBinar
                 // Index of the tile in the tile map array, or -1 if overflow
                 const idx = (r < tileRows && c < tileWidth) ? ((r * tileWidth) + c) : -1;
                 // Palette index of the given tile, or assume 0 if it was overflow (-1)
-                const paletteValue = (idx !== -1) ? tiles[idx].palette : 0;
+                let paletteValue = (idx !== -1) ? tiles[idx].palette : 0;
                 // We only want the first 2 bits of the palette index
                 paletteValue = paletteValue & parseInt('00000011', 2);
                 // Depending on the row and column, work out where the tile's palette sits within the byte
-                // const shift = (4 * (r % 2)) + (c % 2); // Swap to reverse shift order
-                const bitShiftAmount = 8 - (4 * (r % 2)) + (c % 2); // Swap to reverse shift order
-                paletteValue = paletteValue & parseInt('00000011', 2) << bitShiftAmount;
+                if (r % 2 === 0 && c % 2 === 0) paletteValue = paletteValue << 6;
+                else if (r % 2 === 0 && c % 2 === 1) paletteValue = paletteValue << 4;
+                else if (r % 2 === 1 && c % 2 === 0) paletteValue = paletteValue << 2;
+                else if (r % 2 === 1 && c % 2 === 1) paletteValue = paletteValue << 0;
                 // Work out the index in the result attribute table and flip the bits on that index for this tile
-                const attrIdx = Math.floor(r / 2) + Math.floor(c / 2);
-                attrTable[attrIdx] = attrTable[attrIdx] & attrValue;
+                const attrIdx = (byteWidth * Math.floor(r / 2)) + Math.floor(c / 2);
+                attrTable[attrIdx] = attrTable[attrIdx] | paletteValue;
             }
         }
         return attrTable;

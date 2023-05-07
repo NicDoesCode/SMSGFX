@@ -89,6 +89,7 @@ export default class ColourPickerToolbox {
 
         this.#makeSMSColourButtons();
         this.#makeGBColourButtons();
+        this.#makeNESColourButtons();
         this.#showCurrentTab();
     }
 
@@ -110,7 +111,7 @@ export default class ColourPickerToolbox {
      */
     setState(state) {
         if (typeof state?.showTab === 'string') {
-            this.#currentTab = (['sms', 'rgb', 'gb'].includes(state.showTab)) ? state.showTab : 'rgb';
+            this.#currentTab = (['sms', 'rgb', 'gb', 'nes'].includes(state.showTab)) ? state.showTab : 'rgb';
             this.#showCurrentTab();
         }
         if (typeof state?.r === 'number') {
@@ -140,7 +141,7 @@ export default class ColourPickerToolbox {
 
         if (Array.isArray(state?.visibleTabs)) {
             document.querySelectorAll('[data-colour-toolbox-tab]').forEach(elm => {
-                elm.style.display = state.visibleTabs.includes(elm.getAttribute('data-colour-toolbox-tab')) ? '' : 'none';
+                elm.style.display = state.visibleTabs.includes(elm.getAttribute('data-colour-toolbox-tab')) ? null : 'none';
             });
         }
     }
@@ -227,6 +228,34 @@ export default class ColourPickerToolbox {
             box.appendChild(btn);
         });
     }
+
+    #makeNESColourButtons() {
+        const colours = ColourUtil.getFullNESPalette();
+        const nesColourContainer = this.#element.querySelector('[data-smsgfx-id=nesColourContainer]');
+        const box = nesColourContainer.querySelector('[data-smsgfx-id=nesColourPalette]');
+        let boxRow;
+        colours.forEach((colour, index, array) => {
+            if (index % 14 === 0) {
+                boxRow = document.createElement('div');
+                boxRow.classList.add('sms-colour-box-row');
+                box.appendChild(boxRow);
+            }
+            const colourHex = ColourUtil.toHex(colour.r, colour.g, colour.b);
+            const btn = document.createElement('button');
+            btn.setAttribute('data-colour-hex', colourHex);
+            btn.style.backgroundColor = colourHex;
+            btn.onclick = () => {
+                this.#r = colour.r;
+                this.#g = colour.g;
+                this.#b = colour.b;
+                this.#tbColourToolboxHex.value = colourHex;
+                this.#setAllValues();
+                this.#handleColourChanged();
+            };
+            boxRow.appendChild(btn);
+        });
+    }
+
 
     #showCurrentTab() {
         const allTabs = this.#element.querySelectorAll('[data-colour-toolbox-tabs] [data-colour-toolbox-tab] a');

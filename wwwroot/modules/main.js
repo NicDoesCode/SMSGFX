@@ -1378,9 +1378,9 @@ function formatForProject() {
     const colour = palette.getColour(instanceState.colourIndex);
     const visibleTabs = [];
     switch (getPalette().system) {
-        case 'ms', 'gg': visibleTabs.push(['rgb', 'sms']); break;
-        case 'nes': visibleTabs.push(['nes']); break;
-        case 'gb': visibleTabs.push(['gb']); break;
+        case 'ms', 'gg': visibleTabs.push('rgb', 'sms'); break;
+        case 'nes': visibleTabs.push('nes'); break;
+        case 'gb': visibleTabs.push('gb'); break;
     }
 
     projectToolbar.setState({
@@ -1402,8 +1402,11 @@ function formatForProject() {
         displayNative: getUIState().displayNativeColour,
         enabled: true
     });
+    let colourPickerTab = instanceState.colourToolboxTab;
+    if (getPalette().system === 'gb') colourPickerTab = 'gb';
+    if (getPalette().system === 'nes') colourPickerTab = 'nes';
     colourPickerToolbox.setState({
-        showTab: getPalette().system === 'gb' ? 'gb' : instanceState.colourToolboxTab,
+        showTab: colourPickerTab,
         r: colour.r,
         g: colour.g,
         b: colour.b,

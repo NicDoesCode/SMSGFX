@@ -70,7 +70,7 @@ export default class ColourUtil {
             b = Math.round(15 / 255 * b) * 17;
             return { r, g, b };
         } else if (system === 'nes') {
-            return getNearestNESColour();
+            return getNearestNESColour(r, g, b);
         } else if (system === 'gb') {
             const colour = Math.round(getNearestGBColour((r + g + b) / 3));
             return { r: colour, g: colour, b: colour };
@@ -109,9 +109,9 @@ export default class ColourUtil {
             else return (r | g | b).toString(16).padStart(3, '0');
         } else if (system === 'nes') {
             // NES will return the index of the closest colour index from the hand-picked colour palette.
-            const colour = getNearestNESColourIndex();
+            const colour = getNearestNESColourIndex(r, g, b);
             if (format === 'binary') return colour.toString(2).padStart(8, 0);
-            else return (colour).toString(16);
+            else return (colour).toString(16).padStart(2, '0');
         } else if (system === 'gb') {
             // Game Boy will return a grey index between 0 and 4
             const colour = Math.round(getNearestGBColour((r + g + b) / 3) / 85);
@@ -279,9 +279,9 @@ function getNearestGBColour(colour) {
 function getNearestNESColour(r, g, b) {
     const rgbByCloseness = nesPalette.map((nesRGB) => {
         const rgbDiff = [
-            { channel: 'r', value: Math.abs(r, nesRGB.r) },
-            { channel: 'g', value: Math.abs(g, nesRGB.g) },
-            { channel: 'b', value: Math.abs(b, nesRGB.b) }
+            { channel: 'r', value: Math.abs(r - nesRGB.r) },
+            { channel: 'g', value: Math.abs(g - nesRGB.g) },
+            { channel: 'b', value: Math.abs(b - nesRGB.b) }
         ].sort((c1, c2) => c1.value > c2.value);
 
         return {
@@ -289,7 +289,7 @@ function getNearestNESColour(r, g, b) {
             diff0: rgbDiff[0].value, diff1: rgbDiff[1].value, diff2: rgbDiff[2].value
         }
     }).sort((c1, c2) => {
-        return c1.diff0 > c1.diff0 || c1.diff1 > c1.diff1 || c1.diff2 > c1.diff2
+        return c1.diff0 > c2.diff0 || c1.diff1 > c2.diff1 || c1.diff2 > c2.diff2
     });
 
     const closestRGB = rgbByCloseness[0];
@@ -309,10 +309,11 @@ function getNearestNESColour(r, g, b) {
  */
 function getNearestNESColourIndex(r, g, b) {
     const closestRGB = getNearestNESColour(r, g, b);
-    const index = nesPalette.filter((c) => c.r === closestRGB.r && c.g === closestRGB.g && c.b === closestRGB.b)[0];
-    const row = index % 14;
-    const col = index - row;
-    const nesIndex = col & (row << 1);
+    const item = nesPalette.filter((c) => c.r === closestRGB.r && c.g === closestRGB.g && c.b === closestRGB.b)[0];
+    const index = nesPalette.indexOf(item);
+    const row = Math.floor(index / 14);
+    const col = index % 14;
+    const nesIndex = col | (row << 4);
     return nesIndex;
 }
 

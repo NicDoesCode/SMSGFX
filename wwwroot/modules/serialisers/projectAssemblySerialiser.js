@@ -33,6 +33,10 @@ export default class ProjectAssemblySerialiser {
             result.push('');
             result.push(ProjectAssemblySerialiser.#exportTileMap(tileMap, paletteIndex, memOffset, project.systemType));
             result.push('');
+            if (project.systemType === 'nes') {
+                result.push(ProjectAssemblySerialiser.#exportBackgroundAttributeTable(tileMap, paletteIndex, memOffset, project.systemType));
+                result.push('');
+            }
         }
 
         return result.join('\r\n');
@@ -64,9 +68,13 @@ export default class ProjectAssemblySerialiser {
                     colourMessage.push(colour);
                 });
                 message.push(colourMessage.join(' '));
-            } else if (systemType === 'nes') {
-                // TODO 
-                throw new Error('Not implemented.');
+            } else if (p.system === 'nes') {
+                const colourMessage = ['.db'];
+                p.getColours().forEach(c => {
+                    const colour = `$${ColourUtil.encodeColourInNativeFormat('nes', c.r, c.g, c.b, 'hex')}`;
+                    colourMessage.push(colour);
+                });
+                message.push(colourMessage.join(' '));
             } else if (p.system === 'gb') {
                 const gbPalette = p.getColours().map(c => {
                     return ColourUtil.encodeColourInNativeFormat('gb', c.r, c.g, c.b, 'binary');
@@ -101,8 +109,19 @@ export default class ProjectAssemblySerialiser {
                 message.push(tileMessage.join(' '));
             }
         } else if (systemType === 'nes') {
-            // TODO 
-            throw new Error('Not implemented.');
+            const encoded = tileSetBinarySerialiser.serialise(tileSet);
+            for (let i = 0; i < tileSet.length; i++) {
+                message.push(`; Tile index $${i.toString(16).padStart(3, 0)}`);
+                const tileMessage = ['.db'];
+                const tileStartIndex = i * 16;
+                for (let t = tileStartIndex; t < tileStartIndex + 16; t += 2) {
+                    const bytes = encoded.slice(t, t + 2);
+                    for (let b = 0; b < bytes.length; b++) {
+                        tileMessage.push('$' + bytes[b].toString(16).padStart(8, '0').substring(6).toUpperCase());
+                    }
+                }
+                message.push(tileMessage.join(' '));
+            }
         } else if (systemType === 'gb') {
             const encoded = tileSetBinarySerialiser.serialise(tileSet);
             for (let i = 0; i < tileSet.length; i++) {
@@ -143,8 +162,16 @@ export default class ProjectAssemblySerialiser {
                 message.push(tileMessage.join(' '));
             }
         } else if (systemType === 'nes') {
-            // TODO
-            throw new Error('This method is not implemented.');
+            const encoded = serialiser.serialise(tileMap);
+            for (let i = 0; i < encoded.length; i += tileMap.tileWidth) {
+                message.push(`; Tile map row ${(i / tileMap.tileWidth)}`);
+                const tileMessage = ['.db'];
+                const stopAt = Math.min(i + tileMap.tileWidth, encoded.length);
+                for (let t = i; t < stopAt; t++) {
+                    tileMessage.push('$' + encoded[t].toString(16).padStart(2, '0').toUpperCase());
+                }
+                message.push(tileMessage.join(' '));
+            }
         } else if (systemType === 'gb') {
             const encoded = serialiser.serialise(tileMap);
             for (let i = 0; i < encoded.length; i += tileMap.tileWidth) {
@@ -156,6 +183,37 @@ export default class ProjectAssemblySerialiser {
                 }
                 message.push(tileMessage.join(' '));
             }
+        } else throw new Error('Unknown system type.');
+        return message.join('\r\n');
+    }
+
+    /**
+     * Exports tile set as WLA-DX compatible assembly code.
+     * @param {TileMap} tileMap - Tile map to export.
+     * @param {number} paletteIndex - Palette index to use for the tiles.
+     * @param {number} memoryOffset - VRAM memory offset for the tile addresses in the tile map.
+     * @param {string} systemType - Target system type, either 'smsgg' or 'gb'.
+     */
+    static #exportBackgroundAttributeTable(tileMap, paletteIndex, memoryOffset, systemType) {
+        const serialiser = SerialisationUtil.getTileAttributeBinarySerialiser(systemType);
+        const message = [];
+        if (systemType === 'smsgg') {
+            // SMS and GG has no attribute map.
+        } else if (systemType === 'nes') {
+            message.push('; BACKGROUND ATTRIBUTE TABLE');
+            const encoded = serialiser.serialise(tileMap);
+            const attrWidth = (tileMap.tileWidth + (tileMap.tileWidth % 2)) / 2;
+            for (let i = 0; i < encoded.length; i += attrWidth) {
+                message.push(`; Attribute table row ${(i / attrWidth)}`);
+                const tileMessage = ['.db'];
+                const stopAt = Math.min(i + attrWidth, encoded.length);
+                for (let t = i; t < stopAt; t++) {
+                    tileMessage.push('$' + encoded[t].toString(16).padStart(2, '0').toUpperCase());
+                }
+                message.push(tileMessage.join(' '));
+            }
+        } else if (systemType === 'gb') {
+            // GB has no attribute map.
         } else throw new Error('Unknown system type.');
         return message.join('\r\n');
     }
