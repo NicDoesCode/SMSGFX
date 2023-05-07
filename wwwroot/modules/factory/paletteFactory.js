@@ -136,6 +136,34 @@ export default class PaletteFactory {
     }
 
     /**
+     * Creates a new palette from an array of NES colour indexes.
+     * @param {Uint16Array} array 
+     * @returns {Palette}
+     */
+    static createFromNesPalette(array) {
+        if (array.length >= 4) {
+
+            /** @type {Palette} */
+            const result = PaletteFactory.create('NES palette', 'nes');
+
+            const colour0 = getColourFromNesIndex(array[0]);
+            const colour1 = getColourFromNesIndex(array[1]);
+            const colour2 = getColourFromNesIndex(array[2]);
+            const colour3 = getColourFromNesIndex(array[3]);
+
+            result.setColour(0, { r: colour0.r, g: colour0.g, b: colour0.b });
+            result.setColour(1, { r: colour1.r, g: colour1.g, b: colour1.b });
+            result.setColour(2, { r: colour2.r, g: colour2.g, b: colour2.b });
+            result.setColour(3, { r: colour3.r, g: colour3.g, b: colour3.b });
+
+            return result;
+
+        } else {
+            throw new Error('No palette data to read.');
+        }
+    }
+
+    /**
      * Creates a new instance of a palette object from an existing.
      * @param {Palette} palette - Palette to clone.
      * @returns {Palette}
@@ -182,3 +210,15 @@ const defaultColoursMS = ['#000000', '#000000', '#00AA00', '#00FF00', '#000055',
 const defaultColoursGB = ['#000000', '#555555', '#AAAAAA', '#FFFFFF'];
 const defaultColourNES = ['#38b4cc', '#000000', '#3032ec', '#FFFFFF'];
 
+/**
+ * Gets the colour that corresponds with the NES colour code.
+ * @param {number} value - NES colour code.
+ * @returns {import("../util/colourUtil.js").ColourInformation}
+ */
+function getColourFromNesIndex(value) {
+    const palette = ColourUtil.getFullNESPalette();
+    const row = (value & parseInt('11110000', 2)) >> 4;
+    const col = value & parseInt('00001111', 2);
+    const index = (14 * row) + col;
+    return palette[index];
+}

@@ -690,7 +690,7 @@ function handlePaletteEditorOnCommand(args) {
             paletteImportDialogue.setState({
                 paletteData: getUIState().importPaletteAssemblyCode,
                 system: getUIState().importPaletteSystem,
-                allowedSystems: getProject().systemType !== 'gb' ? ['ms', 'gg'] : ['gb']
+                allowedSystems: getProject().systemType === 'gb' ? ['gb'] : getProject().systemType === 'nes' ? ['nes'] : ['ms', 'gg']
             });
             paletteImportDialogue.show();
             break;
@@ -971,7 +971,7 @@ function handleTileEditorOnEvent(args) {
 
 /** @param {import('./ui/paletteImportModalDialogue').PaletteImportModalDialogueConfirmEventArgs} args */
 function handleImportPaletteModalDialogueOnConfirm(args) {
-    if (!['gg', 'ms', 'gb'].includes(args.system)) throw new Error('System must be either ""ms", "gg" or "gb".');
+    if (!['gg', 'ms', 'gb', 'nes'].includes(args.system)) throw new Error('System must be either "ms", "gg", "gb" or "nes".');
 
     addUndoState();
 
@@ -988,6 +988,10 @@ function handleImportPaletteModalDialogueOnConfirm(args) {
     } else if (system === 'gb') {
         const array = AssemblyUtil.readAsUint8ClampedArray(paletteData);
         const palette = PaletteFactory.createFromGameBoyPalette(array);
+        getPaletteList().addPalette(palette);
+    } else if (system === 'nes') {
+        const array = AssemblyUtil.readAsUint8ClampedArray(paletteData);
+        const palette = PaletteFactory.createFromNesPalette(array);
         getPaletteList().addPalette(palette);
     }
 
