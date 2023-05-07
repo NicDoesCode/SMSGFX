@@ -43,7 +43,38 @@ export default class ColourUtil {
      */
     static getNativeHexFromHex(system, hex) {
         const rgb = this.rgbFromHex(hex);
-        return this.toNativeHex(system, rgb.r, rgb.g, rgb.b);
+        return this.getClosestNativeColourAsHex(system, rgb.r, rgb.g, rgb.b);
+    }
+
+    /**
+     * Converts a given RGB value to a web safe hexadecimal approximation to the closest native system colour.
+     * @param {string} system - System to get the native colour for, either 'ms' or 'gg'.
+     * @param {PaletteColour} colour - Palette colour to convert.
+     * @returns {string}
+     */
+    static getClosestNativeColourAsHex(system, r, g, b) {
+        if (r < 0 || r > 255) throw new Error('Invalid value for red.');
+        if (g < 0 || g > 255) throw new Error('Invalid value for green.');
+        if (b < 0 || b > 255) throw new Error('Invalid value for blue.');
+        if (system === 'ms') {
+            r = Math.round(3 / 255 * r) * 85;
+            g = Math.round(3 / 255 * g) * 85;
+            b = Math.round(3 / 255 * b) * 85;
+            return this.toHex(r, g, b);
+        } else if (system === 'gg') {
+            r = Math.round(15 / 255 * r) * 17;
+            g = Math.round(15 / 255 * g) * 17;
+            b = Math.round(15 / 255 * b) * 17;
+            return this.toHex(r, g, b);
+        } else if (system === 'nes') {
+            // NES will return the index of the closest colour index from the hand-picked colour palette.
+            const colour = getNearestNESColour();
+            return this.toHex(colour.r, colour.g, colour.b);
+        } else if (system === 'gb') {
+            const colour = Math.round(getNearestGBColour((r + g + b) / 3));
+            return this.toHex(colour, colour, colour);
+        } else throw new Error('System was not valid.');
+
     }
 
     /**
@@ -86,37 +117,6 @@ export default class ColourUtil {
             if (format === 'binary') return colour.toString(2).padStart(2, 0);
             else return (colour).toString(16);
         } else throw new Error('System was not valid.');
-    }
-
-    /**
-     * Converts a given RGB value to a web safe hexadecimal approximation to the closest native system colour.
-     * @param {string} system - System to get the native colour for, either 'ms' or 'gg'.
-     * @param {PaletteColour} colour - Palette colour to convert.
-     * @returns {string}
-     */
-    static toNativeHex(system, r, g, b) {
-        if (r < 0 || r > 255) throw new Error('Invalid value for red.');
-        if (g < 0 || g > 255) throw new Error('Invalid value for green.');
-        if (b < 0 || b > 255) throw new Error('Invalid value for blue.');
-        if (system === 'ms') {
-            r = Math.round(3 / 255 * r) * 85;
-            g = Math.round(3 / 255 * g) * 85;
-            b = Math.round(3 / 255 * b) * 85;
-            return this.toHex(r, g, b);
-        } else if (system === 'gg') {
-            r = Math.round(15 / 255 * r) * 17;
-            g = Math.round(15 / 255 * g) * 17;
-            b = Math.round(15 / 255 * b) * 17;
-            return this.toHex(r, g, b);
-        } else if (system === 'nes') {
-            // NES will return the index of the closest colour index from the hand-picked colour palette.
-            const colour = getNearestNESColour();
-            return this.toHex(colour.r, colour.g, colour.b);
-        } else if (system === 'gb') {
-            const colour = Math.round(getNearestGBColour((r + g + b) / 3));
-            return this.toHex(colour, colour, colour);
-        } else throw new Error('System was not valid.');
-
     }
 
     /**
