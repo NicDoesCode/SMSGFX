@@ -1,8 +1,9 @@
 import Tile from '../../models/tile.js';
 import TileFactory from '../../factory/tileFactory.js';
+import TileBinarySerialiser from '../tileBinarySerialiser.js';
 
 
-export default class GameBoyTileBinarySerialiser {
+export default class GameBoyTileBinarySerialiser extends TileBinarySerialiser {
 
 
     /**

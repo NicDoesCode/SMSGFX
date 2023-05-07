@@ -1,7 +1,7 @@
 import TileMapTile from '../../models/tileMapTile.js';
 import TileMapTileBinarySerialiser from '../tileMapTileBinarySerialiser.js';
 
-export default class GameBoyTileMapTileBinarySerialiser extends TileMapTileBinarySerialiser {
+export default class MasterSystemGameGearTileMapTileBinarySerialiser extends TileMapTileBinarySerialiser {
 
 
     /**
@@ -9,10 +9,13 @@ export default class GameBoyTileMapTileBinarySerialiser extends TileMapTileBinar
      * @param {TileMapTile} tileMapTile - Tile map tile to serialise.
      * @returns {number}
      */
-    static serialise(tileMapTile) {
+     static serialise(tileMapTile) {
         let result = tileMapTile.tileNumber;
-        if (result < 0) result = 0;
-        if (result > 255) result = 255;
+        result &= 511;
+        if (tileMapTile.horizontalFlip) result |= 512;
+        if (tileMapTile.verticalFlip) result |= 1024;
+        if (tileMapTile.palette === 1) result |= 2048;
+        if (tileMapTile.priority) result |= 4096;
         return result;
     }
 

@@ -1,8 +1,8 @@
 import TileMap from '../../models/tileMap.js';
 import TileMapBinarySerialiser from '../TileMapBinarySerialiser.js';
-import GameBoyTileMapTileBinarySerialiser from './gameBoyTileMapTileBinarySerialiser.js';
+import MasterSystemGameGearTileMapTileBinarySerialiser from './masterSystemGameGearTileMapTileBinarySerialiser.js';
 
-export default class GameBoyTileMapBinarySerialiser extends TileMapBinarySerialiser {
+export default class MasterSystemGameGearTileMapBinarySerialiser extends TileMapBinarySerialiser {
 
 
     /**
@@ -12,7 +12,7 @@ export default class GameBoyTileMapBinarySerialiser extends TileMapBinarySeriali
      */
     static serialise(tileMap) {
         return tileMap.getTileMapTiles().map((tileMapTile) => {
-            return GameBoyTileMapTileBinarySerialiser.serialise(tileMapTile);
+            return MasterSystemGameGearTileMapTileBinarySerialiser.serialise(tileMapTile);
         });
     }
 
