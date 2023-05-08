@@ -1,5 +1,5 @@
-import ModalDialogue from "./modalDialogue.js";
-import TemplateUtil from "../util/templateUtil.js";
+import ModalDialogue from "./../modalDialogue.js";
+import TemplateUtil from "../../util/templateUtil.js";
 
 export default class AboutModalDialogue extends ModalDialogue {
 
@@ -24,7 +24,7 @@ export default class AboutModalDialogue extends ModalDialogue {
      * @returns {Promise<AboutModalDialogue>}
      */
      static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('aboutModalDialogue', element);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('dialogues/aboutModalDialogue', element);
         return new AboutModalDialogue(componentElement);
     }
 

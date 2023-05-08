@@ -1,7 +1,6 @@
-import EventDispatcher from "../components/eventDispatcher.js";
-import ProjectList from "../models/projectList.js";
-import TemplateUtil from "../util/templateUtil.js";
-import ModalDialogue from "./modalDialogue.js";
+import EventDispatcher from "../../components/eventDispatcher.js";
+import ProjectList from "../../models/projectList.js";
+import TemplateUtil from "../../util/templateUtil.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -12,10 +11,10 @@ const commands = {
     projectLoadById: 'projectLoadById',
     projectSaveToFile: 'projectSaveToFile',
     projectDelete: 'projectDelete',
-    showWelcomeScreen: 'showWelcomeScreen'
+    showDropdown: 'showDropdown'
 }
 
-export default class ProjectDropdown extends ModalDialogue {
+export default class ProjectToolbar {
 
 
     static get Commands() {
@@ -27,7 +26,6 @@ export default class ProjectDropdown extends ModalDialogue {
     #element;
     /** @type {EventDispatcher} */
     #dispatcher;
-    #projectListTemplate;
     #enabled = true;
 
 
@@ -36,18 +34,13 @@ export default class ProjectDropdown extends ModalDialogue {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
-        super(element);
         this.#element = element;
 
         this.#dispatcher = new EventDispatcher();
 
-        const source = this.#element.querySelector('[data-smsgfx-id=project-list-template]').innerHTML;
-
-        this.#projectListTemplate = Handlebars.compile(source);
-
         this.#element.querySelectorAll('button[data-command]').forEach(element => {
             element.onclick = () => {
-                const args = this.#createArgs(element.getAttribute('data-command'), element);
+                const args = this.#createArgs(element.getAttribute('data-command'));
                 this.#dispatcher.dispatch(EVENT_OnCommand, args);
             };
         });
@@ -73,17 +66,17 @@ export default class ProjectDropdown extends ModalDialogue {
     /**
      * Creates an instance of the object inside a container element.
      * @param {HTMLElement} element - Container element.
-     * @returns {Promise<ProjectDropdown>}
+     * @returns {Promise<ProjectToolbar>}
      */
-    static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('projectDropdown', element);
-        return new ProjectDropdown(componentElement);
+     static async loadIntoAsync(element) {
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('toolbars/projectToolbar', element);
+        return new ProjectToolbar(componentElement);
     }
 
 
     /**
      * Updates the state of the object.
-     * @param {ProjectDropdownState} state - State to set.
+     * @param {ProjectToolbarState} state - State to set.
      */
     setState(state) {
         if (typeof state?.projectTitle === 'string' && state.projectTitle.length > 0 && state.projectTitle !== null) {
@@ -96,27 +89,11 @@ export default class ProjectDropdown extends ModalDialogue {
             this.#displayProjects(state.projects);
         }
 
-        if (state.systemType && typeof state.systemType === 'string') {
-            switch (state.systemType) {
-                case 'gb': this.#element.querySelector(`[data-smsgfx-id=system-type`).value = 'gb'; break;
-                case 'nes': this.#element.querySelector(`[data-smsgfx-id=system-type`).value = 'nes'; break;
-                case 'smsgg': default: this.#element.querySelector(`[data-smsgfx-id=system-type`).value = 'smsgg'; break;
-            }
-        }
-
         if (typeof state?.enabled === 'boolean') {
             this.#enabled = state?.enabled;
             this.#element.querySelectorAll('[data-command]').forEach(element => {
                 element.disabled = !this.#enabled;
             });
-        }
-
-        if (typeof state?.visible === 'boolean') {
-            if (state.visible) {
-                super.show();
-            } else {
-                super.hide();
-            }
         }
 
         if (Array.isArray(state?.enabledCommands)) {
@@ -140,8 +117,8 @@ export default class ProjectDropdown extends ModalDialogue {
 
 
     /**
-     * Registers a handler for a command.
-     * @param {ProjectDropdownCommandCallback} callback - Callback that will receive the command.
+     * Registers a handler for a toolbar command.
+     * @param {ProjectToolbarCommandCallback} callback - Callback that will receive the command.
      */
     addHandlerOnCommand(callback) {
         this.#dispatcher.on(EVENT_OnCommand, callback);
@@ -150,15 +127,13 @@ export default class ProjectDropdown extends ModalDialogue {
 
     /**
      * @param {string} command
-     * @param {HTMLElement} sender
-     * @returns {ProjectDropdownCommandEventArgs}
+     * @returns {ProjectToolbarCommandEventArgs}
      */
-    #createArgs(command, sender) {
+    #createArgs(command) {
         return {
             command: command,
             title: this.#element.querySelector(`[data-command=${commands.title}]`)?.value ?? null,
-            projectId: null,
-            systemType: sender?.getAttribute('data-target-system-type') ?? null
+            projectId: null
         };
     }
 
@@ -167,31 +142,42 @@ export default class ProjectDropdown extends ModalDialogue {
      * @param {ProjectList} projects
      */
     #displayProjects(projects) {
-        const renderList = projects.getProjects().map((p) => {
-            return {
-                title: p.title,
-                id: p.id,
-                isSmsgg: p.systemType === 'smsgg',
-                isNes: p.systemType === 'nes',
-                isGb: p.systemType === 'gb'
-            };
-        });
-        const html = this.#projectListTemplate(renderList);
+        const elm = this.#element.querySelector('[data-smsgfx-id=project-list]');
+        while (elm.childNodes.length > 0) {
+            elm.childNodes[0].remove();
+        }
+        projects.getProjects().forEach(project => {
+            const row = document.createElement('div');
+            row.classList.add('dropdown-item', 'd-flex', 'justify-content-between', 'pt-0', 'pb-0', 'mb-1', 'ps-2', 'pe-2');
+            row.appendChild((() => {
 
-        const listElm = this.#element.querySelector('[data-smsgfx-id=project-list]');
-        listElm.innerHTML = html;
+                const btn = document.createElement('button');
+                btn.classList.add('btn', 'btn-sm', 'btn-link', 'ms-0', 'ps-0');
+                btn.type = 'button';
+                btn.innerText = project.title;
+                btn.setAttribute('data-command', commands.projectLoadById);
+                btn.setAttribute('data-project-id', project.id);
+                btn.onclick = () => this.#handleProjectCommandButtonClicked(commands.projectLoadById, project.id);
+                return btn;
 
-        listElm.querySelectorAll('[data-command]').forEach((elm) => {
-            const command = elm.getAttribute('data-command');
-            const id = elm.getAttribute('data-project-id');
-            if (command && id) {
-                /** @param {MouseEvent} ev */
-                elm.onclick = (ev) => {
-                    this.#handleProjectCommandButtonClicked(command, id);
-                    ev.stopImmediatePropagation();
-                    ev.preventDefault();
-                }
-            }
+            })());
+            row.appendChild((() => {
+
+                const btn = document.createElement('button');
+                btn.classList.add('btn', 'btn-sm', 'btn-outline-secondary');
+                btn.type = 'button';
+                btn.setAttribute('data-command', commands.pro);
+                btn.setAttribute('data-project-id', project.id);
+                btn.onclick = () => this.#handleProjectCommandButtonClicked(commands.projectDelete, project.id);
+                btn.appendChild((() => {
+                    const i = document.createElement('i');
+                    i.classList.add('bi', 'bi-trash-fill');
+                    return i;
+                })());
+                return btn;
+
+            })());
+            elm.appendChild(row);
         });
     }
 
@@ -211,28 +197,26 @@ export default class ProjectDropdown extends ModalDialogue {
 
 
 /**
- * Project dropdown state.
- * @typedef {object} ProjectDropdownState
+ * Project toolbar state.
+ * @typedef {object} ProjectToolbarState
  * @property {string?} projectTitle - Project title to display.
  * @property {string[]?} enabledCommands - Array of commands that should be enabled, overrided enabled state.
  * @property {string[]?} disabledCommands - Array of commands that should be disabled, overrided enabled state.
  * @property {ProjectList} projects - List of projects to display in the menu.
- * @property {string?} systemType - System type to target, either 'smsgg', 'gb' or 'nes'.
  * @property {boolean?} enabled - Is the control enabled or disabled?
- * @property {boolean?} visible - Is the control visible?
  */
 
 /**
- * Command callback.
- * @callback ProjectDropdownCommandCallback
- * @param {ProjectDropdownCommandEventArgs} args - Arguments.
+ * Project toolbar callback.
+ * @callback ProjectToolbarCommandCallback
+ * @param {ProjectToolbarCommandEventArgs} args - Arguments.
  * @exports
  */
 /**
- * @typedef {object} ProjectDropdownCommandEventArgs
+ * @typedef {object} ProjectToolbarCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string?} title - Project title.
  * @property {string?} projectId - Project ID.
- * @property {string?} systemType - Type of system to target, either 'smsgg', 'gb' or 'nes'.
  * @exports
  */
+

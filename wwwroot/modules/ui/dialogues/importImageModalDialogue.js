@@ -1,10 +1,10 @@
-import PaletteList from "../models/paletteList.js";
-import ImageUtil from "../util/imageUtil.js";
-import ModalDialogue from "./modalDialogue.js";
-import EventDispatcher from "../components/eventDispatcher.js";
-import TileSet from "../models/tileSet.js";
-import TemplateUtil from "../util/templateUtil.js";
-import PaletteFactory from "../factory/paletteFactory.js";
+import PaletteList from "../../models/paletteList.js";
+import ImageUtil from "../../util/imageUtil.js";
+import ModalDialogue from "./../modalDialogue.js";
+import EventDispatcher from "../../components/eventDispatcher.js";
+import TileSet from "../../models/tileSet.js";
+import TemplateUtil from "../../util/templateUtil.js";
+import PaletteFactory from "../../factory/paletteFactory.js";
 
 const EVENT_SourceImageUpdated = 'EVENT_SourceImageUpdated';
 const EVENT_PreviewImageUpdated = 'EVENT_PreviewImageUpdated';
@@ -156,7 +156,7 @@ export default class ImportImageModalDialogue extends ModalDialogue {
      * @returns {Promise<ImportImageModalDialogue>}
      */
     static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('importImageModalDialogue', element);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('dialogues/importImageModalDialogue', element);
         return new ImportImageModalDialogue(componentElement);
     }
 

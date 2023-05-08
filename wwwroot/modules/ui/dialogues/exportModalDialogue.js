@@ -1,6 +1,6 @@
-import ModalDialogue from "./modalDialogue.js";
-import EventDispatcher from "../components/eventDispatcher.js";
-import TemplateUtil from "../util/templateUtil.js";
+import ModalDialogue from "./../modalDialogue.js";
+import EventDispatcher from "../../components/eventDispatcher.js";
+import TemplateUtil from "../../util/templateUtil.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -59,7 +59,7 @@ export default class ExportModalDialogue extends ModalDialogue {
      * @returns {Promise<ExportModalDialogue>}
      */
     static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('exportModalDialogue', element);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('dialogues/exportModalDialogue', element);
         return new ExportModalDialogue(componentElement);
     }
 

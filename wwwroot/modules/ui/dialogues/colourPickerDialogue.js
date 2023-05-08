@@ -1,8 +1,8 @@
-import EventDispatcher from "../components/eventDispatcher.js";
-import Palette from "../models/palette.js";
-import ColourUtil from "../util/colourUtil.js";
-import ModalDialogue from "./modalDialogue.js";
-import TemplateUtil from "../util/templateUtil.js";
+import EventDispatcher from "../../components/eventDispatcher.js";
+import Palette from "../../models/palette.js";
+import ColourUtil from "../../util/colourUtil.js";
+import ModalDialogue from "./../modalDialogue.js";
+import TemplateUtil from "../../util/templateUtil.js";
 
 const EVENT_OnChange = 'EVENT_OnChange';
 
@@ -86,7 +86,7 @@ export default class ColourPickerDialogue extends ModalDialogue {
      * @returns {Promise<ColourPickerDialogue>}
      */
      static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('colourPickerDialogue', element);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('dialogues/colourPickerDialogue', element);
         return new ColourPickerDialogue(componentElement);
     }
 

@@ -1,6 +1,8 @@
-import EventDispatcher from "../components/eventDispatcher.js";
-import ProjectList from "../models/projectList.js";
-import TemplateUtil from "../util/templateUtil.js";
+import EventDispatcher from "../../components/eventDispatcher.js";
+import ProjectList from "../../models/projectList.js";
+import TemplateUtil from "../../util/templateUtil.js";
+import ModalDialogue from "./../modalDialogue.js";
+import ProjectListing from "../components/projectListing.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -11,10 +13,10 @@ const commands = {
     projectLoadById: 'projectLoadById',
     projectSaveToFile: 'projectSaveToFile',
     projectDelete: 'projectDelete',
-    showDropdown: 'showDropdown'
+    showWelcomeScreen: 'showWelcomeScreen'
 }
 
-export default class ProjectToolbar {
+export default class ProjectDropdown extends ModalDialogue {
 
 
     static get Commands() {
@@ -27,6 +29,8 @@ export default class ProjectToolbar {
     /** @type {EventDispatcher} */
     #dispatcher;
     #enabled = true;
+    /** @type {ProjectListing} */
+    #projectListing = null;
 
 
     /**
@@ -34,13 +38,14 @@ export default class ProjectToolbar {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
+        super(element);
         this.#element = element;
 
         this.#dispatcher = new EventDispatcher();
 
         this.#element.querySelectorAll('button[data-command]').forEach(element => {
             element.onclick = () => {
-                const args = this.#createArgs(element.getAttribute('data-command'));
+                const args = this.#createArgs(element.getAttribute('data-command'), element);
                 this.#dispatcher.dispatch(EVENT_OnCommand, args);
             };
         });
@@ -66,19 +71,19 @@ export default class ProjectToolbar {
     /**
      * Creates an instance of the object inside a container element.
      * @param {HTMLElement} element - Container element.
-     * @returns {Promise<ProjectToolbar>}
+     * @returns {Promise<ProjectDropdown>}
      */
-     static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('projectToolbar', element);
-        return new ProjectToolbar(componentElement);
+    static async loadIntoAsync(element) {
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('dialogues/projectDropdown', element);
+        return new ProjectDropdown(componentElement);
     }
 
 
     /**
      * Updates the state of the object.
-     * @param {ProjectToolbarState} state - State to set.
+     * @param {ProjectDropdownState} state - State to set.
      */
-    setState(state) {
+    async setState(state) {
         if (typeof state?.projectTitle === 'string' && state.projectTitle.length > 0 && state.projectTitle !== null) {
             this.#element.querySelectorAll(`[data-command=${commands.title}]`).forEach(element => {
                 element.value = state.projectTitle;
@@ -86,7 +91,15 @@ export default class ProjectToolbar {
         }
 
         if (typeof state.projects?.getProjects === 'function') {
-            this.#displayProjects(state.projects);
+            await this.#displayProjects(state.projects);
+        }
+
+        if (state.systemType && typeof state.systemType === 'string') {
+            switch (state.systemType) {
+                case 'gb': this.#element.querySelector(`[data-smsgfx-id=system-type`).value = 'gb'; break;
+                case 'nes': this.#element.querySelector(`[data-smsgfx-id=system-type`).value = 'nes'; break;
+                case 'smsgg': default: this.#element.querySelector(`[data-smsgfx-id=system-type`).value = 'smsgg'; break;
+            }
         }
 
         if (typeof state?.enabled === 'boolean') {
@@ -94,6 +107,14 @@ export default class ProjectToolbar {
             this.#element.querySelectorAll('[data-command]').forEach(element => {
                 element.disabled = !this.#enabled;
             });
+        }
+
+        if (typeof state?.visible === 'boolean') {
+            if (state.visible) {
+                super.show();
+            } else {
+                super.hide();
+            }
         }
 
         if (Array.isArray(state?.enabledCommands)) {
@@ -117,8 +138,8 @@ export default class ProjectToolbar {
 
 
     /**
-     * Registers a handler for a toolbar command.
-     * @param {ProjectToolbarCommandCallback} callback - Callback that will receive the command.
+     * Registers a handler for a command.
+     * @param {ProjectDropdownCommandCallback} callback - Callback that will receive the command.
      */
     addHandlerOnCommand(callback) {
         this.#dispatcher.on(EVENT_OnCommand, callback);
@@ -127,13 +148,15 @@ export default class ProjectToolbar {
 
     /**
      * @param {string} command
-     * @returns {ProjectToolbarCommandEventArgs}
+     * @param {HTMLElement} sender
+     * @returns {ProjectDropdownCommandEventArgs}
      */
-    #createArgs(command) {
+    #createArgs(command, sender) {
         return {
             command: command,
             title: this.#element.querySelector(`[data-command=${commands.title}]`)?.value ?? null,
-            projectId: null
+            projectId: null,
+            systemType: sender?.getAttribute('data-target-system-type') ?? null
         };
     }
 
@@ -141,55 +164,36 @@ export default class ProjectToolbar {
     /**
      * @param {ProjectList} projects
      */
-    #displayProjects(projects) {
-        const elm = this.#element.querySelector('[data-smsgfx-id=project-list]');
-        while (elm.childNodes.length > 0) {
-            elm.childNodes[0].remove();
+    async #displayProjects(projects) {
+
+        // Ensure project listing object created
+        if (!this.#projectListing) {
+            const projectListingElm = this.#element.querySelector('[data-smsgfx-component-id=project-listing]');
+            if (projectListingElm) {
+                this.#projectListing = await ProjectListing.loadIntoAsync(projectListingElm);
+                this.#projectListing.addHandlerOnCommand((args) => {
+                    switch (args.command) {
+                        case ProjectListing.Commands.projectSelect:
+                            const selArgs = this.#createArgs(commands.projectLoadById);
+                            selArgs.projectId = args.projectId;
+                            this.#dispatcher.dispatch(EVENT_OnCommand, selArgs);
+                            break;
+                        case ProjectListing.Commands.projectDelete:
+                            const delArgs = this.#createArgs(commands.projectDelete);
+                            delArgs.projectId = args.projectId;
+                            this.#dispatcher.dispatch(EVENT_OnCommand, delArgs);
+                            break;
+                    }
+                });
+            }
         }
-        projects.getProjects().forEach(project => {
-            const row = document.createElement('div');
-            row.classList.add('dropdown-item', 'd-flex', 'justify-content-between', 'pt-0', 'pb-0', 'mb-1', 'ps-2', 'pe-2');
-            row.appendChild((() => {
 
-                const btn = document.createElement('button');
-                btn.classList.add('btn', 'btn-sm', 'btn-link', 'ms-0', 'ps-0');
-                btn.type = 'button';
-                btn.innerText = project.title;
-                btn.setAttribute('data-command', commands.projectLoadById);
-                btn.setAttribute('data-project-id', project.id);
-                btn.onclick = () => this.#handleProjectCommandButtonClicked(commands.projectLoadById, project.id);
-                return btn;
-
-            })());
-            row.appendChild((() => {
-
-                const btn = document.createElement('button');
-                btn.classList.add('btn', 'btn-sm', 'btn-outline-secondary');
-                btn.type = 'button';
-                btn.setAttribute('data-command', commands.pro);
-                btn.setAttribute('data-project-id', project.id);
-                btn.onclick = () => this.#handleProjectCommandButtonClicked(commands.projectDelete, project.id);
-                btn.appendChild((() => {
-                    const i = document.createElement('i');
-                    i.classList.add('bi', 'bi-trash-fill');
-                    return i;
-                })());
-                return btn;
-
-            })());
-            elm.appendChild(row);
+        // Display the projects
+        this.#projectListing.setState({
+            projects: projects,
+            height: '200px',
+            showDelete: true
         });
-    }
-
-
-    /**
-     * @param {string} command 
-     * @param {string} projectId 
-     */
-    #handleProjectCommandButtonClicked(command, projectId) {
-        const args = this.#createArgs(command);
-        args.projectId = projectId;
-        this.#dispatcher.dispatch(EVENT_OnCommand, args);
     }
 
 
@@ -197,26 +201,28 @@ export default class ProjectToolbar {
 
 
 /**
- * Project toolbar state.
- * @typedef {object} ProjectToolbarState
+ * Project dropdown state.
+ * @typedef {object} ProjectDropdownState
  * @property {string?} projectTitle - Project title to display.
  * @property {string[]?} enabledCommands - Array of commands that should be enabled, overrided enabled state.
  * @property {string[]?} disabledCommands - Array of commands that should be disabled, overrided enabled state.
  * @property {ProjectList} projects - List of projects to display in the menu.
+ * @property {string?} systemType - System type to target, either 'smsgg', 'gb' or 'nes'.
  * @property {boolean?} enabled - Is the control enabled or disabled?
+ * @property {boolean?} visible - Is the control visible?
  */
 
 /**
- * Project toolbar callback.
- * @callback ProjectToolbarCommandCallback
- * @param {ProjectToolbarCommandEventArgs} args - Arguments.
+ * Command callback.
+ * @callback ProjectDropdownCommandCallback
+ * @param {ProjectDropdownCommandEventArgs} args - Arguments.
  * @exports
  */
 /**
- * @typedef {object} ProjectToolbarCommandEventArgs
+ * @typedef {object} ProjectDropdownCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string?} title - Project title.
  * @property {string?} projectId - Project ID.
+ * @property {string?} systemType - Type of system to target, either 'smsgg', 'gb' or 'nes'.
  * @exports
  */
-

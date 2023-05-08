@@ -288,3 +288,26 @@ button:disabled img {
 .sms-project-dropdown .sms-project-load .sms-project-list li [data-field=console] img {
     max-height: 20px;
 }
+
+/* Project list component */
+.sms-project-list-component li {
+    font-size: 0.9em;
+    cursor: pointer;
+}
+
+.sms-project-list-component li [data-field=console] {
+    width: 50px;
+}
+
+.sms-project-list-component li [data-field=console] img {
+    max-height: 20px;
+}
+
+.sms-project-list-component {
+    height: 190px;
+    overflow-y: scroll;
+}
+
+.sms-project-list-component .list-group-item {
+    cursor: pointer;
+}

@@ -1,6 +1,6 @@
-import GeneralUtil from "../util/generalUtil.js";
-import EventDispatcher from "../components/eventDispatcher.js";
-import TemplateUtil from "../util/templateUtil.js";
+import GeneralUtil from "../../util/generalUtil.js";
+import EventDispatcher from "../../components/eventDispatcher.js";
+import TemplateUtil from "../../util/templateUtil.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -99,7 +99,7 @@ export default class TileEditorToolbar {
      * @returns {Promise<TileEditorToolbar>}
      */
     static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('tileEditorToolbar', element);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('toolbars/tileEditorToolbar', element);
         return new TileEditorToolbar(componentElement);
     }
 
