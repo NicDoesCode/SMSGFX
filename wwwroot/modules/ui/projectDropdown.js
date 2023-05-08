@@ -42,11 +42,12 @@ export default class ProjectDropdown extends ModalDialogue {
         this.#dispatcher = new EventDispatcher();
 
         const source = this.#element.querySelector('[data-smsgfx-id=project-list-template]').innerHTML;
+
         this.#projectListTemplate = Handlebars.compile(source);
 
         this.#element.querySelectorAll('button[data-command]').forEach(element => {
             element.onclick = () => {
-                const args = this.#createArgs(element.getAttribute('data-command'));
+                const args = this.#createArgs(element.getAttribute('data-command'), element);
                 this.#dispatcher.dispatch(EVENT_OnCommand, args);
             };
         });
@@ -149,14 +150,15 @@ export default class ProjectDropdown extends ModalDialogue {
 
     /**
      * @param {string} command
+     * @param {HTMLElement} sender
      * @returns {ProjectDropdownCommandEventArgs}
      */
-    #createArgs(command) {
+    #createArgs(command, sender) {
         return {
             command: command,
             title: this.#element.querySelector(`[data-command=${commands.title}]`)?.value ?? null,
             projectId: null,
-            systemType: this.#element.querySelector(`[data-smsgfx-id=system-type`)?.value ?? null
+            systemType: sender?.getAttribute('data-target-system-type') ?? null
         };
     }
 
@@ -168,7 +170,10 @@ export default class ProjectDropdown extends ModalDialogue {
         const renderList = projects.getProjects().map((p) => {
             return {
                 title: p.title,
-                id: p.id
+                id: p.id,
+                isSmsgg: p.systemType === 'smsgg',
+                isNes: p.systemType === 'nes',
+                isGb: p.systemType === 'gb'
             };
         });
         const html = this.#projectListTemplate(renderList);

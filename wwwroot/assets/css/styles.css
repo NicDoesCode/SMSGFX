@@ -271,3 +271,20 @@ button:disabled img {
     text-shadow: 2px 2px 1px #000000, 0px 0px 5px #000000, 0px 0px 5px #FFFFFF;
     font-weight: bold;
 }
+
+.sms-project-dropdown .sms-project-create button {
+    min-width: 90px;
+}
+.sms-project-dropdown .sms-project-create button img {
+    max-height: 30px;
+}
+
+.sms-project-dropdown .sms-project-load .sms-project-list li {
+    font-size: 0.9em;
+}
+.sms-project-dropdown .sms-project-load .sms-project-list li [data-field=console] {
+    width: 50px;
+}
+.sms-project-dropdown .sms-project-load .sms-project-list li [data-field=console] img {
+    max-height: 20px;
+}
