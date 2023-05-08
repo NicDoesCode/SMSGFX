@@ -38,6 +38,7 @@ export default class TemplateUtil {
 
         if (component) {
             const clonedComponent = component.cloneNode(true);
+            clonedComponent.removeAttribute('data-smsgfx-component');
             element.after(clonedComponent);
             element.remove();
             return clonedComponent;
@@ -66,6 +67,7 @@ function ensureEmbeddedComponentsFromDocumentCached() {
         const documentComponents = document.querySelectorAll('[data-smsgfx-component]');
         documentComponents.forEach(component => {
             addComponentToCacheIfNotAlreadyThere(component);
+            documentComponents.remove();
         });
     }
 }

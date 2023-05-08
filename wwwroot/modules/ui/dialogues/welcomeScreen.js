@@ -162,7 +162,7 @@ export default class WelcomeScreen {
 
     async #loadProjectListIfNotLoaded() {
         if (!this.#projectListing) {
-            const projectListingElm = document.querySelector('[data-smsgfx-component-id=project-listing]');
+            const projectListingElm = this.#element.querySelector('[data-smsgfx-component-id=project-listing]');
             if (projectListingElm) {
                 this.#projectListing = await ProjectListing.loadIntoAsync(projectListingElm);
                 this.#projectListing.addHandlerOnCommand((args) => {

@@ -1,7 +1,8 @@
-import EventDispatcher from "../components/eventDispatcher.js";
-import ProjectList from "../models/projectList.js";
-import TemplateUtil from "../util/templateUtil.js";
-import ModalDialogue from "./modalDialogue.js";
+import EventDispatcher from "../../components/eventDispatcher.js";
+import ProjectList from "../../models/projectList.js";
+import TemplateUtil from "../../util/templateUtil.js";
+import ModalDialogue from "./../modalDialogue.js";
+import ProjectListing from "../components/projectListing.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -27,8 +28,9 @@ export default class ProjectDropdown extends ModalDialogue {
     #element;
     /** @type {EventDispatcher} */
     #dispatcher;
-    #projectListTemplate;
     #enabled = true;
+    /** @type {ProjectListing} */
+    #projectListing = null;
 
 
     /**
@@ -40,10 +42,6 @@ export default class ProjectDropdown extends ModalDialogue {
         this.#element = element;
 
         this.#dispatcher = new EventDispatcher();
-
-        const source = this.#element.querySelector('[data-smsgfx-id=project-list-template]').innerHTML;
-
-        this.#projectListTemplate = Handlebars.compile(source);
 
         this.#element.querySelectorAll('button[data-command]').forEach(element => {
             element.onclick = () => {
@@ -76,7 +74,7 @@ export default class ProjectDropdown extends ModalDialogue {
      * @returns {Promise<ProjectDropdown>}
      */
     static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('projectDropdown', element);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('dialogues/projectDropdown', element);
         return new ProjectDropdown(componentElement);
     }
 
@@ -85,7 +83,7 @@ export default class ProjectDropdown extends ModalDialogue {
      * Updates the state of the object.
      * @param {ProjectDropdownState} state - State to set.
      */
-    setState(state) {
+    async setState(state) {
         if (typeof state?.projectTitle === 'string' && state.projectTitle.length > 0 && state.projectTitle !== null) {
             this.#element.querySelectorAll(`[data-command=${commands.title}]`).forEach(element => {
                 element.value = state.projectTitle;
@@ -93,7 +91,7 @@ export default class ProjectDropdown extends ModalDialogue {
         }
 
         if (typeof state.projects?.getProjects === 'function') {
-            this.#displayProjects(state.projects);
+            await this.#displayProjects(state.projects);
         }
 
         if (state.systemType && typeof state.systemType === 'string') {
@@ -166,44 +164,36 @@ export default class ProjectDropdown extends ModalDialogue {
     /**
      * @param {ProjectList} projects
      */
-    #displayProjects(projects) {
-        const renderList = projects.getProjects().map((p) => {
-            return {
-                title: p.title,
-                id: p.id,
-                isSmsgg: p.systemType === 'smsgg',
-                isNes: p.systemType === 'nes',
-                isGb: p.systemType === 'gb'
-            };
-        });
-        const html = this.#projectListTemplate(renderList);
+    async #displayProjects(projects) {
 
-        const listElm = this.#element.querySelector('[data-smsgfx-id=project-list]');
-        listElm.innerHTML = html;
-
-        listElm.querySelectorAll('[data-command]').forEach((elm) => {
-            const command = elm.getAttribute('data-command');
-            const id = elm.getAttribute('data-project-id');
-            if (command && id) {
-                /** @param {MouseEvent} ev */
-                elm.onclick = (ev) => {
-                    this.#handleProjectCommandButtonClicked(command, id);
-                    ev.stopImmediatePropagation();
-                    ev.preventDefault();
-                }
+        // Ensure project listing object created
+        if (!this.#projectListing) {
+            const projectListingElm = this.#element.querySelector('[data-smsgfx-component-id=project-listing]');
+            if (projectListingElm) {
+                this.#projectListing = await ProjectListing.loadIntoAsync(projectListingElm);
+                this.#projectListing.addHandlerOnCommand((args) => {
+                    switch (args.command) {
+                        case ProjectListing.Commands.projectSelect:
+                            const selArgs = this.#createArgs(commands.projectLoadById);
+                            selArgs.projectId = args.projectId;
+                            this.#dispatcher.dispatch(EVENT_OnCommand, selArgs);
+                            break;
+                        case ProjectListing.Commands.projectDelete:
+                            const delArgs = this.#createArgs(commands.projectDelete);
+                            delArgs.projectId = args.projectId;
+                            this.#dispatcher.dispatch(EVENT_OnCommand, delArgs);
+                            break;
+                    }
+                });
             }
+        }
+
+        // Display the projects
+        this.#projectListing.setState({
+            projects: projects,
+            height: '200px',
+            showDelete: true
         });
-    }
-
-
-    /**
-     * @param {string} command 
-     * @param {string} projectId 
-     */
-    #handleProjectCommandButtonClicked(command, projectId) {
-        const args = this.#createArgs(command);
-        args.projectId = projectId;
-        this.#dispatcher.dispatch(EVENT_OnCommand, args);
     }
 
 

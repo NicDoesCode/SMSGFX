@@ -29,6 +29,7 @@ import ExportModalDialogue from "./ui/dialogues/exportModalDialogue.js";
 import ImportImageModalDialogue from "./ui/dialogues/importImageModalDialogue.js";
 import PaletteModalDialogue from "./ui/dialogues/paletteImportModalDialogue.js";
 import PrivacyModalDialogue from "./ui/dialogues/privacyModalDialogue.js";
+import ProjectDropdown from "./ui/dialogues/projectDropdown.js";
 import TileSetImportModalDialogue from "./ui/dialogues/tileSetImportModalDialogue.js";
 import WelcomeScreen from "./ui/dialogues/welcomeScreen.js";
 
@@ -39,7 +40,6 @@ import TileContextToolbar from "./ui/toolbars/tileContextToolbar.js";
 import TileEditorToolbar from "./ui/toolbars/tileEditorToolbar.js";
 
 import ColourPickerToolbox from "./ui/colourPickerToolbox.js";
-import ProjectDropdown from "./ui/projectDropdown.js";
 import DocumentationViewer from "./ui/documentationViewer.js";
 
 
