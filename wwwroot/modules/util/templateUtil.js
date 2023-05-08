@@ -1,4 +1,4 @@
-const componentRegex = /^[A-z\d]+$/;
+const componentRegex = /^[A-z\d_]+(\/[A-z\d_]+)*$/;
 const componentCache = document.createElement('div');
 let documentLoadAttempted = false;
 let globalLoadAttempted = false;
@@ -11,7 +11,7 @@ export default class TemplateUtil {
      * first page embedded components are tried, 
      * if that fails global components will be searched, 
      * if that fails individual component file will be loaded.
-     * @param {string} componentName - Name of the component to load.
+     * @param {string} componentName - Name of the component to load, namespace with forward slash '/' (eg. toolbars/exportToolbar).
      * @param {HTMLElement} element - Element to load the content into (note, all child elements will be removed).
      * @returns {HTMLElement}
      */
@@ -55,8 +55,9 @@ export default class TemplateUtil {
 }
 
 
+/** @param {string} componentName */
 function getComponent(componentName) {
-    return componentCache.querySelector(`[data-smsgfx-component=${componentName}]`);
+    return componentCache.querySelector(componentSelector(componentName));
 }
 
 function ensureEmbeddedComponentsFromDocumentCached() {
@@ -96,6 +97,7 @@ async function ensureGlobalComponentsCachedAsync() {
     }
 }
 
+/** @param {string} componentName */
 async function attemptLoadComponentFromFileAsync(componentName) {
     try {
         const url = `./modules/ui/${componentName}.html`;
@@ -105,9 +107,9 @@ async function attemptLoadComponentFromFileAsync(componentName) {
         const tempElement = document.createElement('div');
         tempElement.innerHTML = content;
 
-        const loadedComponent = tempElement.querySelector(`[data-smsgfx-component=${componentName}]`);
+        const loadedComponent = tempElement.querySelector(componentSelector(componentName));
         addComponentToCacheIfNotAlreadyThere(loadedComponent);
-    } catch (ex) {
+    } catch (e) {
         console.error(`Failed to load component markup file '${componentName}'.`, e);
     }
 }
@@ -115,7 +117,12 @@ async function attemptLoadComponentFromFileAsync(componentName) {
 function addComponentToCacheIfNotAlreadyThere(component) {
     const componentName = component.getAttribute('data-smsgfx-component');
     if (componentName) {
-        const foundComponent = componentCache.querySelector(`[data-smsgfx-component=${componentName}]`);
+        const foundComponent = componentCache.querySelector(componentSelector(componentName));
         if (!foundComponent) componentCache.appendChild(component);
     }
+}
+
+/** @param {string} componentName */
+function componentSelector(componentName) {
+    return `[data-smsgfx-component=${CSS.escape(componentName)}]`;
 }

@@ -1,6 +1,6 @@
-import EventDispatcher from "../components/eventDispatcher.js";
-import ProjectList from "../models/projectList.js";
-import TemplateUtil from "../util/templateUtil.js";
+import EventDispatcher from "../../components/eventDispatcher.js";
+import ProjectList from "../../models/projectList.js";
+import TemplateUtil from "../../util/templateUtil.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -69,7 +69,7 @@ export default class ProjectToolbar {
      * @returns {Promise<ProjectToolbar>}
      */
      static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('projectToolbar', element);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('toolbars/projectToolbar', element);
         return new ProjectToolbar(componentElement);
     }
 

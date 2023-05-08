@@ -1,5 +1,5 @@
-import ModalDialogue from "./modalDialogue.js";
-import TemplateUtil from "../util/templateUtil.js";
+import ModalDialogue from "./../modalDialogue.js";
+import TemplateUtil from "../../util/templateUtil.js";
 
 export default class PrivacyModalDialogue extends ModalDialogue {
 
@@ -24,7 +24,7 @@ export default class PrivacyModalDialogue extends ModalDialogue {
      * @returns {Promise<PrivacyModalDialogue>}
      */
      static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('privacyModalDialogue', element);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('dialogues/privacyModalDialogue', element);
         return new PrivacyModalDialogue(componentElement);
     }
 

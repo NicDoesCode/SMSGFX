@@ -1,5 +1,5 @@
-import ModalDialogue from "./modalDialogue.js";
-import TemplateUtil from "../util/templateUtil.js";
+import ModalDialogue from "./../modalDialogue.js";
+import TemplateUtil from "../../util/templateUtil.js";
 
 export default class TileSetImportModalDialogue extends ModalDialogue {
 
@@ -30,7 +30,7 @@ export default class TileSetImportModalDialogue extends ModalDialogue {
      * @returns {Promise<TileSetImportModalDialogue>}
      */
      static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('tileSetImportModalDialogue', element);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('dialogues/tileSetImportModalDialogue', element);
         return new TileSetImportModalDialogue(componentElement);
     }
 

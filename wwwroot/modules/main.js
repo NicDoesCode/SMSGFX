@@ -1,17 +1,6 @@
 import State from "./state.js";
 import AssemblyUtil from "./util/assemblyUtil.js";
 import PaintUtil from "./util/paintUtil.js";
-import ColourPickerDialogue from "./ui/colourPickerDialogue.js";
-import ColourPickerToolbox from "./ui/colourPickerToolbox.js";
-import PaletteModalDialogue from "./ui/paletteImportModalDialogue.js";
-import TileSetImportModalDialogue from "./ui/tileSetImportModalDialogue.js";
-import ExportModalDialogue from "./ui/exportModalDialogue.js";
-import PaletteEditor from "./ui/paletteEditor.js";
-import TileEditor from "./ui/tileEditor.js";
-import TileEditorToolbar from "./ui/tileEditorToolbar.js";
-import TileContextToolbar from "./ui/tileContextToolbar.js";
-import ProjectToolbar from "./ui/projectToolbar.js";
-import ExportToolbar from "./ui/exportToolbar.js";
 import ProjectUtil from "./util/projectUtil.js";
 import PaletteFactory from "./factory/paletteFactory.js";
 import TileFactory from "./factory/tileFactory.js";
@@ -21,22 +10,37 @@ import UndoManager from "./components/undoManager.js";
 import ProjectFactory from "./factory/projectFactory.js";
 import PaletteListFactory from "./factory/paletteListFactory.js";
 import TileUtil from "./util/tileUtil.js";
-import ImportImageModalDialogue from "./ui/importImageModalDialogue.js";
 import FileUtil from "./util/fileUtil.js";
 import Project from "./models/project.js";
 import GeneralUtil from "./util/generalUtil.js";
 import ProjectWatcher from "./components/projectWatcher.js";
 import ImageUtil from "./util/imageUtil.js";
 import ReferenceImage from "./models/referenceImage.js";
-import AboutModalDialogue from "./ui/aboutModalDialogue.js";
-import PrivacyModalDialogue from "./ui/privacyModalDialogue.js";
-import ProjectDropdown from "./ui/projectDropdown.js";
 import GoogleAnalyticsManager from "./components/googleAnalyticsManager.js";
-import DocumentationViewer from "./ui/documentationViewer.js";
-import WelcomeScreen from "./ui/welcomeScreen.js";
 import ThemeManager from "./components/themeManager.js";
-import OptionsToolbar from "./ui/optionsToolbar.js";
 import SerialisationUtil from "./util/serialisationUtil.js";
+
+import PaletteEditor from "./ui/paletteEditor.js";
+import TileEditor from "./ui/tileEditor.js";
+
+import AboutModalDialogue from "./ui/dialogues/aboutModalDialogue.js";
+import ColourPickerDialogue from "./ui/dialogues/colourPickerDialogue.js";
+import ExportModalDialogue from "./ui/dialogues/exportModalDialogue.js";
+import ImportImageModalDialogue from "./ui/dialogues/importImageModalDialogue.js";
+import PaletteModalDialogue from "./ui/dialogues/paletteImportModalDialogue.js";
+import PrivacyModalDialogue from "./ui/dialogues/privacyModalDialogue.js";
+import TileSetImportModalDialogue from "./ui/dialogues/tileSetImportModalDialogue.js";
+import WelcomeScreen from "./ui/dialogues/welcomeScreen.js";
+
+import ExportToolbar from "./ui/toolbars/exportToolbar.js";
+import OptionsToolbar from "./ui/toolbars/optionsToolbar.js";
+import ProjectToolbar from "./ui/toolbars/projectToolbar.js";
+import TileContextToolbar from "./ui/toolbars/tileContextToolbar.js";
+import TileEditorToolbar from "./ui/toolbars/tileEditorToolbar.js";
+
+import ColourPickerToolbox from "./ui/colourPickerToolbox.js";
+import ProjectDropdown from "./ui/projectDropdown.js";
+import DocumentationViewer from "./ui/documentationViewer.js";
 
 
 /* ****************************************************************************************************
@@ -575,6 +579,7 @@ function handleProjectToolbarOnCommand(args) {
 
 /** @param {import('./ui/projectDropdown').ProjectDropdownCommandEventArgs} args */
 function handleProjectDropdownOnCommand(args) {
+    const projects = state.getProjectsFromLocalStorage();
     switch (args.command) {
 
         case ProjectDropdown.Commands.title:
@@ -596,7 +601,6 @@ function handleProjectDropdownOnCommand(args) {
             break;
 
         case ProjectDropdown.Commands.projectLoadById:
-            const projects = state.getProjectsFromLocalStorage();
             const project = projects.getProjectById(args.projectId);
             state.setProject(project);
             break;
@@ -606,7 +610,11 @@ function handleProjectDropdownOnCommand(args) {
             break;
 
         case ProjectDropdown.Commands.showWelcomeScreen:
-            welcomeScreen.setState({ visible: true, visibleCommands: ['dismiss'] });
+            welcomeScreen.setState({
+                visible: true,
+                projects: projects,
+                visibleCommands: ['dismiss']
+            });
             projectDropdown.setState({ visible: false });
             break;
 
@@ -1126,7 +1134,7 @@ function handleImportTileSet(args) {
     const tileSetDataArray = AssemblyUtil.readAsUint8ClampedArray(tileSetData);
     const tileSetBinarySerialiser = SerialisationUtil.getTileSetBinarySerialiser(getProject().systemType);
     const importedTileSet = tileSetBinarySerialiser.deserialise(tileSetDataArray);
-    
+
     if (args.replace) {
         getProject().tileSet = importedTileSet;
     } else {
@@ -1226,7 +1234,7 @@ function documentationViewerOnCommand(args) {
 }
 
 
-/** @param {import("./ui/welcomeScreen").WelcomeScreenStateCommandEventArgs} args */
+/** @param {import("./ui/dialogues/welcomeScreen").WelcomeScreenStateCommandEventArgs} args */
 function welcomeScreenOnCommand(args) {
     switch (args.command) {
 
@@ -1243,6 +1251,13 @@ function welcomeScreenOnCommand(args) {
             newProject({
                 systemType: getProject()?.systemType ?? 'smsgg'
             });
+            break;
+
+        case WelcomeScreen.Commands.projectLoadById:
+            const projects = state.getProjectsFromLocalStorage();
+            const project = projects.getProjectById(args.projectId);
+            state.setProject(project);
+            welcomeScreen.setState({ visible: false });
             break;
 
         case WelcomeScreen.Commands.projectLoadFromFile:
@@ -2756,7 +2771,8 @@ window.addEventListener('load', async () => {
         visible: getUIState().welcomeVisibleOnStartup || getProject() instanceof Project === false,
         showWelcomeScreenOnStartUpChecked: getUIState().welcomeVisibleOnStartup,
         visibleCommands: getProject() instanceof Project === true ? ['dismiss'] : [],
-        invisibleCommands: getProject() instanceof Project === false ? ['dismiss'] : []
+        invisibleCommands: getProject() instanceof Project === false ? ['dismiss'] : [],
+        projects: projects
     });
 
     optionsToolbar.setState({

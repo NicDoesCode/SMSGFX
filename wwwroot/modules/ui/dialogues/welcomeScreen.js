@@ -1,5 +1,7 @@
-import EventDispatcher from "../components/eventDispatcher.js";
-import TemplateUtil from "../util/templateUtil.js";
+import EventDispatcher from "../../components/eventDispatcher.js";
+import ProjectList from "../../models/projectList.js";
+import TemplateUtil from "../../util/templateUtil.js";
+import ProjectListing from "../components/projectListing.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -7,6 +9,7 @@ const commands = {
     dismiss: 'dismiss',
     changeShowOnStartUp: 'changeShowOnStartUp',
     projectNew: 'projectNew',
+    projectLoadById: 'projectLoadById',
     projectLoadFromFile: 'projectLoadFromFile',
     tileImageImport: 'tileImageImport',
     showDocumentation: 'showDocumentation'
@@ -25,6 +28,8 @@ export default class WelcomeScreen {
     #dispatcher;
     /** @type {HTMLInputElement} */
     #showOnStartupCheckbox;
+    /** @type {ProjectListing} */
+    #projectListing = null;
 
 
     /**
@@ -35,6 +40,7 @@ export default class WelcomeScreen {
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 
+
         this.#showOnStartupCheckbox = this.#element.querySelector('[data-smsgfx-id=showOnStartup]');
 
         this.#showOnStartupCheckbox.onchange = (ev) => {
@@ -43,10 +49,10 @@ export default class WelcomeScreen {
             this.#dispatcher.dispatch(EVENT_OnCommand, args);
         };
 
-        this.#element.querySelectorAll('button[data-command]').forEach(button => {
-            button.onclick = () => {
-                const command = button.getAttribute('data-command');
-                const args = this.#createArgs(command);
+        this.#element.querySelectorAll('[data-command]').forEach((elm) => {
+            elm.onclick = () => {
+                const command = elm.getAttribute('data-command');
+                const args = this.#createArgs(command, elm);
                 this.#dispatcher.dispatch(EVENT_OnCommand, args);
             };
         });
@@ -59,7 +65,7 @@ export default class WelcomeScreen {
      * @returns {Promise<WelcomeScreen>}
      */
     static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('welcomeScreen', element);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('dialogues/welcomeScreen', element);
         return new WelcomeScreen(componentElement);
     }
 
@@ -68,7 +74,7 @@ export default class WelcomeScreen {
      * Sets the state.
      * @param {WelcomeScreenState} state - State object.
      */
-    setState(state) {
+    async setState(state) {
         if (typeof state?.visible === 'boolean') {
             if (state.visible) {
                 this.#element.classList.remove('visually-hidden');
@@ -116,6 +122,17 @@ export default class WelcomeScreen {
                 }
             });
         }
+
+        if (state?.projects !== null) {
+            await this.#loadProjectListIfNotLoaded();
+            if (this.#projectListing) {
+                this.#projectListing.setState({
+                    projects: state.projects,
+                    height: '148px',
+                    showDelete: false
+                });
+            }
+        }
     }
 
 
@@ -129,15 +146,36 @@ export default class WelcomeScreen {
 
 
     /**
-     * @param {HTMLElement} element 
+     * @param {string} command 
+     * @param {HTMLElement} sender 
      * @returns {WelcomeScreenStateCommandEventArgs}
      */
-    #createArgs(command) {
-        /** @type {WelcomeScreenStateCommandEventArgs} */
+    #createArgs(command, sender) {
         return {
             command: command,
-            showOnStartUp: this.#showOnStartupCheckbox?.checked ?? false
+            showOnStartUp: this.#showOnStartupCheckbox?.checked ?? false,
+            systemType: sender?.getAttribute('data-target-system-type') ?? null,
+            projectId: null
         };
+    }
+
+
+    async #loadProjectListIfNotLoaded() {
+        if (!this.#projectListing) {
+            const projectListingElm = document.querySelector('[data-smsgfx-component-id=project-listing]');
+            if (projectListingElm) {
+                this.#projectListing = await ProjectListing.loadIntoAsync(projectListingElm);
+                this.#projectListing.addHandlerOnCommand((args) => {
+                    switch (args.command) {
+                        case ProjectListing.Commands.projectSelect:
+                            const projArgs = this.#createArgs(commands.projectLoadById);
+                            projArgs.projectId = args.projectId;
+                            this.#dispatcher.dispatch(EVENT_OnCommand, projArgs);
+                            break;
+                    }
+                });
+            }
+        }
     }
 
 
@@ -148,6 +186,7 @@ export default class WelcomeScreen {
  * About dialogue state object.
  * @typedef {object} WelcomeScreenState
  * @property {boolean?} showWelcomeScreenOnStartUpChecked 
+ * @property {ProjectList?} projects 
  * @property {boolean?} visible - Is the welcome screen visible?
  * @property {string[]?} enabledCommands - Array of commands that should be enabled, overrided enabled state.
  * @property {string[]?} disabledCommands - Array of commands that should be disabled, overrided enabled state.
@@ -165,6 +204,12 @@ export default class WelcomeScreen {
 /**
  * @typedef {object} WelcomeScreenStateCommandEventArgs
  * @property {string} command - The command being invoked.
- * @property {boolean} showOnStartUp - Should the welcome screen be shown on start-up?
+ * @property {string?} systemType - Type of system, either 'smsgg', 'gb' or 'nes'.
+ * @property {string?} projectId - Project ID.
+ * @property {boolean?} showOnStartUp - Should the welcome screen be shown on start-up?
  * @exports
  */
+
+
+
+

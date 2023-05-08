@@ -1,14 +1,15 @@
-import EventDispatcher from "../components/eventDispatcher.js";
-import TemplateUtil from "../util/templateUtil.js";
+import EventDispatcher from "../../components/eventDispatcher.js";
+import TemplateUtil from "../../util/templateUtil.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
 const commands = {
-    exportCode: 'exportCode',
-    exportImage: 'exportImage'
+    changeTheme: 'changeTheme',
+    changeWelcomeOnStartUp: 'changeWelcomeOnStartUp',
+    changeDocumentationOnStartUp: 'changeDocumentationOnStartUp'
 }
 
-export default class ExportToolbar {
+export default class OptionsToolbar {
 
 
     static get Commands() {
@@ -32,26 +33,10 @@ export default class ExportToolbar {
 
         this.#dispatcher = new EventDispatcher();
 
-        this.#element.querySelectorAll('button[data-command]').forEach(element => {
-            element.onclick = () => {
-                const args = this.#createArgs(element.getAttribute('data-command'));
-                this.#dispatcher.dispatch(EVENT_OnCommand, args);
-            };
-        });
-
-        // Prevent pressing 'Enter' on the title field from submitting.
-        this.#element.querySelectorAll(`[data-command=${commands.title}]`).forEach(element => {
+        this.#element.querySelectorAll('[data-command]').forEach(element => {
             element.onchange = () => {
                 const args = this.#createArgs(element.getAttribute('data-command'));
-                args.title = element.value;
                 this.#dispatcher.dispatch(EVENT_OnCommand, args);
-            };
-            element.onkeydown = (keyEvent) => {
-                if (keyEvent.code === 'Enter') {
-                    element.onchange();
-                    keyEvent.stopImmediatePropagation();
-                    return false;
-                }
             };
         });
     }
@@ -60,17 +45,17 @@ export default class ExportToolbar {
     /**
      * Creates an instance of the object inside a container element.
      * @param {HTMLElement} element - Container element.
-     * @returns {Promise<ExportToolbar>}
+     * @returns {Promise<OptionsToolbar>}
      */
-     static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('exportToolbar', element);
-        return new ExportToolbar(componentElement);
+    static async loadIntoAsync(element) {
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('toolbars/optionsToolbar', element);
+        return new OptionsToolbar(componentElement);
     }
 
 
     /**
      * Updates the state of the object.
-     * @param {ExportToolbarState} state - State to set.
+     * @param {OptionsToolbarState} state - State to set.
      */
     setState(state) {
         if (typeof state?.enabled === 'boolean') {
@@ -97,12 +82,24 @@ export default class ExportToolbar {
                 }
             });
         }
+
+        if (typeof state?.theme === 'string') {
+            this.#element.querySelector(`[data-command=${commands.changeTheme}]`).value = state.theme;
+        }
+
+        if (typeof state?.welcomeOnStartUp === 'boolean') {
+            this.#element.querySelector(`[data-command=${commands.changeWelcomeOnStartUp}]`).checked = state.welcomeOnStartUp;
+        }
+
+        if (typeof state?.documentationOnStartUp === 'boolean') {
+            this.#element.querySelector(`[data-command=${commands.changeDocumentationOnStartUp}]`).checked = state.documentationOnStartUp;
+        }
     }
 
 
     /**
      * Registers a handler for a toolbar command.
-     * @param {ExportToolbarCommandCallback} callback - Callback that will receive the command.
+     * @param {OptionsToolbarCommandCallback} callback - Callback that will receive the command.
      */
     addHandlerOnCommand(callback) {
         this.#dispatcher.on(EVENT_OnCommand, callback);
@@ -111,11 +108,14 @@ export default class ExportToolbar {
 
     /**
      * @param {string} command
-     * @returns {ExportToolbarCommandEventArgs}
+     * @returns {OptionsToolbarCommandEventArgs}
      */
     #createArgs(command) {
         return {
-            command: command
+            command: command,
+            theme: this.#element.querySelector(`[data-command=${commands.changeTheme}]`).value,
+            welcomeOnStartUp: this.#element.querySelector(`[data-command=${commands.changeWelcomeOnStartUp}]`).checked,
+            documentationOnStartUp: this.#element.querySelector(`[data-command=${commands.changeDocumentationOnStartUp}]`).checked
         };
     }
 
@@ -124,22 +124,28 @@ export default class ExportToolbar {
 
 
 /**
- * Export toolbar state.
- * @typedef {object} ExportToolbarState
+ * State object.
+ * @typedef {object} OptionsToolbarState
  * @property {string[]?} enabledCommands - Array of commands that should be enabled, overrided enabled state.
  * @property {string[]?} disabledCommands - Array of commands that should be disabled, overrided enabled state.
  * @property {boolean?} enabled - Is the control enabled or disabled?
+ * @property {string?} theme - Selected theme.
+ * @property {boolean?} welcomeOnStartUp - Welcome screen on start-up.
+ * @property {boolean?} documentationOnStartUp - Documentation on start-up.
  */
 
 /**
- * Export toolbar callback.
- * @callback ExportToolbarCommandCallback
- * @param {ExportToolbarCommandEventArgs} args - Arguments.
+ * Command callback.
+ * @callback OptionsToolbarCommandCallback
+ * @param {OptionsToolbarCommandEventArgs} args - Arguments.
  * @exports
  */
 /**
- * @typedef {object} ExportToolbarCommandEventArgs
+ * @typedef {object} OptionsToolbarCommandEventArgs
  * @property {string} command - The command being invoked.
+ * @property {string} theme - The theme to change to.
+ * @property {boolean} welcomeOnStartUp - Welcome screen on start-up.
+ * @property {boolean} documentationOnStartUp - Documentation on start-up.
  * @exports
  */
 
