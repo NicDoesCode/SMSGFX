@@ -42,10 +42,6 @@ export default class TemplateUtil {
             element.after(clonedComponent);
             element.remove();
             return clonedComponent;
-            // while (element.hasChildNodes()) {
-            //     element.childNodes[0].remove();
-            // }
-            // element.appendChild(clonedComponent);
         } else {
             console.error(`Failed to load component '${componentName}'.`);
             return element;
