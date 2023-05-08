@@ -110,10 +110,6 @@ export default class ColourPickerToolbox {
      * @param {ColourPickerToolboxState} state - State to set.
      */
     setState(state) {
-        if (typeof state?.showTab === 'string') {
-            this.#currentTab = (['sms', 'rgb', 'gb', 'nes'].includes(state.showTab)) ? state.showTab : 'rgb';
-            this.#showCurrentTab();
-        }
         if (typeof state?.r === 'number') {
             if (state.r < 0 || state.r > 255) throw new Error('Red colour value must be between 0 and 255.');
             this.#r = state.r;
@@ -143,6 +139,10 @@ export default class ColourPickerToolbox {
             document.querySelectorAll('[data-colour-toolbox-tab]').forEach(elm => {
                 elm.style.display = state.visibleTabs.includes(elm.getAttribute('data-colour-toolbox-tab')) ? null : 'none';
             });
+        }
+        if (typeof state?.showTab === 'string') {
+            this.#currentTab = (['sms', 'rgb', 'gb', 'nes'].includes(state.showTab)) ? state.showTab : 'rgb';
+            this.#showCurrentTab();
         }
     }
 
