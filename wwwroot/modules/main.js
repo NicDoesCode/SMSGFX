@@ -1389,6 +1389,9 @@ function getUIState() {
 }
 
 function formatForProject() {
+
+    instanceState.colourIndex = 0;
+
     const palette = getPalette();
     const tileSet = getTileSet();
     const colour = palette.getColour(instanceState.colourIndex);
