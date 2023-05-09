@@ -1252,7 +1252,7 @@ function welcomeScreenOnCommand(args) {
 
         case WelcomeScreen.Commands.projectNew:
             newProject({
-                systemType: getProject()?.systemType ?? 'smsgg'
+                systemType: args.systemType ?? 'smsgg'
             });
             break;
 
