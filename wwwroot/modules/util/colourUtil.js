@@ -175,7 +175,7 @@ export default class ColourUtil {
             gameBoyPalette = [];
             const colourShades = [0, 85, 170, 255];
             colourShades.forEach(c => {
-                gameBoyPalette.push({ c, c, c });
+                gameBoyPalette.push({ r: c, g: c, b: c });
             });
         }
         return gameBoyPalette;

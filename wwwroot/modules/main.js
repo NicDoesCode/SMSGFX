@@ -590,10 +590,12 @@ function handleProjectDropdownOnCommand(args) {
             newProject({
                 systemType: args.systemType ?? 'smsgg'
             });
+            projectDropdown.setState({ visible: false });
             break;
 
         case ProjectDropdown.Commands.projectLoadFromFile:
             importProjectFromJson();
+            projectDropdown.setState({ visible: false });
             break;
 
         case ProjectDropdown.Commands.projectSaveToFile:
@@ -603,6 +605,7 @@ function handleProjectDropdownOnCommand(args) {
         case ProjectDropdown.Commands.projectLoadById:
             const project = projects.getProjectById(args.projectId);
             state.setProject(project);
+            projectDropdown.setState({ visible: false });
             break;
 
         case ProjectDropdown.Commands.projectDelete:
@@ -1389,12 +1392,15 @@ function getUIState() {
 }
 
 function formatForProject() {
+
+    instanceState.colourIndex = 0;
+
     const palette = getPalette();
     const tileSet = getTileSet();
     const colour = palette.getColour(instanceState.colourIndex);
     const visibleTabs = [];
     switch (getPalette().system) {
-        case 'ms', 'gg': visibleTabs.push('rgb', 'sms'); break;
+        case 'ms': case 'gg': visibleTabs.push('rgb', 'sms'); break;
         case 'nes': visibleTabs.push('nes'); break;
         case 'gb': visibleTabs.push('gb'); break;
     }

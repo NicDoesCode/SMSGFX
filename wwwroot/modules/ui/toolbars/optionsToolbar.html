@@ -1,36 +1,36 @@
 <div data-smsgfx-component="toolbars/optionsToolbar" class="input-group input-group-sm border-secondary"
     data-smsgfx-theme-light="bg-white text-dark" data-smsgfx-theme-dark="bg-dark">
-    <button 
-        data-command="showDropdown" 
-        class="btn btn-outline-secondary dropdown-toggle border-secondary" 
-        type="button"
-        data-bs-toggle="dropdown" 
-        aria-expanded="false" 
-        data-smsgfx-theme-light="bg-light text-dark"
-        data-smsgfx-theme-dark="bg-dark" 
-        data-bs-auto-close="outside">
+    <button data-command="showDropdown" class="btn btn-outline-secondary dropdown-toggle border-secondary" type="button"
+        data-bs-toggle="dropdown" aria-expanded="false" data-smsgfx-theme-light="bg-light text-dark"
+        data-smsgfx-theme-dark="bg-dark" data-bs-auto-close="outside">
         <i class="bi bi-gear-fill"></i>
     </button>
-    <div class="dropdown-menu dropdown-menu-end text-small p-3" style="min-width: 200px;">
-        <h4>Options</h4>
+    <div class="dropdown-menu dropdown-menu-end text-small p-3" style="min-width: 250px;">
+        <h5 class="m-0 mb-2 pb-2 border-bottom">Options</h5>
         <div class="mb-3">
-            <label for="optionsThemeSelect" class="form-label">Interface theme</label>
-            <select data-command="changeTheme" id="optionsThemeSelect" class="form-select" aria-label="Theme select.">
+            <p class="p-0 m-0 mb-1">Interface theme</p>
+            <select data-command="changeTheme" id="optionsThemeSelect" class="form-select form-select-sm"
+                aria-label="Theme select.">
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
                 <option value="system">System</option>
             </select>
         </div>
         <div class="mb-3">
-            <div class="form-check form-switch">
-                <input data-command="changeWelcomeOnStartUp" class="form-check-input" type="checkbox" role="switch" id="optionsWelcomeOnStartUp">
-                <label class="form-check-label" for="optionsWelcomeOnStartUp">Welcome screen on start-up?</label>
+            <p class="p-0 m-0 mb-1">Start-up options</p>
+            <div class="form-check form-switch mb-2">
+                <input data-command="changeWelcomeOnStartUp" class="form-check-input" type="checkbox" role="switch"
+                    id="optionsWelcomeOnStartUp">
+                <label class="form-check-label" for="optionsWelcomeOnStartUp">
+                    <small>Show welcome screen</small>
+                </label>
             </div>
-        </div>
-        <div class="mb-3">
             <div class="form-check form-switch">
-                <input data-command="changeDocumentationOnStartUp" class="form-check-input" type="checkbox" role="switch" id="optionsDocumentationOnStartUp">
-                <label class="form-check-label" for="optionsDocumentationOnStartUp">Documentation on start-up?</label>
+                <input data-command="changeDocumentationOnStartUp" class="form-check-input" type="checkbox"
+                    role="switch" id="optionsDocumentationOnStartUp">
+                <label class="form-check-label" for="optionsDocumentationOnStartUp">
+                    <small>Show documentation</small>
+                </label>
             </div>
         </div>
     </div>

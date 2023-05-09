@@ -1,6 +1,7 @@
 import EventDispatcher from "../components/eventDispatcher.js";
 import ColourUtil from "../util/colourUtil.js";
 import TemplateUtil from "../util/templateUtil.js";
+import ColourPaletteList from "./components/colourPaletteList.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -44,6 +45,12 @@ export default class ColourPickerToolbox {
     #currentTab;
     #dispatcher;
     #enabled = true;
+    /** @type {ColourPaletteList} */
+    #smsColourPaletteList = null;
+    /** @type {ColourPaletteList} */
+    #gbColourPaletteList = null;
+    /** @type {ColourPaletteList} */
+    #nesColourPaletteList = null;
 
 
     /**
@@ -87,9 +94,40 @@ export default class ColourPickerToolbox {
             }
         });
 
-        this.#makeSMSColourButtons();
-        this.#makeGBColourButtons();
-        this.#makeNESColourButtons();
+        this.#loadPaletteListIfNotLoaded(this.#smsColourPaletteList, 'colour-palette-list-sms').then((control) => {
+            if (control) {
+                this.#smsColourPaletteList = control;
+                this.#smsColourPaletteList.setState({
+                    colours: ColourUtil.getFullMasterSystemPalette(),
+                    direction: 'row',
+                    coloursPerRow: 8
+                });
+            }
+        });
+
+        this.#loadPaletteListIfNotLoaded(this.#gbColourPaletteList, 'colour-palette-list-gb').then((control) => {
+            if (control) {
+                this.#gbColourPaletteList = control;
+                this.#gbColourPaletteList.setState({
+                    colours: ColourUtil.getFullGameBoyPalette(),
+                    direction: 'row',
+                    coloursPerRow: 4
+                });
+            }
+        });
+
+        this.#loadPaletteListIfNotLoaded(this.#nesColourPaletteList, 'colour-palette-list-nes').then((control) => {
+            if (control) {
+                this.#nesColourPaletteList = control;
+                this.#nesColourPaletteList.setState({
+                    colours: ColourUtil.getFullNESPalette(),
+                    direction: 'column-reverse',
+                    coloursPerRow: 14,
+                    buttonHeight: '10px'
+                });
+            }
+        });
+
         this.#showCurrentTab();
     }
 
@@ -129,10 +167,9 @@ export default class ColourPickerToolbox {
             this.#element.querySelectorAll('input').forEach(element => {
                 element.disabled = !this.#enabled;
             });
-            const box = this.#element.querySelector('[data-smsgfx-id=smsColourPalette]');
-            box.querySelectorAll('button[data-colour-hex]').forEach(element => {
-                element.disabled = !this.#enabled;
-            });
+            this.#smsColourPaletteList.setState({ enabled: this.#enabled });
+            this.#gbColourPaletteList.setState({ enabled: this.#enabled });
+            this.#nesColourPaletteList.setState({ enabled: this.#enabled });
         }
 
         if (Array.isArray(state?.visibleTabs)) {
@@ -175,85 +212,32 @@ export default class ColourPickerToolbox {
     }
 
 
-    #makeSMSColourButtons() {
-        const colourValues = [0, 85, 170, 255];
-        const colours = [];
-        colourValues.forEach(b => {
-            colourValues.forEach(g => {
-                colourValues.forEach(r => {
-                    colours.push({ r, g, b });
+    /**
+     * @param {ColourPaletteList} colourPaletteListControl 
+     * @param {string} componentId 
+     */
+    async #loadPaletteListIfNotLoaded(colourPaletteListControl, componentId) {
+        let result = null;
+        if (!colourPaletteListControl) {
+            const containerElement = this.#element.querySelector(`[data-smsgfx-component-id=${componentId}]`);
+            if (containerElement) {
+                result = await ColourPaletteList.loadIntoAsync(containerElement);
+                result.addHandlerOnCommand((args) => {
+                    switch (args.command) {
+                        case ColourPaletteList.Commands.colourSelect:
+                            const hex = ColourUtil.toHex(args.r, args.g, args.b);
+                            this.#r = args.r;
+                            this.#g = args.g;
+                            this.#b = args.b;
+                            this.#tbColourToolboxHex.value = hex;
+                            this.#setAllValues();
+                            this.#handleColourChanged();
+                            break;
+                    }
                 });
-            });
-        });
-        const smsColourContainer = this.#element.querySelector('[data-smsgfx-id=smsColourContainer]');
-        const box = smsColourContainer.querySelector('[data-smsgfx-id=smsColourPalette]');
-        colours.forEach(colour => {
-            const colourHex = ColourUtil.toHex(colour.r, colour.g, colour.b);
-            const btn = document.createElement('button');
-            btn.setAttribute('data-colour-hex', colourHex);
-            btn.style.backgroundColor = colourHex;
-            btn.onclick = () => {
-                this.#r = colour.r;
-                this.#g = colour.g;
-                this.#b = colour.b;
-                this.#tbColourToolboxHex.value = colourHex;
-                this.#setAllValues();
-                this.#handleColourChanged();
-            };
-            box.appendChild(btn);
-        });
-    }
-
-    #makeGBColourButtons() {
-        const colourValues = [0, 85, 170, 255];
-        const colours = [];
-        colourValues.forEach(c => {
-            colours.push({ r: c, g: c, b: c });
-        });
-        const gbColourContainer = this.#element.querySelector('[data-smsgfx-id=gbColourContainer]');
-        const box = gbColourContainer.querySelector('[data-smsgfx-id=gbColourPalette]');
-        colours.forEach(colour => {
-            const colourHex = ColourUtil.toHex(colour.r, colour.g, colour.b);
-            const btn = document.createElement('button');
-            btn.setAttribute('data-colour-hex', colourHex);
-            btn.style.backgroundColor = colourHex;
-            btn.onclick = () => {
-                this.#r = colour.r;
-                this.#g = colour.g;
-                this.#b = colour.b;
-                this.#tbColourToolboxHex.value = colourHex;
-                this.#setAllValues();
-                this.#handleColourChanged();
-            };
-            box.appendChild(btn);
-        });
-    }
-
-    #makeNESColourButtons() {
-        const colours = ColourUtil.getFullNESPalette();
-        const nesColourContainer = this.#element.querySelector('[data-smsgfx-id=nesColourContainer]');
-        const box = nesColourContainer.querySelector('[data-smsgfx-id=nesColourPalette]');
-        let boxRow;
-        colours.forEach((colour, index, array) => {
-            if (index % 14 === 0) {
-                boxRow = document.createElement('div');
-                boxRow.classList.add('sms-colour-box-row');
-                box.appendChild(boxRow);
             }
-            const colourHex = ColourUtil.toHex(colour.r, colour.g, colour.b);
-            const btn = document.createElement('button');
-            btn.setAttribute('data-colour-hex', colourHex);
-            btn.style.backgroundColor = colourHex;
-            btn.onclick = () => {
-                this.#r = colour.r;
-                this.#g = colour.g;
-                this.#b = colour.b;
-                this.#tbColourToolboxHex.value = colourHex;
-                this.#setAllValues();
-                this.#handleColourChanged();
-            };
-            boxRow.appendChild(btn);
-        });
+        }
+        return result;
     }
 
 

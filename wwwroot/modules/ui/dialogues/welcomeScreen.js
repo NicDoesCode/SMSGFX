@@ -40,7 +40,6 @@ export default class WelcomeScreen {
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 
-
         this.#showOnStartupCheckbox = this.#element.querySelector('[data-smsgfx-id=showOnStartup]');
 
         this.#showOnStartupCheckbox.onchange = (ev) => {
@@ -128,7 +127,7 @@ export default class WelcomeScreen {
             if (this.#projectListing) {
                 this.#projectListing.setState({
                     projects: state.projects,
-                    height: '148px',
+                    height: '100%',
                     showDelete: false
                 });
             }

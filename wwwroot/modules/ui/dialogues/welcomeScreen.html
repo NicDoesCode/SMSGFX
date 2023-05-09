@@ -1,14 +1,14 @@
 <div data-smsgfx-component="dialogues/welcomeScreen" class="sms-welcome-screen card" tabindex="-1">
-    <div class="card-header">
-        <h5 class="modal-title">Welcome to SMSGFX!</h5>
+    <div class="card-header border border-0">
+        <h5 class="modal-title m-0">Welcome to SMSGFX!</h5>
     </div>
     <div class="card-body">
         <div class="row">
-            <div class="col-6 border-end">
-                <h5 class="mb-0">Begin a new project</h5>
+            <div class="col-6 p-4 border-end">
+                <h4 class="mb-2">Begin a new project</h4>
                 <p class="m-0"><small>Choose a console below to get started.</small></p>
-                <div class="sms-project-create container p-0 m-0 mt-3 mb-3">
-                    <div class="row mb-2">
+                <div class="sms-project-create container p-0 m-0 mt-5 mb-3">
+                    <div class="row mb-4">
                         <div class="col">
                             <button type="button" class="btn btn-outline-secondary border border-0 w-100"
                                 data-command="projectNew" data-target-system-type="smsgg">
@@ -38,21 +38,21 @@
                     </div>
                 </div>
             </div>
-            <div class="col-6">
-                <h5 class="mb-0">Resume a project</h5>
+            <div class="col-6 p-4">
+                <h4 class="mb-2">Resume a project</h4>
                 <p class="m-0"><small>Projects in browser local storage.</small></p>
-                <div class="p-0 mt-2 mb-2">
+                <div class="p-0 mt-3 mb-2">
                     <div data-smsgfx-component-id="project-listing">
                     </div>
                 </div>
             </div>
         </div>
         <div class="row">
-            <div class="col-6 border-end">
+            <div class="col-6 p-4 pt-0 border-end">
                 <button type="button" class="btn btn-outline-secondary w-100 mt-2" data-command="tileImageImport">
                     <small>Load an image or sprite sheet</small></button>
             </div>
-            <div class="col-6">
+            <div class="col-6 p-4 pt-0">
                 <button type="button" class="btn btn-outline-secondary w-100 mt-2" data-command="projectLoadFromFile">
                     <small>Open project from a file</small></button>
             </div>
@@ -85,8 +85,7 @@
         .sms-welcome-screen {
             position: absolute;
             z-index: 10;
-            /* top: 200px; */
-            width: 600px;
+            width: 700px;
             height: min-content;
             top: 0;
             bottom: 0;
@@ -100,7 +99,17 @@
         }
 
         .sms-welcome-screen .card-header {
-            background-image: url(/assets/image/header.png);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 100%),
+                url(/assets/image/header.png);
+            background-size: 100% auto;
+            background-position: center center;
+        }
+
+        [data-bs-theme=dark] .sms-welcome-screen .card-header {
+            background:
+                linear-gradient(180deg, rgba(33,37,41,0) 0%, rgba(33,37,41,1) 100%),
+                url(/assets/image/header.png);
             background-size: 100% auto;
             background-position: center center;
         }

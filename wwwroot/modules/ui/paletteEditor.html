@@ -13,13 +13,13 @@
     <!-- End: Palette editor : header -->
     <div class="sms-palette sms-smaller-font card mt-2">
         <!-- Palette editor : palette select and title -->
-        <div class="card-header">
+        <div class="card-header p-0">
             <select data-command="paletteSelect" class="form-select d-none">
             </select>
             <div class="input-group input-group-sm">
-                <input data-command="paletteTitle" type="text" class="form-control" aria-label="Enter name"
+                <input data-command="paletteTitle" type="text" class="form-control border border-0" aria-label="Enter name"
                     list="tbPaletteSelect">
-                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                <button class="btn btn-outline-secondary dropdown-toggle border border-0 border-start" type="button" data-bs-toggle="dropdown"
                     aria-expanded="false"></button>
                 <ul data-linked-command="paletteSelect" class="sms-dropdown-menu dropdown-menu dropdown-menu-end">
                 </ul>
@@ -56,12 +56,11 @@
                             </button>
                         </li>
                     </ul>
-                    <hr>
                 </div>
             </div>
             <!-- Palette editor : colours -->
             <div class="row">
-                <div class="col">
+                <div class="col pt-0 pb-0">
                     <div class="sms-palette-colours table-responsive table-borderless" id="tbPalette">
                         <table class="table table-sm m-0">
                             <tbody>
@@ -82,14 +81,15 @@
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col text-center">
-                    <hr>
-                    <button data-command="paletteClone" class="btn btn-sm btn-outline-secondary me-2" type="button">
-                        <i class="bi bi-file-earmark-plus"></i> Clone
+            <div class="row mt-1 mb-0 ps-3 pe-3">
+                <div class="col p-1">
+                    <button data-command="paletteClone" class="btn btn-sm btn-outline-secondary m-0 w-100" type="button">
+                        <i class="bi bi-file-earmark-plus"></i> <small>Clone</small>
                     </button>
-                    <button data-command="paletteDelete" class="btn btn-sm btn-outline-secondary" type="button">
-                        <i class="bi bi bi-trash-fill"></i> Remove
+                </div>
+                <div class="col p-1">
+                    <button data-command="paletteDelete" class="btn btn-sm btn-outline-secondary m-0 w-100" type="button">
+                        <i class="bi bi bi-trash-fill"></i> <small>Remove</small>
                     </button>
                 </div>
             </div>
