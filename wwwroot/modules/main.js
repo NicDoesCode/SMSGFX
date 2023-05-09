@@ -1400,7 +1400,7 @@ function formatForProject() {
     const colour = palette.getColour(instanceState.colourIndex);
     const visibleTabs = [];
     switch (getPalette().system) {
-        case 'ms', 'gg': visibleTabs.push('rgb', 'sms'); break;
+        case 'ms': case 'gg': visibleTabs.push('rgb', 'sms'); break;
         case 'nes': visibleTabs.push('nes'); break;
         case 'gb': visibleTabs.push('gb'); break;
     }
