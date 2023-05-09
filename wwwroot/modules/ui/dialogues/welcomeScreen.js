@@ -128,7 +128,7 @@ export default class WelcomeScreen {
             if (this.#projectListing) {
                 this.#projectListing.setState({
                     projects: state.projects,
-                    height: '148px',
+                    height: '100%',
                     showDelete: false
                 });
             }
