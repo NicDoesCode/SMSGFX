@@ -96,7 +96,7 @@ export default class PaletteEditor {
             };
         });
 
-        this.#createPaletteColourIndexButtons();
+        // this.#createPaletteColourIndexButtons();
 
         PaletteEditorContextMenu.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=palette-editor-context-menu]'))
             .then((obj) => {
@@ -111,7 +111,7 @@ export default class PaletteEditor {
      * @param {HTMLElement} element - Container element.
      * @returns {Promise<PaletteEditor>}
      */
-     static async loadIntoAsync(element) {
+    static async loadIntoAsync(element) {
         const componentElement = await TemplateUtil.replaceElementWithComponentAsync('paletteEditor', element);
         return new PaletteEditor(componentElement);
     }
@@ -326,16 +326,19 @@ export default class PaletteEditor {
 
     /**
      * Displays a given palette to the screen.
-     * @param {Palette} palette The palette to show on the buttons.
+     * @param {Palette} palette - The palette to show on the buttons.
      */
     #setPalette(palette) {
+        this.#createPaletteColourIndexButtons(palette);
+        this.#setUI(palette);
         const paletteButtons = this.#paletteButtons;
-        for (let i = 0; i < 16; i++) {
+        for (let i = 0; i < paletteButtons.length; i++) {
             if (i < palette.getColours().length) {
                 const displayNative = this.#getElement(commands.displayNativeColours)?.checked ?? false;
                 const c = palette.getColour(i);
                 if (displayNative) {
-                    paletteButtons[i].style.backgroundColor = ColourUtil.toNativeHex(palette.system, c.r, c.g, c.b);
+                    const nativeColour = ColourUtil.getClosestNativeColour(palette.system, c.r, c.g, c.b);
+                    paletteButtons[i].style.backgroundColor = ColourUtil.toHex(nativeColour.r, nativeColour.g, nativeColour.b);
                 } else {
                     paletteButtons[i].style.backgroundColor = ColourUtil.toHex(c.r, c.g, c.b);
                 }
@@ -343,20 +346,35 @@ export default class PaletteEditor {
                 paletteButtons[i].style.backgroundColor = null;
             }
         }
-        this.#getElements(commands.paletteTitle).forEach(element => element.value = palette.title);
-        this.#getElements(commands.paletteSystem).forEach(element => element.value = palette.system);
+        this.#getElements(commands.paletteTitle).forEach((element) => {
+            element.value = palette.title
+        });
+        this.#getElements(commands.paletteSystem).forEach((element) => {
+            element.value = palette.system;
+        });
         this.#updateSystemSelectVirtualList(palette.system);
     }
 
-    #createPaletteColourIndexButtons() {
+    /**
+     * @param {Palette} palette - The palette to show on the buttons.
+     */
+    #createPaletteColourIndexButtons(palette) {
 
         /** @type {HTMLTableElement} */
         const table = this.#element.querySelector('#tbPalette');
         /** @type {HTMLTableSectionElement} */
         const tbody = table.querySelector('tbody');
 
+        while (tbody.firstChild) {
+            tbody.removeChild(tbody.firstChild);
+        }
+        this.#paletteCells = [];
+        this.#paletteButtons = [];
+
+        const totalColours = palette.getColours().length;
+
         let tr, td;
-        for (let idx = 0; idx < 16; idx++) {
+        for (let idx = 0; idx < totalColours; idx++) {
 
             if (idx % 4 === 0) {
                 tr = document.createElement('tr');
@@ -400,6 +418,24 @@ export default class PaletteEditor {
     }
 
     /**
+     * @param {Palette} palette - The palette to show on the buttons.
+     */
+    #setUI(palette) {
+        document.querySelectorAll('[data-smsgfx-id=system-select]').forEach(elm => {
+            switch (palette.system) {
+                case 'sms' : case 'gg': elm.style.display = null; break;
+                case 'gb': elm.style.display = 'none'; break;
+                case 'nes': elm.style.display = 'none'; break;
+            }
+        });
+        if (palette.system === 'nes') {
+            this.#element.querySelector('[data-smsgfx-id=emulate-system-colours]').style.display = 'none';
+        } else {
+            this.#element.querySelector('[data-smsgfx-id=emulate-system-colours]').style.display = null;
+        }
+    }
+
+    /**
      * @param {number} colourIndex
      */
     #selectPaletteColour(colourIndex) {
@@ -439,7 +475,7 @@ export default class PaletteEditor {
  * @typedef {object} PaletteEditorState
  * @property {PaletteList?} paletteList - Current list of palettes.
  * @property {string?} title - Title of the palette.
- * @property {string?} selectedSystem - Sets the selected system, either 'ms' or 'gg'.
+ * @property {string?} selectedSystem - Sets the selected system, either 'ms', 'gg', 'gb' or 'nes'.
  * @property {number?} selectedPaletteIndex - Sets the selected palette index.
  * @property {number?} selectedColourIndex - Sets the selected colour index.
  * @property {number?} highlightedColourIndex - Sets the selected colour index.
@@ -458,9 +494,9 @@ export default class PaletteEditor {
  * @property {string} command - The command being invoked.
  * @property {number?} paletteIndex - Index of the selected palette.
  * @property {string?} paletteTitle - Title value for the selected palette.
- * @property {string?} paletteSystem - Selected system value for the selected palette, either 'ms' or 'gg'.
+ * @property {string?} paletteSystem - Selected system value for the selected palette, either 'ms', 'gg', 'gb' or 'nes'.
  * @property {number?} colourIndex - Index from 0 to 15 for the given colour.
- * @property {number?} targetColourIndex - Target palette colour index from 0 to 15.
+ * @property {number?} targetColourIndex - Target palette colour index from 0 to 15 for 'sms' and 'gg', 0 to 3 for 'gb' or 'nes'.
  * @property {boolean?} displayNative - Display native colours for system?
  * @exports
  */

@@ -1,0 +1,42 @@
+<div data-smsgfx-component="dialogues/exportModalDialogue" data-smsgfx-id="modal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Export assembly code</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Copy and paste the following to use it in your WLA-DX project.</p>
+                <div class="mb-3">
+                    <textarea data-smsgfx-id="export-text" class="form-control text-monospace"
+                        style="font-family:monospace; font-size: 0.8em" rows="16"></textarea>
+                </div>
+                <div class="input-group mb-3">
+                    <span class="input-group-text">Tile map</span>
+                    <div class="input-group-text">
+                        <input class="form-check-input mt-0" type="checkbox" value=""
+                            aria-label="Checkbox for following text input" id="optimiseTileMap"
+                            data-smsgfx-id="optimise-tile-map" data-command="valueChanged">
+                        <label class="form-check-label ms-2" for="optimiseTileMap">
+                            Optimise?
+                        </label>
+                    </div>
+                    <span class="input-group-text">Palette index</span>
+                    <select class="form-select" data-smsgfx-id="palette-index" data-command="valueChanged">
+                        <option value="0" selected>0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                    </select>
+                    <span class="input-group-text">VRAM memory offset (bytes)</span>
+                    <input type="number" min="0" max="255" class="form-control" placeholder="Enter number of bytes"
+                        aria-label="Enter number of bytes." value="0" data-smsgfx-id="memory-offset"
+                        data-command="valueChanged">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

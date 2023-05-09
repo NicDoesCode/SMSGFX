@@ -1,0 +1,104 @@
+<div data-smsgfx-component="dialogues/projectDropdown" data-smsgfx-id="modal" class="sms-project-dropdown modal fade"
+    tabindex="-1">
+    <div class="modal-dialog mt-0">
+        <div class="modal-content rounded-0 rounded-bottom">
+            <div class="modal-header pt-2 pb-2">
+                <div data-smsgfx-id="this-project" class="mx-auto input-group input-group-sm">
+                    <span class="input-group-text border-secondary" data-smsgfx-theme-light="bg-light text-dark"
+                        data-smsgfx-theme-dark="bg-dark text-reset">
+                        <strong>Current project</strong>
+                    </span>
+                    <input data-command="title" type="text" class="form-control border-secondary"
+                        placeholder="Project title" aria-label="Project title">
+                    <button data-command="projectSaveToFile" class="btn btn-sm btn-outline-secondary"
+                        title="Save project to file." type="button">
+                        <i class="bi bi-download"></i> Save to file
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body">
+
+                <div data-smsgfx-id="new-project" class="sms-project-create border-bottom pb-2 mb-4">
+                    <h5>Create project</h5>
+                    <div class="d-flex justify-content-start p-2">
+                        <button type="button" class="btn btn-secondary flex-fill me-2 p-3" data-command="projectNew"
+                            data-target-system-type="smsgg">
+                            <img src="assets/image/game-gear-console.svg" alt="Sega Game Gear.">
+                        </button>
+                        <button type="button" class="btn btn-secondary flex-fill me-2 p-3" data-command="projectNew"
+                            data-target-system-type="smsgg">
+                            <img src="assets/image/master-system-console.svg" alt="Sega Master System.">
+                        </button>
+                        <button type="button" class="btn btn-secondary flex-fill me-2 p-3" data-command="projectNew"
+                            data-target-system-type="nes">
+                            <img src="assets/image/nes.svg" alt="Nintendo Entertainment System.">
+                        </button>
+                        <button type="button" class="btn btn-secondary flex-fill p-3" data-command="projectNew"
+                            data-target-system-type="gb">
+                            <img src="assets/image/game-boy.svg" alt="Nintendo Game Boy.">
+                        </button>
+                    </div>
+                </div>
+
+                <div data-smsgfx-id="load-project" class="sms-project-load pb-1">
+                    <div class="row mb-3">
+                        <div class="col">
+                            <h5>Resume project</h5>
+                        </div>
+                        <div class="col text-end">
+                            <button data-command="projectLoadFromFile" class="btn btn-sm btn-outline-secondary"
+                                title="Load project from file." type="button">
+                                <i class="bi bi-upload"></i> Load from file
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <div data-smsgfx-component-id="project-listing">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <div class="row m-0 p-0">
+                    <div class="col m-0 p-0 text-start">
+                        <button type="button" class="btn btn-sm btn-link" data-command="showWelcomeScreen">Show welcome
+                            screen</button>
+                    </div>
+                    <div class="col-auto m-0 p-0 text-end">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <style data-css-scope="global">
+        .sms-project-dropdown .sms-project-create button {
+            min-width: 90px;
+        }
+
+        .sms-project-dropdown .sms-project-create button img {
+            max-height: 30px;
+        }
+
+        .sms-project-dropdown .sms-project-load .sms-project-list {
+            height: 190px;
+            overflow-y: scroll;
+        }
+
+        .sms-project-dropdown .sms-project-load .sms-project-list li {
+            font-size: 0.9em;
+        }
+
+        .sms-project-dropdown .sms-project-load .sms-project-list li [data-field=console] {
+            width: 50px;
+        }
+
+        .sms-project-dropdown .sms-project-load .sms-project-list li [data-field=console] img {
+            max-height: 20px;
+        }
+
+    </style>
+</div>

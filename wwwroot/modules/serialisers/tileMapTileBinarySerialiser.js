@@ -1,8 +1,4 @@
-import TileSetFactory from '../factory/tileSetFactory.js';
-import TileSet from '../models/tileSet.js';
-import TileMap from '../models/tileMap.js';
 import TileMapTile from '../models/tileMapTile.js';
-import TileBinarySerialiser from './tileBinarySerialiser.js';
 
 export default class TileMapTileBinarySerialiser {
 
@@ -13,13 +9,7 @@ export default class TileMapTileBinarySerialiser {
      * @returns {number}
      */
      static serialise(tileMapTile) {
-        let result = tileMapTile.tileNumber;
-        result &= 511;
-        if (tileMapTile.horizontalFlip) result |= 512;
-        if (tileMapTile.verticalFlip) result |= 1024;
-        if (tileMapTile.palette === 1) result |= 2048;
-        if (tileMapTile.priority) result |= 4096;
-        return result;
+        throw new Error('This method is not implemented.');
     }
 
 

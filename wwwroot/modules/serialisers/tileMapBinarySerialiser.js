@@ -1,9 +1,4 @@
-import TileSetFactory from '../factory/tileSetFactory.js';
-import TileSet from '../models/tileSet.js';
 import TileMap from '../models/tileMap.js';
-import TileMapTile from '../models/tileMapTile.js';
-import TileBinarySerialiser from './tileBinarySerialiser.js';
-import TileMapTileBinarySerialiser from './tileMapTileBinarySerialiser.js';
 
 export default class TileMapBinarySerialiser {
 
@@ -14,9 +9,7 @@ export default class TileMapBinarySerialiser {
      * @returns {number[]}
      */
     static serialise(tileMap) {
-        return tileMap.tiles.map((tile) => {
-            return TileMapTileBinarySerialiser.serialise(tile);
-        });
+        throw new Error('This method is not implemented.');
     }
 
 

@@ -134,13 +134,13 @@ export default class PersistentUIState {
     }
 
     /**
-     * Gets or sets whether the project exports a tile map.
+     * Gets or sets whether the project exports an optimised tile map.
      */
-    get exportGenerateTileMap() {
-        return this.#exportGenerateTileMap;
+    get exportOptimiseTileMap() {
+        return this.#exportOptimiseTileMap;
     }
-    set exportGenerateTileMap(value) {
-        this.#exportGenerateTileMap = value;
+    set exportOptimiseTileMap(value) {
+        this.#exportOptimiseTileMap = value;
     }
 
     /**
@@ -150,7 +150,7 @@ export default class PersistentUIState {
         return this.#exportTileMapPaletteIndex;
     }
     set exportTileMapPaletteIndex(value) {
-        if ([0, 1].includes(value)) {
+        if ([0, 1, 2, 3].includes(value)) {
             this.#exportTileMapPaletteIndex = value;
         }
     }
@@ -195,7 +195,7 @@ export default class PersistentUIState {
     /** @type {string} */
     #theme = 'system';
     /** @type {boolean} */
-    #exportGenerateTileMap = false;
+    #exportOptimiseTileMap = true;
     /** @type {number} */
     #exportTileMapPaletteIndex = 0;
     /** @type {number} */

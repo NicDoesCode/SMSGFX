@@ -167,7 +167,7 @@ export default class State {
      */
     deleteProjectFromStorage(projectId) {
         if (projectId && rxProjectId.test(projectId)) {
-            const storageId = `${LOCAL_STORAGE_PROJECTS}${this.project.id}`;
+            const storageId = `${LOCAL_STORAGE_PROJECTS}${projectId}`;
             localStorage.removeItem(storageId);
             this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectListChanged));
 

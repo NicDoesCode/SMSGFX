@@ -38,15 +38,10 @@ module.exports = {
             inject: 'body'
         }),
         new HtmlWebpackPlugin({
-            templateContent: getUITemplates(),
+            templateContent: bundleHtmlTempatesIntoSingleFile(),
             filename: 'modules/ui/ui.html',
             inject: false,
             minify: false
-        }),
-        new HtmlWebpackPlugin({
-            template: './wwwroot/documentation/documentation.html',
-            filename: 'documentation.html',
-            inject: false
         }),
         new HtmlWebpackPlugin({
             template: './wwwroot/privacy.html',
@@ -67,13 +62,36 @@ module.exports = {
     ]
 }
 
-function getUITemplates() {
-    const files = fs.readdirSync(path.join(__dirname, 'wwwroot', 'modules', 'ui'));
-    const htmlFiles = files.filter((file) => /\.html$/i.test(file)).map(file => {
-        return path.join(__dirname, 'wwwroot', 'modules', 'ui', file)
-    });
-    const result = htmlFiles.map((file) => {
-        return fs.readFileSync(file);
+/**
+ * Scans for HTML files in the UI path and returns them as a single file.
+ * @returns {string}
+ */
+function bundleHtmlTempatesIntoSingleFile() {
+    const baseDirectory = path.join(__dirname, 'wwwroot', 'modules', 'ui');
+    const foundHtmlFiles = getHtmlFilesRecursive(baseDirectory, []);
+    const result = foundHtmlFiles.map((htmlFilePath) => {
+        return fs.readFileSync(htmlFilePath);
     });
     return result.join(' ');
+}
+
+/**
+ * Gets an array of HTML files from a path recursively.
+ * @param {string} directoryToScan - Directory to recursively scan for HTML files.
+ * @param {string[]} foundHtmlFiles - Array of files to append to.
+ * @returns {string[]}
+ */
+function getHtmlFilesRecursive(directoryToScan, foundHtmlFiles) {
+    const foundFiles = fs.readdirSync(directoryToScan);
+    foundFiles.forEach((foundFile) => {
+        const fullFilePath = path.join(directoryToScan, foundFile);
+        if (/\.html$/i.test(foundFile)) {
+            // If HTML file then add full path to array.
+            foundHtmlFiles.push(fullFilePath);
+        } else if (fs.statSync(fullFilePath).isDirectory()) {
+            // If directory then enter it and find more HTML files.
+            getHtmlFilesRecursive(fullFilePath, foundHtmlFiles);
+        }
+    });
+    return foundHtmlFiles;
 }

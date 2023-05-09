@@ -13,13 +13,13 @@
     <!-- End: Palette editor : header -->
     <div class="sms-palette sms-smaller-font card mt-2">
         <!-- Palette editor : palette select and title -->
-        <div class="card-header">
+        <div class="card-header p-0">
             <select data-command="paletteSelect" class="form-select d-none">
             </select>
             <div class="input-group input-group-sm">
-                <input data-command="paletteTitle" type="text" class="form-control" aria-label="Enter name"
+                <input data-command="paletteTitle" type="text" class="form-control border border-0" aria-label="Enter name"
                     list="tbPaletteSelect">
-                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                <button class="btn btn-outline-secondary dropdown-toggle border border-0 border-start" type="button" data-bs-toggle="dropdown"
                     aria-expanded="false"></button>
                 <ul data-linked-command="paletteSelect" class="sms-dropdown-menu dropdown-menu dropdown-menu-end">
                 </ul>
@@ -30,8 +30,9 @@
             <select data-command="paletteSystem" class="form-select form-select-sm visually-hidden">
                 <option value="ms">Master System</option>
                 <option value="gg">Game Gear</option>
+                <option value="gb">Game Boy</option>
             </select>
-            <div class="row mb-2">
+            <div data-smsgfx-id="system-select" class="row mb-2">
                 <div class="col">
                     <ul class="nav nav-pills nav-fill">
                         <li class="nav-item">
@@ -48,13 +49,18 @@
                                     class="sms-console-icon" />
                             </button>
                         </li>
+                        <li class="nav-item">
+                            <button data-linked-command="paletteSystem" data-value="gb" class="nav-link visually-hidden"
+                                title="This palette is for Nintendo Game Boy.">
+                                GB
+                            </button>
+                        </li>
                     </ul>
-                    <hr>
                 </div>
             </div>
             <!-- Palette editor : colours -->
             <div class="row">
-                <div class="col">
+                <div class="col pt-0 pb-0">
                     <div class="sms-palette-colours table-responsive table-borderless" id="tbPalette">
                         <table class="table table-sm m-0">
                             <tbody>
@@ -63,8 +69,8 @@
                     </div>
                 </div>
             </div>
-            <!-- End: Palette editor : colours -->
-            <div class="row">
+            <!-- End: Palette editor : emulate system colours -->
+            <div data-smsgfx-id="emulate-system-colours" class="row">
                 <div class="col">
                     <div class="form-check form-switch ms-2 mt-2">
                         <input id="displayNativeColours" data-command="displayNativeColours" class="form-check-input"
@@ -75,14 +81,15 @@
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col text-center">
-                    <hr>
-                    <button data-command="paletteClone" class="btn btn-sm btn-outline-secondary me-2" type="button">
-                        <i class="bi bi-file-earmark-plus"></i> Clone
+            <div class="row mt-1 mb-0 ps-3 pe-3">
+                <div class="col p-1">
+                    <button data-command="paletteClone" class="btn btn-sm btn-outline-secondary m-0 w-100" type="button">
+                        <i class="bi bi-file-earmark-plus"></i> <small>Clone</small>
                     </button>
-                    <button data-command="paletteDelete" class="btn btn-sm btn-outline-secondary" type="button">
-                        <i class="bi bi bi-trash-fill"></i> Remove
+                </div>
+                <div class="col p-1">
+                    <button data-command="paletteDelete" class="btn btn-sm btn-outline-secondary m-0 w-100" type="button">
+                        <i class="bi bi bi-trash-fill"></i> <small>Remove</small>
                     </button>
                 </div>
             </div>
@@ -93,4 +100,56 @@
     <div data-smsgfx-component-id="palette-editor-context-menu">
     </div>
     <!-- End: Palette editor context menu -->
+
+    <style data-css-scope="global">
+        .sms-palette .sms-palette-colours td {
+            border: none;
+        }
+
+        .sms-palette .sms-palette-colours button.sms-palette-button {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 45px;
+            border-radius: 5px;
+            border: 1px solid #6c757d;
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        .sms-palette .sms-palette-colours button.sms-palette-button span {
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.75);
+            color: #FFFFFF;
+            font-size: 0.75em;
+            font-weight: bold;
+            border: none;
+            box-sizing: border-box;
+            padding: 0;
+            width: 100%;
+        }
+
+        .sms-palette .sms-palette-colours td.sms-selected button.sms-palette-button {
+            border-color: #0d6efd;
+            box-shadow: 0px 0px 0px 1px #0d6efd;
+        }
+
+        .sms-palette .sms-palette-colours td.sms-selected button.sms-palette-button span {
+            background-color: #0d6efd;
+        }
+
+        .sms-palette .sms-palette-colours td.sms-highlight button {
+            box-shadow: 0px 0px 0px 3px #AAAAAA;
+        }
+
+        [data-bs-theme=dark] .sms-palette .sms-palette-colours td.sms-highlight button {
+            box-shadow: 0px 0px 0px 3px #FFFFFF;
+        }
+
+        .sms-palette .sms-console-icon {
+            width: 60px;
+            height: auto;
+        }
+    </style>
 </div>

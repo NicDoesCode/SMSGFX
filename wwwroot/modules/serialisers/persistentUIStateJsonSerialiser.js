@@ -24,7 +24,7 @@ export default class PersistentUIStateJsonSerialiser {
             documentationVisibleOnStartup: appUI.documentationVisibleOnStartup,
             welcomeVisibleOnStartup: appUI.welcomeVisibleOnStartup,
             theme: appUI.theme,
-            exportGenerateTileMap: appUI.exportGenerateTileMap,
+            exportGenerateTileMap: appUI.exportOptimiseTileMap,
             exportTileMapPaletteIndex: appUI.exportTileMapPaletteIndex,
             exportTileMapVramOffset: appUI.exportTileMapVramOffset
         };
@@ -78,7 +78,7 @@ export default class PersistentUIStateJsonSerialiser {
                 result.theme = deserialised.theme;
             }
             if (typeof deserialised.exportGenerateTileMap === 'boolean') {
-                result.exportGenerateTileMap = deserialised.exportGenerateTileMap;
+                result.exportOptimiseTileMap = deserialised.exportGenerateTileMap;
             } 
             if (typeof deserialised.exportTileMapPaletteIndex === 'number') {
                 result.exportTileMapPaletteIndex = deserialised.exportTileMapPaletteIndex;

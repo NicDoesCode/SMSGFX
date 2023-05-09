@@ -1,0 +1,135 @@
+<div data-smsgfx-component="dialogues/welcomeScreen" class="sms-welcome-screen card" tabindex="-1">
+    <div class="card-header border border-0">
+        <h5 class="modal-title m-0">Welcome to SMSGFX!</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-6 p-4 border-end">
+                <h4 class="mb-2">Begin a new project</h4>
+                <p class="m-0"><small>Choose a console below to get started.</small></p>
+                <div class="sms-project-create container p-0 m-0 mt-5 mb-3">
+                    <div class="row mb-4">
+                        <div class="col">
+                            <button type="button" class="btn btn-outline-secondary border border-0 w-100"
+                                data-command="projectNew" data-target-system-type="smsgg">
+                                <img src="assets/image/game-gear-console.svg" alt="Sega Game Gear.">
+                            </button>
+                        </div>
+                        <div class="col">
+                            <button type="button" class="btn btn-outline-secondary border border-0 w-100"
+                                data-command="projectNew" data-target-system-type="smsgg">
+                                <img src="assets/image/master-system-console.svg" alt="Sega Master System.">
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <button type="button" class="btn btn-outline-secondary border border-0 w-100"
+                                data-command="projectNew" data-target-system-type="nes">
+                                <img src="assets/image/nes.svg" alt="Nintendo Entertainment System.">
+                            </button>
+                        </div>
+                        <div class="col">
+                            <button type="button" class="btn btn-outline-secondary border border-0 w-100"
+                                data-command="projectNew" data-target-system-type="gb">
+                                <img src="assets/image/game-boy.svg" alt="Nintendo Game Boy.">
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 p-4">
+                <h4 class="mb-2">Resume a project</h4>
+                <p class="m-0"><small>Projects in browser local storage.</small></p>
+                <div class="p-0 mt-3 mb-2">
+                    <div data-smsgfx-component-id="project-listing">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6 p-4 pt-0 border-end">
+                <button type="button" class="btn btn-outline-secondary w-100 mt-2" data-command="tileImageImport">
+                    <small>Load an image or sprite sheet</small></button>
+            </div>
+            <div class="col-6 p-4 pt-0">
+                <button type="button" class="btn btn-outline-secondary w-100 mt-2" data-command="projectLoadFromFile">
+                    <small>Open project from a file</small></button>
+            </div>
+        </div>
+        <div class="row p-2 mt-2">
+            <div class="col border-top p-0">
+                <button type="button" class="btn btn-link m-0 mt-2 p-2 pb-0" data-command="showDocumentation">
+                    Need help? View the documentation
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="row">
+            <div class="col-auto p-1 ps-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="welcomeScreenShowOnStartup"
+                        data-smsgfx-id="showOnStartup" data-command="changeShowOnStartUp">
+                    <label class="form-check-label" for="welcomeScreenShowOnStartup">
+                        Show on start-up?
+                    </label>
+                </div>
+            </div>
+            <div class="col text-end">
+                <button type="button" class="btn btn-secondary" data-command="dismiss">Close</button>
+            </div>
+        </div>
+    </div>
+    <style data-css-scope="global">
+        .sms-welcome-screen {
+            position: absolute;
+            z-index: 10;
+            width: 700px;
+            height: min-content;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: auto;
+            margin-bottom: auto;
+            box-shadow: 0px 0px 2px #555555;
+        }
+
+        .sms-welcome-screen .card-header {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 100%),
+                url(/assets/image/header.png);
+            background-size: 100% auto;
+            background-position: center center;
+        }
+
+        [data-bs-theme=dark] .sms-welcome-screen .card-header {
+            background:
+                linear-gradient(180deg, rgba(33,37,41,0) 0%, rgba(33,37,41,1) 100%),
+                url(/assets/image/header.png);
+            background-size: 100% auto;
+            background-position: center center;
+        }
+
+        .sms-welcome-screen .card-header h5 {
+            padding-top: 50px;
+            padding-bottom: 50px;
+            text-align: center;
+            font-size: 2.5em;
+            color: #FFFFFF;
+            text-shadow: 2px 2px 1px #000000, 0px 0px 5px #000000, 0px 0px 5px #FFFFFF;
+            font-weight: bold;
+        }
+
+        .sms-welcome-screen .sms-project-create button {
+            min-width: 90px;
+        }
+
+        .sms-welcome-screen .sms-project-create button img {
+            max-height: 50px;
+        }
+    </style>
+</div>

@@ -150,6 +150,17 @@ export default class TileEditor {
         // Display native?
         if (typeof state?.displayNative === 'boolean') {
             this.#displayNative = state.displayNative;
+            if (state.displayNative && this.#palette.system === 'gb') {
+                this.#canvasManager.pixelGridColour = '#98a200';
+                this.#canvasManager.pixelGridOpacity = 0.5;
+                this.#canvasManager.tileGridColour = '#98a200';
+                this.#canvasManager.tileGridOpacity = 1;
+            } else {
+                this.#canvasManager.pixelGridColour = '#000000';
+                this.#canvasManager.pixelGridOpacity = 0.2;
+                this.#canvasManager.tileGridColour = '#000000';
+                this.#canvasManager.tileGridOpacity = 0.4;
+            }
             dirty = true;
         }
         // Draw tile grid

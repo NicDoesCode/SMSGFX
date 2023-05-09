@@ -1,43 +1,46 @@
 import State from "./state.js";
 import AssemblyUtil from "./util/assemblyUtil.js";
 import PaintUtil from "./util/paintUtil.js";
-import ColourPickerDialogue from "./ui/colourPickerDialogue.js";
-import ColourPickerToolbox from "./ui/colourPickerToolbox.js";
-import PaletteModalDialogue from "./ui/paletteImportModalDialogue.js";
-import TileSetImportModalDialogue from "./ui/tileSetImportModalDialogue.js";
-import ExportModalDialogue from "./ui/exportModalDialogue.js";
-import PaletteEditor from "./ui/paletteEditor.js";
-import TileEditor from "./ui/tileEditor.js";
-import TileEditorToolbar from "./ui/tileEditorToolbar.js";
-import TileContextToolbar from "./ui/tileContextToolbar.js";
-import ProjectToolbar from "./ui/projectToolbar.js";
-import ExportToolbar from "./ui/exportToolbar.js";
 import ProjectUtil from "./util/projectUtil.js";
 import PaletteFactory from "./factory/paletteFactory.js";
-import TileSetBinarySerialiser from "./serialisers/tileSetBinarySerialiser.js";
 import TileFactory from "./factory/tileFactory.js";
 import TileSetFactory from "./factory/tileSetFactory.js";
-import ProjectAssemblySerialiser from "./serialisers/projectAssemblySerialiser.js";
 import PaletteColourFactory from "./factory/paletteColourFactory.js";
 import UndoManager from "./components/undoManager.js";
 import ProjectFactory from "./factory/projectFactory.js";
 import PaletteListFactory from "./factory/paletteListFactory.js";
 import TileUtil from "./util/tileUtil.js";
-import ImportImageModalDialogue from "./ui/importImageModalDialogue.js";
 import FileUtil from "./util/fileUtil.js";
 import Project from "./models/project.js";
 import GeneralUtil from "./util/generalUtil.js";
 import ProjectWatcher from "./components/projectWatcher.js";
 import ImageUtil from "./util/imageUtil.js";
 import ReferenceImage from "./models/referenceImage.js";
-import AboutModalDialogue from "./ui/aboutModalDialogue.js";
-import PrivacyModalDialogue from "./ui/privacyModalDialogue.js";
-import ProjectDropdown from "./ui/projectDropdown.js";
 import GoogleAnalyticsManager from "./components/googleAnalyticsManager.js";
-import DocumentationViewer from "./ui/documentationViewer.js";
-import WelcomeScreen from "./ui/welcomeScreen.js";
 import ThemeManager from "./components/themeManager.js";
-import OptionsToolbar from "./ui/optionsToolbar.js";
+import SerialisationUtil from "./util/serialisationUtil.js";
+
+import PaletteEditor from "./ui/paletteEditor.js";
+import TileEditor from "./ui/tileEditor.js";
+
+import AboutModalDialogue from "./ui/dialogues/aboutModalDialogue.js";
+import ColourPickerDialogue from "./ui/dialogues/colourPickerDialogue.js";
+import ExportModalDialogue from "./ui/dialogues/exportModalDialogue.js";
+import ImportImageModalDialogue from "./ui/dialogues/importImageModalDialogue.js";
+import PaletteModalDialogue from "./ui/dialogues/paletteImportModalDialogue.js";
+import PrivacyModalDialogue from "./ui/dialogues/privacyModalDialogue.js";
+import ProjectDropdown from "./ui/dialogues/projectDropdown.js";
+import TileSetImportModalDialogue from "./ui/dialogues/tileSetImportModalDialogue.js";
+import WelcomeScreen from "./ui/dialogues/welcomeScreen.js";
+
+import ExportToolbar from "./ui/toolbars/exportToolbar.js";
+import OptionsToolbar from "./ui/toolbars/optionsToolbar.js";
+import ProjectToolbar from "./ui/toolbars/projectToolbar.js";
+import TileContextToolbar from "./ui/toolbars/tileContextToolbar.js";
+import TileEditorToolbar from "./ui/toolbars/tileEditorToolbar.js";
+
+import ColourPickerToolbox from "./ui/colourPickerToolbox.js";
+import DocumentationViewer from "./ui/documentationViewer.js";
 
 
 /* ****************************************************************************************************
@@ -51,6 +54,8 @@ const instanceState = {
     tool: null,
     /** @type {number} */
     colourIndex: 0,
+    /** @type {number} */
+    startingColourIndex: 0,
     /** @type {number} */
     tileIndex: -1,
     /** @type {string} */
@@ -321,7 +326,9 @@ function createEventListeners() {
 
                 if (keyEvent.code === 'KeyN') {
                     // Export
-                    newProject();
+                    newProject({
+                        systemType: getProject()?.systemType ?? 'smsgg'
+                    });
                     handled = true;
                 } else if (keyEvent.code === 'KeyX') {
                     // Cut tile
@@ -540,7 +547,9 @@ function handleProjectToolbarOnCommand(args) {
             break;
 
         case ProjectToolbar.Commands.projectNew:
-            newProject();
+            newProject({
+                systemType: getProject()?.systemType ?? 'smsgg'
+            });
             break;
 
         case ProjectToolbar.Commands.projectLoadFromFile:
@@ -570,6 +579,7 @@ function handleProjectToolbarOnCommand(args) {
 
 /** @param {import('./ui/projectDropdown').ProjectDropdownCommandEventArgs} args */
 function handleProjectDropdownOnCommand(args) {
+    const projects = state.getProjectsFromLocalStorage();
     switch (args.command) {
 
         case ProjectDropdown.Commands.title:
@@ -577,11 +587,15 @@ function handleProjectDropdownOnCommand(args) {
             break;
 
         case ProjectDropdown.Commands.projectNew:
-            newProject();
+            newProject({
+                systemType: args.systemType ?? 'smsgg'
+            });
+            projectDropdown.setState({ visible: false });
             break;
 
         case ProjectDropdown.Commands.projectLoadFromFile:
             importProjectFromJson();
+            projectDropdown.setState({ visible: false });
             break;
 
         case ProjectDropdown.Commands.projectSaveToFile:
@@ -589,9 +603,9 @@ function handleProjectDropdownOnCommand(args) {
             break;
 
         case ProjectDropdown.Commands.projectLoadById:
-            const projects = state.getProjectsFromLocalStorage();
             const project = projects.getProjectById(args.projectId);
             state.setProject(project);
+            projectDropdown.setState({ visible: false });
             break;
 
         case ProjectDropdown.Commands.projectDelete:
@@ -599,7 +613,11 @@ function handleProjectDropdownOnCommand(args) {
             break;
 
         case ProjectDropdown.Commands.showWelcomeScreen:
-            welcomeScreen.setState({ visible: true, visibleCommands: ['dismiss'] });
+            welcomeScreen.setState({
+                visible: true,
+                projects: projects,
+                visibleCommands: ['dismiss']
+            });
             projectDropdown.setState({ visible: false });
             break;
 
@@ -658,7 +676,7 @@ function handleExportDialogueOnCommand(args) {
     switch (args.command) {
 
         case ExportModalDialogue.Commands.valueChanged:
-            getUIState().exportGenerateTileMap = args.generateTileMap;
+            getUIState().exportOptimiseTileMap = args.optimiseTileMap;
             getUIState().exportTileMapPaletteIndex = args.paletteIndex;
             getUIState().exportTileMapVramOffset = args.vramOffset;
             state.saveToLocalStorage();
@@ -682,7 +700,8 @@ function handlePaletteEditorOnCommand(args) {
         case PaletteEditor.Commands.paletteImport:
             paletteImportDialogue.setState({
                 paletteData: getUIState().importPaletteAssemblyCode,
-                system: getUIState().importPaletteSystem
+                system: getUIState().importPaletteSystem,
+                allowedSystems: getProject().systemType === 'gb' ? ['gb'] : getProject().systemType === 'nes' ? ['nes'] : ['ms', 'gg']
             });
             paletteImportDialogue.show();
             break;
@@ -917,7 +936,13 @@ function handleTileEditorOnEvent(args) {
 
             case TileEditor.Events.pixelMouseDown:
                 if (args.isPrimaryButton) {
-                    takeToolAction(instanceState.tool, instanceState.colourIndex, args.x, args.y);
+                    takeToolAction({
+                        tool: instanceState.tool,
+                        colourIndex: instanceState.colourIndex,
+                        imageX: args.x,
+                        imageY: args.y,
+                        event: TileEditor.Events.pixelMouseDown
+                    });
                 }
                 break;
 
@@ -925,7 +950,13 @@ function handleTileEditorOnEvent(args) {
                 const tileSet = getTileSet();
 
                 if (args.mousePrimaryIsDown) {
-                    takeToolAction(instanceState.tool, instanceState.colourIndex, args.x, args.y);
+                    takeToolAction({
+                        tool: instanceState.tool,
+                        colourIndex: instanceState.colourIndex,
+                        imageX: args.x,
+                        imageY: args.y,
+                        event: TileEditor.Events.pixelMouseOver
+                    });
                 }
 
                 // Show the palette colour
@@ -951,7 +982,7 @@ function handleTileEditorOnEvent(args) {
 
 /** @param {import('./ui/paletteImportModalDialogue').PaletteImportModalDialogueConfirmEventArgs} args */
 function handleImportPaletteModalDialogueOnConfirm(args) {
-    if (!['gg', 'ms'].includes(args.system)) throw new Error('System must be either ""ms" or "gg".');
+    if (!['gg', 'ms', 'gb', 'nes'].includes(args.system)) throw new Error('System must be either "ms", "gg", "gb" or "nes".');
 
     addUndoState();
 
@@ -964,6 +995,14 @@ function handleImportPaletteModalDialogueOnConfirm(args) {
     } else if (system === 'ms') {
         const array = AssemblyUtil.readAsUint8ClampedArray(paletteData);
         const palette = PaletteFactory.createFromMasterSystemPalette(array);
+        getPaletteList().addPalette(palette);
+    } else if (system === 'gb') {
+        const array = AssemblyUtil.readAsUint8ClampedArray(paletteData);
+        const palette = PaletteFactory.createFromGameBoyPalette(array);
+        getPaletteList().addPalette(palette);
+    } else if (system === 'nes') {
+        const array = AssemblyUtil.readAsUint8ClampedArray(paletteData);
+        const palette = PaletteFactory.createFromNesPalette(array);
         getPaletteList().addPalette(palette);
     }
 
@@ -1096,7 +1135,8 @@ function handleImportTileSet(args) {
 
     const tileSetData = args.tileSetData;
     const tileSetDataArray = AssemblyUtil.readAsUint8ClampedArray(tileSetData);
-    const importedTileSet = TileSetBinarySerialiser.deserialise(tileSetDataArray);
+    const tileSetBinarySerialiser = SerialisationUtil.getTileSetBinarySerialiser(getProject().systemType);
+    const importedTileSet = tileSetBinarySerialiser.deserialise(tileSetDataArray);
 
     if (args.replace) {
         getProject().tileSet = importedTileSet;
@@ -1133,7 +1173,7 @@ function handleImageImportModalOnConfirm(args) {
 
     if (args.createNew) {
         const paletteList = PaletteListFactory.create([args.palette]);
-        const project = ProjectFactory.create({ title: args.title, tileSet: args.tileSet, paletteList: paletteList });
+        const project = ProjectFactory.create({ title: args.title, tileSet: args.tileSet, paletteList: paletteList, systemType: args.systemType });
         state.setProject(project);
         state.saveToLocalStorage();
     } else {
@@ -1177,15 +1217,27 @@ function handleImageImportModalOnConfirm(args) {
 
 /** @param {import("./ui/documentationViewer").DocumentationViewerCommandEventArgs} args */
 function documentationViewerOnCommand(args) {
-    if (args.command === DocumentationViewer.Commands.close) {
+    const closeDocumentation = () => {
         documentationViewer.setState({ visible: false });
         getUIState().documentationVisibleOnStartup = false;
         state.saveToLocalStorage();
     }
+    switch (args.command) {
+
+        case DocumentationViewer.Commands.popOut:
+            window.open(args.currentDocumentationUrl);
+            closeDocumentation();
+            break;
+
+        case DocumentationViewer.Commands.close:
+            closeDocumentation();
+            break;
+
+    }
 }
 
 
-/** @param {import("./ui/welcomeScreen").WelcomeScreenStateCommandEventArgs} args */
+/** @param {import("./ui/dialogues/welcomeScreen").WelcomeScreenStateCommandEventArgs} args */
 function welcomeScreenOnCommand(args) {
     switch (args.command) {
 
@@ -1199,7 +1251,16 @@ function welcomeScreenOnCommand(args) {
             break;
 
         case WelcomeScreen.Commands.projectNew:
-            newProject();
+            newProject({
+                systemType: args.systemType ?? 'smsgg'
+            });
+            break;
+
+        case WelcomeScreen.Commands.projectLoadById:
+            const projects = state.getProjectsFromLocalStorage();
+            const project = projects.getProjectById(args.projectId);
+            state.setProject(project);
+            welcomeScreen.setState({ visible: false });
             break;
 
         case WelcomeScreen.Commands.projectLoadFromFile:
@@ -1232,22 +1293,35 @@ function createDefaultProjectIfNoneExists() {
 
 /**
  * Creates a default project file.
+ * @argument {{systemType: string?}} args
  * @returns {Project}
  */
-function createEmptyProject() {
-    const project = ProjectFactory.create({ title: 'New project' });
+function createEmptyProject(args) {
+
+    const systemType = args?.systemType ?? 'smsgg';
+    const defaultTileColourIndex = systemType === 'smsgg' ? 15 : 3;
+    const project = ProjectFactory.create({ title: 'New project', systemType: systemType });
 
     // Create a default tile set
     project.tileSet = TileSetFactory.create();
     project.tileSet.tileWidth = 8;
     for (let i = 0; i < 64; i++) {
-        project.tileSet.addTile(TileFactory.create());
+        project.tileSet.addTile(TileFactory.create(defaultTileColourIndex));
     }
 
-    // Create a default palette for Game Gear and Master System
+    // Create a default palette 
     project.paletteList = PaletteListFactory.create();
-    project.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('Default Master System', 'ms'));
-    project.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('Default Game Gear', 'gg'));
+    if (project.systemType === 'smsgg') {
+        // For Game Gear and Master System
+        project.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('Default Master System', 'ms'));
+        project.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('Default Game Gear', 'gg'));
+    } else if (project.systemType === 'gb') {
+        // For Game Boy
+        project.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('Default Game Boy', 'gb'));
+    } else if (project.systemType === 'nes') {
+        // For Nintendo Entertainment System
+        project.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('Default NES', 'nes'));
+    }
 
     return project;
 }
@@ -1318,9 +1392,18 @@ function getUIState() {
 }
 
 function formatForProject() {
+
+    instanceState.colourIndex = 0;
+
     const palette = getPalette();
     const tileSet = getTileSet();
     const colour = palette.getColour(instanceState.colourIndex);
+    const visibleTabs = [];
+    switch (getPalette().system) {
+        case 'ms': case 'gg': visibleTabs.push('rgb', 'sms'); break;
+        case 'nes': visibleTabs.push('nes'); break;
+        case 'gb': visibleTabs.push('gb'); break;
+    }
 
     projectToolbar.setState({
         projectTitle: getProject().title,
@@ -1341,12 +1424,16 @@ function formatForProject() {
         displayNative: getUIState().displayNativeColour,
         enabled: true
     });
+    let colourPickerTab = instanceState.colourToolboxTab;
+    if (getPalette().system === 'gb') colourPickerTab = 'gb';
+    if (getPalette().system === 'nes') colourPickerTab = 'nes';
     colourPickerToolbox.setState({
-        showTab: instanceState.colourToolboxTab,
+        showTab: colourPickerTab,
         r: colour.r,
         g: colour.g,
         b: colour.b,
-        enabled: true
+        enabled: true,
+        visibleTabs: visibleTabs
     });
     setCommonTileToolbarStates({
         tileWidth: tileSet.tileWidth,
@@ -1374,7 +1461,7 @@ function formatForProject() {
 }
 
 function formatForNoProject() {
-    const dummyProject = createEmptyProject();
+    const dummyProject = createEmptyProject({ systemType: 'smsgg' });
     projectToolbar.setState({
         enabled: false,
         projectTitle: '',
@@ -1453,7 +1540,21 @@ function displayProjectList() {
     });
 }
 
-function takeToolAction(tool, colourIndex, imageX, imageY) {
+/**
+ * Performs the action for a tool.
+ * @param {{
+ *      tool: string, 
+ *      colourIndex: number, 
+ *      imageX: number, 
+ *      imageY: number, 
+ *      event: string?
+ * }} args 
+ */
+function takeToolAction(args) {
+
+    const tool = args.tool; const colourIndex = args.colourIndex;
+    const event = args.event;
+    const imageX = args.imageX; const imageY = args.imageY;
 
     if (tool !== null && colourIndex >= 0 && colourIndex < 16) {
 
@@ -1481,6 +1582,34 @@ function takeToolAction(tool, colourIndex, imageX, imageY) {
                 const tileSet = getTileSet();
                 const size = instanceState.pencilSize;
                 const updatedTiles = PaintUtil.drawOnTileSet(tileSet, imageX, imageY, colourIndex, { brushSize: size, affectAdjacentTiles: true });
+
+                if (updatedTiles.affectedTileIndexes.length > 0) {
+                    tileEditor.setState({ updatedTiles: updatedTiles.affectedTileIndexes });
+                }
+            }
+
+        } else if (tool === TileEditorToolbar.Tools.colourReplace) {
+
+            const lastPx = instanceState.lastTileMapPx;
+            if (imageX !== lastPx.x || imageY !== lastPx.y) {
+                addUndoState();
+                if (!instanceState.undoDisabled) {
+                    instanceState.undoDisabled = true;
+                }
+
+                if (event === TileEditor.Events.pixelMouseDown) {
+                    console.log(event); // PX MOUSE DOWN 
+                    instanceState.startingColourIndex = getTileSet().getPixelAt(imageX, imageY);
+                }
+
+                instanceState.lastTileMapPx.x = imageX;
+                instanceState.lastTileMapPx.y = imageY;
+
+                const sourceColourindex = instanceState.startingColourIndex;
+                const replacementColourIndex = colourIndex;
+                const tileSet = getTileSet();
+                const size = instanceState.pencilSize;
+                const updatedTiles = PaintUtil.replaceColourOnTileSet(tileSet, imageX, imageY, sourceColourindex, replacementColourIndex, { brushSize: size, affectAdjacentTiles: true });
 
                 if (updatedTiles.affectedTileIndexes.length > 0) {
                     tileEditor.setState({ updatedTiles: updatedTiles.affectedTileIndexes });
@@ -1786,8 +1915,12 @@ function setPencilSize(brushSize) {
         tileContextToolbar.setState({
             brushSize: instanceState.pencilSize
         });
+        let cursorSize = 1;
+        if (instanceState.tool === TileEditorToolbar.Tools.pencil || instanceState.tool === TileEditorToolbar.Tools.colourReplace) {
+            cursorSize = instanceState.pencilSize;
+        }
         tileEditor.setState({
-            cursorSize: (instanceState.tool === TileEditorToolbar.Tools.pencil) ? instanceState.pencilSize : 1
+            cursorSize: cursorSize
         });
     }
 }
@@ -1815,7 +1948,8 @@ function selectTile(index) {
 function newPalette() {
     addUndoState();
 
-    const newPalette = PaletteFactory.createNewStandardColourPalette('New palette', 'ms');
+    const system = getProject().systemType === 'gb' ? 'gb' : 'ms';
+    const newPalette = PaletteFactory.createNewStandardColourPalette('New palette', system);
     getPaletteList().addPalette(newPalette);
 
     state.setProject(getProject());
@@ -1867,6 +2001,7 @@ function deletePalette(paletteIndex) {
         // Remove palette
         getPaletteList().removeAt(paletteIndex);
         const newSelectedIndex = Math.min(paletteIndex, getPaletteList().length - 1);
+        // Select a remaining palette or create a default if none exists.
         if (getPaletteList().length > 0) {
             paletteEditor.setState({
                 paletteList: getPaletteList(),
@@ -1874,7 +2009,8 @@ function deletePalette(paletteIndex) {
             });
             getUIState().paletteIndex = newSelectedIndex;
         } else {
-            getPaletteList().addPalette(PaletteFactory.createNewStandardColourPalette('ms'));
+            const newPalette = PaletteFactory.createNewStandardColourPaletteBySystemType(getProject().systemType);
+            getPaletteList().addPalette(newPalette);
             paletteEditor.setState({
                 paletteList: getPaletteList(),
                 selectedPaletteIndex: 0
@@ -2054,11 +2190,14 @@ function setProjectTitle(title) {
 
 /**
  * Imports the project from a JSON file.
+ * @argument {{systemType: string?}} args
  */
-function newProject() {
+function newProject(args) {
     addUndoState();
 
-    const newProject = createEmptyProject();
+    const newProject = createEmptyProject({
+        systemType: args.systemType
+    });
     state.setProject(newProject);
     getUIState().paletteIndex = 0;
     state.saveToLocalStorage();
@@ -2126,8 +2265,9 @@ function exportProjectToJson() {
  * Shows the export to assembly dialogue.
  */
 function exportProjectToAssembly() {
-    const code = ProjectAssemblySerialiser.serialise(getProject(), {
-        generateTileMapFromTileSet: getUIState().exportGenerateTileMap,
+    const serialiser = SerialisationUtil.getProjectAssemblySerialiser(getProject().systemType);
+    const code = serialiser.serialise(getProject(), {
+        optimiseTileMap: getUIState().exportOptimiseTileMap,
         paletteIndex: getUIState().exportTileMapPaletteIndex,
         tileMapMemoryOffset: getUIState().exportTileMapVramOffset
     });
@@ -2452,7 +2592,7 @@ function selectTool(tool) {
         }
 
         let visibleStrips = [];
-        if ([tools.pencil, tools.eyedropper, tools.bucket].includes(tool)) {
+        if ([tools.pencil, tools.eyedropper, tools.bucket, tools.colourReplace].includes(tool)) {
             visibleStrips.push(TileContextToolbar.Toolstrips.pencil);
         }
         if ([tools.select].includes(tool)) {
@@ -2466,7 +2606,7 @@ function selectTool(tool) {
         let cursorSize = 1;
         if ([tools.eyedropper, tools.bucket].includes(tool)) {
             cursor = 'crosshair';
-        } else if (tool === tools.pencil) {
+        } else if (tool === tools.pencil || tool === tools.colourReplace) {
             cursor = 'crosshair';
             cursorSize = instanceState.pencilSize;
         }
@@ -2637,7 +2777,8 @@ window.addEventListener('load', async () => {
         visible: getUIState().welcomeVisibleOnStartup || getProject() instanceof Project === false,
         showWelcomeScreenOnStartUpChecked: getUIState().welcomeVisibleOnStartup,
         visibleCommands: getProject() instanceof Project === true ? ['dismiss'] : [],
-        invisibleCommands: getProject() instanceof Project === false ? ['dismiss'] : []
+        invisibleCommands: getProject() instanceof Project === false ? ['dismiss'] : [],
+        projects: projects
     });
 
     optionsToolbar.setState({
@@ -2647,7 +2788,7 @@ window.addEventListener('load', async () => {
     });
 
     exportDialogue.setState({
-        generateTileMapChecked: getUIState().exportGenerateTileMap,
+        optimiseTileMap: getUIState().exportOptimiseTileMap,
         paletteIndex: getUIState().exportTileMapPaletteIndex,
         vramOffset: getUIState().exportTileMapVramOffset
     });

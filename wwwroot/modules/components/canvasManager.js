@@ -128,6 +128,34 @@ export default class CanvasManager {
         this.#backgroundColour = value;
     }
 
+    get pixelGridColour() {
+        return this.#pixelGridColour;
+    }
+    set pixelGridColour(value) {
+        this.#pixelGridColour = value;
+    }
+
+    get pixelGridOpacity() {
+        return this.#pixelGridOpacity;
+    }
+    set pixelGridOpacity(value) {
+        this.#pixelGridOpacity = value;
+    }
+
+    get tileGridColour() {
+        return this.#tileGridColour;
+    }
+    set tileGridColour(value) {
+        this.#tileGridColour = value;
+    }
+
+    get tileGridOpacity() {
+        return this.#tileGridOpacity;
+    }
+    set tileGridOpacity(value) {
+        this.#tileGridOpacity = value;
+    }
+
 
     /** @type {HTMLCanvasElement} */
     #tileCanvas;
@@ -152,6 +180,10 @@ export default class CanvasManager {
     #offsetX = 0;
     #offsetY = 0;
     #backgroundColour = '#FFFFFF';
+    #pixelGridColour = '#FFFFFF';
+    #pixelGridOpacity = 0.2;
+    #tileGridColour = '#000000';
+    #tileGridOpacity = 0.4;
 
 
     /**
@@ -309,6 +341,7 @@ export default class CanvasManager {
         const tileCount = Math.max(this.tileSet.tileWidth, 1);
         const tileSetCol = tileindex % tileCount;
         const tileSetRow = (tileindex - tileSetCol) / tileCount;
+        const numColours = this.palette.getColours().length;
 
         for (let tilePx = 0; tilePx < 64; tilePx++) {
 
@@ -321,7 +354,7 @@ export default class CanvasManager {
             let pixelPaletteIndex = tile.readAt(tilePx);
 
             // Set colour
-            if (pixelPaletteIndex >= 0 && pixelPaletteIndex < 16) {
+            if (pixelPaletteIndex >= 0 && pixelPaletteIndex < numColours) {
                 const colour = this.palette.getColour(pixelPaletteIndex);
                 const hex = ColourUtil.toHex(colour.r, colour.g, colour.b);
                 context.fillStyle = hex;
@@ -436,7 +469,8 @@ export default class CanvasManager {
 
         // Draw tile grid
         if (this.showTileGrid) {
-            context.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+            const tileGridColour = ColourUtil.rgbFromHex(this.tileGridColour);
+            context.strokeStyle = `rgba(${tileGridColour.r}, ${tileGridColour.g}, ${tileGridColour.b}, ${this.tileGridOpacity})`;
             context.beginPath();
             for (let x = 0; x <= this.#tileCanvas.width; x += pxSize * 8) {
                 context.moveTo(x + drawX, drawY);
@@ -452,7 +486,8 @@ export default class CanvasManager {
 
         // Draw pixel grid
         if (this.showPixelGrid && this.scale >= 5) {
-            context.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+            const pixelGridColour = ColourUtil.rgbFromHex(this.pixelGridColour);
+            context.strokeStyle = `rgba(${pixelGridColour.r}, ${pixelGridColour.g}, ${pixelGridColour.b}, ${this.pixelGridOpacity})`;
             context.beginPath();
             for (let x = 0; x <= this.#tileCanvas.width; x += pxSize) {
                 context.moveTo(x + drawX, 0 + drawY);

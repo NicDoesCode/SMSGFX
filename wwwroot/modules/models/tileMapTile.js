@@ -15,7 +15,7 @@ export default class TileMapTile {
         return this.#palette;
     }
     set palette(value) {
-        if (value < 0 || value > 1) throw new Error('Palette number can be only 0 or 1.');
+        if (value < 0 || value > 100) throw new Error('PInvaliud palette index.');
         this.#palette = value;
     }
 
@@ -40,16 +40,23 @@ export default class TileMapTile {
         this.#tileNumber = value;
     }
 
+    get sourceTile() {
+        return this.#sourceTile;
+    }
+    set sourceTile(value) {
+        this.#sourceTile = value;
+    }
+
 
     #priority = false;
     #palette = 0;
     #verticalFlip = 0;
     #horizontalFlip = 0;
     #tileNumber = 0;
+    #sourceTile = null;
 
 
     constructor() {
-
     }
 
 

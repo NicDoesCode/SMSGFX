@@ -6,11 +6,13 @@ export default class TileFactory {
 
     /**
      * Creates a new instance of a tile object.
+     * @argument {number?} defaultColourIndex - Colour index to set as the initial colour of the tile, default is 15.
      * @returns {Tile}
      */
-    static create() {
+    static create(defaultColourIndex) {
+        if (typeof defaultColourIndex !== 'number') defaultColourIndex = 15;
         const tileDataArray = new Uint8ClampedArray(64);
-        tileDataArray.fill(15, 0, tileDataArray.length);
+        tileDataArray.fill(defaultColourIndex, 0, tileDataArray.length);
         return TileFactory.fromArray(tileDataArray);
     }
 
