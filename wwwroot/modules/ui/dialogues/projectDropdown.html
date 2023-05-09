@@ -74,14 +74,31 @@
             </div>
         </div>
     </div>
-    <style>
-        [data-smsgfx-component=projectDropdown] [data-smsgfx-id=project-list] {
+    <style data-css-scope="global">
+        .sms-project-dropdown .sms-project-create button {
+            min-width: 90px;
+        }
+
+        .sms-project-dropdown .sms-project-create button img {
+            max-height: 30px;
+        }
+
+        .sms-project-dropdown .sms-project-load .sms-project-list {
             height: 190px;
             overflow-y: scroll;
         }
 
-        [data-smsgfx-component=projectDropdown] [data-smsgfx-id=project-list] .list-group-item {
-            cursor: pointer;
+        .sms-project-dropdown .sms-project-load .sms-project-list li {
+            font-size: 0.9em;
         }
+
+        .sms-project-dropdown .sms-project-load .sms-project-list li [data-field=console] {
+            width: 50px;
+        }
+
+        .sms-project-dropdown .sms-project-load .sms-project-list li [data-field=console] img {
+            max-height: 20px;
+        }
+
     </style>
 </div>
