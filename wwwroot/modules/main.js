@@ -590,10 +590,12 @@ function handleProjectDropdownOnCommand(args) {
             newProject({
                 systemType: args.systemType ?? 'smsgg'
             });
+            projectDropdown.setState({ visible: false });
             break;
 
         case ProjectDropdown.Commands.projectLoadFromFile:
             importProjectFromJson();
+            projectDropdown.setState({ visible: false });
             break;
 
         case ProjectDropdown.Commands.projectSaveToFile:
@@ -603,6 +605,7 @@ function handleProjectDropdownOnCommand(args) {
         case ProjectDropdown.Commands.projectLoadById:
             const project = projects.getProjectById(args.projectId);
             state.setProject(project);
+            projectDropdown.setState({ visible: false });
             break;
 
         case ProjectDropdown.Commands.projectDelete:

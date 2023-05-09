@@ -40,7 +40,6 @@ export default class WelcomeScreen {
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 
-
         this.#showOnStartupCheckbox = this.#element.querySelector('[data-smsgfx-id=showOnStartup]');
 
         this.#showOnStartupCheckbox.onchange = (ev) => {

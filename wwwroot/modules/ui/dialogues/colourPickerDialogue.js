@@ -3,6 +3,7 @@ import Palette from "../../models/palette.js";
 import ColourUtil from "../../util/colourUtil.js";
 import ModalDialogue from "./../modalDialogue.js";
 import TemplateUtil from "../../util/templateUtil.js";
+import ColourPaletteList from "../components/colourPaletteList.js";
 
 const EVENT_OnChange = 'EVENT_OnChange';
 
@@ -17,6 +18,8 @@ export default class ColourPickerDialogue extends ModalDialogue {
     #paletteIndex = -1;
     /** @type {string} */
     #system = 'ms';
+    #currentTab = 'rgb';
+    #visibleTabs = ['rgb'];
     /** @type {number} */
     #r = 0; #originalR = 0;
     /** @type {number} */
@@ -43,6 +46,12 @@ export default class ColourPickerDialogue extends ModalDialogue {
     #tbPreviewSelected;
     /** @type {HTMLDivElement} */
     #tbPreviewNative;
+    /** @type {ColourPaletteList} */
+    #smsColourPaletteList = null;
+    /** @type {ColourPaletteList} */
+    #gbColourPaletteList = null;
+    /** @type {ColourPaletteList} */
+    #nesColourPaletteList = null;
 
 
     /**
@@ -87,6 +96,48 @@ export default class ColourPickerDialogue extends ModalDialogue {
                 this.#btnColourPickerPick.click();
             }
         };
+
+        this.#loadPaletteListIfNotLoaded(this.#smsColourPaletteList, 'colour-palette-list-sms').then((control) => {
+            if (control) {
+                this.#smsColourPaletteList = control;
+                this.#smsColourPaletteList.setState({
+                    colours: ColourUtil.getFullMasterSystemPalette(),
+                    direction: 'row',
+                    coloursPerRow: 8
+                });
+            }
+        });
+
+        this.#loadPaletteListIfNotLoaded(this.#gbColourPaletteList, 'colour-palette-list-gb').then((control) => {
+            if (control) {
+                this.#gbColourPaletteList = control;
+                this.#gbColourPaletteList.setState({
+                    colours: ColourUtil.getFullGameBoyPalette(),
+                    direction: 'row',
+                    coloursPerRow: 4
+                });
+            }
+        });
+
+        this.#loadPaletteListIfNotLoaded(this.#nesColourPaletteList, 'colour-palette-list-nes').then((control) => {
+            if (control) {
+                this.#nesColourPaletteList = control;
+                this.#nesColourPaletteList.setState({
+                    colours: ColourUtil.getFullNESPalette(),
+                    direction: 'row',
+                    coloursPerRow: 14
+                });
+            }
+        });
+
+        /** @type NodeListOf<HTMLAnchorElement> */
+        const tabLinks = this.#element.querySelectorAll('[data-colour-picker-tabs] [data-colour-tab] a');
+        tabLinks.forEach(tabLink => {
+            tabLink.onclick = () => {
+                const tab = tabLink.parentElement.getAttribute('data-colour-tab');
+                this.#selectTab(tab);
+            }
+        });
     }
 
 
@@ -95,7 +146,7 @@ export default class ColourPickerDialogue extends ModalDialogue {
      * @param {HTMLElement} element - Container element.
      * @returns {Promise<ColourPickerDialogue>}
      */
-     static async loadIntoAsync(element) {
+    static async loadIntoAsync(element) {
         const componentElement = await TemplateUtil.replaceElementWithComponentAsync('dialogues/colourPickerDialogue', element);
         return new ColourPickerDialogue(componentElement);
     }
@@ -117,7 +168,74 @@ export default class ColourPickerDialogue extends ModalDialogue {
         this.#originalG = colour.g;
         this.#originalB = colour.b;
         this.#setAllValues();
+        this.#showHideTabs(palette);
         super.show();
+    }
+
+    /**
+     * @param {ColourPaletteList} colourPaletteListControl 
+     * @param {string} componentId 
+     */
+    async #loadPaletteListIfNotLoaded(colourPaletteListControl, componentId) {
+        let result = null;
+        if (!colourPaletteListControl) {
+            const containerElement = this.#element.querySelector(`[data-smsgfx-component-id=${componentId}]`);
+            if (containerElement) {
+                result = await ColourPaletteList.loadIntoAsync(containerElement);
+                result.addHandlerOnCommand((args) => {
+                    switch (args.command) {
+                        case ColourPaletteList.Commands.colourSelect:
+                            const hex = ColourUtil.toHex(args.r, args.g, args.b);
+                            this.#setFromHex(hex);
+                            break;
+                    }
+                });
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @param {Palette} palette 
+     */
+    #showHideTabs(palette) {
+        this.#element.querySelectorAll(`[data-colour-tab]`).forEach((p) => p.classList.add('visually-hidden'));
+        this.#element.querySelectorAll(`[data-colour-tab-page]`).forEach((p) => p.classList.add('visually-hidden'));
+        switch (palette.system) {
+            case 'gg':
+            case 'ms':
+                this.#element.querySelector(`[data-colour-tab='rgb']`).classList.remove('visually-hidden');
+                this.#element.querySelector(`[data-colour-tab='sms']`).classList.remove('visually-hidden');
+                this.#element.querySelector(`[data-colour-tab-page='rgb']`).classList.remove('visually-hidden');
+                this.#element.querySelector(`[data-colour-tab-page='sms']`).classList.remove('visually-hidden');
+                this.#selectTab('rgb');
+                break;
+            case 'gb':
+                this.#element.querySelector(`[data-colour-tab='gb']`).classList.remove('visually-hidden');
+                this.#element.querySelector(`[data-colour-tab-page='gb']`).classList.remove('visually-hidden');
+                this.#selectTab('gb');
+                break;
+            case 'nes':
+                this.#element.querySelector(`[data-colour-tab='nes']`).classList.remove('visually-hidden');
+                this.#element.querySelector(`[data-colour-tab-page='nes']`).classList.remove('visually-hidden');
+                this.#selectTab('nes');
+                break;
+        }
+    }
+
+    /**
+     * @param {string} tabName
+     */
+    #selectTab(tabName) {
+        this.#element.querySelectorAll(`[data-colour-tab] a`).forEach((t) => t.classList.remove('active'));
+        this.#element.querySelector(`[data-colour-tab=${tabName}] a`).classList.add('active');
+        this.#element.querySelectorAll(`[data-colour-tab-page]`).forEach((element) => {
+            if (element.getAttribute('data-colour-tab-page') === tabName) {
+                element.classList.remove('visually-hidden');
+            } else {
+                element.classList.add('visually-hidden');
+            }
+        });
     }
 
 

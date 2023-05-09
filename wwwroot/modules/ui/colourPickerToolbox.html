@@ -66,17 +66,17 @@
             </div>
             <div data-smsgfx-id="smsColourContainer" class="container visually-hidden mb-2"
                 data-colour-toolbox-tab-content="sms">
-                <div data-smsgfx-id="smsColourPalette" class="sms-colour-box">
+                <div data-smsgfx-component-id="colour-palette-list-sms">
                 </div>
             </div>
             <div data-smsgfx-id="gbColourContainer" class="container visually-hidden mb-2"
                 data-colour-toolbox-tab-content="gb">
-                <div data-smsgfx-id="gbColourPalette" class="sms-colour-box">
+                <div data-smsgfx-component-id="colour-palette-list-gb">
                 </div>
             </div>
             <div data-smsgfx-id="nesColourContainer" class="container visually-hidden mb-2"
                 data-colour-toolbox-tab-content="nes">
-                <div data-smsgfx-id="nesColourPalette" class="sms-colour-box for-nes">
+                <div data-smsgfx-component-id="colour-palette-list-nes">
                 </div>
             </div>
         </div>
@@ -84,44 +84,6 @@
     <style data-css-scope="global">
         .sms-container .sms-colour-toolbox input[type=text] {
             font-size: 7pt;
-        }
-
-        .sms-container .sms-colour-toolbox .sms-colour-box {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
-        }
-
-        .sms-container .sms-colour-toolbox .sms-colour-box .sms-colour-box-row {
-            display: flex;
-            flex-direction: row;
-            flex-wrap: wrap;
-            flex-grow: 1;
-            width: auto;
-        }
-
-        .sms-container .sms-colour-toolbox .sms-colour-box.for-nes .sms-colour-box-row {
-            flex-direction: column;
-        }
-
-        .sms-container .sms-colour-toolbox .sms-colour-box button {
-            width: 5.5%;
-            box-sizing: content-box;
-            height: 15px;
-            margin: 1px;
-            border: 1px solid #CCCCCC;
-        }
-
-        .sms-container .sms-colour-toolbox .sms-colour-box.for-nes .sms-colour-box-row button {
-            width: auto;
-        }
-
-        [data-bs-theme=dark] .sms-container .sms-colour-toolbox .sms-colour-box button {
-            border-color: #212529;
-        }
-
-        .sms-container .sms-colour-toolbox .sms-colour-box button:hover {
-            border: 1px solid #666666;
         }
 
         .sms-colour-picker .sms-colour-preview {
