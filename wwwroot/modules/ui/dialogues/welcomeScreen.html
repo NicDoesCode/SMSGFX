@@ -48,14 +48,13 @@
             </div>
         </div>
         <div class="row">
-                <div class="col-6 border-end">
-                    <button type="button" class="btn btn-outline-secondary w-100 mt-2" data-command="tileImageImport">
-                        <small>Load an image or sprite sheet</small></button>
-                </div>
-                <div class="col-6">
-                    <button type="button" class="btn btn-outline-secondary w-100 mt-2"
-                        data-command="projectLoadFromFile">
-                        <small>Open project from a file</small></button>
+            <div class="col-6 border-end">
+                <button type="button" class="btn btn-outline-secondary w-100 mt-2" data-command="tileImageImport">
+                    <small>Load an image or sprite sheet</small></button>
+            </div>
+            <div class="col-6">
+                <button type="button" class="btn btn-outline-secondary w-100 mt-2" data-command="projectLoadFromFile">
+                    <small>Open project from a file</small></button>
             </div>
         </div>
         <div class="row p-2 mt-2">
@@ -82,7 +81,40 @@
             </div>
         </div>
     </div>
-    <style>
+    <style data-css-scope="global">
+        .sms-welcome-screen {
+            position: absolute;
+            z-index: 10;
+            /* top: 200px; */
+            width: 600px;
+            height: min-content;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: auto;
+            margin-bottom: auto;
+            box-shadow: 0px 0px 2px #555555;
+        }
+
+        .sms-welcome-screen .card-header {
+            background-image: url(/assets/image/header.png);
+            background-size: 100% auto;
+            background-position: center center;
+        }
+
+        .sms-welcome-screen .card-header h5 {
+            padding-top: 50px;
+            padding-bottom: 50px;
+            text-align: center;
+            font-size: 2.5em;
+            color: #FFFFFF;
+            text-shadow: 2px 2px 1px #000000, 0px 0px 5px #000000, 0px 0px 5px #FFFFFF;
+            font-weight: bold;
+        }
+
         .sms-welcome-screen .sms-project-create button {
             min-width: 90px;
         }

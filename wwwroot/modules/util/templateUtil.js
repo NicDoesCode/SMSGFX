@@ -5,7 +5,7 @@ let globalLoadAttempted = false;
 
 export default class TemplateUtil {
 
-    
+
     /**
      * Replaces a given element with the loaded markup for a component, 
      * first page embedded components are tried, 
@@ -37,6 +37,8 @@ export default class TemplateUtil {
         }
 
         if (component) {
+            addComponentGlobalScopedCss(componentName, component);
+
             const clonedComponent = component.cloneNode(true);
             clonedComponent.removeAttribute('data-smsgfx-component');
             element.after(clonedComponent);
@@ -81,7 +83,7 @@ async function ensureGlobalComponentsCachedAsync() {
                 const content = await resp.text();
                 const tempElement = document.createElement('div');
                 tempElement.innerHTML = content;
-    
+
                 // Extract components, add if not already cached
                 const extractedComponents = tempElement.querySelectorAll('[data-smsgfx-component]');
                 extractedComponents.forEach(component => {
@@ -110,6 +112,25 @@ async function attemptLoadComponentFromFileAsync(componentName) {
     } catch (e) {
         console.error(`Failed to load component markup file '${componentName}'.`, e);
     }
+}
+
+/**
+ * Add any global scoped CSS to the document.
+ * @param {string} componentName - Namespaced identifier of the component.
+ * @param {HTMLElement} elementToScan - Element to look for global scoped CSS.
+ */
+function addComponentGlobalScopedCss(componentName, elementToScan) {
+    // Add any global scoped CSS to the document head
+    const globalScopedCssNodes = elementToScan.querySelectorAll(`style[data-css-scope=global]`);;
+    globalScopedCssNodes.forEach((/** @type {HTMLElement} */ cssNode) => {
+        cssNode.remove();
+        // const alreadyLoadedCssNodes = document.head.querySelectorAll(`style${componentSelector(componentName)}`);
+        // if (alreadyLoadedCssNodes.length === 0) {
+        cssNode.setAttribute('data-smsgfx-component', componentName);
+        document.head.appendChild(cssNode);
+        // }
+        // elementToScan.removeChild(cssNode);
+    });
 }
 
 function addComponentToCacheIfNotAlreadyThere(component) {
