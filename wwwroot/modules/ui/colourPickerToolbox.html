@@ -24,12 +24,10 @@
                         R
                     </div>
                     <div class="col-7 p-0">
-                        <input data-smsgfx-id="redSlider" type="range" class="form-range" min="0"
-                            max="255" step="17">
+                        <input data-smsgfx-id="redSlider" type="range" class="form-range" min="0" max="255" step="17">
                     </div>
                     <div class="col-3 ps-1">
-                        <input data-smsgfx-id="inputRedValue" type="text"
-                            class="form-control form-control-sm">
+                        <input data-smsgfx-id="inputRedValue" type="text" class="form-control form-control-sm">
                     </div>
                 </div>
                 <div class="row">
@@ -37,12 +35,10 @@
                         G
                     </div>
                     <div class="col-7 p-0">
-                        <input data-smsgfx-id="greenSlider" type="range" class="form-range" min="0"
-                            max="255" step="17">
+                        <input data-smsgfx-id="greenSlider" type="range" class="form-range" min="0" max="255" step="17">
                     </div>
                     <div class="col-3 ps-1">
-                        <input data-smsgfx-id="inputGreenValue" type="text"
-                            class="form-control form-control-sm">
+                        <input data-smsgfx-id="inputGreenValue" type="text" class="form-control form-control-sm">
                     </div>
                 </div>
                 <div class="row">
@@ -50,12 +46,10 @@
                         B
                     </div>
                     <div class="col-7 p-0">
-                        <input data-smsgfx-id="blueSlider" type="range" class="form-range" min="0"
-                            max="255" step="17">
+                        <input data-smsgfx-id="blueSlider" type="range" class="form-range" min="0" max="255" step="17">
                     </div>
                     <div class="col-3 ps-1">
-                        <input data-smsgfx-id="inputBlueValue" type="text"
-                            class="form-control form-control-sm">
+                        <input data-smsgfx-id="inputBlueValue" type="text" class="form-control form-control-sm">
                     </div>
                 </div>
                 <div class="row">
@@ -63,12 +57,10 @@
                         HEX
                     </div>
                     <div class="col-6 p-0">
-                        <input data-smsgfx-id="inputHex" type="text"
-                            class="form-control form-control-sm">
+                        <input data-smsgfx-id="inputHex" type="text" class="form-control form-control-sm">
                     </div>
                     <div class="col-3 ps-1">
-                        <input data-smsgfx-id="colourPicker" type="color"
-                            class="form-control form-control-sm p-0">
+                        <input data-smsgfx-id="colourPicker" type="color" class="form-control form-control-sm p-0">
                     </div>
                 </div>
             </div>
@@ -89,4 +81,51 @@
             </div>
         </div>
     </div>
+    <style data-css-scope="global">
+        .sms-container .sms-colour-toolbox input[type=text] {
+            font-size: 7pt;
+        }
+
+        .sms-container .sms-colour-toolbox .sms-colour-box {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        .sms-container .sms-colour-toolbox .sms-colour-box .sms-colour-box-row {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            flex-grow: 1;
+            width: auto;
+        }
+
+        .sms-container .sms-colour-toolbox .sms-colour-box.for-nes .sms-colour-box-row {
+            flex-direction: column;
+        }
+
+        .sms-container .sms-colour-toolbox .sms-colour-box button {
+            width: 5.5%;
+            box-sizing: content-box;
+            height: 15px;
+            margin: 1px;
+            border: 1px solid #CCCCCC;
+        }
+
+        .sms-container .sms-colour-toolbox .sms-colour-box.for-nes .sms-colour-box-row button {
+            width: auto;
+        }
+
+        [data-bs-theme=dark] .sms-container .sms-colour-toolbox .sms-colour-box button {
+            border-color: #212529;
+        }
+
+        .sms-container .sms-colour-toolbox .sms-colour-box button:hover {
+            border: 1px solid #666666;
+        }
+
+        .sms-colour-picker .sms-colour-preview {
+            min-width: 100px;
+        }
+    </style>
 </div>
