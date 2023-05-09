@@ -79,6 +79,24 @@ export default class ColourPaletteList {
             dirty = true;
         }
 
+        if (typeof state?.buttonWidth !== 'undefined') {
+            if (state.buttonWidth === null) {
+                this.#buttonWidth = null;
+            } else {
+                this.#buttonWidth = state.buttonWidth;
+            }
+            dirty = true;
+        }
+
+        if (typeof state?.buttonHeight !== 'undefined') {
+            if (state.buttonHeight === null) {
+                this.#buttonHeight = null;
+            } else {
+                this.#buttonHeight = state.buttonHeight;
+            }
+            dirty = true;
+        }
+
         if (typeof state?.colours !== 'undefined') {
             if (state.colours === null) {
                 this.#colours = [];
@@ -126,14 +144,16 @@ export default class ColourPaletteList {
             element.removeChild(element.firstChild);
         }
 
+        const perRow = this.#coloursPerRow;
+
         // Update flex direction class
-        element.classList.add('d-flex', 'flex-wrap');
+        element.classList.add('d-flex', 'flex-wrap', 'w-100');
         element.classList.remove('d-flex-row', 'd-flex-row-reverse', 'd-flex-column', 'd-flex-column-reverse')
         switch (this.#direction) {
-            case 'row': element.classList.add('d-flex-column'); break;
-            case 'row-reverse': element.classList.add('d-flex-column'); break;
-            case 'column': element.classList.add('d-flex-row', 'w-100'); break;
-            case 'column-reverse': element.classList.add('d-flex-row', 'w-100'); break;
+            case 'row': element.classList.add('flex-column'); break;
+            case 'row-reverse': element.classList.add('flex-column'); break;
+            case 'column': element.classList.add('flex-row'); break;
+            case 'column-reverse': element.classList.add('flex-row'); break;
         }
 
         // Build the HTML elements
@@ -142,23 +162,28 @@ export default class ColourPaletteList {
         if (this.#direction.endsWith('-reverse')) {
             colours.reverse();
         }
-        const perRow = this.#coloursPerRow;
         let boxRow;
         colours.forEach((colour, index, array) => {
             if (index % perRow === 0) {
                 boxRow = document.createElement('div');
-                boxRow.classList.add('sms-colour-box-row', 'd-flex');
+                boxRow.classList.add('d-flex');
                 switch (this.#direction) {
-                    case 'row': boxRow.classList.add('d-flex-row', 'w-100'); break;
-                    case 'row-reverse': boxRow.classList.add('d-flex-row', 'w-100'); break;
-                    case 'column': boxRow.classList.add('d-flex-column', 'w-100'); break;
-                    case 'column-reverse': boxRow.classList.add('d-flex-column', 'w-100'); break;
+                    case 'row': boxRow.classList.add('flex-row', 'w-100'); break;
+                    case 'row-reverse': boxRow.classList.add('flex-row', 'w-100'); break;
+                    case 'column': boxRow.classList.add('flex-column'); break;
+                    case 'column-reverse': boxRow.classList.add('flex-column'); break;
+                }
+                if (this.#direction.startsWith('column') && this.#buttonWidth === null) {
+                    const cols = Math.floor(colours.length / perRow);
+                    boxRow.style.width = `${Math.floor(100 / cols)}%`;
+                } else {
+                    boxRow.style.width = this.#buttonWidth;
                 }
                 element.appendChild(boxRow);
             }
             const colourHex = ColourUtil.toHex(colour.r, colour.g, colour.b);
             const btn = document.createElement('button');
-            if (this.#buttonWidth === null) {
+            if (this.#direction.startsWith('row') && this.#buttonWidth === null) {
                 btn.style.width = `${Math.floor(100 / perRow)}%`;
             } else {
                 btn.style.width = this.#buttonWidth;

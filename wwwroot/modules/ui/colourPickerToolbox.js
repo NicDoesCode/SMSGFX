@@ -121,8 +121,9 @@ export default class ColourPickerToolbox {
                 this.#nesColourPaletteList = control;
                 this.#nesColourPaletteList.setState({
                     colours: ColourUtil.getFullNESPalette(),
-                    direction: 'row',
-                    coloursPerRow: 14
+                    direction: 'column-reverse',
+                    coloursPerRow: 14,
+                    buttonHeight: '10px'
                 });
             }
         });
