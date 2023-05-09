@@ -61,8 +61,8 @@ export default class ColourPickerDialogue extends ModalDialogue {
         this.#tbColourPickerRed = this.#element.querySelector('[data-smsgfx-id=tbColourPickerRed]');
         this.#tbColourPickerGreen = this.#element.querySelector('[data-smsgfx-id=tbColourPickerGreen]');
         this.#tbColourPickerBlue = this.#element.querySelector('[data-smsgfx-id=tbColourPickerBlue]');
-        this.#btnColourPickerPick = this.#element.querySelector('[data-smsgfx-id=btnColourPickerPick]');
         this.#tbColourPickerHex = this.#element.querySelector('[data-smsgfx-id=tbColourPickerHex]');
+        this.#btnColourPickerPick = this.#element.querySelector('[data-smsgfx-id=btnColourPickerPick]');
 
         this.#tbColourPickerRedSlider.onchange = () => this.#setFromColour('r', this.#tbColourPickerRedSlider.value);
         this.#tbColourPickerGreenSlider.onchange = () => this.#setFromColour('g', this.#tbColourPickerGreenSlider.value);
@@ -72,11 +72,21 @@ export default class ColourPickerDialogue extends ModalDialogue {
         this.#tbColourPickerGreen.onchange = () => this.#setFromColour('g', this.#tbColourPickerGreen.value);
         this.#tbColourPickerBlue.onchange = () => this.#setFromColour('b', this.#tbColourPickerBlue.value);
 
-        this.#btnColourPickerPick.onchange = () => this.#setFromHex(this.#btnColourPickerPick.value);
         this.#tbColourPickerHex.onchange = () => this.#setFromHex(this.#tbColourPickerHex.value);
+        this.#btnColourPickerPick.onchange = () => this.#setFromHex(this.#btnColourPickerPick.value);
 
         this.#tbPreviewSelected = this.#element.querySelector('[data-colour-preview=selected]');
+        this.#tbPreviewSelected.onclick = (ev) => {
+            if (ev.button === 0) {
+                this.#btnColourPickerPick.click();
+            }
+        };
         this.#tbPreviewNative = this.#element.querySelector('[data-colour-preview=native]');
+        this.#tbPreviewNative.onclick = (ev) => {
+            if (ev.button === 0) {
+                this.#btnColourPickerPick.click();
+            }
+        };
     }
 
 
