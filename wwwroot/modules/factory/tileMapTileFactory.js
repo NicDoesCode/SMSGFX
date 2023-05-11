@@ -6,10 +6,21 @@ export default class TileMapTileFactory {
 
     /**
      * Creates a new instance of a tile map tile object.
+     * @param {TileMapTileFactoryCreateArgs} [args] - Arguments for tile map tile creation.
      * @returns {TileMapTile}
      */
-    static create() {
-        return new TileMapTile();
+    static create(args) {
+        if (typeof args === 'undefined' || args === null) {
+            return new TileMapTile();
+        } else {
+            const result = new TileMapTile();
+            if (typeof args.tileIndex === 'number') result.tileIndex = args.tileIndex;
+            if (typeof args.priority === 'boolean') result.priority = args.priority;
+            if (typeof args.palette === 'number') result.palette = args.palette;
+            if (typeof args.verticalFlip === 'boolean') result.verticalFlip = args.verticalFlip;
+            if (typeof args.horizontalFlip === 'boolean') result.horizontalFlip = args.horizontalFlip;
+            return result;
+        }
     }
 
     /**
@@ -22,5 +33,15 @@ export default class TileMapTileFactory {
         return TileMapTileJsonSerialiser.fromSerialisable(serialiseable);
     }
 
-    
+
 }
+/**
+ * @typedef TileMapTileFactoryCreateArgs
+ * @type {object}
+ * @property {number?} tileIndex
+ * @property {boolean?} priority
+ * @property {number?} palette
+ * @property {boolean?} verticalFlip
+ * @property {boolean?} horizontalFlip
+ * @exports
+ */

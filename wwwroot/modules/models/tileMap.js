@@ -10,10 +10,17 @@ export default class TileMap {
 
 
     get id() {
-        return this.#tileMapId;
+        return this.id;
     }
     set id(value) {
-        this.#tileMapId = value;
+        this.id = value;
+    }
+
+    get title() {
+        return this.#title;
+    }
+    set id(value) {
+        this.#title = value;
     }
 
     get vramOffset() {
@@ -23,12 +30,20 @@ export default class TileMap {
         this.#vramOffset = value;
     }
 
-    get tileWidth() {
-        return this.#tileWidth;
+    get columns() {
+        return this.columns;
     }
-    set tileWidth(value) {
-        if (value < 1 || value > 100) throw new Error('Tile width must be greater than 1 and less than 100.');
-        this.#tileWidth = value;
+    set columns(value) {
+        if (value < 1 || value > 1000) throw new Error('Columns must be between 1 and 1000.');
+        this.columns = value;
+    }
+
+    get rows() {
+        return this.rows;
+    }
+    set rows(value) {
+        if (value < 1 || value > 1000) throw new Error('Rows must be between 1 and 1000.');
+        this.rows = value;
     }
 
     get tileCount() {
@@ -44,15 +59,14 @@ export default class TileMap {
 
 
     /** @type {string} */
-    #tileMapId = null;
+    id = null;
+    #title = null;
     #vramOffset = 0;
-    #tileWidth = 1;
+    columns = 1;
+    rows = 1;
+    #optimise = false;
     /** @type {TileMapTile[]} */
     #tiles = [];
-    /** @type {Object.<string, { tile: Tile, index: number }} */
-    #uniqueTiles = {};
-    #uniqueTileCount = 0;
-    #optimise = false;
 
 
     constructor() {
@@ -65,41 +79,21 @@ export default class TileMap {
      * @param {TileMapTileParams} params - Parameters.
      */
     addTile(tile, params) {
-        if (!this.optimise) {
-            // Just add all tiles
-            this.#tiles.push({
-                tileNumber: this.#tiles.length,
-                sourceTile: tile,
-                horizontalFlip: params.horizontalFlip,
-                verticalFlip: params.verticalFlip,
-                palette: params.palette,
-                priority: params.priority
-            });
-        } else {
-            // Optimise by eliminating duplicate tiles
-            const tileHex = TileUtil.toHex(tile);
-            if (!this.#uniqueTiles[tileHex]) {
-                this.#uniqueTiles[tileHex] = { tile: tile, index: this.#uniqueTileCount };
-                this.#uniqueTileCount++;
-            }
-            const uniqueTile = this.#uniqueTiles[tileHex];
-            this.#tiles.push({
-                tileNumber: uniqueTile.index,
-                sourceTile: uniqueTile.tile,
-                horizontalFlip: params.horizontalFlip,
-                verticalFlip: params.verticalFlip,
-                palette: params.palette,
-                priority: params.priority
-            });
-        }
+        this.#tiles.push({
+            tileIndex: this.#tiles.length,
+            sourceTile: tile,
+            horizontalFlip: params.horizontalFlip,
+            verticalFlip: params.verticalFlip,
+            palette: params.palette,
+            priority: params.priority
+        });
     }
 
     getTileMapTiles() {
         return this.#tiles.map((tileMapTile) => {
             /** @type {TileMapTile} */
             const result = {
-                tileNumber: tileMapTile.tileNumber + this.vramOffset,
-                sourceTile: tileMapTile.sourceTile,
+                tileIndex: tileMapTile.tileIndex + this.vramOffset,
                 horizontalFlip: tileMapTile.horizontalFlip,
                 verticalFlip: tileMapTile.verticalFlip,
                 palette: tileMapTile.palette,
@@ -110,20 +104,20 @@ export default class TileMap {
     }
 
 
-    toTileSet() {
-        const result = new TileSet();
-        result.tileWidth = this.tileWidth;
-        if (!this.optimise) {
-            this.#tiles.forEach((tile) => {
-                result.addTile(tile.sourceTile);
-            });
-        } else {
-            Object.keys(this.#uniqueTiles).forEach(key => {
-                result.addTile(this.#uniqueTiles[key].tile);
-            });
-        }
-        return result;
-    }
+    // toTileSet() {
+    //     const result = new TileSet();
+    //     result.tileWidth = this.columns;
+    //     if (!this.optimise) {
+    //         this.#tiles.forEach((tile) => {
+    //             result.addTile(tile.sourceTile);
+    //         });
+    //     } else {
+    //         Object.keys(this.#uniqueTiles).forEach(key => {
+    //             result.addTile(this.#uniqueTiles[key].tile);
+    //         });
+    //     }
+    //     return result;
+    // }
 
 
 }
@@ -131,6 +125,7 @@ export default class TileMap {
 /**
  * Parameters for tile map tiles.
  * @typedef {object} TileMapTileParams
+ * @property {number} tileIndex - Index of the tile within the tile map.
  * @property {boolean} horizontalFlip - Mirror tile horizontally?
  * @property {boolean} verticalFlip - Mirror tile vertically?
  * @property {number} palette - Palette index to use for the tile.

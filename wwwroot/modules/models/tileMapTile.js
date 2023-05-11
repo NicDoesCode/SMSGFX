@@ -4,6 +4,19 @@
 export default class TileMapTile {
 
 
+    /**
+     * Gets or sets the index of the tile within the tile set.
+     */
+    get tileIndex() {
+        return this.#tileIndex;
+    }
+    set tileIndex(value) {
+        this.#tileIndex = value;
+    }
+
+    /**
+     * Gets or sets the priority of the tile, the effect of this will vary on the system and the usage context.
+     */
     get priority() {
         return this.#priority;
     }
@@ -11,14 +24,20 @@ export default class TileMapTile {
         this.#priority = value;
     }
 
+    /**
+     * Sets the palette index to use for the tile.
+     */
     get palette() {
         return this.#palette;
     }
     set palette(value) {
-        if (value < 0 || value > 100) throw new Error('Invaliud palette index.');
+        if (value < 0 || value > 100) throw new Error('Invalid palette index.');
         this.#palette = value;
     }
 
+    /**
+     * Flip the tile horizontally?
+     */
     get verticalFlip() {
         return this.#verticalFlip;
     }
@@ -26,6 +45,9 @@ export default class TileMapTile {
         this.#verticalFlip = value;
     }
 
+    /**
+     * Flip the tile vertically?
+     */
     get horizontalFlip() {
         return this.#horizontalFlip;
     }
@@ -33,31 +55,12 @@ export default class TileMapTile {
         this.#horizontalFlip = value;
     }
 
-    // TODO - convert tile number to tile ID
 
-    get tileNumber() {
-        return this.#tileNumber;
-    }
-    set tileNumber(value) {
-        this.#tileNumber = value;
-    }
-
-    // TODO - remove sourceTile
-
-    get sourceTile() {
-        return this.#sourceTile;
-    }
-    set sourceTile(value) {
-        this.#sourceTile = value;
-    }
-
-
+    #tileIndex = 0;
     #priority = false;
     #palette = 0;
-    #verticalFlip = 0;
-    #horizontalFlip = 0;
-    #tileNumber = 0;
-    #sourceTile = null;
+    #verticalFlip = false;
+    #horizontalFlip = false;
 
 
     constructor() {

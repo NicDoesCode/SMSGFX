@@ -6,6 +6,7 @@ import TileMapUtil from "../../util/tileMapUtil.js";
 import TileMap from "../../models/tileMap.js";
 import SerialisationUtil from "../../util/serialisationUtil.js";
 import ProjectAssemblySerialiser from "../projectAssemblySerialiser.js";
+import TileMapListFactory from "../../factory/tileMapListFactory.js";
 
 export default class SmsggAssemblySerialiser extends ProjectAssemblySerialiser {
 
@@ -22,15 +23,19 @@ export default class SmsggAssemblySerialiser extends ProjectAssemblySerialiser {
         const paletteIndex = options?.paletteIndex ?? 0;
         const memOffset = options?.tileMapMemoryOffset ?? 0;
         const optimise = options?.optimiseTileMap ?? false;
-        const tileMap = TileMapUtil.tileSetToTileMap(project.tileSet, paletteIndex, memOffset, optimise);
+        const tileSet = project.tileSet;
+        const tileMap = TileMapUtil.tileSetToTileMap(tileSet, paletteIndex, memOffset, optimise);
+        const tileMapList = TileMapListFactory.create([tileMap]);
 
         result.push(SmsggAssemblySerialiser.#exportPalettes(project.paletteList));
         result.push('');
 
+        const optimisedTileMapList = TileMapListFactory.generateOptimisedTileMapList(tileMapList, tileSet);
+
         result.push(SmsggAssemblySerialiser.#exportTileSet(tileMap.toTileSet(), project.systemType));
         result.push('');
 
-        result.push(SmsggAssemblySerialiser.#exportTileMap(tileMap, paletteIndex, memOffset, project.systemType));
+        result.push(SmsggAssemblySerialiser.#exportTileMap(optimisedTileMapList[0], paletteIndex, memOffset, project.systemType));
         result.push('');
 
         return result.join('\r\n');

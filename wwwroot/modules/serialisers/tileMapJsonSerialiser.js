@@ -1,5 +1,6 @@
+import TileMapFactory from "../factory/tileMapFactory.js";
 import TileMap from "../models/tileMap.js";
-import TileMapFactory from "../factory/tileMapListFactory.js";
+import TileMapTileJsonSerialiser from "./tileMapTileJsonSerialiser.js";
 
 export default class TileMapJsonSerialiser {
 
@@ -36,9 +37,13 @@ export default class TileMapJsonSerialiser {
      */
      static toSerialisable(tileMap) {
         return {
+            id: tileMap.id,
             title: tileMap.title,
-            system: tileMap.system,
-            colours: tileMap.getColours().map(c => { return { r: c.r, g: c.g, b: c.b } })
+            vramOffset: tileMap.vramOffset,
+            rows: tileMap.rows,
+            columns: tileMap.columns,
+            optimise: tileMap.optimise,
+            tiles: TileMapTileJsonSerialiser.toSerialisable(tileMap.tiles)
         };
     }
 
@@ -48,11 +53,18 @@ export default class TileMapJsonSerialiser {
      * @returns {TileMap}
      */
     static fromSerialisable(tileMapSerialisable) {
-        const palette = PaletteFactory.create(tileMapSerialisable.title, tileMapSerialisable.system);
-        tileMapSerialisable.colours.forEach((jsonColour, index) => {
-            palette.setColour(index, PaletteColourFactory.create(jsonColour.r, jsonColour.g, jsonColour.b));
+        const result = TileMapFactory.create({
+            id: tileMapSerialisable.id,
+            title: tileMapSerialisable.title,
+            vramOffset: tileMapSerialisable.vramOffset,
+            rows: tileMapSerialisable.rows,
+            columns: tileMapSerialisable.columns,
+            optimise: tileMapSerialisable.optimise
         });
-        return palette;
+        if (Array.isArray(tileMapSerialisable.tiles)) {
+            tileMapSerialisable.tiles.forEach((t) => result.addTile(TileMapTileJsonSerialiser.fromSerialisable(t)));
+        }
+        return result;
     }
 
 
@@ -61,8 +73,12 @@ export default class TileMapJsonSerialiser {
 /**
  * @typedef TileMapSerialisable
  * @type {object}
+ * @property {string} id
  * @property {string} title
- * @property {string} system
- * @property {PaletteColourSerialisable[]} colours
+ * @property {number} vramOffset
+ * @property {number} rows
+ * @property {number} columns
+ * @property {boolean} optimise
+ * @property {import('./tileMapTileJsonSerialiser.js').TileMapTileSerialisable[]} tiles
  * @exports
  */

@@ -21,8 +21,9 @@ export default class TileMapUtil {
         result.vramOffset = vramOffset;
         result.tileWidth = tileSet.tileWidth;
         result.optimise = optimise;
-        tileSet.getTiles().forEach((tile, index, array) => {
+        tileSet.getTiles().forEach((tile, index) => {
             result.addTile(tile, {
+                tileIndex: index,
                 priority: false,
                 palette: paletteIndex,
                 verticalFlip: false,

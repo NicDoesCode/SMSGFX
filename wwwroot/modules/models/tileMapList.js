@@ -17,7 +17,7 @@ export default class TileMapList {
 
     /**
      * Creates a new instance of a tile map list.
-     * @param {TileMap[]?} items - Initial array of items to populate.
+     * @param {TileMap[]?} [items] - Initial array of items to populate.
      */
     constructor(items) {
         if (items && !Array.isArray(items)) throw new Error('Array of tile maps must be passed.');
@@ -40,7 +40,7 @@ export default class TileMapList {
      * @param {string} tileMapId - ID of the item to get.
      * @returns {TileMap|null}
      */
-    getProjectById(tileMapId) {
+    getTileMapById(tileMapId) {
         if (tileMapId) {
             const found = this.#tileMaps.filter(tm => tm.id === tileMapId);
             if (found.length > 0) {
