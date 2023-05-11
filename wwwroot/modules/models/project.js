@@ -1,7 +1,9 @@
 import PaletteList from "./paletteList.js";
+import PaletteListFactory from "../factory/paletteListFactory.js";
 import TileSet from "./tileSet.js";
 import TileSetFactory from "../factory/tileSetFactory.js";
-import PaletteListFactory from "../factory/paletteListFactory.js";
+import TileMapList from './tileMapList.js';
+import TileMapListFactory from "../factory/tileMapListFactory.js";
 import GeneralUtil from "../util/generalUtil.js";
 
 export default class Project {
@@ -40,6 +42,15 @@ export default class Project {
         this.#tileSet = value;
     }
 
+    /** Gets or sets the tile map list for this project. */
+    get tileMapList() {
+        return this.#tileMapList;
+    }
+    set tileMapList(value) {
+        if (value === null || typeof value.getTileMaps !== 'function') throw new Error('Invalid tile map list.');
+        this.#tileMapList = value;
+    }
+
     /** Gets or sets the palette list for this project. */
     get paletteList() {
         return this.#paletteList;
@@ -58,6 +69,8 @@ export default class Project {
     #systemType;
     /** @type {TileSet} */
     #tileSet;
+    /** @type {TileMapList} */
+    #tileMapList;
     /** @type {PaletteList} */
     #paletteList;
 
@@ -66,11 +79,12 @@ export default class Project {
      * Creates a new instance of the project class.
      * @param {string?} id - ID of the project.
      * @param {string?} title - Title, if not supplied one will be created.
-     * @param {string?} systemType - Type of system targetted, either 'smsgg' or 'gb', default is 'smsgg'.
+     * @param {string?} systemType - Type of system targetted, either 'smsgg', 'gb' or 'nes', default is 'smsgg'.
      * @param {TileSet?} tileSet - Tile set, if not supplied one will be created.
+     * @param {TileMapList?} tileMapList - Tile map list, if not supplied one will be created.
      * @param {PaletteList?} paletteList - Colour palettes, if not supplied one will be created.
      */
-    constructor(id, title, systemType, tileSet, paletteList) {
+    constructor(id, title, systemType, tileSet, tileMapList, paletteList) {
 
         if (typeof id !== 'undefined' && id !== null && id.length > 0) {
             this.#id = id;
@@ -85,9 +99,11 @@ export default class Project {
         }
         
         if (typeof systemType !== 'undefined' && systemType !== null) {
-            this.systemType = systemType;
-        } else if (systemType === 'gb') {
-            this.systemType = 'gb';
+            switch (systemType) {
+                case 'gb': this.systemType = 'gb'; break;
+                case 'nes': this.systemType = 'nes'; break;
+                case 'smsgg': default: this.systemType = 'smsgg'; break;
+            }
         } else {
             this.systemType = 'smsgg';
         }
@@ -98,6 +114,12 @@ export default class Project {
             this.#tileSet = TileSetFactory.create();
         }
         
+        if (tileMapList) {
+            this.#tileMapList = tileMapList;
+        } else {
+            this.#tileMapList = TileMapListFactory.create();
+        }
+
         if (paletteList) {
             this.#paletteList = paletteList;
         } else {

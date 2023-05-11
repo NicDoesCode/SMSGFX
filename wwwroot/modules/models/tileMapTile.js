@@ -15,7 +15,7 @@ export default class TileMapTile {
         return this.#palette;
     }
     set palette(value) {
-        if (value < 0 || value > 100) throw new Error('PInvaliud palette index.');
+        if (value < 0 || value > 100) throw new Error('Invaliud palette index.');
         this.#palette = value;
     }
 
@@ -29,9 +29,11 @@ export default class TileMapTile {
     get horizontalFlip() {
         return this.#horizontalFlip;
     }
-    set verticalFlip(value) {
+    set horizontalFlip(value) {
         this.#horizontalFlip = value;
     }
+
+    // TODO - convert tile number to tile ID
 
     get tileNumber() {
         return this.#tileNumber;
@@ -39,6 +41,8 @@ export default class TileMapTile {
     set tileNumber(value) {
         this.#tileNumber = value;
     }
+
+    // TODO - remove sourceTile
 
     get sourceTile() {
         return this.#sourceTile;

@@ -124,19 +124,16 @@ function addComponentGlobalScopedCss(componentName, elementToScan) {
     const globalScopedCssNodes = elementToScan.querySelectorAll(`style[data-css-scope=global]`);;
     globalScopedCssNodes.forEach((/** @type {HTMLElement} */ cssNode) => {
         cssNode.remove();
-        // const alreadyLoadedCssNodes = document.head.querySelectorAll(`style${componentSelector(componentName)}`);
-        // if (alreadyLoadedCssNodes.length === 0) {
         cssNode.setAttribute('data-smsgfx-component', componentName);
         document.head.appendChild(cssNode);
-        // }
-        // elementToScan.removeChild(cssNode);
     });
 }
 
 function addComponentToCacheIfNotAlreadyThere(component) {
     const componentName = component.getAttribute('data-smsgfx-component');
     if (componentName) {
-        const foundComponent = componentCache.querySelector(componentSelector(componentName));
+        const selector = componentSelector(componentName);
+        const foundComponent = componentCache.querySelector(selector);
         if (!foundComponent) componentCache.appendChild(component);
     }
 }

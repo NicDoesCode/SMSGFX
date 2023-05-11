@@ -9,6 +9,13 @@ import TileUtil from "../util/tileUtil.js";
 export default class TileMap {
 
 
+    get id() {
+        return this.#tileMapId;
+    }
+    set id(value) {
+        this.#tileMapId = value;
+    }
+
     get vramOffset() {
         return this.#vramOffset;
     }
@@ -36,6 +43,8 @@ export default class TileMap {
     }
 
 
+    /** @type {string} */
+    #tileMapId = null;
     #vramOffset = 0;
     #tileWidth = 1;
     /** @type {TileMapTile[]} */

@@ -3,6 +3,7 @@ import Project from '../models/project.js';
 import TileSetJsonSerialiser from './tileSetJsonSerialiser.js';
 import PaletteListJsonSerialiser from './paletteListJsonSerialiser.js';
 import GeneralUtil from '../util/generalUtil.js';
+import TileMapListJsonSerialiser from './tileMapListJsonSerialiser.js';
 
 export default class ProjectJsonSerialiser {
 
@@ -45,8 +46,9 @@ export default class ProjectJsonSerialiser {
             version: 1, 
             title: project.title,
             systemType: project.systemType,
-            paletteList: PaletteListJsonSerialiser.toSerialisable(project.paletteList),
-            tileSet: TileSetJsonSerialiser.toSerialisable(project.tileSet)
+            tileSet: TileSetJsonSerialiser.toSerialisable(project.tileSet),
+            tileMapList: TileMapListJsonSerialiser.toSerialisable(project.tileMapList),
+            paletteList: PaletteListJsonSerialiser.toSerialisable(project.paletteList)
         };
     }
 
@@ -61,6 +63,7 @@ export default class ProjectJsonSerialiser {
             title: projectSerialisable.title, 
             systemType: projectSerialisable.systemType, 
             tileSet: TileSetJsonSerialiser.fromSerialisable(projectSerialisable.tileSet),
+            tileMapList: TileMapListJsonSerialiser.fromSerialisable(projectSerialisable.tileMapList),
             paletteList: PaletteListJsonSerialiser.fromSerialisable(projectSerialisable.paletteList)
         });
     }
@@ -76,6 +79,7 @@ export default class ProjectJsonSerialiser {
  * @property {string} title
  * @property {string} systemType
  * @property {import('./tileSetJsonSerialiser').TileSetSerialisable} tileSet
+ * @property {import('./tileMapJsonSerialiser.js').TileMapSerialisable} tileMapList
  * @property {import('./paletteJsonSerialiser').PaletteSerialisable} paletteList
  * @exports
  */
