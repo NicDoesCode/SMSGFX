@@ -63,8 +63,8 @@ export default class ProjectJsonSerialiser {
             title: projectSerialisable.title, 
             systemType: projectSerialisable.systemType, 
             tileSet: TileSetJsonSerialiser.fromSerialisable(projectSerialisable.tileSet),
-            tileMapList: TileMapListJsonSerialiser.fromSerialisable(projectSerialisable.tileMapList),
-            paletteList: PaletteListJsonSerialiser.fromSerialisable(projectSerialisable.paletteList)
+            tileMapList: TileMapListJsonSerialiser.fromSerialisable(projectSerialisable.tileMapList ?? []),
+            paletteList: PaletteListJsonSerialiser.fromSerialisable(projectSerialisable.paletteList ?? [])
         });
     }
 
