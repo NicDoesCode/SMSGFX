@@ -1,16 +1,55 @@
+import GeneralUtil from './../util/generalUtil.js';
+
 /**
  * Single 8x8 tile.
  */
 export default class Tile {
 
 
-    /** The length of the tile data. */
+    /**
+     * Unique ID of the tile.
+     */
+    get tileId() {
+        return this.#tileId;
+    }
+    set tileId(value) {
+        if (!value || value.length === '') throw new Error('Please supply a valid ID value.');
+        this.#tileId = value;
+    }
+
+    /** 
+     * The length of the tile data. 
+     */
     get length() {
         return this.#data.length;
     }
 
 
-    #data = new Uint8ClampedArray(64);
+    /** @type {string} */
+    #tileId;
+    /** @type {Uint8ClampedArray} */
+    #data;
+
+
+    /**
+     * Creates a new instance of a tile object.
+     * @param {string?} [tileId] - Unique ID of the palette.
+     * @argument {Uint8ClampedArray?} [tileData] - Initial data to fill the tile data array with.
+     */
+    constructor(tileId, tileData) {
+        if (tileData && Array.isArray(tileData) && tileData && tileData.length !== 64) throw new Error('Initial tile data must be of length 64.');
+
+        if (typeof tileId !== 'undefined' && tileId !== null) {
+            this.tileId = tileId;
+        } else {
+            this.tileId = GeneralUtil.generateRandomString(12);
+        }
+        if (tileData && Array.isArray(tileData)) {
+            this.#data = tileData;
+        } else {
+            this.#data = new Uint8ClampedArray(64);
+        }
+    }
 
 
     /**

@@ -6,19 +6,24 @@ export default class TileFactory {
 
     /**
      * Creates a new instance of a tile object.
-     * @argument {number?} defaultColourIndex - Colour index to set as the initial colour of the tile, default is 15.
+     * @argument {string?} [tileId] - Unique ID for the tile.
+     * @argument {number?} [defaultColourIndex] - Colour index to set as the initial colour of the tile, default is 15.
      * @returns {Tile}
      */
-    static create(defaultColourIndex) {
+    static create(tileId, defaultColourIndex) {
         if (typeof defaultColourIndex !== 'number') defaultColourIndex = 15;
         const tileDataArray = new Uint8ClampedArray(64);
         tileDataArray.fill(defaultColourIndex, 0, tileDataArray.length);
-        return TileFactory.fromArray(tileDataArray);
+        
+        const result = new Tile(tileId);
+        result.
+        result.tileId = tileId;
+        return result;
     }
 
     /**
      * Converts a hexadecimal string to a tile object.
-     * @param {string} hexString String of hexadecimal data.
+     * @param {string} hexString - String of hexadecimal data.
      * @returns {Tile}
      */
     static fromHex(hexString) {
@@ -48,7 +53,7 @@ export default class TileFactory {
         if (!sourceLength) sourceLength = 64;
         if (sourceLength < 0 || sourceLength > 64) throw new Error('Length must be between 0 and 64.');
 
-        const tile = new Tile();
+        const tile = TileFactory.create(null, null);
         const sourceStopIndex = sourceIndex + sourceLength;
         let dataIndex = 0;
         for (let i = sourceIndex; i < sourceArray.length && i < sourceStopIndex; i++) {

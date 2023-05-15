@@ -2,6 +2,7 @@ import TileSet from "../models/tileSet.js";
 import TileSetFactory from "../factory/tileSetFactory.js";
 import TileFactory from "../factory/tileFactory.js";
 import TileUtil from "../util/tileUtil.js";
+import TileJsonSerialiser from "./tileJsonSerialiser.js";
 
 export default class TileSetJsonSerialiser {
 
@@ -34,11 +35,11 @@ export default class TileSetJsonSerialiser {
      * @param {TileSet} tileSet - Tile set to serialise.
      * @returns {TileSetSerialisable} 
      */
-     static toSerialisable(tileSet) {
+    static toSerialisable(tileSet) {
         if (!tileSet || typeof tileSet.getPixelAt !== 'function') throw new Error('Please pass a tile set.');
         return {
             tileWidth: tileSet.tileWidth,
-            tilesAsHex: tileSet.getTiles().map(t => TileUtil.toHex(t))
+            tiles: tileSet.getTiles().map(t => TileJsonSerialiser.toSerialisable(t))
         };
     }
 
@@ -50,12 +51,20 @@ export default class TileSetJsonSerialiser {
     static fromSerialisable(tileSetSerialisable) {
         if (!tileSetSerialisable) throw new Error('Please pass a serialisable tile set.');
 
-        const result = TileSetFactory.create();
+        const result = TileSeFactory.create();
         result.tileWidth = tileSetSerialisable.tileWidth;
-        tileSetSerialisable.tilesAsHex.forEach(tileAsHex => {
+
+        tileSetSerialisable.tiles.forEach((t) => {
+            const newTile = TileJsonSerialiser.fromSerialisable(t);
+            result.addTile(newTile);
+        });
+
+        // TODO - remove this in the future 
+        tileSetSerialisable.tilesAsHex.forEach((tileAsHex) => {
             const newTile = TileFactory.fromHex(tileAsHex);
             result.addTile(newTile);
         });
+
         return result;
     }
 
@@ -67,4 +76,5 @@ export default class TileSetJsonSerialiser {
  * @type {object}
  * @property {number} tileWidth - The width of the tile map (in 8x8 pixel tiles).
  * @property {string[]} tilesAsHex - Array of tiles encoded as hexadecimal.
+ * @property {import("./tileJsonSerialiser.js").TileSerialisable[]} tiles - Array of tiles.
  */

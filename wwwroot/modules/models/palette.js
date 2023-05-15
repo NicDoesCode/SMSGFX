@@ -53,15 +53,15 @@ export default class Palette {
 
     /**
      * Creates a new instance of a palette object.
-     * @param {number?} [paletteId] - Unique ID of the palette.
+     * @param {string?} [paletteId] - Unique ID of the palette.
      * @param {string?} [title] - Title of the palette.
      * @param {string} system - Intended system, either 'ms' (Sega Master System), 'gg' (Sega Game Gear), 'gb (Nintendo Game Boy) or 'nes' (Nintendo Entertainment System).
      */
     constructor(paletteId, title, system) {
         if (typeof paletteId !== 'undefined' && paletteId !== null) {
-            this.paletteId = GeneralUtil.generateRandomString(12);
-        } else {
             this.paletteId = paletteId;
+        } else {
+            this.paletteId = GeneralUtil.generateRandomString(12);
         }
         if (typeof title !== 'undefined' && title !== null) {
             this.title = title;

@@ -43,6 +43,8 @@ export default class TileSet {
 
     /** @type {Tile[]} */
     #tiles = [];
+    /** @type {Object.<string, Palette>} */
+    #tilesByIdCache = null;
     #tileWidth = 1;
     #pxPerRow = 8;
     #totalRows = 0;
@@ -58,51 +60,6 @@ export default class TileSet {
     constructor() {
     }
 
-
-    #calculateTotalRows() {
-        if (this.length > 0) {
-            this.#totalRows = Math.ceil(this.tileWidth / this.length);
-            this.#heightPx = this.#totalRows * 8;
-            this.#totalPx = this.#pxPerRow * this.#totalRows;
-        } else {
-            this.#totalRows = 0;
-            this.#heightPx = 0;
-            this.#totalPx = 0;
-        }
-        this.#pxPerRow = this.length * 8;
-    }
-
-    /**
-     * Adds a tile to the tile map.
-     * @param {Tile} tile The tile to add.
-     */
-    addTile(tile) {
-        if (!tile) throw new Error('Tile can not be null.');
-        this.#tiles.push(tile);
-        this.#calculateTotalRows();
-    }
-
-    /**
-     * Inserts a tile at the given index.
-     * @param {Tile} tile The tile to insert.
-     * @param {number} index Index in the tile map where the tile should reside.
-     */
-    insertTileAt(tile, index) {
-        if (!tile) throw new Error('Tile can not be null.');
-        if (index < 0 || index > this.#tiles.length) throw new Error('Index must be between 0 and tile map count.');
-        this.#tiles.splice(index, 0, tile);
-        this.#calculateTotalRows();
-    }
-
-    /**
-     * Removes a tile from the tile map.
-     * @param {number} index Index in the tile map where the tile should be removed.
-     */
-    removeTile(index) {
-        if (index < 0 || index > this.#tiles.length) throw new Error('Index must be between 0 and tile map count.');
-        this.#tiles.splice(index, 1);
-        this.#calculateTotalRows();
-    }
 
     /**
      * Gets a tile from the tile map.
@@ -123,9 +80,97 @@ export default class TileSet {
     }
 
     /**
+     * Gets an item by ID.
+     * @param {string} tileId - Unique tile ID.
+     * @returns {Tile|null}
+     */
+    getTileById(tileId) {
+        if (this.containsTileById(tileId)) {
+            return this.#getTilesByIdCache[tileId];
+        } else {
+            throw new Error('No tile with given ID was found.');
+        }
+    }
+
+
+    /**
+     * Gets whether this list has a tile by a given ID.
+     * @param {string} tileId - Unique tile ID.
+     * @returns {boolean}
+     */
+    containsTileById(tileId) {
+        return (tileId && this.#getPalettesById[tileId]);
+    }
+
+
+    /**
+     * Adds a tile to the tile map.
+     * @param {Tile} tile - The tile to add.
+     */
+    addTile(tile) {
+        if (!tile) throw new Error('Tile can not be null.');
+        this.#tiles.push(tile);
+        this.#calculateTotalRows();
+        this.#resetTilesByIdCache();
+    }
+
+    /**
+     * Inserts a tile at the given index.
+     * @param {Tile} tile - The tile to insert.
+     * @param {number} index - Index in the tile map where the tile should reside.
+     */
+    insertTileAt(tile, index) {
+        if (!tile) throw new Error('Tile can not be null.');
+        if (index < 0 || index > this.#tiles.length) throw new Error('Index must be between 0 and tile map count.');
+        this.#tiles.splice(index, 0, tile);
+        this.#calculateTotalRows();
+        this.#resetTilesByIdCache();
+    }
+
+
+    /**
+     * Removes a tile from the tile map.
+     * @param {number} index - Index in the tile map where the tile should be removed.
+     */
+    removeTile(index) {
+        if (index < 0 || index > this.#tiles.length) throw new Error('Index must be between 0 and tile map count.');
+        this.#tiles.splice(index, 1);
+        this.#calculateTotalRows();
+        this.#resetTilesByIdCache();
+    }
+
+
+    /**
+     * Removes a tile by ID.
+     * @param {string} tileId - Unique tile ID.
+     */
+    removeById(tileId) {
+        if (tileId) {
+            this.#tiles = this.#tiles.filter((t) => t.tileId !== tileId);
+            this.#calculateTotalRows();
+            this.#resetTilesByIdCache();
+        } else throw new Error('Please supply a tile ID.');
+    }
+
+
+    #calculateTotalRows() {
+        if (this.length > 0) {
+            this.#totalRows = Math.ceil(this.tileWidth / this.length);
+            this.#heightPx = this.#totalRows * 8;
+            this.#totalPx = this.#pxPerRow * this.#totalRows;
+        } else {
+            this.#totalRows = 0;
+            this.#heightPx = 0;
+            this.#totalPx = 0;
+        }
+        this.#pxPerRow = this.length * 8;
+    }
+
+
+    /**
      * Sets the coordinate to read from.
-     * @param {number} x X coordinate in the tile set.
-     * @param {number} y Y coordinate in the tile set.
+     * @param {number} x - X coordinate in the tile set.
+     * @param {number} y - Y coordinate in the tile set.
      */
     setReadCoordinate(x, y) {
         if (!(x >= 1 && x <= this.#pxPerRow)) throw new Error(`X coordinate must be between 1 and ${this.#pxPerRow}.`);
@@ -136,7 +181,7 @@ export default class TileSet {
 
     /**
      * Sets the next pixel index to read in the overall tile map.
-     * @param {number} index Pixel index.
+     * @param {number} index - Pixel index.
      */
     setReadIndex(index) {
         if (index < 0 || index >= this.#totalRows * 64) throw new Error(`Index was out of range, between 0 and ${(this.#totalRows * 64)}.`);
@@ -243,7 +288,7 @@ export default class TileSet {
 
     /**
      * Returns the tile associated with a given pixel index from top left.
-     * @param {number} index Pixel from top left.
+     * @param {number} index - Pixel from top left.
      * @returns {Tile}
      */
     getTileByPixelIndex(index) {
@@ -254,7 +299,7 @@ export default class TileSet {
 
     /**
      * Gets the tile index or null if not in the list.
-     * @param {Tile} tile Tile to return the index of.
+     * @param {Tile} tile - Tile to return the index of.
      * @returns {number|null}
      */
     getTileIndex(tile) {
@@ -266,8 +311,8 @@ export default class TileSet {
 
     /**
      * Gets the pixel value at the given coordinate.
-     * @param {number} x X coordinate in the tile set.
-     * @param {number} y Y coordinate in the tile set.
+     * @param {number} x - X coordinate in the tile set.
+     * @param {number} y - Y coordinate in the tile set.
      * @returns {number|null}
      */
     getPixelAt(x, y) {
@@ -291,8 +336,8 @@ export default class TileSet {
 
     /**
      * Sets the palette slot of a pixel at a given coordinate on the tile set.
-     * @param {number} x X coordinate.
-     * @param {number} y Y coordinate.
+     * @param {number} x - X coordinate.
+     * @param {number} y - Y coordinate.
      * @param {number} paletteIndex Palette index of the colour, 0 to 15.
      * @returns {boolean} true if the value was updated, otherwise false.
      */
@@ -321,6 +366,7 @@ export default class TileSet {
     clear() {
         this.#tiles = [];
         this.#calculateTotalRows();
+        this.#resetTilesByIdCache();
     }
 
 
@@ -344,6 +390,19 @@ export default class TileSet {
         for (let i = 0; i < this.#tiles.length; i++) {
             this.#tiles[i].swapColourIndex(firstColourIndex, secondColourIndex);
         }
+    }
+
+
+    #getTilesByIdCache() {
+        if (!this.#tilesByIdCache) {
+            this.#tilesByIdCache = {};
+            this.#tiles.forEach((t) => this.#tilesByIdCache[t.tileId] = t);
+        }
+        return !this.#tilesByIdCache;
+    }
+
+    #resetTilesByIdCache() {
+        this.#tilesByIdCache = null;
     }
 
 

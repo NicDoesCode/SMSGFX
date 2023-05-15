@@ -14,7 +14,7 @@ export default class PaletteList {
     /** @type {Palette[]} */
     #palettes = [];
     /** @type {Object.<string, Palette>} */
-    #palettesById = null;
+    #palettesByIdCache = null;
 
 
     /**
@@ -50,7 +50,6 @@ export default class PaletteList {
         }
     }
 
-
     /**
      * Gets an item by ID.
      * @param {string} paletteId - Unique Palette ID to fetch.
@@ -58,9 +57,9 @@ export default class PaletteList {
      */
     getPaletteById(paletteId) {
         if (this.containsPaletteById(paletteId)) {
-            return this.#getPalettesById[paletteId];
+            return this.#getPalettesByIdCache[paletteId];
         } else {
-            throw new Error('Index out of range.');
+            throw new Error('No palette with given ID was found.');
         }
     }
 
@@ -71,7 +70,7 @@ export default class PaletteList {
      * @returns {boolean}
      */
     containsPaletteById(paletteId) {
-        return (paletteId && this.#getPalettesById[paletteId]);
+        return (paletteId && this.#getPalettesByIdCache[paletteId]);
     }
 
 
@@ -85,7 +84,7 @@ export default class PaletteList {
         } else {
             this.#palettes.push(p);
         }
-        this.#clearPalettesById();
+        this.#resetPalettesByIdCache();
     }
 
 
@@ -103,7 +102,7 @@ export default class PaletteList {
         if (index === 0) this.#palettes.unshift(value);
         else if (index === this.#palettes.length) this.#palettes.push(value);
         else this.#palettes = this.#palettes.splice(index, 0, value);
-        this.#clearPalettesById();
+        this.#resetPalettesByIdCache();
     }
 
     /**
@@ -114,24 +113,8 @@ export default class PaletteList {
     setPalette(index, value) {
         if (index >= 0 && index < this.#palettes.length) {
             this.#palettes[index] = value;
-            this.#clearPalettesById();
+            this.#resetPalettesByIdCache();
         } else throw new Error('Index out of range.');
-    }
-
-    /**
-     * Sets an item by ID.
-     * @param {string} paletteId - Unique Palette ID.
-     * @param {Palette} value - Palette value to set.
-     */
-    setPaletteById(paletteId, value) {
-        if (paletteId) {
-            for (let i = 0; i < this.#palettes.length; i++) {
-                if (this.#palettes[i].paletteId === paletteId) {
-                    this.#palettes[i] = value;
-                }
-            }
-            this.#clearPalettesById();
-        } else throw new Error('Please supply a palette ID.');
     }
 
     /**
@@ -141,7 +124,7 @@ export default class PaletteList {
     removeAt(index) {
         if (index >= 0 && index < this.#palettes.length) {
             this.#palettes.splice(index, 1);
-            this.#clearPalettesById();
+            this.#resetPalettesByIdCache();
         } else throw new Error('Index out of range.');
     }
 
@@ -152,7 +135,7 @@ export default class PaletteList {
     removeById(paletteId) {
         if (paletteId) {
             this.#palettes = this.#palettes.filter((p) => p.paletteId !== paletteId);
-            this.#clearPalettesById();
+            this.#resetPalettesByIdCache();
         } else throw new Error('Please supply a palette ID.');
     }
 
@@ -161,20 +144,20 @@ export default class PaletteList {
      */
     clear() {
         this.#palettes.splice(0, this.#palettes.length);
-        this.#clearPalettesById();
+        this.#resetPalettesByIdCache();
     }
 
 
-    #getPalettesById() {
-        if (!this.#palettesById) {
-            this.#palettesById = {};
-            this.#palettes.forEach((p) => this.#palettesById[p.paletteId] = p);
+    #getPalettesByIdCache() {
+        if (!this.#palettesByIdCache) {
+            this.#palettesByIdCache = {};
+            this.#palettes.forEach((p) => this.#palettesByIdCache[p.paletteId] = p);
         }
-        return !this.#palettesById;
+        return !this.#palettesByIdCache;
     }
 
-    #clearPalettesById() {
-        this.#palettesById = null;
+    #resetPalettesByIdCache() {
+        this.#palettesByIdCache = null;
     }
 
 

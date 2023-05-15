@@ -1306,7 +1306,7 @@ function createEmptyProject(args) {
     project.tileSet = TileSetFactory.create();
     project.tileSet.tileWidth = 8;
     for (let i = 0; i < 64; i++) {
-        project.tileSet.addTile(TileFactory.create(defaultTileColourIndex));
+        project.tileSet.addTile(TileFactory.create(null, defaultTileColourIndex));
     }
 
     // Create a default palette 
@@ -2134,7 +2134,7 @@ function tileNew() {
     if (getTileSet()) {
         addUndoState();
 
-        const newTile = TileFactory.create();
+        const newTile = TileFactory.create(null, null);
         getTileSet().addTile(newTile);
 
         state.setProject(getProject());
