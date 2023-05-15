@@ -237,6 +237,14 @@ export default class TileMap {
 
 
     /**
+     * Gets all palettes used by this tile map.
+     * @returns {Array<string|null>}
+     */
+    getPalettes() {
+        return this.#paletteIds.slice();
+    }
+
+    /**
      * Sets the unique palette ID associated with a given index.
      * @param {number} index - Index of the palette to set.
      * @param {string} paletteId - Unique ID of the palette.
