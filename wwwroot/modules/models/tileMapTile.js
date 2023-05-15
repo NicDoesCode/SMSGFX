@@ -5,13 +5,13 @@ export default class TileMapTile {
 
 
     /**
-     * Gets or sets the index of the tile within the tile set.
+     * Gets or sets the unique ID of the tile associated with this item.
      */
-    get tileIndex() {
-        return this.#tileIndex;
+    get tileId() {
+        return this.#tileId;
     }
-    set tileIndex(value) {
-        this.#tileIndex = value;
+    set tileId(value) {
+        this.#tileId = value;
     }
 
     /**
@@ -25,7 +25,7 @@ export default class TileMapTile {
     }
 
     /**
-     * Sets the palette index to use for the tile.
+     * Gets or sets the palette index to use for the tile.
      */
     get palette() {
         return this.#palette;
@@ -36,7 +36,7 @@ export default class TileMapTile {
     }
 
     /**
-     * Flip the tile horizontally?
+     * Gets or sets whether to flip the tile horizontally?
      */
     get verticalFlip() {
         return this.#verticalFlip;
@@ -46,7 +46,7 @@ export default class TileMapTile {
     }
 
     /**
-     * Flip the tile vertically?
+     * Gets or sets whether to flip the tile vertically?
      */
     get horizontalFlip() {
         return this.#horizontalFlip;
@@ -56,7 +56,8 @@ export default class TileMapTile {
     }
 
 
-    #tileIndex = 0;
+    /** @type {string} */
+    #tileId = null;
     #priority = false;
     #palette = 0;
     #verticalFlip = false;

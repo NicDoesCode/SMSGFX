@@ -37,7 +37,7 @@ export default class TileJsonSerialiser {
         if (!tile || typeof tile.readAll !== 'function') throw new Error('Please pass a tile.');
         return {
             tileId: tile.tileId,
-            tileData: TileUtil.toHex(t)
+            tileData: TileUtil.toHex(tile)
         };
     }
 

@@ -14,11 +14,7 @@ export default class TileFactory {
         if (typeof defaultColourIndex !== 'number') defaultColourIndex = 15;
         const tileDataArray = new Uint8ClampedArray(64);
         tileDataArray.fill(defaultColourIndex, 0, tileDataArray.length);
-        
-        const result = new Tile(tileId);
-        result.
-        result.tileId = tileId;
-        return result;
+        return new Tile(tileId, tileDataArray);
     }
 
     /**

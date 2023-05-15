@@ -99,7 +99,7 @@ export default class TileSet {
      * @returns {boolean}
      */
     containsTileById(tileId) {
-        return (tileId && this.#getPalettesById[tileId]);
+        return (tileId && this.#getTilesByIdCache[tileId]);
     }
 
 

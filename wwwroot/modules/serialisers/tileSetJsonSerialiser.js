@@ -51,19 +51,23 @@ export default class TileSetJsonSerialiser {
     static fromSerialisable(tileSetSerialisable) {
         if (!tileSetSerialisable) throw new Error('Please pass a serialisable tile set.');
 
-        const result = TileSeFactory.create();
+        const result = TileSetFactory.create();
         result.tileWidth = tileSetSerialisable.tileWidth;
 
-        tileSetSerialisable.tiles.forEach((t) => {
-            const newTile = TileJsonSerialiser.fromSerialisable(t);
-            result.addTile(newTile);
-        });
+        if (tileSetSerialisable.tiles && Array.isArray(tileSetSerialisable.tiles)) {
+            tileSetSerialisable.tiles.forEach((t) => {
+                const newTile = TileJsonSerialiser.fromSerialisable(t);
+                result.addTile(newTile);
+            });
+        }
 
         // TODO - remove this in the future 
-        tileSetSerialisable.tilesAsHex.forEach((tileAsHex) => {
-            const newTile = TileFactory.fromHex(tileAsHex);
-            result.addTile(newTile);
-        });
+        if (tileSetSerialisable.tilesAsHex && Array.isArray(tileSetSerialisable.tilesAsHex)) {
+            tileSetSerialisable.tilesAsHex.forEach((tileAsHex) => {
+                const newTile = TileFactory.fromHex(tileAsHex);
+                result.addTile(newTile);
+            });
+        }
 
         return result;
     }

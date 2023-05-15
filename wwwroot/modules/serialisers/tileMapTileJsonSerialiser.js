@@ -1,5 +1,5 @@
 import TileMapTile from "../models/tileMapTile.js";
-import TileMapTileFactory from "../factory/tilemapTileFactory.js";
+import TileMapTileFactory from "../factory/tileMapTileFactory.js";
 
 export default class TileMapTileJsonSerialiser {
 

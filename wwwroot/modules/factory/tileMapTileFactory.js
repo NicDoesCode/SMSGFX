@@ -14,7 +14,7 @@ export default class TileMapTileFactory {
             return new TileMapTile();
         } else {
             const result = new TileMapTile();
-            if (typeof args.tileIndex === 'number') result.tileIndex = args.tileIndex;
+            if (typeof args.tileId === 'string') result.tileId = args.tileId;
             if (typeof args.priority === 'boolean') result.priority = args.priority;
             if (typeof args.palette === 'number') result.palette = args.palette;
             if (typeof args.verticalFlip === 'boolean') result.verticalFlip = args.verticalFlip;
@@ -38,7 +38,7 @@ export default class TileMapTileFactory {
 /**
  * @typedef TileMapTileFactoryCreateArgs
  * @type {object}
- * @property {number?} tileIndex
+ * @property {number?} tileId
  * @property {boolean?} priority
  * @property {number?} palette
  * @property {boolean?} verticalFlip

@@ -82,7 +82,7 @@ export default class PaletteList {
         if (Array.isArray(value)) {
             value.forEach((p) => this.#palettes.push(p));
         } else {
-            this.#palettes.push(p);
+            this.#palettes.push(value);
         }
         this.#resetPalettesByIdCache();
     }

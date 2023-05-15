@@ -42,7 +42,7 @@ export default class TileMapList {
      */
     getTileMapById(tileMapId) {
         if (tileMapId) {
-            const found = this.#tileMaps.filter(tm => tm.id === tileMapId);
+            const found = this.#tileMaps.filter(tm => tm.tileMapId === tileMapId);
             if (found.length > 0) {
                 return found[0];
             }
