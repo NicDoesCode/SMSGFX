@@ -491,7 +491,7 @@ export default class ImageUtil {
 
         // Write tiles
         const system = params?.system ?? 'ms';
-        const projectPalette = PaletteFactory.create('Imported palette', system);
+        const projectPalette = PaletteFactory.create(null, 'Imported palette', system);
         colourMatchPalette.forEach((p, index) => {
             projectPalette.setColour(index, {
                 r: p.r, g: p.g, b: p.b

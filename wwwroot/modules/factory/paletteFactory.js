@@ -8,12 +8,13 @@ export default class PaletteFactory {
 
     /**
      * Creates a new instance of a palette object.
-     * @param {string} title - Title of the palette.
-     * @param {string} system - Intended system, either 'ms' (Sega Master System), 'gg' (Sega Game Gear), 'nes' (Nintendo Entertainment System) or 'gb' (Nintendo Game Boy).
+     * @param {number?} [paletteId] - Unique ID of the palette.
+     * @param {string?} [title] - Title of the palette.
+     * @param {string} system - Intended system, either 'ms' (Sega Master System), 'gg' (Sega Game Gear), 'gb (Nintendo Game Boy) or 'nes' (Nintendo Entertainment System).
      * @returns {Palette}
      */
-    static create(title, system) {
-        return new Palette(title, system);
+    static create(paletteId, title, system) {
+        return new Palette(paletteId, title, system);
     }
 
     /**
@@ -44,7 +45,7 @@ export default class PaletteFactory {
         if (!title || title === '' || title.length < 1) throw new Error('No value given for "title".');
         if (!system || typeof system !== 'string') throw new Error('No value given for "system".');
 
-        const palette = PaletteFactory.create(title, system);
+        const palette = PaletteFactory.create(null, title, system);
         switch (system) {
             case 'ms':
             case 'gg':
@@ -78,7 +79,7 @@ export default class PaletteFactory {
      */
     static createFromMasterSystemPalette(array) {
         /** @type {Palette} */
-        const result = PaletteFactory.create('Master System palette', 'ms');
+        const result = PaletteFactory.create(null, 'Master System palette', 'ms');
         for (let idx = 0; idx < 16 || idx < array.length; idx++) {
             const colour = array[idx];
             var r = Math.round(255 / 3 * (parseInt('00000011', 2) & colour));
@@ -96,7 +97,7 @@ export default class PaletteFactory {
      */
     static createFromGameGearPalette(array) {
         /** @type {Palette} */
-        const result = PaletteFactory.create('Game Gear palette', 'gg');
+        const result = PaletteFactory.create(null, 'Game Gear palette', 'gg');
         for (let idx = 0; idx < 16 || idx < array.length; idx++) {
             const colour = array[idx];
             var r = Math.round(255 / 15 * (parseInt('0000000000001111', 2) & colour));
@@ -116,7 +117,7 @@ export default class PaletteFactory {
         if (array.length >= 1) {
 
             /** @type {Palette} */
-            const result = PaletteFactory.create('Game Boy palette', 'gb');
+            const result = PaletteFactory.create(null, 'Game Boy palette', 'gb');
 
             const colour0 = ((array[0] & parseInt('11000000', 2)) >> 6) * 85;
             const colour1 = ((array[0] & parseInt('00110000', 2)) >> 4) * 85;
@@ -144,7 +145,7 @@ export default class PaletteFactory {
         if (array.length >= 4) {
 
             /** @type {Palette} */
-            const result = PaletteFactory.create('NES palette', 'nes');
+            const result = PaletteFactory.create(null, 'NES palette', 'nes');
 
             const colour0 = getColourFromNesIndex(array[0]);
             const colour1 = getColourFromNesIndex(array[1]);
@@ -179,7 +180,7 @@ export default class PaletteFactory {
      * @returns {Palette}
      */
     static convertToNative(palette) {
-        const result = new Palette(palette.title, palette.system);
+        const result = PaletteFactory.create(palette.paletteId, palette.title, palette.system);
         if (palette.system !== 'gb') {
             palette.getColours().forEach((colour, index) => {
                 const nativeColour = PaletteColourFactory.convertToNative(palette.system, colour);

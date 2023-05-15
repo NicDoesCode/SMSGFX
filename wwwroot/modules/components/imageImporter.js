@@ -287,9 +287,10 @@ function createPalette(sourcePaletteOrSystemName, colours) {
     /** @type {Palette} */
     let result;
     if (sourcePaletteOrSystemName instanceof Palette) {
-        result = PaletteFactory.create(sourcePaletteOrSystemName.title, sourcePaletteOrSystemName.system);
+        const p = sourcePaletteOrSystemName;
+        result = PaletteFactory.create(p.paletteId, p.title, p.system);
     } else if (sourcePaletteOrSystemName === 'ms' || sourcePaletteOrSystemName === 'gg') {
-        result = PaletteFactory.create('Imported palette', sourcePaletteOrSystemName);
+        result = PaletteFactory.create(null, 'Imported palette', sourcePaletteOrSystemName);
     } else throw new Error('Invalid palette.');
     colours.forEach((c, i) => {
         if (i < 16) {
