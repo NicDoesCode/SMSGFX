@@ -100,7 +100,7 @@ export default class SmsggAssemblySerialiser extends ProjectAssemblySerialiser {
     }
 
     /**
-     * Exports tile set as WLA-DX compatible assembly code.
+     * Exports tile map as WLA-DX compatible assembly code.
      * @param {TileMapList} tileMapList - Tile map list to export.
      */
     static #exportTileMapList(tileMapList) {
