@@ -57,7 +57,7 @@ export default class PaletteList {
      */
     getPaletteById(paletteId) {
         if (this.containsPaletteById(paletteId)) {
-            return this.#getPalettesByIdCache[paletteId];
+            return this.#getPalettesByIdCache()[paletteId];
         } else {
             throw new Error('No palette with given ID was found.');
         }
@@ -70,7 +70,7 @@ export default class PaletteList {
      * @returns {boolean}
      */
     containsPaletteById(paletteId) {
-        return (paletteId && this.#getPalettesByIdCache[paletteId]);
+        return (paletteId && this.#getPalettesByIdCache()[paletteId]);
     }
 
 
@@ -153,7 +153,7 @@ export default class PaletteList {
             this.#palettesByIdCache = {};
             this.#palettes.forEach((p) => this.#palettesByIdCache[p.paletteId] = p);
         }
-        return !this.#palettesByIdCache;
+        return this.#palettesByIdCache;
     }
 
     #resetPalettesByIdCache() {

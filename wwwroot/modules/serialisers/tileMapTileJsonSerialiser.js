@@ -36,11 +36,11 @@ export default class TileMapTileJsonSerialiser {
      */
      static toSerialisable(tileMapTile) {
         return {
+            tileId: tileMapTile.tileId,
             priority: tileMapTile.priority,
             palette: tileMapTile.palette,
             verticalFlip: tileMapTile.verticalFlip,
-            horizontalFlip: tileMapTile.horizontalFlip,
-            tileNumber: tileMapTile.tileNumber
+            horizontalFlip: tileMapTile.horizontalFlip
         };
     }
 
@@ -50,13 +50,13 @@ export default class TileMapTileJsonSerialiser {
      * @returns {TileMapTile}
      */
     static fromSerialisable(tileMapTileSerialisable) {
-        const result = new TileMapTile();
-        result.priority = tileMapTileSerialisable.priority;
-        result.palette = tileMapTileSerialisable.palette;
-        result.verticalFlip = tileMapTileSerialisable.verticalFlip;
-        result.horizontalFlip = tileMapTileSerialisable.horizontalFlip;
-        result.tileNumber = tileMapTileSerialisable.tileNumber;
-        return result;
+        return TileMapTileFactory.create({
+            tileId: tileMapTileSerialisable.tileId,
+            priority: tileMapTileSerialisable.priority,
+            palette: tileMapTileSerialisable.palette,
+            verticalFlip: tileMapTileSerialisable.verticalFlip,
+            horizontalFlip: tileMapTileSerialisable.horizontalFlip
+        });
     }
 
 
@@ -65,10 +65,10 @@ export default class TileMapTileJsonSerialiser {
 /**
  * @typedef TileMapTileSerialisable
  * @type {object}
+ * @property {string} tileId
  * @property {boolean} priority
  * @property {number} palette
  * @property {number} verticalFlip
  * @property {number} horizontalFlip
- * @property {number} tileNumber
  * @exports
  */

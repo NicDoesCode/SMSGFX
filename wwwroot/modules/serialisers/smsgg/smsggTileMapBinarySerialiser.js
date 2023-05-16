@@ -11,7 +11,7 @@ export default class SmsggTileMapBinarySerialiser extends TileMapBinarySerialise
      * @returns {number[]}
      */
     static serialise(tileMap) {
-        return tileMap.getTileMapTiles().map((tileMapTile) => {
+        return tileMap.getTiles().map((tileMapTile) => {
             return SmsggTileMapTileBinarySerialiser.serialise(tileMapTile);
         });
     }

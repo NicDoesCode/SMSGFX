@@ -9,6 +9,9 @@ import TileMapListJsonSerialiser from "./../serialisers/tileMapListJsonSerialise
 import TileJsonSerialiser from "./../serialisers/tileJsonSerialiser.js";
 import TileSetFactory from "../factory/tileSetFactory.js";
 import PaletteListFactory from "../factory/paletteListFactory.js";
+import Project from "../models/project.js";
+import TileMapFactory from "../factory/tileMapFactory.js";
+import TileMapTileFactory from "../factory/tileMapTileFactory.js";
 
 export default class TileMapUtil {
 
@@ -26,23 +29,32 @@ export default class TileMapUtil {
         if (!vramOffset || vramOffset < 0 || vramOffset >= 255) vramOffset = 0;
         if (typeof optimise !== 'boolean') optimise = false;
 
-        const result = new TileMap();
-        result.vramOffset = vramOffset;
-        result.tileWidth = tileSet.tileWidth;
-        result.optimise = optimise;
-        tileSet.getTiles().forEach((tile, index) => {
-            result.addTile(tile, {
-                tileIndex: index,
-                priority: false,
-                palette: paletteIndex,
-                verticalFlip: false,
-                horizontalFlip: false 
-            });
+        const tileMap = TileMapFactory.create({
+            columns: tileSet.tileWidth,
+            rows: Math.ceil(tileSet.length / tileSet.tileWidth),
+            vramOffset: vramOffset,
+            optimise: optimise
         });
-
-        return result;
+        tileSet.getTiles().forEach((tile, index) => {
+            const tileMapTile = TileMapTileFactory.create({
+                tileId: tile.tileId,
+                horizontalFlip: false, verticalFlip: false,
+                palette: paletteIndex, priority: false
+            });
+            tileMap.setTileByIndex(index, tileMapTile);
+        });
+        return tileMap;
     }
 
+
+    /**
+     * Returns an optimised bundle of tiles, tile maps and palettes.
+     * @param {Project} project - Project to make the optimised bundle from.
+     * @returns {TileMapBundle}
+     */
+    static createOptimisedBundleFromProject(project) {
+        return TileMapUtil.createOptimisedBundle(project.tileMapList, project.tileSet, project.paletteList);
+    }
 
     /**
      * Returns an optimised bundle of tiles, tile maps and palettes.
@@ -52,7 +64,6 @@ export default class TileMapUtil {
      * @returns {TileMapBundle}
      */
     static createOptimisedBundle(tileMapOrList, tileSet, paletteList) {
-        
         /** @type {TileMapList} */
         let tileMapList;
         if (tileMapOrList && tileMapOrList instanceof TileMapList) {
@@ -84,13 +95,20 @@ export default class TileMapUtil {
         const usedTileMapIds = {};
         const optimisedTileMapList = TileMapListJsonSerialiser.deserialise(TileMapListJsonSerialiser.serialise(tileMapList));
         optimisedTileMapList.getTileMaps().forEach((tileMap) => {
-            tileMap.getTiles().forEach((tileMapTile) => {
-                const tile = tileSet.getTileById(tileMapTile.tileId);
-                const asHex = TileUtil.toHex(tile);
-                const matchedTileId = tileHexToId[asHex];
-                tileMapTile.tileId = matchedTileId;
-                usedTileMapIds[matchedTileId] = matchedTileId;
-            });
+            if (tileMap.optimise) {
+                tileMap.getTiles().forEach((tileMapTile) => {
+                    const tile = tileSet.getTileById(tileMapTile.tileId);
+                    const asHex = TileUtil.toHex(tile);
+                    const matchedTileId = tileHexToId[asHex];
+                    tileMapTile.tileId = matchedTileId;
+                    usedTileMapIds[matchedTileId] = matchedTileId;
+                });
+            } else {
+                tileMap.getTiles().forEach((tileMapTile) => {
+                    usedTileMapIds[tileMapTile.tileId] = tileMapTile.tileId;
+
+                });
+            }
         });
 
         const optimisedTileSet = TileSetFactory.create();
@@ -111,7 +129,12 @@ export default class TileMapUtil {
 
         optimisedTileMapList.getTileMaps().forEach((tileMap) => {
             tileMap.getTiles().forEach((tileMapTile) => {
-                tileMapTile.tileIndex = tileIdToIndex[tileMapTile.tileId];
+                tileMapTile.tileIndex = tileIdToIndex[tileMapTile.tileId] + tileMap.vramOffset;
+            });
+        });
+        paletteList.getPalettes().forEach((p, pIndex) => {
+            optimisedTileMapList.getTileMaps().forEach((t) => {
+                t.setPalette(pIndex, p.paletteId);
             });
         });
 
@@ -126,12 +149,10 @@ export default class TileMapUtil {
         });
 
         return {
-            palettes: optimisedPaletteList,
-            tileSet: optimisedTileSet, 
+            paletteList: optimisedPaletteList,
+            tileSet: optimisedTileSet,
             tileMaps: optimisedTileMapList
         };
-
-
     }
 
 
@@ -140,7 +161,7 @@ export default class TileMapUtil {
 /**
  * Bundle ready for encoding.
  * @typedef {object} TileMapBundle
- * @property {PaletteList} palettes - All used palettes.
+ * @property {PaletteList} paletteList - All used palettes.
  * @property {TileSet} tileSet - Tile set containing all used tiles.
  * @property {TileMapList} tileMaps - All tile maps.
  * @exports

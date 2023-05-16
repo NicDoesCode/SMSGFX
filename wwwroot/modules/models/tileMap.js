@@ -61,10 +61,27 @@ export default class TileMap {
     #rows = 1;
     #optimise = false;
     /** @type {TileMapTile[]} */
-    #tiles = [];
+    #tiles;
 
 
-    constructor() {
+    /**
+     * Initialises a new instanve of the tile map class.
+     * @param {number} rows - Initial number of rows for the tile map, default is '1'.
+     * @param {number} columns - Initial number of columns for the tile map, default is '1'.
+     */
+    constructor(rows, columns) {
+        if (typeof rows === 'undefined' || rows === null) rows = 1;
+        if (typeof columns === 'undefined' || columns === null) columns = 1;
+
+        if (!typeof rows === 'number' || rows <= 0) throw new Error('Invalid value given for "rows" parameter.');
+        if (!typeof columns === 'number' || columns <= 0) throw new Error('Invalid value given for "columns" parameter.');
+
+        this.#rows = rows;
+        this.#columns = columns;
+
+        this.#tiles = new Array(rows * columns);
+        this.#tiles.fill(null);
+
         this.#paletteIds = new Array(16);
         this.#paletteIds.fill(null);
     }
@@ -75,14 +92,14 @@ export default class TileMap {
      * @returns {TileMapTile[]}
      */
     getTiles() {
-        return this.#tiles.slice(0);
+        return this.#tiles.slice();
     }
 
 
     /**
      * Returns a tile map tile by index.
      * @param {number} index - Index of the tile to return.
-     * @returns {TileMapTile}
+     * @returns {TileMapTile | null}
      */
     getTileByIndex(index) {
         if (index >= 0 && index <= this.tileCount) {
@@ -91,10 +108,22 @@ export default class TileMap {
     }
 
     /**
+     * Sets a tile map tile by index.
+     * @param {number} index - Index of the tile to return.
+     * @param {TileMapTile?} tileMapTile - Tile map tile item to set.
+     */
+    setTileByIndex(index, tileMapTile) {
+        if (!tileMapTile && !tileMapTile instanceof TileMapTile) throw new Error('Please supply a tile map tile.');
+        if (index >= 0 && index <= this.tileCount) {
+            this.#tiles[index] = tileMapTile;
+        } else throw new Error('Index out of range.');
+    }
+
+    /**
      * Returns a tile map tile by row and column index.
      * @param {number} rowIndex - Row index to obtain the tile from.
      * @param {number} columnIndex - Column index to obtain the tile from.
-     * @returns {TileMapTile}
+     * @returns {TileMapTile | null}
      */
     getTileByCoordinate(rowIndex, columnIndex) {
         const index = (rowIndex * this.columnsPerRow) + columnIndex;
@@ -111,7 +140,8 @@ export default class TileMap {
         if (index >= 0 && index <= this.rowCount) {
 
             const startIndex = this.columnsPerRow * index;
-            return this.#tiles.slice(startIndex, this.columnsPerRow);
+            const endIndex = startIndex + this.columnsPerRow;
+            return this.#tiles.slice(startIndex, endIndex);
 
         } else throw new Error('Index out of range.');
     }

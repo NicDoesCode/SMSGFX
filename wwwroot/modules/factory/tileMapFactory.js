@@ -16,16 +16,29 @@ export default class TileMapFactory {
      * @returns {TileMap}
      */
     static create(args) {
-        if (typeof args === 'undefined' || args === null) args = {};
+        if (typeof args === 'undefined' || args === null) args = {
+            rows: 1, columns: 1
+        };
 
-        const result = new TileMap();
+        if (!typeof args.rows === 'number' || args.rows <= 0) throw new Error('Invalid value given for "rows" parameter.');
+        if (!typeof args.columns === 'number' || args.columns <= 0) throw new Error('Invalid value given for "columns" parameter.');
+
+        const result = new TileMap(args.rows, args.columns);
         result.id = (typeof args.id === 'string' && args.id.length > 0) ? args.id : GeneralUtil.generateRandomString(16);
         result.title = (typeof args.title === 'string' && args.title.length > 0) ? args.title : 'Tile map';
-        result.vramOffset = (typeof args.vramOffset === 'number') ? result.vramOffset : 0;
-        result.columns = (typeof args.columns === 'number') ? result.columns : 0;
-        result.rows = (typeof args.rows === 'number') ? result.rows : 0;
-        result.optimise = (typeof args.optimise === 'boolean') ? result.optimise : true;
-        if (Array.isArray(args.tiles)) args.tiles.forEach((t) => result.addTile(t));
+        result.vramOffset = (typeof args.vramOffset === 'number') ? args.vramOffset : 0;
+        result.optimise = (typeof args.optimise === 'boolean') ? args.optimise : true;
+
+        /** @type {TileMapTile[]} */
+        const tileArray = (Array.isArray(args.tiles)) ? args.tiles : new Array();
+        if (tileArray.length > result.tileCount) throw new Error('Number of tiles passed in tile array exceeds capacity of the tile map.');
+
+        // Fill tiles
+        for (let idx = 0; idx < result.tileCount; idx++) {
+            const tile = (idx < tileArray.length) ? tileArray[idx] : createNewTile();
+            result.setTileByIndex(idx, tile);
+        }
+
         return result;
     }
 
@@ -43,3 +56,12 @@ export default class TileMapFactory {
  * @property {TileMapTile[]} tiles
  * @exports
  */
+
+function createNewTile() {
+    return TileMapTileFactory.create({
+        horizontalFlip: false,
+        verticalFlip: false,
+        palette: 0,
+        priority: false
+    });
+}

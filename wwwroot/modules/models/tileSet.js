@@ -86,7 +86,7 @@ export default class TileSet {
      */
     getTileById(tileId) {
         if (this.containsTileById(tileId)) {
-            return this.#getTilesByIdCache[tileId];
+            return this.#getTilesByIdCache()[tileId];
         } else {
             throw new Error('No tile with given ID was found.');
         }
@@ -99,7 +99,7 @@ export default class TileSet {
      * @returns {boolean}
      */
     containsTileById(tileId) {
-        return (tileId && this.#getTilesByIdCache[tileId]);
+        return (tileId && this.#getTilesByIdCache()[tileId]);
     }
 
 
@@ -398,7 +398,7 @@ export default class TileSet {
             this.#tilesByIdCache = {};
             this.#tiles.forEach((t) => this.#tilesByIdCache[t.tileId] = t);
         }
-        return !this.#tilesByIdCache;
+        return this.#tilesByIdCache;
     }
 
     #resetTilesByIdCache() {

@@ -1,3 +1,4 @@
+import TileMapListFactory from "../factory/tileMapListFactory.js";
 import TileMapList from "../models/tileMapList.js";
 import TileMapJsonSerialiser from "./tileMapJsonSerialiser.js";
 
@@ -35,7 +36,7 @@ export default class TileMapListJsonSerialiser {
      * @returns {import('./tileMapJsonSerialiser.js').TileMapSerialisable[]} 
      */
     static toSerialisable(tileMapList) {
-        if (!tileMapList || typeof tileMapList.getTileMaps !== 'function') throw new Error('Please pass a tile map list.');
+        if (!tileMapList || !tileMapList instanceof TileMapList) throw new Error('Please pass a tile map list.');
 
         return tileMapList.getTileMaps().map((tm) => TileMapJsonSerialiser.toSerialisable(tm));
     }
@@ -48,7 +49,7 @@ export default class TileMapListJsonSerialiser {
     static fromSerialisable(tileMapSerialisableArray) {
         if (!tileMapSerialisableArray || !Array.isArray(tileMapSerialisableArray)) throw new Error('Please pass an array of serialisable tile maps.');
 
-        const result = new TileMapList();
+        const result = TileMapListFactory.create();
         tileMapSerialisableArray.forEach((tm) => {
             try {
                 result.addTileMap(TileMapJsonSerialiser.fromSerialisable(tm));

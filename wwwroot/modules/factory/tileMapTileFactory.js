@@ -38,7 +38,7 @@ export default class TileMapTileFactory {
 /**
  * @typedef TileMapTileFactoryCreateArgs
  * @type {object}
- * @property {number?} tileId
+ * @property {string?} tileId
  * @property {boolean?} priority
  * @property {number?} palette
  * @property {boolean?} verticalFlip

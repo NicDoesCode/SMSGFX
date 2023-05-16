@@ -35,15 +35,15 @@ export default class TileMapJsonSerialiser {
      * @param {TileMap} tileMap - Tile map to create serialisable from.
      * @returns {TileMapSerialisable} 
      */
-     static toSerialisable(tileMap) {
+    static toSerialisable(tileMap) {
         return {
-            id: tileMap.id,
+            tileMapId: tileMap.tileMapId,
             title: tileMap.title,
             vramOffset: tileMap.vramOffset,
-            rows: tileMap.rows,
-            columns: tileMap.columns,
+            rows: tileMap.rowCount,
+            columns: tileMap.columnsPerRow,
             optimise: tileMap.optimise,
-            tiles: TileMapTileJsonSerialiser.toSerialisable(tileMap.tiles)
+            tiles: tileMap.getTiles().map((tile) => TileMapTileJsonSerialiser.toSerialisable(tile))
         };
     }
 
@@ -54,7 +54,7 @@ export default class TileMapJsonSerialiser {
      */
     static fromSerialisable(tileMapSerialisable) {
         const result = TileMapFactory.create({
-            id: tileMapSerialisable.id,
+            tileMapId: tileMapSerialisable.tileMapId,
             title: tileMapSerialisable.title,
             vramOffset: tileMapSerialisable.vramOffset,
             rows: tileMapSerialisable.rows,
@@ -62,7 +62,10 @@ export default class TileMapJsonSerialiser {
             optimise: tileMapSerialisable.optimise
         });
         if (Array.isArray(tileMapSerialisable.tiles)) {
-            tileMapSerialisable.tiles.forEach((t) => result.addTile(TileMapTileJsonSerialiser.fromSerialisable(t)));
+            tileMapSerialisable.tiles.forEach((tileMapTileSerialisable, index) => {
+                const tileMapTile = TileMapTileJsonSerialiser.fromSerialisable(tileMapTileSerialisable);
+                result.setTileByIndex(index, tileMapTile);
+            });
         }
         return result;
     }
@@ -73,7 +76,7 @@ export default class TileMapJsonSerialiser {
 /**
  * @typedef TileMapSerialisable
  * @type {object}
- * @property {string} id
+ * @property {string} tileMapId
  * @property {string} title
  * @property {number} vramOffset
  * @property {number} rows

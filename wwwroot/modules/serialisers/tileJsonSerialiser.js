@@ -49,7 +49,7 @@ export default class TileJsonSerialiser {
     static fromSerialisable(tileSerialisable) {
         if (!tileSerialisable) throw new Error('Please pass a serialisable tile.');
 
-        const result = TileFactory.fromHex(tileAsHex);
+        const result = TileFactory.fromHex(tileSerialisable.tileData);
         result.tileId = tileSerialisable.tileId;
         return result;
     }
