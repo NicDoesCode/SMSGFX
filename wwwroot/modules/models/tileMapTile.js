@@ -31,8 +31,9 @@ export default class TileMapTile {
         return this.#palette;
     }
     set palette(value) {
-        if (value < 0 || value > 100) throw new Error('Invalid palette index.');
-        this.#palette = value;
+        if (value !== null && typeof value === 'number' && value >= 0 && value <= 100) {
+            this.#palette = value;
+        } else throw new Error('Invalid palette index.');
     }
 
     /**

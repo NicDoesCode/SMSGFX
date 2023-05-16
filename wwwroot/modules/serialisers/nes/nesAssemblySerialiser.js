@@ -31,8 +31,6 @@ export default class NesAssemblySerialiser extends ProjectAssemblySerialiser {
         const result = ['; NINTENDO ENTERTAINMENT SYSTEM ASSEMBLY FOR WLA-DX'];
         result.push('');
 
-        // const tileMap = TileMapUtil.tileSetToTileMap(project.tileSet, paletteIndex, memOffset, optimise);
-
         result.push(NesAssemblySerialiser.#exportPalettes(bundle.paletteList));
         result.push('');
 
@@ -128,67 +126,9 @@ export default class NesAssemblySerialiser extends ProjectAssemblySerialiser {
             message.push();
         });
 
-
-
-
-
-        // result.push(NesAssemblySerialiser.#exportNameTable(tileMap, paletteIndex, memOffset, project.systemType));
-        // result.push('');
-
-        // result.push(NesAssemblySerialiser.#exportBackgroundAttributeTable(tileMap, paletteIndex, memOffset, project.systemType));
-        // result.push('');
-
-
         return message.join('\r\n');
     }
 
-    // /**
-    //  * Exports tile set as WLA-DX compatible assembly code.
-    //  * @param {TileMap} tileMap - Tile map to export.
-    //  * @param {number} paletteIndex - Palette index to use for the tiles.
-    //  * @param {number} memoryOffset - VRAM memory offset for the tile addresses in the tile map.
-    //  * @param {string} systemType - Target system type, either 'smsgg' or 'gb'.
-    //  */
-    // static #exportNameTable(tileMap, paletteIndex, memoryOffset, systemType) {
-    //     const serialiser = SerialisationUtil.getTileMapBinarySerialiser(systemType);
-    //     const message = ['; NAME TABLE'];
-    //     const encoded = serialiser.serialise(tileMap);
-    //     for (let i = 0; i < encoded.length; i += tileMap.tileWidth) {
-    //         message.push(`; Name table row ${(i / tileMap.tileWidth)}`);
-    //         const tileMessage = ['.db'];
-    //         const stopAt = Math.min(i + tileMap.tileWidth, encoded.length);
-    //         for (let t = i; t < stopAt; t++) {
-    //             tileMessage.push('$' + encoded[t].toString(16).padStart(2, '0').toUpperCase());
-    //         }
-    //         message.push(tileMessage.join(' '));
-    //     }
-    //     return message.join('\r\n');
-    // }
-
-    // /**
-    //  * Exports tile set as WLA-DX compatible assembly code.
-    //  * @param {TileMap} tileMap - Tile map to export.
-    //  * @param {number} paletteIndex - Palette index to use for the tiles.
-    //  * @param {number} memoryOffset - VRAM memory offset for the tile addresses in the tile map.
-    //  * @param {string} systemType - Target system type, either 'smsgg' or 'gb'.
-    //  */
-    // static #exportBackgroundAttributeTable(tileMap, paletteIndex, memoryOffset, systemType) {
-    //     const serialiser = SerialisationUtil.getTileAttributeBinarySerialiser(systemType);
-    //     const message = [];
-    //     message.push('; BACKGROUND ATTRIBUTE TABLE');
-    //     const encoded = serialiser.serialise(tileMap);
-    //     const attrWidth = (tileMap.tileWidth + (tileMap.tileWidth % 2)) / 2;
-    //     for (let i = 0; i < encoded.length; i += attrWidth) {
-    //         message.push(`; Attribute table row ${(i / attrWidth)}`);
-    //         const tileMessage = ['.db'];
-    //         const stopAt = Math.min(i + attrWidth, encoded.length);
-    //         for (let t = i; t < stopAt; t++) {
-    //             tileMessage.push('$' + encoded[t].toString(16).padStart(2, '0').toUpperCase());
-    //         }
-    //         message.push(tileMessage.join(' '));
-    //     }
-    //     return message.join('\r\n');
-    // }
-
+    
 }
 

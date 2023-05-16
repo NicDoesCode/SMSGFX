@@ -38,7 +38,7 @@ export default class TileMapTileJsonSerialiser {
         return {
             tileId: tileMapTile.tileId,
             priority: tileMapTile.priority,
-            palette: tileMapTile.palette,
+            paletteId: tileMapTile.palette,
             verticalFlip: tileMapTile.verticalFlip,
             horizontalFlip: tileMapTile.horizontalFlip
         };
@@ -53,7 +53,7 @@ export default class TileMapTileJsonSerialiser {
         return TileMapTileFactory.create({
             tileId: tileMapTileSerialisable.tileId,
             priority: tileMapTileSerialisable.priority,
-            palette: tileMapTileSerialisable.palette,
+            palette: tileMapTileSerialisable.paletteId,
             verticalFlip: tileMapTileSerialisable.verticalFlip,
             horizontalFlip: tileMapTileSerialisable.horizontalFlip
         });
@@ -67,7 +67,7 @@ export default class TileMapTileJsonSerialiser {
  * @type {object}
  * @property {string} tileId
  * @property {boolean} priority
- * @property {number} palette
+ * @property {string} paletteId
  * @property {number} verticalFlip
  * @property {number} horizontalFlip
  * @exports

@@ -19,13 +19,13 @@ export default class TileMapUtil {
     /**
      * Turns a tile set into a tile map.
      * @param {TileSet} tileSet - Input tile set to convert to a tile map.
-     * @param {number} [paletteIndex] - Palette index to use for the tiles.
+     * @param {number?} [palette] - Index of the palette to use for the tiles.
      * @param {number} [vramOffset] - VRAM memory offset for the tile addresses in the tile map.
      * @param {boolean} [optimise] - Generate an optimised tile map? (remove duplicates?), default = false.
      * @returns {TileMap}
      */
-    static tileSetToTileMap(tileSet, paletteIndex, vramOffset, optimise) {
-        if (!paletteIndex || ![0, 1].includes(paletteIndex)) paletteIndex = 0;
+    static tileSetToTileMap(tileSet, palette, vramOffset, optimise) {
+        if (!palette || ![0, 1, 2, 3].includes(palette)) palette = 0;
         if (!vramOffset || vramOffset < 0 || vramOffset >= 255) vramOffset = 0;
         if (typeof optimise !== 'boolean') optimise = false;
 
@@ -39,7 +39,7 @@ export default class TileMapUtil {
             const tileMapTile = TileMapTileFactory.create({
                 tileId: tile.tileId,
                 horizontalFlip: false, verticalFlip: false,
-                palette: paletteIndex, priority: false
+                palette: palette, priority: false
             });
             tileMap.setTileByIndex(index, tileMapTile);
         });
