@@ -65,7 +65,7 @@ export default class TileGridProvider {
  * Provides information about a tile.
  * @typedef {object} TileProviderTileInfo
  * @property {string} tileId - Unique ID of the tile.
- * @property {string?} paletteId - Unique ID of the palette to render the tile, null if none specified.
+ * @property {number?} paletteIndex - Index of the palette to render the tile, null if none specified.
  * @property {boolean} horizontalFlip - Mirror the tile horizontally?
  * @property {boolean} verticalFlip - Mirror tile vertically?
  * @exports

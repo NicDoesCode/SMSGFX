@@ -12,7 +12,7 @@ export default class CanvasManager {
      * Gets whether the canvas manager can draw an image (has a tile set and palette).
      */
     get canDraw() {
-        return this.tileSet && this.palette;
+        return this.tileSet && this.tileGrid && this.paletteList && this.paletteList.length > 0;
     }
 
     /**
@@ -46,17 +46,6 @@ export default class CanvasManager {
     set paletteList(value) {
         this.invalidateImage();
         this.#paletteList = value;
-    }
-
-    /**
-     * Gets or sets the colour palette to use.
-     */
-    get palette() {
-        return this.#palette;
-    }
-    set palette(value) {
-        this.invalidateImage();
-        this.#palette = value;
     }
 
     /**
@@ -191,8 +180,6 @@ export default class CanvasManager {
     #tileSet = null;
     /** @type {PaletteList} */
     #paletteList = null;
-    /** @type {Palette} */
-    #palette = null;
     /** @type {number} */
     #scale = 10;
     /** @type {number} */
@@ -218,14 +205,12 @@ export default class CanvasManager {
      * Creates a new instance of the tile canvas.
      * @param {TileGridProvider} [tileGrid] - Object that contains the tile grid to render.
      * @param {TileSet} [tileSet] - Tile set that is the source of tiles.
-     * @param {Palette} [palette] - Colour palette to use (fallback).
      * @param {PaletteList} [paletteList] - Colour palette list to use.
      */
-    constructor(tileGrid, tileSet, palette, paletteList) {
+    constructor(tileGrid, tileSet, paletteList) {
         this.#tileCanvas = document.createElement('canvas');
         if (tileGrid) this.#tileGrid = tileGrid;
         if (tileSet) this.#tileSet = tileSet;
-        if (palette) this.#palette = palette;
         if (paletteList) this.#paletteList = paletteList;
     }
 
@@ -329,7 +314,7 @@ export default class CanvasManager {
     #drawTileImage(canvas, transparencyColour) {
         if (!this.tileGrid) throw new Error('drawTileImage: No tile grid.');
         if (!this.tileSet) throw new Error('drawTileImage: No tile set.');
-        if (!this.paletteList && !this.palette) throw new Error('drawTileImage: No palette or palette list.');
+        if (!this.paletteList) throw new Error('drawTileImage: No palette list.');
 
         const context = canvas.getContext('2d');
 
@@ -363,7 +348,7 @@ export default class CanvasManager {
     #drawIndividualTile(canvas, tileIndex, transparencyColour) {
         if (!this.tileGrid) throw new Error('drawTileImage: No tile grid.');
         if (!this.tileSet) throw new Error('drawTileImage: No tile set.');
-        if (!this.paletteList && !this.palette) throw new Error('drawTileImage: No palette or palette list.');
+        if (!this.paletteList) throw new Error('drawTileImage: No palette list.');
 
         const context = canvas.getContext('2d');
         this.#drawTile(context, tileIndex, transparencyColour);
@@ -376,7 +361,7 @@ export default class CanvasManager {
         const tileWidth = Math.max(this.tileGrid.columnCount, 1);
         const tileGridCol = tileindex % tileWidth;
         const tileGridRow = (tileindex - tileGridCol) / tileWidth;
-        const palette = (tileInfo.paletteId) ? this.paletteList.getPaletteById(tileInfo.paletteId) : this.palette;
+        const palette = this.paletteList.getPalette(tileInfo.paletteIndex);
         const numColours = palette.getColours().length;
 
         for (let tilePx = 0; tilePx < 64; tilePx++) {

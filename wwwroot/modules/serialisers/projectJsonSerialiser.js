@@ -94,8 +94,8 @@ function convertProjectVersion(projectSerialisable) {
     if (projectSerialisable.version === 1) {
         projectSerialisable.version = 2;
 
-        if (typeof projectSerialisable.tileSet['tileWidth'] === 'number' && !projectSerialisable.tileSet.columnsPerRow) {
-            projectSerialisable.tileSet.columnsPerRow = projectSerialisable.tileSet['tileWidth'];
+        if (typeof projectSerialisable.tileSet['tileWidth'] === 'number' && !projectSerialisable.tileSet.columnCount) {
+            projectSerialisable.tileSet.columnCount = projectSerialisable.tileSet['tileWidth'];
         }
     }
 }

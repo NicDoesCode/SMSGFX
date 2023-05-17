@@ -48,12 +48,8 @@ export default class TileEditor {
     #tileEditorContextMenu;
     /** @type {PaletteList} */
     #paletteList = null;
-    /** @type {Palette} */
-    #palette = null;
     /** @type {PaletteList} */
     #nativePaletteList = null;
-    /** @type {Palette} */
-    #nativePalette = null;
     /** @type {TileGridProvider} */
     #tileGrid = null;
     /** @type {TileSet} */
@@ -122,14 +118,6 @@ export default class TileEditor {
      */
     setState(state) {
         let dirty = false;
-        // Change palette?
-        const palette = state?.palette;
-        if (palette && typeof palette.getColour === 'function') {
-            this.#canvasManager.invalidateImage();
-            this.#palette = palette;
-            this.#nativePalette = PaletteFactory.convertToNative(palette);
-            dirty = true;
-        }
         // Change palette list?
         const paletteList = state?.paletteList;
         if (paletteList && typeof paletteList.getPaletteById === 'function') {
@@ -174,7 +162,7 @@ export default class TileEditor {
         // Display native?
         if (typeof state?.displayNative === 'boolean') {
             this.#displayNative = state.displayNative;
-            if (state.displayNative && (this.#palette?.system === 'gb' || this.#paletteList?.getPalettes().filter((p) => p.system === 'gb') > 0)) {
+            if (state.displayNative && this.#paletteList?.getPalettes().filter((p) => p.system === 'gb') > 0) {
                 this.#canvasManager.pixelGridColour = '#98a200';
                 this.#canvasManager.pixelGridOpacity = 0.5;
                 this.#canvasManager.tileGridColour = '#98a200';
@@ -237,14 +225,10 @@ export default class TileEditor {
             }
         }
         // Refresh image?
-        if (dirty && this.#palette) {
-            let palette = !this.#displayNative ? this.#palette : this.#nativePalette;
+        if (dirty && this.#tileGrid && this.#tileSet && this.#paletteList && this.#paletteList.length > 0) {
             let paletteList = !this.#displayNative ? this.#paletteList : this.#nativePaletteList;
             if (this.#canvasManager.paletteList !== paletteList) {
                 this.#canvasManager.paletteList = paletteList;
-            }
-            if (this.#canvasManager.palette !== palette) {
-                this.#canvasManager.palette = palette;
             }
             this.#canvasManager.tileSet = this.#tileSet;
             this.#canvasManager.tileGrid = this.#tileGrid;
@@ -549,7 +533,6 @@ export default class TileEditor {
  * @typedef {object} TileEditorState
  * @property {TileGridProvider?} tileGrid - Tile grid that will be drawn, passing this will trigger a redraw.
  * @property {TileSet?} tileSet - Tile set that will be drawn, passing this will trigger a redraw.
- * @property {Palette?} palette - Palette to use for drawing, passing this will trigger a redraw.
  * @property {PaletteList?} paletteList - Palette list to use for drawing, passing this will trigger a redraw.
  * @property {number?} scale - Current scale level.
  * @property {boolean?} displayNative - Should the tile editor display native colours?

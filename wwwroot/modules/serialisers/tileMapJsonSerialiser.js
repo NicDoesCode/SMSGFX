@@ -41,7 +41,7 @@ export default class TileMapJsonSerialiser {
             title: tileMap.title,
             vramOffset: tileMap.vramOffset,
             rows: tileMap.rowCount,
-            columns: tileMap.columnsPerRow,
+            columns: tileMap.columnCount,
             optimise: tileMap.optimise,
             tiles: tileMap.getTiles().map((tile) => TileMapTileJsonSerialiser.toSerialisable(tile))
         };

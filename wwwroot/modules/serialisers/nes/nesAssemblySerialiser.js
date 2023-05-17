@@ -112,7 +112,7 @@ export default class NesAssemblySerialiser extends ProjectAssemblySerialiser {
 
             message.push(`; Attribute table ${tileMapIdx.toString().padStart(2, '0')} - ${(tileMap.title ?? '(Not named)')}`);
             const encoded = NesTileAttributeBinarySerialiser.serialise(tileMap);
-            const attrWidth = (tileMap.columnsPerRow + (tileMap.columnsPerRow % 2)) / 2;
+            const attrWidth = (tileMap.columnCount + (tileMap.columnCount % 2)) / 2;
             for (let i = 0; i < encoded.length; i += attrWidth) {
                 // message.push(`; Attribute table row ${(i / attrWidth)}`);
                 const attrMessage = ['.db'];

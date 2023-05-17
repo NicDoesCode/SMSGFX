@@ -29,8 +29,8 @@ export default class NesTileAttributeBinarySerialiser extends TileAttributeBinar
          * 
          */
 
-        const tileWidth = tileMap.columnsPerRow;
-        const attrWidth = tileMap.columnsPerRow + (tileMap.columnsPerRow % 2);
+        const tileWidth = tileMap.columnCount;
+        const attrWidth = tileMap.columnCount + (tileMap.columnCount % 2);
         const byteWidth = attrWidth / 2;
 
         const tileRows = Math.ceil(tileMap.tileCount / tileWidth);

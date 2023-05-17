@@ -1,4 +1,5 @@
 import TileMapTile from "./tileMapTile.js";
+import TileGridProvider from './tileGridProvider.js';
 import Tile from "./../models/tile.js";
 import TileSet from "./../models/tileSet.js";
 import TileUtil from "../util/tileUtil.js";
@@ -7,7 +8,7 @@ import TileMapTileFactory from "../factory/tileMapTileFactory.js";
 /**
  * Tile map.
  */
-export default class TileMap {
+export default class TileMap extends TileGridProvider {
 
 
     get tileMapId() {
@@ -31,7 +32,7 @@ export default class TileMap {
         this.#vramOffset = value;
     }
 
-    get columnsPerRow() {
+    get columnCount() {
         return this.#columns;
     }
 
@@ -70,6 +71,8 @@ export default class TileMap {
      * @param {number} columns - Initial number of columns for the tile map, default is '1'.
      */
     constructor(rows, columns) {
+        super();
+
         if (typeof rows === 'undefined' || rows === null) rows = 1;
         if (typeof columns === 'undefined' || columns === null) columns = 1;
 
@@ -126,7 +129,7 @@ export default class TileMap {
      * @returns {TileMapTile | null}
      */
     getTileByCoordinate(rowIndex, columnIndex) {
-        const index = (rowIndex * this.columnsPerRow) + columnIndex;
+        const index = (rowIndex * this.columnCount) + columnIndex;
         return this.getTileByIndex(index);
     }
 
@@ -139,8 +142,8 @@ export default class TileMap {
     getTileMapRow(index) {
         if (index >= 0 && index <= this.rowCount) {
 
-            const startIndex = this.columnsPerRow * index;
-            const endIndex = startIndex + this.columnsPerRow;
+            const startIndex = this.columnCount * index;
+            const endIndex = startIndex + this.columnCount;
             return this.#tiles.slice(startIndex, endIndex);
 
         } else throw new Error('Index out of range.');
@@ -152,11 +155,11 @@ export default class TileMap {
      * @returns {TileMapTile[]}
      */
     getTileMapColumn(index) {
-        if (index >= 0 && index <= this.columnsPerRow) {
+        if (index >= 0 && index <= this.columnCount) {
 
             /** @type {TileMapTile[]} */
             const result = [];
-            for (let tileIndex = index; tileIndex < this.#tiles.length; tileIndex += this.columnsPerRow) {
+            for (let tileIndex = index; tileIndex < this.#tiles.length; tileIndex += this.columnCount) {
                 result.push(this.getTileByIndex(tileIndex));
             }
             return result;
@@ -170,7 +173,7 @@ export default class TileMap {
      */
     addRow() {
         this.#rows++; 0
-        const newRow = createNewTileMapRow(this.columnsPerRow);
+        const newRow = createNewTileMapRow(this.columnCount);
         this.#tiles = this.#tiles.concat(newRow);
     }
 
@@ -182,9 +185,9 @@ export default class TileMap {
     insertRow(index) {
         if (index >= 0 && index <= this.rowCount) {
 
-            const startIndex = this.columnsPerRow * index;
+            const startIndex = this.columnCount * index;
             const before = this.#tiles.slice(0, startIndex);
-            const newRow = createNewTileMapRow(this.columnsPerRow);
+            const newRow = createNewTileMapRow(this.columnCount);
             const after = this.#tiles.slice(startIndex);
 
             this.#rows++;
@@ -200,8 +203,8 @@ export default class TileMap {
     removeRow(index) {
         if (index >= 0 && index < this.rowCount) {
 
-            const thisRowIndex = this.columnsPerRow * index;
-            const nextTileIndex = thisRowIndex + this.columnsPerRow;
+            const thisRowIndex = this.columnCount * index;
+            const nextTileIndex = thisRowIndex + this.columnCount;
             const before = this.#tiles.slice(0, thisRowIndex);
             const after = this.#tiles.slice(nextTileIndex);
             this.#tiles = before.concat(after);
@@ -215,7 +218,7 @@ export default class TileMap {
      * Adds a column to the tile map.
      */
     addColumn() {
-        this.insertColumn(this.columnsPerRow);
+        this.insertColumn(this.columnCount);
     }
 
     /**
@@ -223,13 +226,13 @@ export default class TileMap {
      * @param {number} index - Index to place the new column.
      */
     insertColumn(index) {
-        if (index >= 0 && index < this.columnsPerRow) {
+        if (index >= 0 && index < this.columnCount) {
 
             /** @type {TileMapTile[]} */
             const result = [];
-            for (let idx = index; idx < this.#tiles.length; idx += this.columnsPerRow) {
+            for (let idx = index; idx < this.#tiles.length; idx += this.columnCount) {
                 const rowStart = idx - index;
-                const row = this.#tiles.slice(rowStart, this.columnsPerRow);
+                const row = this.#tiles.slice(rowStart, this.columnCount);
                 result = result
                     .concat(row.slice(0, index))
                     .concat([TileMapTileFactory.create()])
@@ -247,13 +250,13 @@ export default class TileMap {
      * @param {number} index - Index of the column to remove.
      */
     removeColumn(index) {
-        if (index >= 0 && index < this.columnsPerRow) {
+        if (index >= 0 && index < this.columnCount) {
 
             /** @type {TileMapTile[]} */
             const result = [];
-            for (let idx = index; idx < this.#tiles.length; idx += this.columnsPerRow) {
+            for (let idx = index; idx < this.#tiles.length; idx += this.columnCount) {
                 const rowStart = idx - index;
-                const row = this.#tiles.slice(rowStart, this.columnsPerRow);
+                const row = this.#tiles.slice(rowStart, this.columnCount);
                 result = result
                     .concat(row.slice(0, index))
                     .concat(row.slice(index + 1));
@@ -321,7 +324,71 @@ export default class TileMap {
     }
 
 
+    /**
+     * Gets information about a tile by the tile index.
+     * @param {number} tileIndex - Index of the tile grid.
+     * @returns {import('./tileGridProvider.js').TileProviderTileInfo}
+     */
+    getTileInfoByIndex(tileIndex) {
+        const tileMapTile = this.getTileByIndex(tileIndex);
+        return this.#createTileInfo(tileMapTile);
+    }
 
+    /**
+     * Gets information about a tile by a row and column coordinate.
+     * @param {number} rowIndex - Row within the tile grid.
+     * @param {number} columnIndex - Column of the tile within the tile grid.
+     * @returns {import('./tileGridProvider.js').TileProviderTileInfo}
+     */
+    getTileInfoByRowAndColumn(rowIndex, columnIndex) {
+        if (rowIndex < 0 || rowIndex >= this.rowCount) throw new Error('Row index must be greater then zero and less then the row count.');
+        if (columnIndex < 0 || columnIndex >= this.columnCount) throw new Error('Column index must be greater then zero and less then the column count.');
+        const index = (row * this.columnCount) + column;
+        return this.getTileInfoByIndex(index);
+    }
+
+    /**
+     * Gets information about a tile by the X and Y coordinate within the image.
+     * @param {number} x - X pixel within the tile image.
+     * @param {number} y - Y pixel within the tile image.
+     * @returns {import('./tileGridProvider.js').TileProviderTileInfo}
+     */
+    getTileInfoByPixel(x, y) {
+        const index = this.getTileIndexByCoordinate(x, y);
+        return this.getTileInfoByIndex(index);
+    }
+
+
+    /**
+     * Gets the tile at a given X and Y coordinate, or null if out of range.
+     * @param {number} x - X coordinate in the tile map.
+     * @param {number} y - Y coordinate in the tile map.
+     * @returns {number?}
+     */
+    getTileIndexByCoordinate(x, y) {
+        const numAcrossXAxis = (x - (x % 8)) / 8;
+        const numAcrossYAxis = (y - (y % 8)) / 8;
+        const tileIndex = (numAcrossYAxis * this.columnCount) + numAcrossXAxis;
+
+        if (tileIndex >= 0 && tileIndex < this.tileCount) {
+            return tileIndex;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @param {TileMapTile} tileMapTile - Tile map tile to convert.
+     * @returns {import('./tileGridProvider.js').TileProviderTileInfo}
+     */
+    #createTileInfo(tileMapTile) {
+        return {
+            tileId: tileMapTile.tileId,
+            paletteIndex: tileMapTile.palette,
+            horizontalFlip: false,
+            verticalFlip: false
+        };
+    }
 
     // /**
     //  * Adds a tile to the tile set.
