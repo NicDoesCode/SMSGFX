@@ -42,6 +42,7 @@ import TileEditorToolbar from "./ui/toolbars/tileEditorToolbar.js";
 import ColourPickerToolbox from "./ui/colourPickerToolbox.js";
 import DocumentationViewer from "./ui/documentationViewer.js";
 import TileMap from "./models/tileMap.js";
+import TileMapUtil from "./util/tileMapUtil.js";
 
 
 /* ****************************************************************************************************
@@ -1383,9 +1384,12 @@ function getTileGrid() {
 }
 function getTileGridPaletteList() {
     const list = PaletteListFactory.create();
-    if (getTileMap()) {
-        getTileMap().getPalettes().forEach((pId) => {
-            list.addPalette(getPaletteList().getPaletteById(pId));
+    const tileMap = getTileMap();
+    if (tileMap) {
+        tileMap.getPalettes().forEach((pId) => {
+            if (pId) {
+                list.addPalette(getPaletteList().getPaletteById(pId));
+            }
         });
     } else {
         list.addPalette(getPalette());
@@ -1395,6 +1399,10 @@ function getTileGridPaletteList() {
 /** @returns {TileMap?} */
 function getTileMap() {
     // TODO - Add support for tile map here
+    // const result = TileMapUtil.tileSetToTileMap(getTileSet(), getUIState().paletteIndex, 0, false);
+    // result.setPalette(0, getPaletteList().getPalette(0).paletteId);
+    // result.setPalette(1, getPaletteList().getPalette(1).paletteId);
+    // return result;
     return null;
 }
 function getTileSet() {
@@ -2746,6 +2754,7 @@ function changePalette(index) {
         selectedPaletteIndex: index
     });
     tileEditor.setState({
+        tileGrid: getTileGrid(),
         paletteList: getTileGridPaletteList()
     });
 }
