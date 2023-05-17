@@ -478,12 +478,10 @@ export default class TileSet extends TileGridProvider {
  * @returns {import('./tileGridProvider.js').TileProviderTileInfo}
  */
 function createTileInfo(tile) {
-    palette = palette === 0 ? 1 : 0;
     return {
         tileId: tile.tileId,
-        paletteIndex: palette,
+        paletteIndex: 0,
         horizontalFlip: false,
         verticalFlip: false
     };
 }
-let palette = 0;

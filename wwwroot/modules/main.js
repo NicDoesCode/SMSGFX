@@ -1382,7 +1382,7 @@ function getTileGrid() {
     }
 }
 function getTileGridPaletteList() {
-    const list = PaletteListFactory.create([getPalette()]);
+    const list = PaletteListFactory.create();
     if (getTileMap()) {
         getTileMap().getPalettes().forEach((pId) => {
             list.addPalette(getPaletteList().getPaletteById(pId));
