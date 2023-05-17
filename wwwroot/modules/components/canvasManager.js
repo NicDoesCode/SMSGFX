@@ -1,7 +1,9 @@
 import TileSet from "./../models/tileSet.js";
 import Palette from "./../models/palette.js";
+import PaletteList from "./../models/paletteList.js";
 import ColourUtil from "./../util/colourUtil.js";
 import ReferenceImage from "../models/referenceImage.js";
+import TileGridProvider from "../models/tileGridProvider.js";
 
 export default class CanvasManager {
 
@@ -14,6 +16,17 @@ export default class CanvasManager {
     }
 
     /**
+     * Gets or sets the tile grid to draw.
+     */
+    get tileGrid() {
+        return this.#tileGrid;
+    }
+    set tileGrid(value) {
+        this.invalidateImage()
+        this.#tileGrid = value;
+    }
+
+    /**
      * Gets or sets the tile set to draw.
      */
     get tileSet() {
@@ -22,6 +35,17 @@ export default class CanvasManager {
     set tileSet(value) {
         this.invalidateImage()
         this.#tileSet = value;
+    }
+
+    /**
+     * Gets or sets the colour palette list to use.
+     */
+    get paletteList() {
+        return this.#paletteList;
+    }
+    set paletteList(value) {
+        this.invalidateImage();
+        this.#paletteList = value;
     }
 
     /**
@@ -58,7 +82,7 @@ export default class CanvasManager {
     }
     set selectedTileIndex(value) {
         if (value != this.#selectedTileIndex) {
-            if (this.#tileSet && this.tileSet.length > 0 && value >= 0 && value < this.tileSet.length) {
+            if (this.tileGrid && this.tileGrid.tileCount > 0 && value >= 0 && value < this.tileGrid.tileCount) {
                 this.#selectedTileIndex = value;
             } else {
                 this.#selectedTileIndex = -1;
@@ -161,8 +185,12 @@ export default class CanvasManager {
     #tileCanvas;
     /** @type {boolean} */
     #needToDrawTileImage = true;
+    /** @type {TileGridProvider} */
+    #tileGrid = null;
     /** @type {TileSet} */
     #tileSet = null;
+    /** @type {PaletteList} */
+    #paletteList = null;
     /** @type {Palette} */
     #palette = null;
     /** @type {number} */
@@ -188,13 +216,17 @@ export default class CanvasManager {
 
     /**
      * Creates a new instance of the tile canvas.
-     * @param {TileSet} [tileSet] Tile set to draw.
-     * @param {Palette} [palette] Colour palette to use.
+     * @param {TileGridProvider} [tileGrid] - Object that contains the tile grid to render.
+     * @param {TileSet} [tileSet] - Tile set that is the source of tiles.
+     * @param {Palette} [palette] - Colour palette to use (fallback).
+     * @param {PaletteList} [paletteList] - Colour palette list to use.
      */
-    constructor(tileSet, palette) {
+    constructor(tileGrid, tileSet, palette, paletteList) {
         this.#tileCanvas = document.createElement('canvas');
+        if (tileGrid) this.#tileGrid = tileGrid;
         if (tileSet) this.#tileSet = tileSet;
         if (palette) this.#palette = palette;
+        if (paletteList) this.#paletteList = paletteList;
     }
 
 
@@ -295,20 +327,21 @@ export default class CanvasManager {
      * @param {number} transparencyColour - Render this colour as transparent.
      */
     #drawTileImage(canvas, transparencyColour) {
+        if (!this.tileGrid) throw new Error('drawTileImage: No tile grid.');
         if (!this.tileSet) throw new Error('drawTileImage: No tile set.');
-        if (!this.palette) throw new Error('drawTileImage: No palette.');
+        if (!this.paletteList && !this.palette) throw new Error('drawTileImage: No palette or palette list.');
 
         const context = canvas.getContext('2d');
 
-        const tiles = Math.max(this.tileSet.tileWidth, 1);
-        const rows = Math.ceil(this.tileSet.length / tiles);
+        const tiles = Math.max(this.tileGrid.columnCount, 1);
+        const rows = Math.ceil(this.tileGrid.tileCount / tiles);
 
         const pxSize = this.scale;
 
         canvas.width = tiles * 8 * pxSize;
         canvas.height = rows * 8 * pxSize;
 
-        for (let tileIndex = 0; tileIndex < this.tileSet.length; tileIndex++) {
+        for (let tileIndex = 0; tileIndex < this.tileGrid.tileCount; tileIndex++) {
             this.#drawTile(context, tileIndex, transparencyColour);
         }
     }
@@ -328,8 +361,9 @@ export default class CanvasManager {
      * @param {number} transparencyColour - Render this colour as transparent.
      */
     #drawIndividualTile(canvas, tileIndex, transparencyColour) {
-        if (!this.tileSet) throw new Error('drawIndividualTile: No tile set.');
-        if (!this.palette) throw new Error('drawIndividualTile: No palette.');
+        if (!this.tileGrid) throw new Error('drawTileImage: No tile grid.');
+        if (!this.tileSet) throw new Error('drawTileImage: No tile set.');
+        if (!this.paletteList && !this.palette) throw new Error('drawTileImage: No palette or palette list.');
 
         const context = canvas.getContext('2d');
         this.#drawTile(context, tileIndex, transparencyColour);
@@ -337,25 +371,27 @@ export default class CanvasManager {
 
     #drawTile(context, tileindex, transparencyColour) {
         const pxSize = this.scale;
-        const tile = this.tileSet.getTile(tileindex);
-        const tileCount = Math.max(this.tileSet.tileWidth, 1);
-        const tileSetCol = tileindex % tileCount;
-        const tileSetRow = (tileindex - tileSetCol) / tileCount;
-        const numColours = this.palette.getColours().length;
+        const tileInfo = this.tileGrid.getTileInfoByIndex(tileindex);
+        const tile = this.tileSet.getTileById(tileInfo.tileId);
+        const tileWidth = Math.max(this.tileGrid.columnCount, 1);
+        const tileGridCol = tileindex % tileWidth;
+        const tileGridRow = (tileindex - tileGridCol) / tileWidth;
+        const palette = (tileInfo.paletteId) ? this.paletteList.getPaletteById(tileInfo.paletteId) : this.palette;
+        const numColours = palette.getColours().length;
 
         for (let tilePx = 0; tilePx < 64; tilePx++) {
 
             const tileCol = tilePx % 8;
             const tileRow = (tilePx - tileCol) / 8;
 
-            const x = ((tileSetCol * 8) + tileCol) * pxSize;
-            const y = ((tileSetRow * 8) + tileRow) * pxSize;
+            const x = ((tileGridCol * 8) + tileCol) * pxSize;
+            const y = ((tileGridRow * 8) + tileRow) * pxSize;
 
             let pixelPaletteIndex = tile.readAt(tilePx);
 
             // Set colour
             if (pixelPaletteIndex >= 0 && pixelPaletteIndex < numColours) {
-                const colour = this.palette.getColour(pixelPaletteIndex);
+                const colour = palette.getColour(pixelPaletteIndex);
                 const hex = ColourUtil.toHex(colour.r, colour.g, colour.b);
                 context.fillStyle = hex;
             }
@@ -402,8 +438,8 @@ export default class CanvasManager {
         context.fillStyle = this.backgroundColour;
         context.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Leave if no tile set
-        if (!this.tileSet) return;
+        // Leave if no tile set or tile grid
+        if (!this.tileSet || !this.tileGrid) return;
 
         // Otherwise continue drawing
         const pxSize = this.scale;

@@ -42,8 +42,8 @@ export default class ProjectJsonSerialiser {
      */
     static toSerialisable(project) {
         return {
-            id: project.id, 
-            version: 1, 
+            id: project.id,
+            version: 1,
             title: project.title,
             systemType: project.systemType,
             tileSet: TileSetJsonSerialiser.toSerialisable(project.tileSet),
@@ -60,8 +60,8 @@ export default class ProjectJsonSerialiser {
     static fromSerialisable(projectSerialisable) {
         return ProjectFactory.create({
             id: projectSerialisable.id,
-            title: projectSerialisable.title, 
-            systemType: projectSerialisable.systemType, 
+            title: projectSerialisable.title,
+            systemType: projectSerialisable.systemType,
             tileSet: TileSetJsonSerialiser.fromSerialisable(projectSerialisable.tileSet),
             tileMapList: TileMapListJsonSerialiser.fromSerialisable(projectSerialisable.tileMapList ?? []),
             paletteList: PaletteListJsonSerialiser.fromSerialisable(projectSerialisable.paletteList ?? [])
@@ -83,3 +83,19 @@ export default class ProjectJsonSerialiser {
  * @property {import('./paletteJsonSerialiser').PaletteSerialisable} paletteList
  * @exports
  */
+
+
+/**
+ * Converts a project serialisable across versions.
+ * @param {ProjectSerialisable} projectSerialisable - Serialisable project to convert.
+ * @returns {ProjectSerialisable}
+ */
+function convertProjectVersion(projectSerialisable) {
+    if (projectSerialisable.version === 1) {
+        projectSerialisable.version = 2;
+
+        if (typeof projectSerialisable.tileSet['tileWidth'] === 'number' && !projectSerialisable.tileSet.columnsPerRow) {
+            projectSerialisable.tileSet.columnsPerRow = projectSerialisable.tileSet['tileWidth'];
+        }
+    }
+}

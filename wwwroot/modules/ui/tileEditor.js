@@ -1,11 +1,14 @@
 import CanvasManager from "../components/canvasManager.js";
 import EventDispatcher from "../components/eventDispatcher.js";
 import PaletteFactory from "../factory/paletteFactory.js";
+import PaletteListFactory from "../factory/paletteListFactory.js";
 import Palette from "../models/palette.js";
 import ReferenceImage from "../models/referenceImage.js";
 import TileSet from "../models/tileSet.js";
 import TileEditorContextMenu from "./tileEditorContextMenu.js";
 import TemplateUtil from "../util/templateUtil.js";
+import PaletteList from "../models/paletteList.js";
+import TileGridProvider from "../models/tileGridProvider.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 const EVENT_OnEvent = 'EVENT_OnEvent';
@@ -43,10 +46,16 @@ export default class TileEditor {
     #tbCanvas;
     /** @type {TileEditorContextMenu} */
     #tileEditorContextMenu;
+    /** @type {PaletteList} */
+    #paletteList = null;
     /** @type {Palette} */
     #palette = null;
+    /** @type {PaletteList} */
+    #nativePaletteList = null;
     /** @type {Palette} */
     #nativePalette = null;
+    /** @type {TileGridProvider} */
+    #tileGrid = null;
     /** @type {TileSet} */
     #tileSet = null;
     /** @type {Coordinates} */
@@ -118,7 +127,22 @@ export default class TileEditor {
         if (palette && typeof palette.getColour === 'function') {
             this.#canvasManager.invalidateImage();
             this.#palette = palette;
-            this.#nativePalette = PaletteFactory.convertToNative(this.#palette);
+            this.#nativePalette = PaletteFactory.convertToNative(palette);
+            dirty = true;
+        }
+        // Change palette list?
+        const paletteList = state?.paletteList;
+        if (paletteList && typeof paletteList.getPaletteById === 'function') {
+            this.#canvasManager.invalidateImage();
+            this.#paletteList = paletteList;
+            this.#nativePaletteList = PaletteListFactory.create(paletteList.getPalettes().map((p) => PaletteFactory.convertToNative(p)));
+            dirty = true;
+        }
+        // Changing tile grid
+        const tileGrid = state?.tileGrid;
+        if (tileGrid instanceof TileGridProvider || tileGrid === null) {
+            this.#canvasManager.invalidateImage();
+            this.#tileGrid = tileGrid;
             dirty = true;
         }
         // Changing tile set
@@ -150,7 +174,7 @@ export default class TileEditor {
         // Display native?
         if (typeof state?.displayNative === 'boolean') {
             this.#displayNative = state.displayNative;
-            if (state.displayNative && this.#palette.system === 'gb') {
+            if (state.displayNative && (this.#palette?.system === 'gb' || this.#paletteList?.getPalettes().filter((p) => p.system === 'gb') > 0)) {
                 this.#canvasManager.pixelGridColour = '#98a200';
                 this.#canvasManager.pixelGridOpacity = 0.5;
                 this.#canvasManager.tileGridColour = '#98a200';
@@ -215,10 +239,15 @@ export default class TileEditor {
         // Refresh image?
         if (dirty && this.#palette) {
             let palette = !this.#displayNative ? this.#palette : this.#nativePalette;
+            let paletteList = !this.#displayNative ? this.#paletteList : this.#nativePaletteList;
+            if (this.#canvasManager.paletteList !== paletteList) {
+                this.#canvasManager.paletteList = paletteList;
+            }
             if (this.#canvasManager.palette !== palette) {
                 this.#canvasManager.palette = palette;
             }
             this.#canvasManager.tileSet = this.#tileSet;
+            this.#canvasManager.tileGrid = this.#tileGrid;
             if (this.#canvasManager.scale !== this.#scale) {
                 this.#canvasManager.scale = this.#scale;
             }
@@ -518,8 +547,10 @@ export default class TileEditor {
 
 /**
  * @typedef {object} TileEditorState
+ * @property {TileGridProvider?} tileGrid - Tile grid that will be drawn, passing this will trigger a redraw.
  * @property {TileSet?} tileSet - Tile set that will be drawn, passing this will trigger a redraw.
  * @property {Palette?} palette - Palette to use for drawing, passing this will trigger a redraw.
+ * @property {PaletteList?} paletteList - Palette list to use for drawing, passing this will trigger a redraw.
  * @property {number?} scale - Current scale level.
  * @property {boolean?} displayNative - Should the tile editor display native colours?
  * @property {number?} selectedTileIndex - Currently selected tile index.
@@ -552,7 +583,7 @@ export default class TileEditor {
 /**
  * @typedef {object} TileEditorCommandEventArgs
  * @property {string} command - Command being invoked.
- * @property {number} tileIndex - Index of the tile witin the tile map.
+ * @property {number} tileIndex - Index of the tile witin the tile grid.
  * @exports
  */
 
@@ -565,8 +596,8 @@ export default class TileEditor {
 /**
  * @typedef {object} TileEditorEventArgs
  * @property {string} event - Event that occurred.
- * @property {number} x - X tile map pixel thats selected.
- * @property {number} y - Y tile map pixel thats selected.
+ * @property {number} x - X tile grid pixel thats selected.
+ * @property {number} y - Y tile grid pixel thats selected.
  * @property {boolean} mousePrimaryIsDown - True when the primary mouse button is down, otherwise false.
  * @property {boolean} mouseSecondaryIsDown - True when the secondary mouse button is down, otherwise false.
  * @property {boolean} mouseAuxIsDown - True when the auxiliary mouse button is down, otherwise false.

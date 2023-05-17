@@ -1,10 +1,74 @@
-import TileFactory from './../factory/tileFactory.js';
+import TileGridProvider from './tileGridProvider.js';
 import Tile from './tile.js';
 
 /**
  * Set of tiles.
  */
-export default class TileSet {
+export default class TileSet extends TileGridProvider {
+
+
+    // BEGIN: TileGridProvider implementation
+
+    /**
+     * Gets the total amount of tiles.
+     * @returns {number}
+     */
+    get tileCount() {
+        return this.length;
+    }
+
+    /**
+     * Gets the amount of tiles per row.
+     * @returns {number}
+     */
+    get columnCount() {
+        return this.tileWidth;
+    }
+
+    /**
+     * Gets the amount of rows in the grid.
+     * @returns {number}
+     */
+    get rowCount() {
+        return Math.ceil(this.length / this.#tileWidth);
+    }
+
+
+    /**
+     * Gets information about a tile by the tile index.
+     * @param {number} tileIndex - Index of the tile.
+     * @returns {import('./tileGridProvider.js').TileProviderTileInfo}
+     */
+    getTileInfoByIndex(tileIndex) {
+        const tile = this.getTile(tileIndex);
+        return createTileInfo(tile);
+    }
+
+    /**
+     * Gets information about a tile by a row and column coordinate.
+     * @param {number} rowIndex - Row within the tile grid.
+     * @param {number} columnIndex - Column of the tile within the tile grid.
+     * @returns {import('./tileGridProvider.js').TileProviderTileInfo}
+     */
+    getTileInfoByRowAndColumn(rowIndex, columnIndex) {
+        if (rowIndex < 0 || rowIndex >= this.rowCount) throw new Error('Row index must be greater then zero and less then the row count.');
+        if (columnIndex < 0 || columnIndex >= this.columnCount) throw new Error('Column index must be greater then zero and less then the column count.');
+        const index = (row * this.tileWidth) + column;
+        return this.getTileInfoByIndex(index);
+    }
+
+    /**
+     * Gets information about a tile by the X and Y coordinate within the image.
+     * @param {number} x - X pixel within the tile image.
+     * @param {number} y - Y pixel within the tile image.
+     * @returns {import('./tileGridProvider.js').TileProviderTileInfo}
+     */
+    getTileInfoByPixel(x, y) {
+        const index = this.getTileIndexByCoordinate(x, y);
+        return this.getTileInfoByIndex(index);
+    }
+
+    // END: TileGridProvider implementation
 
 
     /**
@@ -58,6 +122,7 @@ export default class TileSet {
 
     /** Initialises a new instance of the tile set class. */
     constructor() {
+        super();
     }
 
 
@@ -406,4 +471,18 @@ export default class TileSet {
     }
 
 
+}
+
+/**
+ * 
+ * @param {Tile} tile - Tile to convert.
+ * @returns {import('./tileGridProvider.js').TileProviderTileInfo}
+ */
+function createTileInfo(tile) {
+    return {
+        tileId: tile.tileId,
+        paletteId: null,
+        horizontalFlip: false,
+        verticalFlip: false
+    };
 }
