@@ -308,23 +308,23 @@ export default class CanvasManager {
 
     /**
      * Draws the tile image onto a canvas element.
-     * @param {HTMLCanvasElement} canvas - Canvas element to draw onto.
+     * @param {HTMLCanvasElement} tileCanvas - Canvas element to draw onto.
      * @param {number} transparencyColour - Render this colour as transparent.
      */
-    #drawTileImage(canvas, transparencyColour) {
+    #drawTileImage(tileCanvas, transparencyColour) {
         if (!this.tileGrid) throw new Error('drawTileImage: No tile grid.');
         if (!this.tileSet) throw new Error('drawTileImage: No tile set.');
         if (!this.paletteList) throw new Error('drawTileImage: No palette list.');
 
-        const context = canvas.getContext('2d');
+        const context = tileCanvas.getContext('2d');
 
         const tiles = Math.max(this.tileGrid.columnCount, 1);
         const rows = Math.ceil(this.tileGrid.tileCount / tiles);
 
         const pxSize = this.scale;
 
-        canvas.width = tiles * 8 * pxSize;
-        canvas.height = rows * 8 * pxSize;
+        tileCanvas.width = tiles * 8 * pxSize;
+        tileCanvas.height = rows * 8 * pxSize;
 
         for (let tileIndex = 0; tileIndex < this.tileGrid.tileCount; tileIndex++) {
             this.#drawTile(context, tileIndex, transparencyColour);
@@ -414,15 +414,32 @@ export default class CanvasManager {
         const context = canvas.getContext('2d');
 
         // Ensure the canvas itself is the correct height
-        if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
-            canvas.width = canvas.clientWidth;
-            canvas.height = canvas.clientHeight;
-        }
+        const rect = canvas.parentElement.getBoundingClientRect();
+        // const lastRect = canvas.getBoundingClientRect();
+        canvas.width = rect.width - 15;
+        canvas.height = rect.height - 10;
+        // const thisRect = canvas.getBoundingClientRect();
+        // if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
+        //     // // TODO
+        //     // const lastHeight = canvas.clientHeight;
+        //     // const lwstWidth = canvas.clientHeight;
+        //     // // canvas.style.boxSizing = 'border-box';
+        //     // canvas.width = canvas.clientWidth;
+        //     // canvas.height -= canvas.clientHeight - lastHeight;
+        //     // canvas.height = canvas.clientHeight;
+        //     // canvas.height = canvas.clientHeight - 7;
+        //     // canvas.height -= canvas.clientHeight - lastHeight;
+        //     // console.log(canvas.clientHeight - lastHeight);
+        //     // const parent = canvas.parentElement;
+        //     // const parentRect = parent.getBoundingClientRect();
+        //     // canvas.width = parentRect.width;
+        //     // canvas.height = parentRect.height;
+        // }
 
         // Fill canvas background
         context.fillStyle = this.backgroundColour;
         context.fillRect(0, 0, canvas.width, canvas.height);
-        
+
         // Leave if no tile set or tile grid
         if (!this.tileSet || !this.tileGrid) return;
 

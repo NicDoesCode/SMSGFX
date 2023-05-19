@@ -12,10 +12,20 @@ button:disabled img {
     opacity: 0.5;
 }
 
+.sms-layout {
+    font-size: 0.8em;
+}
+.sms-layout .sms-layout-content .sms-layout-content-left {
+    width: 250px;
+}
+.sms-layout .sms-layout-content .sms-layout-content-right {
+    width: 250px;
+}
+
 
 /* Main layout */
 
-.sms-container .sms-smaller-font,
+/* .sms-container .sms-smaller-font,
 .sms-container .sms-smaller-font.input-group-text,
 .sms-container .sms-smaller-font input,
 .sms-container .sms-smaller-font select {
@@ -29,14 +39,14 @@ button:disabled img {
 .sms-container .sms-dropdown-menu li i.bi {
     font-size: 1.25em;
     margin-right: 4px;
-}
+} */
 
 .sms-container {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
+    /* height: 100vh; */
+    /* display: flex;
+    flex-direction: column; */
 }
-
+/* 
 .sms-container .sms-header-bar {
     min-height: 50px;
     z-index: 20;
@@ -79,7 +89,7 @@ button:disabled img {
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: flex-start;
-    z-index: 10;
+    z-index: 2;
     width: 100%;
     flex-grow: 1;
 }
@@ -116,3 +126,8 @@ button:disabled img {
 .sms-container .sms-content .sms-rows .sms-row.sms-grow {
     flex-grow: 1;
 }
+
+
+.sms-bottom-links {
+
+} */
