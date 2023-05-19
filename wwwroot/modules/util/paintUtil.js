@@ -1,3 +1,6 @@
+import ColourUtil from './colourUtil.js';
+import Palette from '../models/palette.js';
+import Tile from '../models/tile.js';
 import TileSet from '../models/tileSet.js'
 
 export default class PaintUtil {
@@ -157,6 +160,41 @@ export default class PaintUtil {
 
         }
 
+    }
+
+    /**
+     * Draw a single tile to a canvas.
+     * @param {HTMLCanvasElement} canvas - Canvas element to draw onto.
+     * @param {Tile} tile - Tile to draw.
+     * @param {Palette} palette - Palette to use to render the pixel.
+     */
+    static drawTile(canvas, tile, palette) {
+        const context = canvas.getContext('2d');
+        const numColours = palette.getColours().length;
+
+        const w = canvas.width / 8;
+        const h = canvas.height / 8;
+
+        for (let tilePx = 0; tilePx < 64; tilePx++) {
+
+            const tileCol = tilePx % 8;
+            const tileRow = (tilePx - tileCol) / 8;
+
+            const x = tileCol * w;
+            const y = tileRow * h;
+
+            let pixelPaletteIndex = tile.readAt(tilePx);
+
+            // Set colour
+            if (pixelPaletteIndex >= 0 && pixelPaletteIndex < numColours) {
+                const colour = palette.getColour(pixelPaletteIndex);
+                const hex = ColourUtil.toHex(colour.r, colour.g, colour.b);
+                context.fillStyle = hex;
+            }
+
+            context.moveTo(0, 0);
+            context.fillRect(x, y, w, h);
+        }
     }
 
 

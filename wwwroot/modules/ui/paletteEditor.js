@@ -100,7 +100,7 @@ export default class PaletteEditor {
 
         PaletteEditorContextMenu.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=palette-editor-context-menu]'))
             .then((obj) => {
-                this.#contextMenu = obj
+                this.#contextMenu = obj;
                 this.#contextMenu.addHandlerOnCommand((args) => this.#handlePaletteEditorContextMenuOnCommand(args));
             });
     }

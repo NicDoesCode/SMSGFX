@@ -1,0 +1,23 @@
+<div data-smsgfx-component="components/tileSetList">
+    <div data-smsgfx-id="tile-set-list" class="sms-tile-set-list d-flex flex-row flex-wrap justify-content-center mt-1 mb-1">
+    </div>
+    <script data-smsgfx-id="tile-set-list-template" type="text/x-handlebars-template">
+        {{#each this}}
+            <button data-command="tileSelect" data-tile-id="{{tileId}}" class="p-0 m-0 border">
+                {{tileId}}
+            </button>
+        {{/each}}
+    </script>
+    <style data-css-scope="global">
+        .sms-tile-set-list {
+            max-height: 500px;
+            overflow: scroll;
+        }
+        .sms-tile-set-list button {
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border: 1px solid #AAAAAA;
+        }
+    </style>
+</div>

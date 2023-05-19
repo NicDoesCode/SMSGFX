@@ -1,0 +1,34 @@
+<div data-smsgfx-component="components/tileMapListing">
+    <ul data-smsgfx-id="tile-map-list"
+        class="sms-tile-map-list-component list-group list-group-flush overflow-y-scroll">
+    </ul>
+    <script data-smsgfx-id="tile-map-list-template" type="text/x-handlebars-template">
+        {{#each this}}
+            <li data-command="{{command}}" data-tile-map-id="{{tileMapId}}" class="list-group-item d-flex justify-content-between align-items-start list-group-item-action border-secondary-subtle">
+                <i class="bi bi-card-image"></i>
+                <span data-field="title" class="flex-fill ms-2">
+                    {{title}}
+                </span>
+                {{#if showDeleteButton}}
+                <button data-command="tileMapDelete" data-tile-map-id="{{tileMapId}}" class="btn btn-sm btn-secondary p-0 px-2" title="Delete this tile map.">
+                    <i class="bi bi-trash-fill"></i>
+                </button>
+                {{/if}}
+            </li>
+        {{/each}}
+    </script>
+    <style data-css-scope="global">
+        .sms-tile-map-list-component {
+            overflow-y: scroll;
+            min-height: 100px;
+        }
+
+        .sms-tile-map-list-component li {
+            cursor: pointer;
+        }
+
+        .sms-tile-map-list-component .list-group-item {
+            cursor: pointer;
+        }
+    </style>
+</div>

@@ -22,6 +22,7 @@ import SerialisationUtil from "./util/serialisationUtil.js";
 
 import PaletteEditor from "./ui/paletteEditor.js";
 import TileEditor from "./ui/tileEditor.js";
+import TileManager from "./ui/tileManager.js";
 
 import AboutModalDialogue from "./ui/dialogues/aboutModalDialogue.js";
 import ColourPickerDialogue from "./ui/dialogues/colourPickerDialogue.js";
@@ -107,6 +108,7 @@ const themeManager = new ThemeManager();
 /** @type {ColourPickerDialogue} */ let colourPickerDialogue;
 /** @type {ColourPickerToolbox} */ let colourPickerToolbox;
 /** @type {PaletteEditor} */ let paletteEditor;
+/** @type {TileManager} */ let tileManager;
 /** @type {PaletteModalDialogue} */ let paletteImportDialogue;
 /** @type {TileEditor} */ let tileEditor;
 /** @type {TileEditorToolbar} */ let tileEditorToolbar;
@@ -130,6 +132,7 @@ async function initialiseComponents() {
     colourPickerDialogue = await ColourPickerDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=colour-picker-dialogue]'));
     colourPickerToolbox = await ColourPickerToolbox.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=colour-picker-toolbox]'));
     paletteEditor = await PaletteEditor.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=palette-editor]'));
+    tileManager = await TileManager.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-manager]'));
     paletteImportDialogue = await PaletteModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=palette-import-dialogue]'));
     tileEditor = await TileEditor.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-editor]'));
     tileEditorToolbar = await TileEditorToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-editor-toolbar]'));
@@ -1396,6 +1399,9 @@ function getTileGridPaletteList() {
     }
     return list;
 }
+function getTileMapList() {
+    return getProject().tileMapList;
+}
 /** @returns {TileMap?} */
 function getTileMap() {
     // TODO - Add support for tile map here
@@ -1501,7 +1507,12 @@ function formatForProject() {
     });
     tileContextToolbar.setState({
         enabled: true
-    })
+    });
+    tileManager.setState({
+        tileMapList: getTileMapList(),
+        tileSet: tileSet,
+        palette: palette
+    });
 }
 
 function formatForNoProject() {

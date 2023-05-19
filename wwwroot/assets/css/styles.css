@@ -13,7 +13,13 @@ button:disabled img {
 }
 
 .sms-layout {
-    font-size: 0.8em;
+    font-size: 14px;
+}
+.sms-layout input,
+.sms-layout select,
+.sms-layout button,
+.sms-layout label {
+    font-size: 12px;
 }
 .sms-layout .sms-layout-content .sms-layout-content-left {
     width: 250px;
@@ -40,12 +46,12 @@ button:disabled img {
     font-size: 1.25em;
     margin-right: 4px;
 } */
-
+/* 
 .sms-container {
-    /* height: 100vh; */
-    /* display: flex;
-    flex-direction: column; */
-}
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+} */
 /* 
 .sms-container .sms-header-bar {
     min-height: 50px;

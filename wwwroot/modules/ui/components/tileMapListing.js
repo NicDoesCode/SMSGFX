@@ -1,15 +1,15 @@
 import EventDispatcher from "../../components/eventDispatcher.js";
-import ProjectList from "../../models/projectList.js";
+import TileMapList from "../../models/tileMapList.js";
 import TemplateUtil from "../../util/templateUtil.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
 const commands = {
-    projectSelect: 'projectSelect',
-    projectDelete: 'projectDelete'
+    tileSetSelect: 'tileSetSelect',
+    tileMapSelect: 'tileMapSelect'
 }
 
-export default class ProjectListing {
+export default class TileMapListing {
 
 
     static get Commands() {
@@ -23,9 +23,12 @@ export default class ProjectListing {
     #listElmement;
     /** @type {EventDispatcher} */
     #dispatcher;
-    #projectListTemplate;
+    #tileMapListTemplate;
     #enabled = true;
+    #showTileSetButton = false;
     #showDeleteButton = false;
+    /** @type {TileMapList} */
+    #tileMapList = null;
 
 
     /**
@@ -34,37 +37,42 @@ export default class ProjectListing {
      */
     constructor(element) {
         this.#element = element;
-        this.#listElmement = this.#element.querySelector('[data-smsgfx-id=project-list]');
+        this.#listElmement = this.#element.querySelector('[data-smsgfx-id=tile-map-list]');
 
         this.#dispatcher = new EventDispatcher();
 
         // Compile handlebars template
-        const source = this.#element.querySelector('[data-smsgfx-id=project-list-template]').innerHTML;
-        this.#projectListTemplate = Handlebars.compile(source);
+        const source = this.#element.querySelector('[data-smsgfx-id=tile-map-list-template]').innerHTML;
+        this.#tileMapListTemplate = Handlebars.compile(source);
     }
 
 
     /**
      * Creates an instance of the object inside a container element.
      * @param {HTMLElement} element - Container element.
-     * @returns {Promise<ProjectListing>}
+     * @returns {Promise<TileMapListing>}
      */
     static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('components/projectListing', element);
-        return new ProjectListing(componentElement);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('components/tileMapListing', element);
+        return new TileMapListing(componentElement);
     }
 
 
     /**
      * Updates the state of the object.
-     * @param {ProjectListingState} state - State to set.
+     * @param {TileMapListingState} state - State to set.
      */
     setState(state) {
+        let dirty = false;
+
+        if (typeof state.showTileSet !== 'undefined') {
+            dirty = true;
+            this.#showTileSetButton = state.showTileSet;
+        }
+
         if (typeof state.showDelete !== 'undefined') {
+            dirty = true;
             this.#showDeleteButton = state.showDelete;
-            this.#listElmement.querySelectorAll('[data-command=projectDelete]').forEach((elm) => {
-                elm.style.display = this.#showDeleteButton ? null : 'none';
-            });
         }
 
         if (typeof state.width !== 'undefined') {
@@ -75,8 +83,9 @@ export default class ProjectListing {
             this.#listElmement.style.height = (state.height !== null) ? state.height : null;
         }
 
-        if (typeof state.projects?.getProjects === 'function') {
-            this.#displayProjects(state.projects);
+        if (typeof state.tileMapList?.getTileMaps === 'function') {
+            dirty = true;
+            this.#tileMapList = state.tileMapList;
         }
 
         if (typeof state?.enabled === 'boolean') {
@@ -85,48 +94,59 @@ export default class ProjectListing {
                 element.disabled = !this.#enabled;
             });
         }
+
+        if (dirty) {
+            this.#displayTileMapList(this.#tileMapList);
+        }
     }
 
 
     /**
      * Registers a handler for a toolbar command.
-     * @param {ProjectListingCommandCallback} callback - Callback that will receive the command.
+     * @param {TileMapListingCommandCallback} callback - Callback that will receive the command.
      */
     addHandlerOnCommand(callback) {
         this.#dispatcher.on(EVENT_OnCommand, callback);
     }
 
 
-    /**
-     * @param {ProjectList} projects
-     */
-    #displayProjects(projects) {
-        const renderList = projects.getProjects().map((p) => {
-            return {
-                title: p.title,
-                id: p.id,
-                systemType: p.systemType,
-                isSmsgg: p.systemType === 'smsgg',
-                isNes: p.systemType === 'nes',
-                isGb: p.systemType === 'gb'
-            };
-        });
-        const html = this.#projectListTemplate(renderList);
+    #displayTileMapList() {
+        const renderList = [];
+        if (this.#showTileSetButton) {
+            renderList.push({
+                command: 'tileSetSelect',
+                title: 'Entire tile set',
+                tileMapId: '',
+                showDeleteButton: false
+            });
+        }
+        if (this.#tileMapList) {
+            this.#tileMapList.getTileMaps().forEach((tileMap) => {
+                renderList.push({
+                    command: 'tileMapSelect',
+                    title: tileMap.title,
+                    tileMapId: tileMap.tileMapId,
+                    showDeleteButton: this.#showDeleteButton
+                });
+            });
+        }
+
+        const html = this.#tileMapListTemplate(renderList);
 
         this.#listElmement.innerHTML = html;
         this.#listElmement.querySelectorAll('[data-command]').forEach((elm) => {
             const command = elm.getAttribute('data-command');
-            const id = elm.getAttribute('data-project-id');
+            const id = elm.getAttribute('data-tile-map-id');
             if (command && id) {
                 /** @param {MouseEvent} ev */
                 elm.onclick = (ev) => {
-                    this.#handleProjectCommandButtonClicked(command, id);
+                    this.#handleTileMapCommandButtonClicked(command, id);
                     ev.stopImmediatePropagation();
                     ev.preventDefault();
                 }
             }
         });
-        this.#listElmement.querySelectorAll('[data-command=projectDelete]').forEach((elm) => {
+        this.#listElmement.querySelectorAll('[data-command=tileMapDelete]').forEach((elm) => {
             elm.style.display = this.#showDeleteButton ? null : 'none';
         });
     }
@@ -134,23 +154,23 @@ export default class ProjectListing {
 
     /**
      * @param {string} command 
-     * @param {string} projectId 
+     * @param {string} tileMapId 
      */
-    #handleProjectCommandButtonClicked(command, projectId) {
+    #handleTileMapCommandButtonClicked(command, tileMapId) {
         const args = this.#createArgs(command);
-        args.projectId = projectId;
+        args.tileMapId = tileMapId;
         this.#dispatcher.dispatch(EVENT_OnCommand, args);
     }
 
 
     /**
      * @param {string} command
-     * @returns {ProjectListingCommandEventArgs}
+     * @returns {TileMapListingCommandEventArgs}
      */
     #createArgs(command) {
         return {
             command: command,
-            projectId: null
+            tileMapId: null
         };
     }
 
@@ -159,10 +179,10 @@ export default class ProjectListing {
 
 
 /**
- * Project list state.
- * @typedef {object} ProjectListingState
- * @property {ProjectList?} projects - List of projects to display in the menu.
- * @property {boolean?} showDelete - Show the delete button?
+ * Tile map list state.
+ * @typedef {object} TileMapListingState
+ * @property {TileMapList?} tileMapList - List of tile maps to display in the menu.
+ * @property {boolean?} showTileSet - Show the tile set option?
  * @property {string?} width - List width CSS declaration.
  * @property {string?} height - List height CSS declaration.
  * @property {boolean?} enabled - Is the control enabled or disabled?
@@ -170,15 +190,15 @@ export default class ProjectListing {
  */
 
 /**
- * Project list callback.
- * @callback ProjectListingCommandCallback
- * @param {ProjectListingCommandEventArgs} args - Arguments.
+ * Tile map list callback.
+ * @callback TileMapListingCommandCallback
+ * @param {TileMapListingCommandEventArgs} args - Arguments.
  * @exports
  */
 /**
- * @typedef {object} ProjectListingCommandEventArgs
+ * @typedef {object} TileMapListingCommandEventArgs
  * @property {string} command - The command being invoked.
- * @property {string?} projectId - Project ID.
+ * @property {string?} tileMapId - Unique tile map ID.
  * @exports
  */
 
