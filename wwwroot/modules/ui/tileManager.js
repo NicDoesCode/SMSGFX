@@ -5,10 +5,16 @@ import TileMapList from "../models/tileMapList.js";
 import TileSet from "./../models/tileSet.js";
 import UiTileMapListing from "./components/tileMapListing.js";
 import UiTileSetList from "./components/tileSetList.js";
+import TileMapListing from "./components/tileMapListing.js";
+import TileSetList from "./components/tileSetList.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
 const commands = {
+    tileMapNew: 'tileMapNew',
+    tileSetSelect: 'tileSetSelect',
+    tileMapSelect: 'tileMapSelect',
+    tileSelect: 'tileSelect'
 }
 
 export default class TileManager {
@@ -43,6 +49,14 @@ export default class TileManager {
         this.#element = element;
 
         this.#dispatcher = new EventDispatcher();
+
+        this.#element.querySelectorAll('[data-command]').forEach(element => {
+            element.onclick = () => {
+                const command = element.getAttribute('data-command');
+                const args = this.#createArgs(command);
+                this.#dispatcher.dispatch(EVENT_OnCommand, args);
+            };
+        });
 
         UiTileMapListing.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=tile-map-listing]'))
             .then((obj) => {
@@ -119,11 +133,31 @@ export default class TileManager {
 
 
     /**
+     * @param {string} command
+     * @returns {TileManagerCommandEventArgs}
+     */
+    #createArgs(command) {
+        return {
+            command: command
+        };
+    }
+
+
+    /**
      * When a command is received from the tile map listing.
      * @param {import("./components/tileMapListing.js").TileMapListingCommandEventArgs} args - Arguments.
      */
     #handleTileMapListingOnCommand(args) {
         switch (args.command) {
+            case TileMapListing.Commands.tileSetSelect:
+                const args1 = this.#createArgs(commands.tileSetSelect);
+                this.#dispatcher.dispatch(EVENT_OnCommand, args1);
+                break;
+            case TileMapListing.Commands.tileMapSelect:
+                const args2 = this.#createArgs(commands.tileMapSelect);
+                args2.tileMapId = args.tileMapId;
+                this.#dispatcher.dispatch(EVENT_OnCommand, args2);
+                break;
         }
     }
 
@@ -134,6 +168,11 @@ export default class TileManager {
      */
     #handleTileSetListOnCommand(args) {
         switch (args.command) {
+            case TileSetList.Commands.tileSelect:
+                const args1 = this.#createArgs(commands.tileSelect);
+                args1.tileId = args.tileId;
+                this.#dispatcher.dispatch(EVENT_OnCommand, args1);
+                break;
         }
     }
 
@@ -158,5 +197,7 @@ export default class TileManager {
 /**
  * @typedef {object} TileManagerCommandEventArgs
  * @property {string} command - The command being invoked.
+ * @property {string} tileMapId - Unique ID of the tile map.
+ * @property {string} tileId - Unique ID of the tile.
  * @exports
  */

@@ -44,6 +44,7 @@ import ColourPickerToolbox from "./ui/colourPickerToolbox.js";
 import DocumentationViewer from "./ui/documentationViewer.js";
 import TileMap from "./models/tileMap.js";
 import TileMapUtil from "./util/tileMapUtil.js";
+import TileMapFactory from "./factory/tileMapFactory.js";
 
 
 /* ****************************************************************************************************
@@ -196,6 +197,8 @@ function wireUpEventHandlers() {
     tileEditorToolbar.addHandlerOnCommand(handleTileEditorToolbarOnCommand);
     tileEditorBottomToolbar.addHandlerOnCommand(handleTileEditorToolbarOnCommand);
     tileContextToolbar.addHandlerOnCommand(handleTileContextToolbarCommand);
+
+    tileManager.addHandlerOnCommand(handleTileManagerOnCommand);
 
     paletteImportDialogue.addHandlerOnConfirm(handleImportPaletteModalDialogueOnConfirm);
 
@@ -875,6 +878,23 @@ function handleTileContextToolbarCommand(args) {
         const drawDimensions = ImageUtil.calculateAspectRatioDimensions(instanceState.referenceImageOriginal, getTileSet().tileWidth * 8, getTileSet().tileHeight * 8);
         const restoredBounds = new DOMRect(0, 0, drawDimensions.width, drawDimensions.height);
         updateReferenceImage(restoredBounds, args.referenceTransparency);
+    }
+}
+
+
+/** @param {import("./ui/tileManager.js").TileManagerCommandEventArgs} args */
+function handleTileManagerOnCommand(args) {
+    switch (args.command) {
+
+        case TileManager.Commands.tileMapNew:
+            getTileMapList().addTileMap(TileMapFactory.create({
+                title: 'New tile map',
+                columns: 4, 
+                rows: 4
+            }));
+            tileManager.setState({ tileMapList: getTileMapList() });
+            break;
+
     }
 }
 

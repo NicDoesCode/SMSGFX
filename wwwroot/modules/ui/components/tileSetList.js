@@ -7,6 +7,7 @@ import Palette from "./../../models/palette.js";
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
 const commands = {
+    tileSelect: 'tileSelect'
 }
 
 export default class TileSetList {

@@ -131,21 +131,21 @@ export default class TileMapListing {
             });
         }
 
-        const html = this.#tileMapListTemplate(renderList);
+        this.#listElmement.innerHTML = this.#tileMapListTemplate(renderList);
 
-        this.#listElmement.innerHTML = html;
         this.#listElmement.querySelectorAll('[data-command]').forEach((elm) => {
             const command = elm.getAttribute('data-command');
-            const id = elm.getAttribute('data-tile-map-id');
-            if (command && id) {
+            const tileMapId = elm.getAttribute('data-tile-map-id');
+            if (command) {
                 /** @param {MouseEvent} ev */
                 elm.onclick = (ev) => {
-                    this.#handleTileMapCommandButtonClicked(command, id);
+                    this.#handleTileMapCommandButtonClicked(command, tileMapId);
                     ev.stopImmediatePropagation();
                     ev.preventDefault();
                 }
             }
         });
+
         this.#listElmement.querySelectorAll('[data-command=tileMapDelete]').forEach((elm) => {
             elm.style.display = this.#showDeleteButton ? null : 'none';
         });
