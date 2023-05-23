@@ -295,11 +295,11 @@ export default class TileMap extends TileGridProvider {
     /**
      * Gets the ID of the palette associated with a given index.
      * @param {number} index - Index of the palette ID to return.
-     * @returns {string}
+     * @returns {string?}
      */
     getPalette(index) {
         if (index < 0 || index >= this.#paletteIds.length) {
-            throw new Error('Index out of range.');
+            return null;
         }
         return this.#paletteIds[index];
     }

@@ -1,13 +1,92 @@
-<div data-smsgfx-component="tileManager">
+<div data-smsgfx-component="tileManager" class="sms-tile-manager">
+
+    <div class="input-group input-group-sm mb-2">
+        <span class="input-group-text form-control">Tile map</span>
+        <button data-command="tileMapNew" data-auto-event="click" class="btn btn-outline-secondary"
+            title="Create a new tile map.">
+            <i class="bi bi-plus-lg"></i>
+        </button>
+    </div>
+
+    <div class="sms-palette card mt-2">
+        <div class="card-header p-0">
+            <select data-command="tileMapSelect" data-auto-event="change" class="form-select d-none">
+            </select>
+            <div class="input-group input-group-sm">
+                <input data-command="tileMapChange" data-auto-event="change" data-field="title" type="text"
+                    class="form-control border border-0" aria-label="Enter name">
+                <button class="btn btn-outline-secondary dropdown-toggle border border-0 border-start" type="button"
+                    data-bs-toggle="dropdown" aria-expanded="false"></button>
+                <ul data-linked-command="tileMapSelect" class="dropdown-menu dropdown-menu-end">
+                </ul>
+            </div>
+        </div>
+        <div class="card-body p-2">
+            <div class="row">
+                <div class="col">
+                    <p class="mb-1">Palette slots</p>
+                </div>
+            </div>
+            <div class="row">
+                <div data-smsgfx-id="palette-selectors" class="col">
+                </div>
+                <script data-smsgfx-id="palette-selector-template" type="text/x-handlebars-template">
+                    {{#each this}}
+                        <div data-smsgfx-id="palette-selector" class="sms-palette-selector d-flex flex-column border rounded mb-2">
+                            <div class="d-flex flex-row align-items-stretch p-0 m-0 border-bottom">
+                                <div class="col-2 p-0 m-0 text-center align-content-center border-end p-1">
+                                    {{slotNumber}}
+                                </div>
+                                <div class="col p-0 m-0">
+                                    <select data-command="tileMapChange" data-auto-event="change" data-field="paletteId" data-palette-slot="{{slotNumber}}" class="form-select border border-0">
+                                    </select>
+                                </div>
+                            </div>
+                            <div data-smsgfx-id="palette-colours" data-palette-slot="{{slotNumber}}" class="sms-colours d-flex p-2">
+                            </div>
+                        </div>
+                    {{/each}}
+                </script>
+            </div>
+        </div>
+        <div class="card-body p-2">
+            <div data-smsgfx-id="tile-map-optimise" class="row">
+                <div class="col">
+                    <div class="form-check form-switch ms-2 mt-2">
+                        <input id="tileSetOptimise" data-command="tileMapChange" data-auto-event="change"
+                            data-field="optimise" class="form-check-input" type="checkbox" role="switch" checked>
+                        <label class="form-check-label" for="tileSetOptimise">
+                            Optimise on export
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-1 mb-0 ps-3 pe-3">
+                <div class="col p-1">
+                    <button data-command="tileSetClone" data-auto-event="click"
+                        class="btn btn-sm btn-outline-secondary m-0 w-100" type="button">
+                        <i class="bi bi-file-earmark-plus"></i> Clone
+                    </button>
+                </div>
+                <div class="col p-1">
+                    <button data-command="tileSetDelete" data-auto-event="click"
+                        class="btn btn-sm btn-outline-secondary m-0 w-100" type="button">
+                        <i class="bi bi bi-trash-fill"></i> Remove
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
 
     <div class="card mb-2">
         <div class="card-header p-0">
             <div class="input-group input-group-sm border border-0">
-                <span class="input-group-text form-control border border-0">Tile maps</span>
-                <button data-command="tileMapNew" class="btn btn-outline-secondary border border-0 border-start rounded-0"
-                    title="Create a new tile map.">
-                    <i class="bi bi-plus-lg"></i>
-                </button>
+                <span class="input-group-text form-control border border-0">Tile map</span>
             </div>
         </div>
         <div class="card-body p-0">
@@ -25,5 +104,30 @@
             </div>
         </div>
     </div>
+
+    <style data-css-scope="global">
+        .sms-tile-manager .sms-palette-display .sms-palette-display-colours {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        .sms-tile-manager .sms-palette-display .sms-palette-display-colours div {
+            width: 12.5%;
+            min-height: 10px;
+        }
+
+
+        .sms-tile-manager .sms-palette-selector .sms-colours {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        .sms-tile-manager .sms-palette-selector .sms-colours div {
+            width: 12.5%;
+            min-height: 10px;
+        }
+    </style>
 
 </div>

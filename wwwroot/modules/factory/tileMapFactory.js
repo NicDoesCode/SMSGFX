@@ -29,6 +29,14 @@ export default class TileMapFactory {
         result.vramOffset = (typeof args.vramOffset === 'number') ? args.vramOffset : 0;
         result.optimise = (typeof args.optimise === 'boolean') ? args.optimise : true;
 
+        if (Array.isArray(args.paletteSlots)) {
+            args.paletteSlots.forEach((paletteId, index) => {
+                if (paletteId) {
+                    result.setPalette(index, paletteId);
+                }
+            });
+        }
+
         /** @type {TileMapTile[]} */
         const tileArray = (Array.isArray(args.tiles)) ? args.tiles : new Array();
         if (tileArray.length > result.tileCount) throw new Error('Number of tiles passed in tile array exceeds capacity of the tile map.');
@@ -54,6 +62,7 @@ export default class TileMapFactory {
  * @property {number?} rows
  * @property {number?} columns
  * @property {boolean?} optimise
+ * @property {string[]?} paletteSlots
  * @property {TileMapTile[]} tiles
  * @property {string?} defaultTileId
  * @exports

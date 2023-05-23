@@ -43,6 +43,7 @@ export default class TileMapJsonSerialiser {
             rows: tileMap.rowCount,
             columns: tileMap.columnCount,
             optimise: tileMap.optimise,
+            paletteSlots: tileMap.getPalettes(),
             tiles: tileMap.getTiles().map((tile) => TileMapTileJsonSerialiser.toSerialisable(tile))
         };
     }
@@ -59,7 +60,8 @@ export default class TileMapJsonSerialiser {
             vramOffset: tileMapSerialisable.vramOffset,
             rows: tileMapSerialisable.rows,
             columns: tileMapSerialisable.columns,
-            optimise: tileMapSerialisable.optimise
+            optimise: tileMapSerialisable.optimise,
+            paletteSlots: tileMapSerialisable.paletteSlots
         });
         if (Array.isArray(tileMapSerialisable.tiles)) {
             tileMapSerialisable.tiles.forEach((tileMapTileSerialisable, index) => {
@@ -82,6 +84,7 @@ export default class TileMapJsonSerialiser {
  * @property {number} rows
  * @property {number} columns
  * @property {boolean} optimise
+ * @property {string[]} paletteSlots
  * @property {import('./tileMapTileJsonSerialiser.js').TileMapTileSerialisable[]} tiles
  * @exports
  */

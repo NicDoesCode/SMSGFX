@@ -904,6 +904,10 @@ function handleTileManagerOnCommand(args) {
             deleteTileMap(args.tileMapId);
             break;
 
+        case TileManager.Commands.tileMapChange:
+            updateTileMap(args.tileMapId, args);
+            break;
+
     }
 }
 
@@ -1468,6 +1472,15 @@ function getUIState() {
     return state.persistentUIState;
 }
 
+function getNumberOfPaletteSlots() {
+    switch (getProject().systemType) {
+        case 'smsgg': return 2;
+        case 'nes': return 4;
+        case 'gb': return 1;
+        default: return 0;
+    }
+}
+
 function formatForProject() {
 
     instanceState.colourIndex = 0;
@@ -1540,7 +1553,9 @@ function formatForProject() {
     tileManager.setState({
         tileMapList: getTileMapList(),
         tileSet: tileSet,
-        palette: palette
+        palette: palette,
+        paletteList: getPaletteList(),
+        numberOfPaletteSlots: getNumberOfPaletteSlots()
     });
 }
 
@@ -2626,9 +2641,6 @@ function selectTileSetOrMap(tileMapId) {
 
     instanceState.selectedTileMapId = tileMapId ?? null;
 
-    tileManager.setState({ selectedTileMapId: instanceState.selectedTileMapId });
-    tileEditor.setState({ tileGrid: getTileGrid() });
-
     tileManager.setState({
         tileMapList: getTileMapList(),
         selectedTileMapId: instanceState.selectedTileMapId
@@ -2666,6 +2678,47 @@ function deleteTileMap(tileMapId) {
         instanceState.selectedTileMapId = getTileMapList().getTileMap(newSelectedTileMapIndex).tileMapId;
     }
 
+    state.setProject(getProject());
+    state.saveToLocalStorage();
+
+    // Reset UI
+    tileManager.setState({
+        tileMapList: getTileMapList(),
+        selectedTileMapId: instanceState.selectedTileMapId
+    });
+    tileEditor.setState({
+        selectedTileIndex: -1,
+        tileGrid: getTileGrid(),
+        tileSet: getTileSet()
+    });
+}
+
+/**
+ * Deletes a tile map.
+ * @param {string} tileMapId - Unique ID of the tile map to delete.
+ * @param {import("./ui/tileManager.js").TileManagerCommandEventArgs} args
+ */
+function updateTileMap(tileMapId, args) {
+    if (!tileMapId) throw new Error('The tile map ID was invalid.');
+    const tileMap = getTileMapList().getTileMapById(tileMapId);
+    if (!tileMap) throw new Error('No tile map matched the given ID.');
+
+    addUndoState();
+
+    // Update tile map
+    if (typeof args.title === 'string' && args.title.length > 0) {
+        tileMap.title = args.title;
+    }
+    if (typeof args.optimise === 'boolean') {
+        tileMap.optimise = args.optimise;
+    }
+    if (Array.isArray(args.paletteSlots) && args.paletteSlots.length > 0) {
+        args.paletteSlots.forEach((paletteId, index) => {
+            tileMap.setPalette(index, paletteId);
+        });
+    }
+
+    // Update project
     state.setProject(getProject());
     state.saveToLocalStorage();
 
