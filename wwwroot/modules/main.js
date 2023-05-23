@@ -889,30 +889,19 @@ function handleTileManagerOnCommand(args) {
     switch (args.command) {
 
         case TileManager.Commands.tileMapNew:
-            getTileMapList().addTileMap(TileMapFactory.create({
-                title: 'New tile map',
-                columns: 4,
-                rows: 4,
-                defaultTileId: getTileSet().getTiles()[0].tileId
-            }));
-            tileManager.setState({ tileMapList: getTileMapList() });
+            createNewTileSet();
             break;
 
         case TileManager.Commands.tileSetSelect:
-            instanceState.selectedTileMapId = null;
-            tileManager.setState({ selectedTileMapId: null });
-            tileEditor.setState({ tileGrid: getTileGrid() });
+            selectTileSetOrMap();
             break;
 
         case TileManager.Commands.tileMapSelect:
-            instanceState.selectedTileMapId = args.tileMapId;
-            tileManager.setState({ selectedTileMapId: args.tileMapId });
-            tileEditor.setState({ tileGrid: getTileGrid() });
+            selectTileSetOrMap(args.tileMapId);
             break;
 
         case TileManager.Commands.tileMapDelete:
-            // TODO
-            console.log(args.command, args.tileMapId); // TMP 
+            deleteTileMap(args.tileMapId);
             break;
 
     }
@@ -2593,6 +2582,97 @@ function pasteTileAt(index) {
 
     tileEditor.setState({
         selectedTileIndex: instanceState.tileIndex,
+        tileGrid: getTileGrid(),
+        tileSet: getTileSet()
+    });
+}
+
+/**
+ * Creates a new tile set.
+ */
+function createNewTileSet() {
+    addUndoState();
+
+    const firstTile = getTileSet().getTiles()[0];
+    const newTileMap = TileMapFactory.create({
+        title: 'New tile map',
+        columns: 4,
+        rows: 4,
+        defaultTileId: firstTile.tileId
+    });
+
+    state.setProject(getProject());
+    state.saveToLocalStorage();
+
+    instanceState.selectedTileMapId = newTileMap.tileMapId;
+
+    getTileMapList().addTileMap(newTileMap);
+    tileManager.setState({
+        tileMapList: getTileMapList(),
+        selectedTileMapId: newTileMap.tileMapId
+    });
+    tileEditor.setState({
+        selectedTileIndex: -1,
+        tileGrid: getTileGrid(),
+        tileSet: getTileSet()
+    });
+}
+
+/**
+ * Selects a tile set or tile map.
+ * @param {string?} tileMapId - Unique ID of the tile map to select or null if none selected.
+ */
+function selectTileSetOrMap(tileMapId) {
+
+    instanceState.selectedTileMapId = tileMapId ?? null;
+
+    tileManager.setState({ selectedTileMapId: instanceState.selectedTileMapId });
+    tileEditor.setState({ tileGrid: getTileGrid() });
+
+    tileManager.setState({
+        tileMapList: getTileMapList(),
+        selectedTileMapId: instanceState.selectedTileMapId
+    });
+    tileEditor.setState({
+        selectedTileIndex: -1,
+        tileGrid: getTileGrid(),
+        tileSet: getTileSet()
+    });
+}
+
+/**
+ * Deletes a tile map.
+ * @param {string} tileMapId - Unique ID of the tile map to delete.
+ */
+function deleteTileMap(tileMapId) {
+    if (!tileMapId) throw new Error('The tile map ID was invalid.');
+
+    const tileMap = getTileMapList().getTileMapById(tileMapId);
+
+    if (!tileMap) throw new Error('No tile map matched the given ID.');
+
+    addUndoState();
+
+    const tileMapIndex = getTileMapList().getTileMaps().indexOf(tileMap);
+
+    // Delete the tile map
+    getTileMapList().removeAt(tileMapIndex);
+
+    // Select the next available tile map
+    if (getTileMapList().getTileMaps().length === 0) {
+        instanceState.selectedTileMapId = null;
+    } else {
+        const newSelectedTileMapIndex = Math.min(tileMapIndex, getTileMapList().getTileMaps().length - 1);
+        instanceState.selectedTileMapId = getTileMapList().getTileMap(newSelectedTileMapIndex).tileMapId;
+    }
+
+    // Reset UI
+    tileManager.setState({
+        tileMapList: getTileMapList(),
+        selectedTileMapId: instanceState.selectedTileMapId
+    });
+    tileEditor.setState({
+        selectedTileIndex: -1,
         tileGrid: getTileGrid(),
         tileSet: getTileSet()
     });
