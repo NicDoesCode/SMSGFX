@@ -2666,6 +2666,9 @@ function deleteTileMap(tileMapId) {
         instanceState.selectedTileMapId = getTileMapList().getTileMap(newSelectedTileMapIndex).tileMapId;
     }
 
+    state.setProject(getProject());
+    state.saveToLocalStorage();
+
     // Reset UI
     tileManager.setState({
         tileMapList: getTileMapList(),
