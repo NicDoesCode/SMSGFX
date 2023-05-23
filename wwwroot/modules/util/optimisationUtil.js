@@ -1,3 +1,4 @@
+import TileMapFactory from "../factory/tileMapFactory.js";
 
 export default class OptimisationUtil {
 
@@ -51,7 +52,7 @@ export default class OptimisationUtil {
                     });
                 });
                 result.addTileMap(TileMapFactory.create({
-                    id: map.id,
+                    tileMapId: map.tileMapId,
                     title: map.title,
                     columns: map.columns,
                     rows: map.rows,

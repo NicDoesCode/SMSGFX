@@ -1,18 +1,18 @@
 <div data-smsgfx-component="components/tileMapListing">
     <div data-smsgfx-id="tile-map-list"
-        class="sms-tile-map-list-component list-group list-group-flush overflow-y-scroll">
+        class="sms-tile-map-list-component list-group list-group-flush overflow-scroll">
     </div>
     <script data-smsgfx-id="tile-map-list-template" type="text/x-handlebars-template">
         {{#each this}}
-            <button data-command="{{command}}" data-tile-map-id="{{tileMapId}}" class="list-group-item d-flex justify-content-between align-items-start list-group-item-action border-secondary-subtle">
-                <i class="bi bi-card-image"></i>
-                <span data-field="title" class="flex-fill ms-2">
+            <button data-command="{{command}}" data-tile-map-id="{{tileMapId}}" data-list-item class="list-group-item d-flex flex-row justify-content-between align-items-stretch list-group-item-action border-secondary-subtle">
+                <i class="bi bi-card-image align-self-center"></i>
+                <span data-field="title" class="flex-fill ms-2 align-self-center">
                     {{title}}
                 </span>
                 {{#if showDeleteButton}}
-                <button data-command="tileMapDelete" data-tile-map-id="{{tileMapId}}" class="btn btn-sm btn-secondary p-0 px-2" title="Delete this tile map.">
+                <a data-command="tileMapDelete" data-tile-map-id="{{tileMapId}}" class="btn btn-sm btn-secondary p-0 px-2" title="Delete this tile map.">
                     <i class="bi bi-trash-fill"></i>
-                </button>
+                </a>
                 {{/if}}
             </button>
         {{/each}}
@@ -20,15 +20,8 @@
     <style data-css-scope="global">
         .sms-tile-map-list-component {
             overflow-y: scroll;
-            min-height: 100px;
+            min-height: 50px;
+            max-height: 200px;
         }
-
-        /* .sms-tile-map-list-component li {
-            cursor: pointer;
-        } */
-
-        /* .sms-tile-map-list-component .list-group-item {
-            cursor: pointer;
-        } */
     </style>
 </div>

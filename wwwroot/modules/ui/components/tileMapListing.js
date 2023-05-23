@@ -6,7 +6,8 @@ const EVENT_OnCommand = 'EVENT_OnCommand';
 
 const commands = {
     tileSetSelect: 'tileSetSelect',
-    tileMapSelect: 'tileMapSelect'
+    tileMapSelect: 'tileMapSelect',
+    tileMapDelete: 'tileMapDelete'
 }
 
 export default class TileMapListing {
@@ -25,6 +26,8 @@ export default class TileMapListing {
     #dispatcher;
     #tileMapListTemplate;
     #enabled = true;
+    /** @type {string?} */
+    #selectedTileMapId = null;
     #showTileSetButton = false;
     #showDeleteButton = false;
     /** @type {TileMapList} */
@@ -73,6 +76,15 @@ export default class TileMapListing {
         if (typeof state.showDelete !== 'undefined') {
             dirty = true;
             this.#showDeleteButton = state.showDelete;
+        }
+
+        if (typeof state?.selectedTileMapId !== 'undefined') {
+            if (typeof state.selectedTileMapId === 'string') {
+                this.#selectedTileMapId = state.selectedTileMapId;
+            } else if (state.selectedTileMapId === null) {
+                this.#selectedTileMapId = null;
+            }
+            this.#highlightSelectedTileMapId();
         }
 
         if (typeof state.width !== 'undefined') {
@@ -149,6 +161,21 @@ export default class TileMapListing {
         this.#listElmement.querySelectorAll('[data-command=tileMapDelete]').forEach((elm) => {
             elm.style.display = this.#showDeleteButton ? null : 'none';
         });
+
+        this.#highlightSelectedTileMapId();
+    }
+
+
+    #highlightSelectedTileMapId() {
+        this.#listElmement.querySelectorAll('[data-list-item]').forEach((elm) => {
+            elm.classList.remove('active');
+            const tileMapId = elm.getAttribute('data-tile-map-id');
+            if (tileMapId && tileMapId === this.#selectedTileMapId) {
+                elm.classList.add('active');
+            } else if (!tileMapId && this.#selectedTileMapId === null) {
+                elm.classList.add('active');
+            }
+        });
     }
 
 
@@ -182,7 +209,9 @@ export default class TileMapListing {
  * Tile map list state.
  * @typedef {object} TileMapListingState
  * @property {TileMapList?} tileMapList - List of tile maps to display in the menu.
+ * @property {string?} [selectedTileMapId] - Unique ID of the selected tile map.
  * @property {boolean?} showTileSet - Show the tile set option?
+ * @property {boolean?} showDelete - Show the delete button?
  * @property {string?} width - List width CSS declaration.
  * @property {string?} height - List height CSS declaration.
  * @property {boolean?} enabled - Is the control enabled or disabled?

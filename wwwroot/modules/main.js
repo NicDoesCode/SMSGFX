@@ -75,6 +75,8 @@ const instanceState = {
     },
     /** @type {number} */
     pencilSize: 1,
+    /** @type {string?} */
+    selectedTileMapId: null,
     ctrlIsDown: false,
     shiftIsDown: false,
     altIsDown: false,
@@ -889,10 +891,28 @@ function handleTileManagerOnCommand(args) {
         case TileManager.Commands.tileMapNew:
             getTileMapList().addTileMap(TileMapFactory.create({
                 title: 'New tile map',
-                columns: 4, 
-                rows: 4
+                columns: 4,
+                rows: 4,
+                defaultTileId: getTileSet().getTiles()[0].tileId
             }));
             tileManager.setState({ tileMapList: getTileMapList() });
+            break;
+
+        case TileManager.Commands.tileSetSelect:
+            instanceState.selectedTileMapId = null;
+            tileManager.setState({ selectedTileMapId: null });
+            tileEditor.setState({ tileGrid: getTileGrid() });
+            break;
+
+        case TileManager.Commands.tileMapSelect:
+            instanceState.selectedTileMapId = args.tileMapId;
+            tileManager.setState({ selectedTileMapId: args.tileMapId });
+            tileEditor.setState({ tileGrid: getTileGrid() });
+            break;
+
+        case TileManager.Commands.tileMapDelete:
+            // TODO
+            console.log(args.command, args.tileMapId); // TMP 
             break;
 
     }
@@ -1424,12 +1444,12 @@ function getTileMapList() {
 }
 /** @returns {TileMap?} */
 function getTileMap() {
-    // TODO - Add support for tile map here
-    // const result = TileMapUtil.tileSetToTileMap(getTileSet(), getUIState().paletteIndex, 0, false);
-    // result.setPalette(0, getPaletteList().getPalette(0).paletteId);
-    // result.setPalette(1, getPaletteList().getPalette(1).paletteId);
-    // return result;
-    return null;
+    const tileMapId = instanceState.selectedTileMapId;
+    if (tileMapId) {
+        return getTileMapList().getTileMapById(tileMapId) ?? null;
+    } else {
+        return null;
+    }
 }
 function getTileSet() {
     return getProject().tileSet;

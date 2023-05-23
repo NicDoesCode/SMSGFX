@@ -24,7 +24,7 @@ export default class TileMapFactory {
         if (!typeof args.columns === 'number' || args.columns <= 0) throw new Error('Invalid value given for "columns" parameter.');
 
         const result = new TileMap(args.rows, args.columns);
-        result.id = (typeof args.id === 'string' && args.id.length > 0) ? args.id : GeneralUtil.generateRandomString(16);
+        result.tileMapId = (typeof args.tileMapId === 'string' && args.tileMapId.length > 0) ? args.tileMapId : GeneralUtil.generateRandomString(16);
         result.title = (typeof args.title === 'string' && args.title.length > 0) ? args.title : 'Tile map';
         result.vramOffset = (typeof args.vramOffset === 'number') ? args.vramOffset : 0;
         result.optimise = (typeof args.optimise === 'boolean') ? args.optimise : true;
@@ -34,8 +34,9 @@ export default class TileMapFactory {
         if (tileArray.length > result.tileCount) throw new Error('Number of tiles passed in tile array exceeds capacity of the tile map.');
 
         // Fill tiles
+        const tileId = args?.defaultTileId ?? null;
         for (let idx = 0; idx < result.tileCount; idx++) {
-            const tile = (idx < tileArray.length) ? tileArray[idx] : createNewTile();
+            const tile = (idx < tileArray.length) ? tileArray[idx] : createNewTile(tileId);
             result.setTileByIndex(idx, tile);
         }
 
@@ -47,21 +48,23 @@ export default class TileMapFactory {
 /**
  * @typedef TileMapFactoryCreateArgs
  * @type {object}
- * @property {string?} id
+ * @property {string?} tileMapId
  * @property {string?} title
  * @property {number?} vramOffset
  * @property {number?} rows
  * @property {number?} columns
  * @property {boolean?} optimise
  * @property {TileMapTile[]} tiles
+ * @property {string?} defaultTileId
  * @exports
  */
 
-function createNewTile() {
+function createNewTile(tileId) {
     return TileMapTileFactory.create({
         horizontalFlip: false,
         verticalFlip: false,
         palette: 0,
-        priority: false
+        priority: false,
+        tileId: tileId
     });
 }

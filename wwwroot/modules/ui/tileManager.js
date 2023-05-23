@@ -14,6 +14,7 @@ const commands = {
     tileMapNew: 'tileMapNew',
     tileSetSelect: 'tileSetSelect',
     tileMapSelect: 'tileMapSelect',
+    tileMapDelete: 'tileMapDelete',
     tileSelect: 'tileSelect'
 }
 
@@ -107,10 +108,17 @@ export default class TileManager {
             tileListDirty = true;
         }
 
+        if (typeof state?.selectedTileMapId !== 'undefined') {
+            this.#uiTileMapListing.setState({
+                selectedTileMapId: state.selectedTileMapId
+            });
+        }
+
         if (tileMapListingDirty) {
             this.#uiTileMapListing.setState({
                 showTileSet: this.#tileSet ? true : false,
-                tileMapList: this.#tileMapList
+                tileMapList: this.#tileMapList,
+                showDelete: true
             });
         }
 
@@ -158,6 +166,11 @@ export default class TileManager {
                 args2.tileMapId = args.tileMapId;
                 this.#dispatcher.dispatch(EVENT_OnCommand, args2);
                 break;
+            case TileMapListing.Commands.tileMapDelete:
+                const args3 = this.#createArgs(commands.tileMapDelete);
+                args3.tileMapId = args.tileMapId;
+                this.#dispatcher.dispatch(EVENT_OnCommand, args3);
+                break;
         }
     }
 
@@ -186,6 +199,7 @@ export default class TileManager {
  * @property {TileMapList?} [tileMapList] - Tile map list to be displayed in the listing.
  * @property {TileSet?} [tileSet] - Tile set to be displayed.
  * @property {Palette?} [palette] - Palette to use to render the tiles.
+ * @property {string?} [selectedTileMapId] - Unique ID of the selected tile map.
  */
 
 /**
