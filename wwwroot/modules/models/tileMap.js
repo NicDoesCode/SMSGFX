@@ -159,9 +159,15 @@ export default class TileMap extends TileGridProvider {
 
             /** @type {TileMapTile[]} */
             const result = [];
-            for (let tileIndex = index; tileIndex < this.#tiles.length; tileIndex += this.columnCount) {
-                result.push(this.getTileByIndex(tileIndex));
+            for (let i = 0; i < this.#tiles.length; i += this.columnCount) {
+                result.push(this.#tiles[i + index]);
             }
+            // for (let row = 0; row < this.rowCount; row++) {
+            //     result.push(this.#tiles[row + index]);
+            // }
+            // for (let tileIndex = index; tileIndex < this.#tiles.length; tileIndex += this.columnCount) {
+            //     result.push(this.getTileByIndex(tileIndex));
+            // }
             return result;
 
         } else throw new Error('Index out of range.');
@@ -226,17 +232,17 @@ export default class TileMap extends TileGridProvider {
      * @param {number} index - Index to place the new column.
      */
     insertColumn(index) {
-        if (index >= 0 && index < this.columnCount) {
+        if (index >= 0 && index <= this.columnCount) {
 
             /** @type {TileMapTile[]} */
-            const result = [];
-            for (let idx = index; idx < this.#tiles.length; idx += this.columnCount) {
-                const rowStart = idx - index;
-                const row = this.#tiles.slice(rowStart, this.columnCount);
-                result = result
-                    .concat(row.slice(0, index))
-                    .concat([TileMapTileFactory.create()])
-                    .concat(row.slice(index));
+            let result = [];
+            for (let idx = 0; idx < this.#tiles.length; idx += this.columnCount) {
+                const row = this.#tiles.slice(idx, idx + this.columnCount);
+                if (index > 0) {
+                    result = result.concat(row.slice(0, index));
+                }
+                result.push(TileMapTileFactory.create());
+                result = result.concat(row.slice(index));
             }
 
             this.#columns++;
@@ -253,13 +259,15 @@ export default class TileMap extends TileGridProvider {
         if (index >= 0 && index < this.columnCount) {
 
             /** @type {TileMapTile[]} */
-            const result = [];
-            for (let idx = index; idx < this.#tiles.length; idx += this.columnCount) {
-                const rowStart = idx - index;
-                const row = this.#tiles.slice(rowStart, this.columnCount);
-                result = result
-                    .concat(row.slice(0, index))
-                    .concat(row.slice(index + 1));
+            let result = [];
+            for (let i = 0; i < this.rowCount; i++) {
+                let row = this.getTileMapRow(i);
+                if (index > 0) {
+                    result = result.concat(row.slice(0, index));
+                }
+                if (index < this.columnCount - 1) {
+                    result = result.concat(row.slice(index + 1, this.columnCount));
+                }
             }
 
             this.#columns--;

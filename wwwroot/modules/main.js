@@ -1007,6 +1007,10 @@ function handleTileEditorOnEvent(args) {
                         colourIndex: instanceState.colourIndex,
                         imageX: args.x,
                         imageY: args.y,
+                        tileGridRowIndex: args.tileGridRowIndex,
+                        tileGridColumnIndex: args.tileGridColumnIndex,
+                        tileGridInsertRowIndex: args.tileGridInsertRowIndex,
+                        tileGridInsertColumnIndex: args.tileGridInsertColumnIndex,
                         event: TileEditor.Events.pixelMouseDown
                     });
                 }
@@ -1021,6 +1025,10 @@ function handleTileEditorOnEvent(args) {
                         colourIndex: instanceState.colourIndex,
                         imageX: args.x,
                         imageY: args.y,
+                        tileGridRowIndex: args.tileGridRowIndex,
+                        tileGridColumnIndex: args.tileGridColumnIndex,
+                        tileGridInsertRowIndex: args.tileGridInsertRowIndex,
+                        tileGridInsertColumnIndex: args.tileGridInsertColumnIndex,
                         event: TileEditor.Events.pixelMouseOver
                     });
                 }
@@ -1676,6 +1684,10 @@ function displayProjectList() {
  *      colourIndex: number, 
  *      imageX: number, 
  *      imageY: number, 
+ *      tileGridRowIndex: number, 
+ *      tileGridColumnIndex: number, 
+ *      tileGridInsertRowIndex: number, 
+ *      tileGridInsertColumnIndex: number, 
  *      event: string?
  * }} args 
  */
@@ -1727,7 +1739,6 @@ function takeToolAction(args) {
                 }
 
                 if (event === TileEditor.Events.pixelMouseDown) {
-                    console.log(event); // PX MOUSE DOWN 
                     instanceState.startingColourIndex = getTileSet().getPixelAt(imageX, imageY);
                 }
 
@@ -1767,6 +1778,57 @@ function takeToolAction(args) {
             instanceState.lastTileMapPx.x = -1;
             instanceState.lastTileMapPx.y = -1;
 
+        }
+
+        if (getTileMap()) {
+            let actionTaken = false;
+
+            if (tool === TileEditorToolbar.Tools.rowColumn) {
+
+                if (instanceState.rowColumnMode === 'addRow') {
+                    addUndoState();
+                    getTileMap().insertRow(args.tileGridInsertRowIndex);
+                    getTileMap().getTileMapRow(args.tileGridInsertRowIndex).forEach((t) => {
+                        t.tileId = getTileSet().getTile(0).tileId;
+                    });
+                    actionTaken = true;
+                } else if (instanceState.rowColumnMode === 'deleteRow') {
+                    addUndoState();
+                    getTileMap().removeRow(args.tileGridRowIndex);
+                    actionTaken = true;
+                } else if (instanceState.rowColumnMode === 'addColumn') {
+                    addUndoState();
+                    getTileMap().insertColumn(args.tileGridInsertColumnIndex);
+                    getTileMap().getTileMapColumn(args.tileGridInsertColumnIndex).forEach((t) => {
+                        t.tileId = getTileSet().getTile(0).tileId;
+                    });
+                    actionTaken = true;
+                } else if (instanceState.rowColumnMode === 'deleteColumn') {
+                    addUndoState();
+                    getTileMap().removeColumn(args.tileGridColumnIndex);
+                    actionTaken = true;
+                }
+
+            } else if (tool === TileEditorToolbar.Tools.palettePaint) {
+
+                const tile = getTileMap().getTileByCoordinate(args.tileGridRowIndex, args.tileGridColumnIndex);
+                if (tile.palette !== instanceState.paletteSlot) {
+                    addUndoState();
+                    tile.palette = instanceState.paletteSlot;
+                    actionTaken = true;
+                }
+
+            }
+
+            if (actionTaken) {
+                state.setProject(getProject());
+                state.saveToLocalStorage();
+
+                tileEditor.setState({
+                    tileGrid: getTileGrid(),
+                    tileSet: getTileSet()
+                });
+            }
         }
 
     }
@@ -2063,11 +2125,16 @@ function setPencilSize(brushSize) {
  */
 function setRowColumnMode(rowColumnMode) {
     switch (rowColumnMode) {
-        case 'addRow': case 'deleteRow':
-        case 'addColumn': case 'deleteColumn':
+        case 'addRow':
+        case 'deleteRow':
+        case 'addColumn':
+        case 'deleteColumn':
             instanceState.rowColumnMode = rowColumnMode;
             tileContextToolbar.setState({
                 rowColumnMode: rowColumnMode
+            });
+            tileEditor.setState({
+                canvasHighlightMode: getTileEditorHighlightMode()
             });
             break;
     }
@@ -2993,11 +3060,13 @@ function selectTool(tool) {
             });
         }
 
+        let editorMode = TileEditor.CanvasHighlightModes.pixel;
         let visibleStrips = [];
         if ([tools.pencil, tools.eyedropper, tools.bucket, tools.colourReplace].includes(tool)) {
             visibleStrips.push(TileContextToolbar.Toolstrips.pencil);
         }
         if ([tools.select].includes(tool)) {
+            editorMode = TileEditor.CanvasHighlightModes.tile;
             visibleStrips.push(TileContextToolbar.Toolstrips.select);
         }
         if ([tools.referenceImage].includes(tool)) {
@@ -3029,7 +3098,8 @@ function selectTool(tool) {
         });
         tileEditor.setState({
             cursor: cursor,
-            cursorSize: cursorSize
+            cursorSize: cursorSize,
+            canvasHighlightMode: getTileEditorHighlightMode()
         });
 
         instanceState.lastTileMapPx.x = -1;
@@ -3120,6 +3190,28 @@ function selectColourIndex(index) {
 function setCommonTileToolbarStates(state) {
     tileEditorToolbar.setState(state);
     tileEditorBottomToolbar.setState(state);
+}
+
+function getTileEditorHighlightMode() {
+    switch (instanceState.tool) {
+        case TileEditorToolbar.Tools.select:
+        case TileEditorToolbar.Tools.palettePaint:
+            return TileEditor.CanvasHighlightModes.tile;
+        case TileEditorToolbar.Tools.rowColumn:
+            switch (instanceState.rowColumnMode) {
+                case 'addRow':
+                    return TileEditor.CanvasHighlightModes.rowIndex;
+                case 'deleteRow':
+                    return TileEditor.CanvasHighlightModes.row;
+                case 'addColumn':
+                    return TileEditor.CanvasHighlightModes.columnIndex;
+                case 'deleteColumn':
+                    return TileEditor.CanvasHighlightModes.column;
+            }
+            break;
+        default:
+            return TileEditor.CanvasHighlightModes.pixel;
+    }
 }
 
 

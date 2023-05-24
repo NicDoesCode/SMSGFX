@@ -39,6 +39,10 @@ export default class TileEditor {
         return events;
     }
 
+    static get CanvasHighlightModes() {
+        return CanvasManager.HighlightModes;
+    }
+
 
     /** @type {HTMLElement} */
     #element;
@@ -224,6 +228,12 @@ export default class TileEditor {
                 dirty = true;
             }
         }
+        // Canvas highlight mode
+        if (typeof state?.canvasHighlightMode === 'string') {
+            this.#canvasManager.highlightMode = state.canvasHighlightMode;
+        } else if (typeof state?.canvasHighlightMode === 'object' && state.canvasHighlightMode === null) {
+            this.#canvasManager.highlightMode = CanvasManager.HighlightModes.pixel;
+        }
         // Refresh image?
         if (dirty && this.#tileGrid && this.#tileSet && this.#paletteList && this.#paletteList.length > 0) {
             let paletteList = !this.#displayNative ? this.#paletteList : this.#nativePaletteList;
@@ -280,8 +290,9 @@ export default class TileEditor {
     #handleCanvasMouseMove(ev) {
         if (this.#enabled && this.#tileSet) {
             if (ev.target === this.#tbCanvas) {
-                const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(ev.clientX, ev.clientY);
+                const coords = this.#canvasManager.convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
                 if (coords) {
+                    const rowColInfo = this.#canvasManager.getRowAndColumnInfo(coords.x, coords.y);
                     const lastCoords = this.#lastCoords;
                     if (!lastCoords || lastCoords.x !== coords.x || lastCoords.y !== coords.y) {
                         /** @type {TileEditorEventArgs} */
@@ -292,7 +303,11 @@ export default class TileEditor {
                             isPrimaryButton: ev.button === 0,
                             isSecondaryButton: ev.button === 2,
                             isAuxButton: ev.button === 1,
-                            ctrlKeyPressed: ev.ctrlKey
+                            ctrlKeyPressed: ev.ctrlKey,
+                            tileGridRowIndex: rowColInfo.rowIndex,
+                            tileGridColumnIndex: rowColInfo.columnIndex,
+                            tileGridInsertRowIndex: rowColInfo.nearestRowIndex,
+                            tileGridInsertColumnIndex: rowColInfo.nearestColumnIndex
                         };
                         this.#dispatcher.dispatch(EVENT_OnEvent, args);
                         this.#lastCoords = coords;
@@ -324,6 +339,7 @@ export default class TileEditor {
 
         const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(ev.clientX, ev.clientY);
         if (coords) {
+            const rowColInfo = this.#canvasManager.getRowAndColumnInfo(coords.x, coords.y);
             /** @type {TileEditorEventArgs} */
             const args = {
                 event: events.pixelMouseDown,
@@ -334,7 +350,11 @@ export default class TileEditor {
                 isPrimaryButton: ev.button === 0,
                 isSecondaryButton: ev.button === 2,
                 isAuxButton: ev.button === 1,
-                ctrlKeyPressed: ev.ctrlKey
+                ctrlKeyPressed: ev.ctrlKey,
+                tileGridRowIndex: rowColInfo.rowIndex,
+                tileGridColumnIndex: rowColInfo.columnIndex,
+                tileGridInsertRowIndex: rowColInfo.nearestRowIndex,
+                tileGridInsertColumnIndex: rowColInfo.nearestColumnIndex
             };
             this.#dispatcher.dispatch(EVENT_OnEvent, args);
         }
@@ -356,6 +376,7 @@ export default class TileEditor {
 
         const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(ev.clientX, ev.clientY);
         if (coords) {
+            const rowColInfo = this.#canvasManager.getRowAndColumnInfo(coords.x, coords.y);
             /** @type {TileEditorEventArgs} */
             const args = {
                 event: events.pixelMouseUp,
@@ -366,7 +387,11 @@ export default class TileEditor {
                 isPrimaryButton: ev.button === 0,
                 isSecondaryButton: ev.button === 2,
                 isAuxButton: ev.button === 1,
-                ctrlKeyPressed: ev.ctrlKey
+                ctrlKeyPressed: ev.ctrlKey,
+                tileGridRowIndex: rowColInfo.rowIndex,
+                tileGridColumnIndex: rowColInfo.columnIndex,
+                tileGridInsertRowIndex: rowColInfo.nearestRowIndex,
+                tileGridInsertColumnIndex: rowColInfo.nearestColumnIndex
             };
             this.#dispatcher.dispatch(EVENT_OnEvent, args);
         }
@@ -500,7 +525,9 @@ export default class TileEditor {
      * @returns {Coordinates|null}
      */
     #convertMouseClientCoordsToTileSetPixelCoords(mouseClientX, mouseClientY) {
-        const rect = this.#tbCanvas.getBoundingClientRect();
+        const coords = this.#canvasManager.convertViewportCoordsToTileGridCoords(this.#tbCanvas, mouseClientX, mouseClientY);
+        return coords;
+        // const rect = this.#tbCanvas.getBoundingClientRect();
         const canvMgr = this.#canvasManager;
         const canvasX = canvMgr.resolveMouseX(this.#tbCanvas, mouseClientX - rect.left);
         const canvasY = canvMgr.resolveMouseY(this.#tbCanvas, mouseClientY - rect.top);
@@ -547,6 +574,7 @@ export default class TileEditor {
  * @property {number?} focusedTile - Will ensure that this tile is shown on the screen.
  * @property {number[]?} updatedTiles - When passing updated tiles, the entire image will not be updated and instead only these tiles will be updated.
  * @property {string?} theme - Name of the theme being used.
+ * @property {string?} [canvasHighlightMode] - The highlight mode that the canvas should use.
  * @exports 
  */
 
@@ -581,6 +609,10 @@ export default class TileEditor {
  * @property {string} event - Event that occurred.
  * @property {number} x - X tile grid pixel thats selected.
  * @property {number} y - Y tile grid pixel thats selected.
+ * @property {number?} [tileGridRowIndex] - Index of the tile grid row that corresponds with the Y mouse coordinate.
+ * @property {number?} [tileGridColumnIndex] - Index of the tile grid column that corresponds with the X mouse coordinate.
+ * @property {number?} [tileGridInsertRowIndex] - Index in the tile grid row for inserting a new row.
+ * @property {number?} [tileGridInsertColumnIndex] - Index in the tile grid column for inserting a new column.
  * @property {boolean} mousePrimaryIsDown - True when the primary mouse button is down, otherwise false.
  * @property {boolean} mouseSecondaryIsDown - True when the secondary mouse button is down, otherwise false.
  * @property {boolean} mouseAuxIsDown - True when the auxiliary mouse button is down, otherwise false.

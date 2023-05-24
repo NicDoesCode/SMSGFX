@@ -20,7 +20,7 @@ export default class CanvasManager {
     /**
      * Enumerates all of the possible highlight modes for the canvas manager.
      */
-    static get highlightModes() {
+    static get HighlightModes() {
         return highlightModes;
     }
 
@@ -40,8 +40,8 @@ export default class CanvasManager {
     }
     set highlightMode(value) {
         if (!value || value === null) {
-            this.#highlightMode = CanvasManager.highlightModes.pixel;
-        } else if (Object.keys(CanvasManager.highlightModes).includes(value)) {
+            this.#highlightMode = CanvasManager.HighlightModes.pixel;
+        } else if (Object.keys(CanvasManager.HighlightModes).includes(value)) {
             this.#highlightMode = value;
         } else {
             throw new Error('Unknown highlight mode.');
@@ -232,7 +232,7 @@ export default class CanvasManager {
     #pixelGridOpacity = 0.2;
     #tileGridColour = '#000000';
     #tileGridOpacity = 0.4;
-    #highlightMode = CanvasManager.highlightModes.pixel;
+    #highlightMode = CanvasManager.HighlightModes.pixel;
 
 
     /**
@@ -309,6 +309,83 @@ export default class CanvasManager {
             }
         }
         return null;
+    }
+
+    /**
+     * Gets the top left coordinate of where the tile image is to be drawn.
+     * @param {HTMLCanvasElement} canvas - Canvas where the image is to be drawn.
+     * @returns {{x: number, y: number}}
+     */
+    getDrawCoords(canvas) {
+        return {
+            x: Math.floor((canvas.width - this.#tileCanvas.width) / 2) + this.#offsetX,
+            y: Math.floor((canvas.height - this.#tileCanvas.height) / 2) + this.#offsetY
+        }
+    }
+
+    /**
+     * Converts mouse X and Y coordinates on a canvas object to the corresponding tile grid coordinate.
+     * @param {HTMLCanvasElement} canvas - Canvas element to use for the conversion.
+     * @param {number} viewportX - Y pixel coordinate within the viewport.
+     * @param {number} viewportY - Y pixel coordinate within the viewport.
+     * @returns {{x: number, y: number}}
+     */
+    convertViewportCoordsToTileGridCoords(canvas, viewportX, viewportY) {
+        const rect = canvas.getBoundingClientRect();
+        return this.convertCanvasCoordsToTileGridCoords(canvas, viewportX - rect.left, viewportY - rect.top);
+    }
+
+    /**
+     * Converts mouse X and Y coordinates on a canvas object to the corresponding tile grid coordinate.
+     * @param {HTMLCanvasElement} canvas - Canvas element to use for the conversion.
+     * @param {number} canvasX - Y pixel coordinate within the canvas.
+     * @param {number} canvasY - Y pixel coordinate within the canvas.
+     * @returns {{x: number, y: number}}
+     */
+    convertCanvasCoordsToTileGridCoords(canvas, canvasX, canvasY) {
+        const drawCoords = this.getDrawCoords(canvas);
+        canvasX -= drawCoords.x;
+        canvasY -= drawCoords.y;
+        return {
+            x: Math.round(canvasX / this.scale),
+            y: Math.round(canvasY / this.scale)
+        };
+    }
+
+    /**
+     * Gets the top left coordinate of where the tile image is to be drawn.
+     * @param {HTMLCanvasElement} canvas - Canvas where the image is to be drawn.
+     * @param {number} tileGridX - X coordinate within the tile grid.
+     * @param {number} tileGridY - Y coordinate within the tile grid.
+     * @returns {{rowIndex: number, columnIndex: number, nearestRowIndex: number, nearestColumnIndex: number}}
+     */
+    getRowAndColumnInfo(tileGridX, tileGridY) {
+        const row = Math.min(Math.max(Math.floor(tileGridY / 8), 0), this.tileGrid.rowCount);
+        const col = Math.min(Math.max(Math.floor(tileGridX / 8), 0), this.tileGrid.columnCount);
+        return {
+            rowIndex: row,
+            columnIndex: col,
+            nearestRowIndex: (tileGridY % 4 > 4) ? row + 1 : row,
+            nearestColumnIndex: (tileGridX % 4 > 4) ? col + 1 : col
+        };
+    }
+
+    /**
+     * Returns a tile row index based on the mouse position over the canvas image.
+     * @param {number} pixelY - Y pixel coordinate on the canvas image.
+     * @returns {number}
+     */
+    getTileRowIndex(pixelY) {
+        return Math.floor(pixelY / 8);
+    }
+
+    /**
+     * Returns a tile column index based on the mouse position over the canvas image.
+     * @param {number} pixelX - X pixel coordinate on the canvas image.
+     * @returns {number}
+     */
+    getTileColIndex(pixelX) {
+        return Math.floor(pixelX / 8);
     }
 
 
@@ -433,6 +510,8 @@ export default class CanvasManager {
      * @property {number} pxSize
      * @property {number} drawX
      * @property {number} drawY
+     * @property {number} gridRows
+     * @property {number} gridColumns
      */
 
     /**
@@ -493,9 +572,11 @@ export default class CanvasManager {
             this.#refreshSingleTile(tileIndex);
         }
 
-        let drawX = ((canvas.width - tileCanvas.width) / 2) + this.#offsetX;
-        let drawY = ((canvas.height - tileCanvas.height) / 2) + this.#offsetY;
+        const drawCoords = this.getDrawCoords(canvas);
+        const rowColInfo = this.getRowAndColumnInfo(mouseX, mouseY);
 
+        let drawX = drawCoords.x;
+        let drawY = drawCoords.y;
         /** @type {CanvCoords} */
         const coords = {
             x: mouseX, y: mouseY,
@@ -504,8 +585,11 @@ export default class CanvasManager {
             tileX: (mouseX - (mouseX % 8)) * pxSize,
             tileY: (mouseY - (mouseY % 8)) * pxSize,
             pxSize: pxSize,
-            drawX: drawX, drawY: drawY
+            drawX: drawCoords.x, drawY: drawCoords.y,
+            gridColumns: this.#tileGrid.columnCount,
+            gridRows: this.#tileGrid.rowCount
         }
+
 
         // Draw the reference image below
         if (this.transparencyIndex >= 0 && this.transparencyIndex < 16) {
@@ -574,84 +658,96 @@ export default class CanvasManager {
         }
 
         // Highlight mode is pixel
-        if (this.highlightMode === CanvasManager.highlightModes.pixel) {
-            // Highlight the tile
-            context.strokeStyle = 'yellow';
-            context.strokeRect(coords.tileX + drawX, coords.tileY + drawY, (8 * pxSize), (8 * pxSize));
+        if (this.highlightMode === CanvasManager.HighlightModes.pixel) {
+            if (coords.x >= 0 && coords.x < coords.gridColumns * 8 && coords.y >= 0 && coords.y < coords.gridRows * 8) {
+                // Highlight the tile
+                context.strokeStyle = 'yellow';
+                context.strokeRect(coords.tileX + drawX, coords.tileY + drawY, (8 * pxSize), (8 * pxSize));
 
-            // Draw the cursor
-            context.strokeStyle = 'white';
-            this.drawBrushBorder(context, coords, 1);
-            context.strokeStyle = 'black';
-            this.drawBrushBorder(context, coords, 2);
+                // Draw the cursor
+                context.strokeStyle = 'white';
+                this.drawBrushBorder(context, coords, 1);
+                context.strokeStyle = 'black';
+                this.drawBrushBorder(context, coords, 2);
+            }
         }
 
         // Highlight mode is entire tile
-        if (this.#highlightMode === CanvasManager.highlightModes.tile) {
-            context.strokeStyle = 'white';
-            context.strokeRect(coords.tileX + drawX, coords.tileY + drawY, (8 * pxSize), (8 * pxSize));
-            context.strokeStyle = 'black';
-            context.strokeRect(coords.tileX + drawX - 1, coords.tileY + drawY - 1, (8 * pxSize) + 2, (8 * pxSize) + 2);
+        if (this.#highlightMode === CanvasManager.HighlightModes.tile) {
+            if (coords.x >= 0 && coords.x < coords.gridColumns * 8 && coords.y >= 0 && coords.y < coords.gridRows * 8) {
+                context.strokeStyle = 'white';
+                context.strokeRect(coords.tileX + drawX, coords.tileY + drawY, (8 * pxSize), (8 * pxSize));
+                context.strokeStyle = 'black';
+                context.strokeRect(coords.tileX + drawX - 1, coords.tileY + drawY - 1, (8 * pxSize) + 2, (8 * pxSize) + 2);
+            }
         }
 
         // Highlight mode is entire row
-        if (this.#highlightMode === CanvasManager.highlightModes.row) {
-            const rowWidth = this.tileGrid.columnCount * (8 * pxSize);
-            const tileY = coords.tileY;
-            context.filter = 'opacity(0.25)';
-            context.fillStyle = 'yellow';
-            context.fillRect(0 + drawX, tileY + drawY, rowWidth, (8 * pxSize));
-            context.filter = 'none';
-            context.strokeStyle = 'black';
-            context.strokeRect(0 + drawX, tileY + drawY, rowWidth, (8 * pxSize));
-            context.strokeStyle = 'white';
-            context.strokeRect(1 + drawX, tileY + drawY + 1, rowWidth - 2, (8 * pxSize) - 2);
+        if (this.#highlightMode === CanvasManager.HighlightModes.row) {
+            if (coords.y >= 0 && coords.y < coords.gridRows * 8) {
+                const rowWidth = coords.gridColumns * (8 * pxSize);
+                const tileY = coords.tileY;
+                context.filter = 'opacity(0.25)';
+                context.fillStyle = 'yellow';
+                context.fillRect(0 + drawX, tileY + drawY, rowWidth, (8 * pxSize));
+                context.filter = 'none';
+                context.strokeStyle = 'black';
+                context.strokeRect(0 + drawX, tileY + drawY, rowWidth, (8 * pxSize));
+                context.strokeStyle = 'white';
+                context.strokeRect(1 + drawX, tileY + drawY + 1, rowWidth - 2, (8 * pxSize) - 2);
+            }
         }
 
         // Highlight mode is entire column
-        if (this.#highlightMode === CanvasManager.highlightModes.column) {
-            const columnHeight = this.tileGrid.rowCount * (8 * pxSize);
-            const tileX = coords.tileX;
-            context.filter = 'opacity(0.25)';
-            context.fillStyle = 'yellow';
-            context.fillRect(tileX + drawX, 0 + drawY, (8 * pxSize), columnHeight);
-            context.filter = 'none';
-            context.strokeStyle = 'black';
-            context.strokeRect(tileX + drawX, 0 + drawY, (8 * pxSize), columnHeight);
-            context.strokeStyle = 'white';
-            context.strokeRect(tileX + drawX + 1, 1 + drawY, (8 * pxSize) - 2, columnHeight - 2);
+        if (this.#highlightMode === CanvasManager.HighlightModes.column) {
+            if (coords.x >= 0 && coords.x < coords.gridColumns * 8) {
+                const columnHeight = coords.gridRows * (8 * pxSize);
+                const tileX = coords.tileX;
+                context.filter = 'opacity(0.25)';
+                context.fillStyle = 'yellow';
+                context.fillRect(tileX + drawX, 0 + drawY, (8 * pxSize), columnHeight);
+                context.filter = 'none';
+                context.strokeStyle = 'black';
+                context.strokeRect(tileX + drawX, 0 + drawY, (8 * pxSize), columnHeight);
+                context.strokeStyle = 'white';
+                context.strokeRect(tileX + drawX + 1, 1 + drawY, (8 * pxSize) - 2, columnHeight - 2);
+            }
         }
 
         // Highlight mode is row index
-        if (this.#highlightMode === CanvasManager.highlightModes.rowIndex) {
-            const rowWidth = this.tileGrid.columnCount * (8 * pxSize);
-            const imgY = coords.y;
-            const tileRowIndex = Math.round(imgY / 8);
-            const rowY = tileRowIndex * (pxSize * 8);
-            context.filter = 'opacity(0.25)';
-            context.fillStyle = 'yellow';
-            context.fillRect(0 + drawX, (rowY - (pxSize * 2)) + drawY, rowWidth, (4 * pxSize));
-            context.filter = 'none';
-            context.strokeStyle = 'black';
-            context.strokeRect(0 + drawX, rowY + drawY - 1, rowWidth, 2);
-            context.strokeStyle = 'white';
-            context.strokeRect(1 + drawX, rowY + drawY, rowWidth - 2, 1);
+        if (this.#highlightMode === CanvasManager.HighlightModes.rowIndex) {
+            if (coords.y >= -4 && coords.y < (coords.gridRows * 8) + 4) {
+                const rowWidth = coords.gridColumns * (8 * pxSize);
+                const imgY = coords.y;
+                const tileRowIndex = Math.round(imgY / 8);
+                const rowY = tileRowIndex * (pxSize * 8);
+                context.filter = 'opacity(0.25)';
+                context.fillStyle = 'yellow';
+                context.fillRect(0 + drawX, (rowY - (pxSize * 2)) + drawY, rowWidth, (4 * pxSize));
+                context.filter = 'none';
+                context.strokeStyle = 'black';
+                context.strokeRect(0 + drawX, rowY + drawY - 1, rowWidth, 2);
+                context.strokeStyle = 'white';
+                context.strokeRect(1 + drawX, rowY + drawY, rowWidth - 2, 1);
+            }
         }
 
         // Highlight mode is column index
-        if (this.#highlightMode === CanvasManager.highlightModes.columnIndex) {
-            const columnHeight = this.tileGrid.rowCount * (8 * pxSize);
-            const imgX = coords.x;
-            const tileColumnIndex = Math.round(imgX / 8);
-            const rowX = tileColumnIndex * (pxSize * 8);
-            context.filter = 'opacity(0.25)';
-            context.fillStyle = 'yellow';
-            context.fillRect((rowX - (pxSize * 2)) + drawX, 0 + drawY, (4 * pxSize), columnHeight);
-            context.filter = 'none';
-            context.strokeStyle = 'black';
-            context.strokeRect(rowX + drawX - 1, 0 + drawY, 2, columnHeight);
-            context.strokeStyle = 'white';
-            context.strokeRect(rowX + drawX, 1 + drawY, 1, columnHeight - 2);
+        if (this.#highlightMode === CanvasManager.HighlightModes.columnIndex) {
+            if (coords.x >= -4 && coords.x < (coords.gridColumns * 8) + 4) {
+                const columnHeight = coords.gridRows * (8 * pxSize);
+                const imgX = coords.x;
+                const tileColumnIndex = Math.round(imgX / 8);
+                const rowX = tileColumnIndex * (pxSize * 8);
+                context.filter = 'opacity(0.25)';
+                context.fillStyle = 'yellow';
+                context.fillRect((rowX - (pxSize * 2)) + drawX, 0 + drawY, (4 * pxSize), columnHeight);
+                context.filter = 'none';
+                context.strokeStyle = 'black';
+                context.strokeRect(rowX + drawX - 1, 0 + drawY, 2, columnHeight);
+                context.strokeStyle = 'white';
+                context.strokeRect(rowX + drawX, 1 + drawY, 1, columnHeight - 2);
+            }
         }
 
         // Highlight selected tile
