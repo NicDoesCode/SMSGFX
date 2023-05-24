@@ -5,7 +5,24 @@ import ColourUtil from "./../util/colourUtil.js";
 import ReferenceImage from "../models/referenceImage.js";
 import TileGridProvider from "../models/tileGridProvider.js";
 
+const highlightModes = {
+    pixel: 'pixel',
+    tile: 'tile',
+    row: 'row',
+    column: 'column',
+    rowIndex: 'rowIndex',
+    columnIndex: 'columnIndex'
+}
+
 export default class CanvasManager {
+
+
+    /**
+     * Enumerates all of the possible highlight modes for the canvas manager.
+     */
+    static get highlightModes() {
+        return highlightModes;
+    }
 
 
     /**
@@ -13,6 +30,22 @@ export default class CanvasManager {
      */
     get canDraw() {
         return this.tileSet && this.tileGrid && this.paletteList && this.paletteList.length > 0;
+    }
+
+    /**
+     * Gets or sets the highlighting mode for the canvan manager.
+     */
+    get highlightMode() {
+        return this.#highlightMode;
+    }
+    set highlightMode(value) {
+        if (!value || value === null) {
+            this.#highlightMode = CanvasManager.highlightModes.pixel;
+        } else if (Object.keys(CanvasManager.highlightModes).includes(value)) {
+            this.#highlightMode = value;
+        } else {
+            throw new Error('Unknown highlight mode.');
+        }
     }
 
     /**
@@ -199,6 +232,7 @@ export default class CanvasManager {
     #pixelGridOpacity = 0.2;
     #tileGridColour = '#000000';
     #tileGridOpacity = 0.4;
+    #highlightMode = CanvasManager.highlightModes.pixel;
 
 
     /**
