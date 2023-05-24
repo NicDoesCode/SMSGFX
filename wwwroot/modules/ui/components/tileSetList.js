@@ -27,6 +27,8 @@ export default class TileSetList {
     #tileSet;
     /** @type {Palette} */
     #palette;
+    /** @type {string?} */
+    #selectedTileId = null;
     /** @type {HTMLElement} */
     #listElmement;
     /** @type {Object.<string, HTMLCanvasElement>} */
@@ -77,6 +79,14 @@ export default class TileSetList {
             dirty = true;
         }
 
+        if (typeof state?.selectedTileId === 'string') {
+            this.#selectedTileId = state.selectedTileId;
+            dirty = true;
+        } else if (typeof state?.selectedTileId === 'object' && state.selectedTileId === null) {
+            this.#selectedTileId = null;
+            dirty = true;
+        }
+
         if (dirty && this.#tileSet && this.#palette) {
             this.#refreshCanvases(this.#tileSet, this.#palette);
             this.#displayTiles(this.#tileSet);
@@ -121,17 +131,20 @@ export default class TileSetList {
         const html = this.#tileSetListTemplate(renderList);
 
         this.#listElmement.innerHTML = html;
-        this.#listElmement.querySelectorAll('[data-command]').forEach((elm) => {
-            const command = elm.getAttribute('data-command');
-            const tileId = elm.getAttribute('data-tile-id');
+        this.#listElmement.querySelectorAll('[data-command]').forEach((button) => {
+            const command = button.getAttribute('data-command');
+            const tileId = button.getAttribute('data-tile-id');
             if (command && tileId) {
+                if (tileId === this.#selectedTileId) {
+                    button.classList.add('selected');
+                }
                 const canvas = this.#canvases[tileId];
                 if (canvas) {
-                    while (elm.hasChildNodes()) elm.firstChild.remove();
-                    elm.appendChild(canvas);
+                    while (button.hasChildNodes()) button.firstChild.remove();
+                    button.appendChild(canvas);
                 }
                 /** @param {MouseEvent} ev */
-                elm.onclick = (ev) => {
+                button.onclick = (ev) => {
                     this.#handleTileSetListCommandButtonClicked(command, tileId);
                     ev.stopImmediatePropagation();
                     ev.preventDefault();
@@ -172,6 +185,7 @@ export default class TileSetList {
  * @typedef {object} TileSetListState
  * @property {TileSet?} [tileSet] - Tile set to be displayed.
  * @property {Palette?} [palette] - Palette to use to render the tiles.
+ * @property {string?} [selectedTileId] - Unique ID of the selected tile.
  */
 
 /**

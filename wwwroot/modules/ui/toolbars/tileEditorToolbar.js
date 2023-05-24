@@ -24,6 +24,7 @@ const tools = {
     eyedropper: 'eyedropper',
     referenceImage: 'referenceImage',
     palettePaint: 'palettePaint',
+    tileStamp: 'tileStamp',
     rowColumn: 'rowColumn'
 };
 const scales = [1, 2, 5, 10, 15, 20, 50];

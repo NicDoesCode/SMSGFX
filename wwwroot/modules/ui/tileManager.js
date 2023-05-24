@@ -52,8 +52,6 @@ export default class TileManager {
     #uiTileMapTitle;
     /** @type {HTMLInputElement} */
     #uiTileSetOptimise;
-    /** @type {HTMLElement} */
-    #uiTileMapSelect;
     /** @type {UiTileSetList} */
     #uiTileSetList;
     /** @type {HTMLElement} */
@@ -85,7 +83,6 @@ export default class TileManager {
         this.#uiTileSetTileWidth = this.#element.querySelector('[data-command=tileSetChange][data-field=tileWidth]');
         this.#uiTileMapTitle = this.#element.querySelector('[data-command=tileMapChange][data-field=title]');
         this.#uiTileSetOptimise = this.#element.querySelector('[data-command=tileMapChange][data-field=optimise]');
-        this.#uiTileMapSelect = this.#element.querySelector('[data-smsgfx-id=tileMapSelectDropDown]');
 
         this.#wireAutoEvents(this.#element);
 
@@ -140,6 +137,12 @@ export default class TileManager {
         if (typeof state?.selectedTileMapId !== 'undefined') {
             this.#selectedTileMapId = state.selectedTileMapId;
             this.#populateTileMapDetails();
+        }
+
+        if (typeof state?.selectedTileId !== 'undefined') {
+            this.#uiTileSetList.setState({
+                selectedTileId: state?.selectedTileId
+            });
         }
 
         if (typeof state?.numberOfPaletteSlots === 'number') {
@@ -382,6 +385,7 @@ export default class TileManager {
  * @property {Palette?} [palette] - Palette to use to render the tiles.
  * @property {PaletteList?} [paletteList] - Available palettes for the palette slots.
  * @property {string?} [selectedTileMapId] - Unique ID of the selected tile map.
+ * @property {string?} [selectedTileId] - Unique ID of the selected tile.
  * @property {number?} [numberOfPaletteSlots] - Amount of palette slots that the tile map provides.
  * @property {number?} [tileWidth] - Display tile width for the tile set.
  */

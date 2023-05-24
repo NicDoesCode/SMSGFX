@@ -82,6 +82,8 @@ const instanceState = {
     paletteSlot: 0,
     /** @type {string?} */
     selectedTileMapId: null,
+    /** @type {string?} */
+    selectedTileId: null,
     ctrlIsDown: false,
     shiftIsDown: false,
     altIsDown: false,
@@ -913,6 +915,10 @@ function handleTileManagerOnCommand(args) {
 
         case TileManager.Commands.tileMapSelect:
             selectTileSetOrMap(args.tileMapId);
+            break;
+
+        case TileManager.Commands.tileSelect:
+            selectTileSetTile(args.tileId);
             break;
 
         case TileManager.Commands.tileMapClone:
@@ -1806,6 +1812,15 @@ function takeToolAction(args) {
                 } else if (instanceState.rowColumnMode === 'deleteColumn') {
                     addUndoState();
                     getTileMap().removeColumn(args.tileGridColumnIndex);
+                    actionTaken = true;
+                }
+
+            } else if (tool === TileEditorToolbar.Tools.tileStamp) {
+
+                const tile = getTileMap().getTileByCoordinate(args.tileGridRowIndex, args.tileGridColumnIndex);
+                if (tile.tileId !== instanceState.selectedTileId) {
+                    addUndoState();
+                    tile.tileId = instanceState.selectedTileId;
                     actionTaken = true;
                 }
 
@@ -2814,6 +2829,20 @@ function selectTileSetOrMap(tileMapId) {
 }
 
 /**
+ * Selects a tile set tile.
+ * @param {string?} tileId - Unique ID of the tile set tile.
+ */
+function selectTileSetTile(tileId) {
+    const tile = getTileSet().getTileById(tileId);
+    if (tile) {
+        instanceState.selectedTileId = tileId;
+        tileManager.setState({
+            selectedTileId: tileId
+        });
+    }
+}
+
+/**
  * Updates a tile set.
  * @param {import("./ui/tileManager.js").TileManagerCommandEventArgs} args
  */
@@ -3078,6 +3107,9 @@ function selectTool(tool) {
         if ([tools.palettePaint].includes(tool)) {
             visibleStrips.push(TileContextToolbar.Toolstrips.palettePaint);
         }
+        if ([tools.tileStamp].includes(tool)) {
+            visibleStrips.push(TileContextToolbar.Toolstrips.tileStamp);
+        }
 
         let cursor = 'arrow';
         let cursorSize = 1;
@@ -3196,6 +3228,7 @@ function getTileEditorHighlightMode() {
     switch (instanceState.tool) {
         case TileEditorToolbar.Tools.select:
         case TileEditorToolbar.Tools.palettePaint:
+        case TileEditorToolbar.Tools.tileStamp:
             return TileEditor.CanvasHighlightModes.tile;
         case TileEditorToolbar.Tools.rowColumn:
             switch (instanceState.rowColumnMode) {

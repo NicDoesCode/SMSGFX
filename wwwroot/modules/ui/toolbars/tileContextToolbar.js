@@ -23,7 +23,8 @@ const toolstrips = {
     pencil: 'pencil',
     referenceImage: 'referenceImage',
     rowColumn: 'rowColumn',
-    palettePaint: 'palettePaint'
+    palettePaint: 'palettePaint',
+    tileStamp: 'tileStamp'
 }
 
 export default class TileContextToolbar {
