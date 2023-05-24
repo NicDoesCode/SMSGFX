@@ -1,6 +1,6 @@
 <div data-smsgfx-component="tileManager" class="sms-tile-manager">
 
-    <div class="input-group input-group-sm mb-2">
+    <div class="input-group input-group-sm mb-2 rounded-top">
         <span class="input-group-text form-control">Tile map</span>
         <button data-command="tileMapNew" data-auto-event="click" class="btn btn-outline-secondary"
             title="Create a new tile map.">
@@ -8,16 +8,16 @@
         </button>
     </div>
 
-    <div class="sms-palette card mt-2">
+    <div class="sms-palette card mb-2">
         <div class="card-header p-0">
             <select data-command="tileMapSelect" data-auto-event="change" class="form-select d-none">
             </select>
             <div class="input-group input-group-sm">
                 <input data-command="tileMapChange" data-auto-event="change" data-field="title" type="text"
                     class="form-control border border-0" aria-label="Enter name">
-                <button class="btn btn-outline-secondary dropdown-toggle border border-0 border-start" type="button"
-                    data-bs-toggle="dropdown" aria-expanded="false"></button>
-                <ul data-linked-command="tileMapSelect" class="dropdown-menu dropdown-menu-end">
+                <button class="btn btn-outline-secondary dropdown-toggle border-0 border-start"
+                    data-bs-toggle="dropdown" title="Select a tile set."></button>
+                <ul data-smsgfx-id="tileMapSelectDropDown" class="dropdown-menu">
                 </ul>
             </div>
         </div>
@@ -63,16 +63,26 @@
             </div>
             <div class="row mt-1 mb-0 ps-3 pe-3">
                 <div class="col p-1">
-                    <button data-command="tileSetClone" data-auto-event="click"
-                        class="btn btn-sm btn-outline-secondary m-0 w-100" type="button">
+                    <button data-command="tileMapClone" data-auto-event="click"
+                        class="btn btn-sm btn-outline-secondary m-0 w-100" type="button"
+                        title="Creates a clone of this tile map.">
                         <i class="bi bi-file-earmark-plus"></i> Clone
                     </button>
                 </div>
                 <div class="col p-1">
-                    <button data-command="tileSetDelete" data-auto-event="click"
-                        class="btn btn-sm btn-outline-secondary m-0 w-100" type="button">
+                    <button data-command="tileMapDelete" data-auto-event="click"
+                        class="btn btn-sm btn-outline-secondary m-0 w-100" type="button"
+                        title="Removes the tile map from the project.">
                         <i class="bi bi bi-trash-fill"></i> Remove
                     </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-2">
+            <div class="row">
+                <div class="col">
+                    <label class="form-label">Display tile width</label>
+                    <input type="number" class="form-control form-control-sm">
                 </div>
             </div>
         </div>
@@ -83,7 +93,7 @@
 
 
 
-    <div class="card mb-2">
+    <div class="card mb-2 visually-hidden">
         <div class="card-header p-0">
             <div class="input-group input-group-sm border border-0">
                 <span class="input-group-text form-control border border-0">Tile map</span>
