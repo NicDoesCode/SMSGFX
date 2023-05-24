@@ -22,12 +22,20 @@ const tools = {
     colourReplace: 'colourReplace',
     bucket: 'bucket',
     eyedropper: 'eyedropper',
-    referenceImage: 'referenceImage'
+    referenceImage: 'referenceImage',
+    palettePaint: 'palettePaint',
+    rowColumn: 'rowColumn'
 };
 const scales = [1, 2, 5, 10, 15, 20, 50];
 const toolstrips = {
-    tileAdd: 'tileAdd', scale: 'scale', tileWidth: 'tileWidth', tools: 'tools', undo: 'undo',
-    showTileGrid: 'showTileGrid', showPixelGrid: 'showPixelGrid'
+    tileAdd: 'tileAdd', 
+    scale: 'scale', 
+    tileWidth: 'tileWidth', 
+    tools: 'tools', 
+    tileMapTools: 'tileMapTools',
+    undo: 'undo',
+    showTileGrid: 'showTileGrid', 
+    showPixelGrid: 'showPixelGrid'
 }
 
 export default class TileEditorToolbar {

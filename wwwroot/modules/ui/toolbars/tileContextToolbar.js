@@ -14,10 +14,16 @@ const commands = {
     referenceImageSelect: 'referenceImageSelect',
     referenceImageClear: 'referenceImageClear',
     referenceImageDisplay: 'referenceImageDisplay',
-    referenceImageRevert: 'referenceImageRevert'
+    referenceImageRevert: 'referenceImageRevert',
+    rowColumnMode: 'rowColumnMode',
+    paletteSlot: 'paletteSlot'
 }
 const toolstrips = {
-    select: 'select', pencil: 'pencil', referenceImage: 'referenceImage'
+    select: 'select',
+    pencil: 'pencil',
+    referenceImage: 'referenceImage',
+    rowColumn: 'rowColumn',
+    palettePaint: 'palettePaint'
 }
 
 export default class TileContextToolbar {
@@ -55,7 +61,12 @@ export default class TileContextToolbar {
         this.#element.querySelectorAll('button[data-command]').forEach(button => {
             button.onclick = () => {
                 const args = this.#createArgs(button);
-                args.brushSize = parseInt(button.getAttribute('data-brush-size') ?? 0);
+                if (args.command === TileContextToolbar.Commands.brushSize) {
+                    args.brushSize = parseInt(button.getAttribute('data-brush-size') ?? 0);
+                }
+                if (args.command === TileContextToolbar.Commands.rowColumnMode) {
+                    args.rowColumnMode = button.getAttribute('data-mode');
+                }
                 this.#dispatcher.dispatch(EVENT_OnCommand, args);
             };
         });
@@ -81,7 +92,7 @@ export default class TileContextToolbar {
      * @param {HTMLElement} element - Container element.
      * @returns {Promise<TileContextToolbar>}
      */
-     static async loadIntoAsync(element) {
+    static async loadIntoAsync(element) {
         const componentElement = await TemplateUtil.replaceElementWithComponentAsync('toolbars/tileContextToolbar', element);
         return new TileContextToolbar(componentElement);
     }
@@ -124,6 +135,14 @@ export default class TileContextToolbar {
                     button.classList.add('active');
                 }
             });
+        }
+        if (typeof state?.rowColumnMode !== 'undefined') {
+            this.#element.querySelectorAll(`button[data-command=${TileContextToolbar.Commands.rowColumnMode}][data-mode]`)
+                .forEach((button) => button.classList.remove('active'));
+            if (state?.rowColumnMode !== null) {
+                this.#element.querySelectorAll(`button[data-command=${TileContextToolbar.Commands.rowColumnMode}][data-mode=${CSS.escape(state.rowColumnMode)}]`)
+                    .forEach((button) => button.classList.add('active'));
+            }
         }
         if (state?.visibleToolstrips && Array.isArray(state.visibleToolstrips)) {
             this.#element.querySelectorAll('[data-toolstrip]').forEach(element => {
@@ -168,6 +187,37 @@ export default class TileContextToolbar {
             this.#enabled = state?.enabled;
             this.#element.querySelectorAll('[data-command]').forEach(element => {
                 element.disabled = !this.#enabled;
+            });
+        }
+
+        if (typeof state?.paletteSlotCount === 'number') {
+            this.#element.querySelectorAll('[data-smsgfx-id=paletteSlotSelect]').forEach((container) => {
+                container.querySelectorAll('button').forEach((button) => {
+                    button.remove();
+                });
+                for (let i = 0; i < state.paletteSlotCount; i++) {
+                    const button = document.createElement('button');
+                    button.classList.add('btn', 'btn-outline-secondary');
+                    button.innerText = i;
+                    button.setAttribute('data-command', TileContextToolbar.Commands.paletteSlot);
+                    button.setAttribute('data-slot-number', i);
+                    container.appendChild(button);
+                    button.addEventListener('click', () => {
+                        const args = this.#createArgs(button);
+                        args.paletteSlot = parseInt(button.getAttribute('data-slot-number'));
+                        this.#dispatcher.dispatch(EVENT_OnCommand, args);
+                    });
+                }
+            });
+        }
+
+        if (typeof state?.paletteSlot === 'number') {
+            this.#element.querySelectorAll('[data-smsgfx-id=paletteSlotSelect] button').forEach((button) => {
+                button.classList.remove('active');
+                const slotNumber = parseInt(button.getAttribute('data-slot-number'));
+                if (slotNumber === state.paletteSlot) {
+                    button.classList.add('active');
+                }
             });
         }
     }
@@ -236,7 +286,10 @@ function isToggled(element) {
  * @property {boolean?} enabled - Is the toolbar enabled?
  * @property {string[]?} visibleToolstrips - An array of strings containing visible toolstrips.
  * @property {string[]?} disabledCommands - An array of strings containing disabled buttons.
- * @property {number?} brushSize - Selected brush size, 1 to 5.
+ * @property {number?} [brushSize] - Selected brush size, 1 to 5.
+ * @property {string?} [rowColumnMode] - Mode for add / remove row / column.
+ * @property {number?} [paletteSlot] - Palette slot.
+ * @property {number?} [paletteSlotCount] - Number of palette slots.
  * @property {DOMRect?} referenceBounds - Bounds for the reference image.
  * @property {boolean?} referenceLockAspect - Whether or not to lock the aspect ratio for the reference image.
  * @property {number?} referenceTransparency - Transparency colour for the reference image.
@@ -252,7 +305,9 @@ function isToggled(element) {
 /**
  * @typedef {object} TileContextToolbarCommandEventArgs
  * @property {string} command - Command being invoked.
- * @property {number} brushSize - Brush size, 1 to 5.
+ * @property {number?} [brushSize] - Brush size, 1 to 5.
+ * @property {string?} [rowColumnMode] - Mode for add / remove row / column.
+ * @property {number?} [paletteSlot] - Palette slot.
  * @property {DOMRect} referenceBounds - Bounds for the reference image.
  * @property {boolean} referenceLockAspect - Whether or not to lock the aspect ratio for the reference image.
  * @property {number} referenceTransparency - Colour index to draw transparent.

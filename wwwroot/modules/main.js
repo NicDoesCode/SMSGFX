@@ -77,6 +77,10 @@ const instanceState = {
     /** @type {number} */
     pencilSize: 1,
     /** @type {string?} */
+    rowColumnMode: 'addRow',
+    /** @type {number} */
+    paletteSlot: 0,
+    /** @type {string?} */
     selectedTileMapId: null,
     ctrlIsDown: false,
     shiftIsDown: false,
@@ -803,7 +807,7 @@ function handleTileEditorToolbarOnCommand(args) {
 }
 
 
-/** @param {import('./ui/tileContextToolbar.js').TileContextToolbarCommandEventArgs} args */
+/** @param {import('./ui/toolbars/tileContextToolbar.js').TileContextToolbarCommandEventArgs} args */
 function handleTileContextToolbarCommand(args) {
     if (instanceState.tileIndex > -1 && instanceState.tileIndex < getTileSet().length) {
 
@@ -864,6 +868,12 @@ function handleTileContextToolbarCommand(args) {
         if (args.brushSize && args.brushSize >= 1 && args.brushSize <= 5) {
             setPencilSize(args.brushSize);
         }
+    }
+    if (args.command === TileContextToolbar.Commands.rowColumnMode) {
+        setRowColumnMode(args.rowColumnMode);
+    }
+    if (args.command === TileContextToolbar.Commands.paletteSlot) {
+        setPaletteSlot(args.paletteSlot);
     }
     if (args.command === TileContextToolbar.Commands.referenceImageSelect) {
         selectReferenceImage();
@@ -1497,6 +1507,8 @@ function getNumberOfPaletteSlots() {
 function formatForProject() {
 
     instanceState.colourIndex = 0;
+    if (instanceState.paletteSlot < 0) instanceState.paletteSlot = 0;
+    if (instanceState.paletteSlot >= getNumberOfPaletteSlots()) instanceState.paletteSlot = getNumberOfPaletteSlots() - 1;
 
     const palette = getPalette();
     const tileSet = getTileSet();
@@ -1561,7 +1573,9 @@ function formatForProject() {
         enabled: true
     });
     tileContextToolbar.setState({
-        enabled: true
+        enabled: true,
+        paletteSlotCount: getNumberOfPaletteSlots(),
+        paletteSlot: instanceState.paletteSlot
     });
     tileManager.setState({
         tileMapList: getTileMapList(),
@@ -2041,6 +2055,37 @@ function setPencilSize(brushSize) {
             cursorSize: cursorSize
         });
     }
+}
+
+/**
+ * Sets the row column insert delete mode.
+ * @param {string} rowColumnMode - Row column mode to set.
+ */
+function setRowColumnMode(rowColumnMode) {
+    switch (rowColumnMode) {
+        case 'addRow': case 'deleteRow':
+        case 'addColumn': case 'deleteColumn':
+            instanceState.rowColumnMode = rowColumnMode;
+            tileContextToolbar.setState({
+                rowColumnMode: rowColumnMode
+            });
+            break;
+    }
+}
+
+/**
+ * Sets the palette slot.
+ * @param {number} paletteSlot - Palette slot number.
+ */
+function setPaletteSlot(paletteSlot) {
+    paletteSlot = Math.max(paletteSlot, 0);
+    paletteSlot = Math.min(paletteSlot, getNumberOfPaletteSlots() - 1);
+
+    instanceState.paletteSlot = paletteSlot;
+
+    tileContextToolbar.setState({
+        paletteSlot: instanceState.paletteSlot
+    });
 }
 
 /**
@@ -2659,7 +2704,7 @@ function createNewTileSetFromTileMap() {
         rows: Math.ceil(tileSet.tileCount / tileSet.columnCount),
         tiles: tileSet.getTiles().map((tile) => {
             return TileMapTileFactory.create({
-                tileId: tile.tileId, 
+                tileId: tile.tileId,
                 palette: 0
             })
         })
@@ -2958,6 +3003,12 @@ function selectTool(tool) {
         if ([tools.referenceImage].includes(tool)) {
             visibleStrips.push(TileContextToolbar.Toolstrips.referenceImage);
         }
+        if ([tools.rowColumn].includes(tool)) {
+            visibleStrips.push(TileContextToolbar.Toolstrips.rowColumn);
+        }
+        if ([tools.palettePaint].includes(tool)) {
+            visibleStrips.push(TileContextToolbar.Toolstrips.palettePaint);
+        }
 
         let cursor = 'arrow';
         let cursorSize = 1;
@@ -3103,13 +3154,14 @@ window.addEventListener('load', async () => {
     // Set up tool strips
     const strips = TileEditorToolbar.ToolStrips;
     tileEditorToolbar.setState({
-        visibleToolstrips: [strips.tileAdd, strips.undo, strips.tools, strips.tileWidth]
+        visibleToolstrips: [strips.tileAdd, strips.undo, strips.tools, strips.tileMapTools]
     });
     tileEditorBottomToolbar.setState({
         visibleToolstrips: [strips.scale, strips.showTileGrid, strips.showPixelGrid]
     });
 
     tileContextToolbar.setState({
+        rowColumnMode: instanceState.rowColumnMode,
         referenceTransparency: 15,
         referenceLockAspect: instanceState.referenceImageLockAspect
     });
