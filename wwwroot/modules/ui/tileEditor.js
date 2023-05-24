@@ -337,7 +337,7 @@ export default class TileEditor {
             }
         }
 
-        const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(ev.clientX, ev.clientY);
+        const coords = this.#canvasManager.convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
         if (coords) {
             const rowColInfo = this.#canvasManager.getRowAndColumnInfo(coords.x, coords.y);
             /** @type {TileEditorEventArgs} */
@@ -374,7 +374,7 @@ export default class TileEditor {
             this.#canvasMouseRightDown = false;
         }
 
-        const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(ev.clientX, ev.clientY);
+        const coords = this.#canvasManager.convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
         if (coords) {
             const rowColInfo = this.#canvasManager.getRowAndColumnInfo(coords.x, coords.y);
             /** @type {TileEditorEventArgs} */
@@ -429,7 +429,7 @@ export default class TileEditor {
     #handleCanvasContextMenu(ev) {
         if (!this.#enabled) return;
 
-        const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(ev.clientX, ev.clientY);
+        const coords = this.#canvasManager.convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
         if (coords) {
             // Get the tile index
             const tile = this.#tileSet.getTileByCoordinate(coords.x, coords.y);
@@ -459,7 +459,7 @@ export default class TileEditor {
             const args = {};
 
             // Get the tile index
-            const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(ev.clientX, ev.clientY);
+            const coords = this.#canvasManager.convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
             if (coords) {
                 const tile = this.#tileSet.getTileByCoordinate(coords.x, coords.y);
                 args.tileIndex = this.#tileSet.getTileIndex(tile);
@@ -517,35 +517,10 @@ export default class TileEditor {
         }
     }
 
-
-    /**
-     * Converts a mouse position within the application viewport to the corresponding tile set x/y.
-     * @param {number} mouseClientX - Mouse horizontal coordinate within the application's viewport.
-     * @param {number} mouseClientY - Mouse vertical coordinate within the application's viewport.
-     * @returns {Coordinates|null}
-     */
-    #convertMouseClientCoordsToTileSetPixelCoords(mouseClientX, mouseClientY) {
-        const coords = this.#canvasManager.convertViewportCoordsToTileGridCoords(this.#tbCanvas, mouseClientX, mouseClientY);
-        return coords;
-        // const rect = this.#tbCanvas.getBoundingClientRect();
-        const canvMgr = this.#canvasManager;
-        const canvasX = canvMgr.resolveMouseX(this.#tbCanvas, mouseClientX - rect.left);
-        const canvasY = canvMgr.resolveMouseY(this.#tbCanvas, mouseClientY - rect.top);
-        if (canvasX !== null && canvasY !== null) {
-            const scale = this.#canvasManager.scale;
-            const imageX = Math.floor(canvasX / scale);
-            const imageY = Math.floor(canvasY / scale);
-            return { x: imageX, y: imageY };
-        } else {
-            return null;
-        }
-    }
-
     #focusTile(index) {
         const col = index % this.#tileSet.tileWidth;
         const row = Math.floor(index / this.#tileSet.tileWidth);
         const pxPerTile = this.#canvasManager.scale * 8;
-        const tileX = (col * pxPerTile) + (this.#canvasManager.scale / 2);
         const tileY = (row * pxPerTile) + (this.#canvasManager.scale / 2);
         // const rect = this.#canvasContainer.getBoundingClientRect();
         // this.#canvasContainer.scrollLeft = Math.max(tileX - (rect.width / 2), 0);
