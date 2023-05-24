@@ -21,7 +21,45 @@
                 </ul>
             </div>
         </div>
-        <div class="card-body p-2">
+        <div class="card-body p-2 visually-hidden" data-smsgfx-id="tileSetProperties">
+            <div class="row mt-1 mb-0 ps-3 pe-3">
+                <div class="col p-1">
+                    <p class="m-0 mb-1">
+                        <small>The tile set is currently selected, these are the raw tiles that compose
+                            your tile maps.</small>
+                    </p>
+                    <p class="m-0 mb-1">
+                        <small>Changes made to tiles here will affect any tile set that uses them.</small>
+                    </p>
+                </div>
+            </div>
+            <div class="row mt-1 mb-0 ps-3 pe-3">
+                <div class="col p-1">
+                    <button data-command="tileSetToTileMap" data-auto-event="click"
+                        class="btn btn-sm btn-outline-secondary m-0 w-100" type="button"
+                        title="Removes the tile map from the project.">
+                        <i class="bi bi bi-plus-lg"></i> Convert to tile map
+                    </button>
+                </div>
+            </div>
+            <div class="row mt-1 mb-0 ps-3 pe-3">
+                <div class="col p-1">
+                    <button data-command="tileMapNew" data-auto-event="click"
+                        class="btn btn-sm btn-outline-secondary m-0 w-100" type="button"
+                        title="Removes the tile map from the project.">
+                        <i class="bi bi-plus-lg"></i> Create blank tile map
+                    </button>
+                </div>
+            </div>
+            <div class="row mt-1 mb-0 ps-3 pe-3">
+                <div class="col p-1">
+                    <label class="form-label">Display tile width</label>
+                    <input data-smsgfx-id="tileSetTileWidth" data-command="tileSetChange" data-field="tileWidth" data-auto-event="change" type="number" class="form-control form-control-sm"
+                        title="Sets how many tiles to display per line in the tile editor.">
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-2 visually-hidden" data-smsgfx-id="tileMapProperties">
             <div class="row">
                 <div class="col">
                     <p class="mb-1">Palette slots</p>
@@ -48,11 +86,9 @@
                     {{/each}}
                 </script>
             </div>
-        </div>
-        <div class="card-body p-2">
             <div data-smsgfx-id="tile-map-optimise" class="row">
                 <div class="col">
-                    <div class="form-check form-switch ms-2 mt-2">
+                    <div class="form-check form-switch">
                         <input id="tileSetOptimise" data-command="tileMapChange" data-auto-event="change"
                             data-field="optimise" class="form-check-input" type="checkbox" role="switch" checked>
                         <label class="form-check-label" for="tileSetOptimise">
@@ -76,31 +112,6 @@
                         <i class="bi bi bi-trash-fill"></i> Remove
                     </button>
                 </div>
-            </div>
-        </div>
-        <div class="card-body p-2">
-            <div class="row">
-                <div class="col">
-                    <label class="form-label">Display tile width</label>
-                    <input type="number" class="form-control form-control-sm">
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-
-
-
-
-    <div class="card mb-2 visually-hidden">
-        <div class="card-header p-0">
-            <div class="input-group input-group-sm border border-0">
-                <span class="input-group-text form-control border border-0">Tile map</span>
-            </div>
-        </div>
-        <div class="card-body p-0">
-            <div data-smsgfx-component-id="tile-map-listing">
             </div>
         </div>
     </div>

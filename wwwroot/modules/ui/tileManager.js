@@ -4,11 +4,8 @@ import TemplateUtil from "../util/templateUtil.js";
 import TileMapList from "../models/tileMapList.js";
 import PaletteList from "../models/paletteList.js";
 import TileSet from "./../models/tileSet.js";
-import UiTileMapListing from "./components/tileMapListing.js";
 import UiTileSetList from "./components/tileSetList.js";
-import TileMapListing from "./components/tileMapListing.js";
 import TileSetList from "./components/tileSetList.js";
-import TileGridProvider from "../models/tileGridProvider.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -19,13 +16,16 @@ const commands = {
     tileMapDelete: 'tileMapDelete',
     tileMapClone: 'tileMapClone',
     tileSelect: 'tileSelect',
-    tileMapChange: 'tileMapChange'
+    tileMapChange: 'tileMapChange',
+    tileSetChange: 'tileSetChange',
+    tileSetToTileMap: 'tileSetToTileMap'
 }
 
 const fields = {
     tileMapTitle: 'tileMapTitle',
     tileMapOptimise: 'tileMapOptimise',
-    tileMapPaletteId: 'tileMapPaletteId'
+    tileMapPaletteId: 'tileMapPaletteId',
+    tileWidth: 'tileWidth'
 }
 
 export default class TileManager {
@@ -47,13 +47,13 @@ export default class TileManager {
     /** @type {TileSet} */
     #tileSet = null;
     /** @type {HTMLInputElement} */
+    #uiTileSetTileWidth;
+    /** @type {HTMLInputElement} */
     #uiTileMapTitle;
     /** @type {HTMLInputElement} */
     #uiTileSetOptimise;
     /** @type {HTMLElement} */
     #uiTileMapSelect;
-    /** @type {UiTileMapListing} */
-    #uiTileMapListing;
     /** @type {UiTileSetList} */
     #uiTileSetList;
     /** @type {HTMLElement} */
@@ -82,23 +82,20 @@ export default class TileManager {
 
         this.#paletteSelectorElement = this.#element.querySelector('[data-smsgfx-id=palette-selectors]');
 
+        this.#uiTileSetTileWidth = this.#element.querySelector('[data-command=tileSetChange][data-field=tileWidth]');
         this.#uiTileMapTitle = this.#element.querySelector('[data-command=tileMapChange][data-field=title]');
         this.#uiTileSetOptimise = this.#element.querySelector('[data-command=tileMapChange][data-field=optimise]');
         this.#uiTileMapSelect = this.#element.querySelector('[data-smsgfx-id=tileMapSelectDropDown]');
 
         this.#wireAutoEvents(this.#element);
 
-        UiTileMapListing.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=tile-map-listing]'))
-            .then((obj) => {
-                this.#uiTileMapListing = obj;
-                this.#uiTileMapListing.addHandlerOnCommand((args) => this.#handleTileMapListingOnCommand(args));
-            });
-
         UiTileSetList.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=tile-set-list]'))
             .then((obj) => {
                 this.#uiTileSetList = obj;
                 this.#uiTileSetList.addHandlerOnCommand((args) => this.#handleTileSetListOnCommand(args));
             });
+
+        this.#populateTileMapDetails();
     }
 
 
@@ -130,6 +127,7 @@ export default class TileManager {
 
         if (state?.tileSet && typeof state.tileSet.addTile === 'function') {
             this.#tileSet = state.tileSet;
+            this.#element.querySelector('[data-smsgfx-id=tileSetTileWidth]').value = this.#tileSet.tileWidth;
             tileMapListingDirty = true;
             tileListDirty = true;
         }
@@ -142,9 +140,6 @@ export default class TileManager {
         if (typeof state?.selectedTileMapId !== 'undefined') {
             this.#selectedTileMapId = state.selectedTileMapId;
             this.#populateTileMapDetails();
-            this.#uiTileMapListing.setState({
-                selectedTileMapId: state.selectedTileMapId
-            });
         }
 
         if (typeof state?.numberOfPaletteSlots === 'number') {
@@ -165,11 +160,6 @@ export default class TileManager {
 
         if (tileMapListingDirty) {
             this.#updateTileMapSelectList();
-            this.#uiTileMapListing.setState({
-                showTileSet: this.#tileSet ? true : false,
-                tileMapList: this.#tileMapList,
-                showDelete: true
-            });
         }
 
         if (tileListDirty) {
@@ -202,6 +192,7 @@ export default class TileManager {
     #createArgs(command, element) {
         /** @type {TileManagerCommandEventArgs} */
         const result = { command: command };
+        const field = element?.getAttribute('data-field') ?? null;
         if (command === TileManager.Commands.tileMapChange) {
             result.tileMapId = this.#selectedTileMapId;
             result.title = this.#uiTileMapTitle.value;
@@ -217,6 +208,9 @@ export default class TileManager {
         }
         if (command === TileManager.Commands.tileMapClone) {
             result.tileMapId = this.#selectedTileMapId;
+        }
+        if (command === TileManager.Commands.tileSetChange && field === fields.tileWidth) {
+            result.tileWidth = parseInt(this.#uiTileSetTileWidth.value);
         }
         return result;
     }
@@ -238,30 +232,6 @@ export default class TileManager {
 
 
     /**
-     * When a command is received from the tile map listing.
-     * @param {import("./components/tileMapListing.js").TileMapListingCommandEventArgs} args - Arguments.
-     */
-    #handleTileMapListingOnCommand(args) {
-        switch (args.command) {
-            case TileMapListing.Commands.tileSetSelect:
-                const args1 = this.#createArgs(commands.tileSetSelect);
-                this.#dispatcher.dispatch(EVENT_OnCommand, args1);
-                break;
-            case TileMapListing.Commands.tileMapSelect:
-                const args2 = this.#createArgs(commands.tileMapSelect);
-                args2.tileMapId = args.tileMapId;
-                this.#dispatcher.dispatch(EVENT_OnCommand, args2);
-                break;
-            case TileMapListing.Commands.tileMapDelete:
-                const args3 = this.#createArgs(commands.tileMapDelete);
-                args3.tileMapId = args.tileMapId;
-                this.#dispatcher.dispatch(EVENT_OnCommand, args3);
-                break;
-        }
-    }
-
-
-    /**
      * When a command is received from the tile set list.
      * @param {import("./components/tileSetList.js").TileSetListCommandEventArgs} args - Arguments.
      */
@@ -277,17 +247,17 @@ export default class TileManager {
 
 
     #populateTileMapDetails() {
-        const tileMap = this.#tileMapList.getTileMapById(this.#selectedTileMapId);
+        const tileMap = this.#tileMapList?.getTileMapById(this.#selectedTileMapId) ?? null;
         if (tileMap) {
+            this.#element.querySelector('[data-smsgfx-id=tileSetProperties]').classList.add('visually-hidden');
+            this.#element.querySelector('[data-smsgfx-id=tileMapProperties]').classList.remove('visually-hidden');
             this.#uiTileMapTitle.disabled = false;
             this.#uiTileMapTitle.value = tileMap.title;
-            this.#uiTileSetOptimise.disabled = false;
-            this.#uiTileSetOptimise.checked = tileMap.optimise;
         } else {
+            this.#element.querySelector('[data-smsgfx-id=tileSetProperties]').classList.remove('visually-hidden');
+            this.#element.querySelector('[data-smsgfx-id=tileMapProperties]').classList.add('visually-hidden');
             this.#uiTileMapTitle.disabled = true;
             this.#uiTileMapTitle.value = 'Tile set';
-            this.#uiTileSetOptimise.disabled = true;
-            this.#uiTileSetOptimise.checked = false;
         }
     }
 
@@ -413,6 +383,7 @@ export default class TileManager {
  * @property {PaletteList?} [paletteList] - Available palettes for the palette slots.
  * @property {string?} [selectedTileMapId] - Unique ID of the selected tile map.
  * @property {number?} [numberOfPaletteSlots] - Amount of palette slots that the tile map provides.
+ * @property {number?} [tileWidth] - Display tile width for the tile set.
  */
 
 /**
@@ -430,5 +401,6 @@ export default class TileManager {
  * @property {number?} [paletteSlotNumber] - Slot number for the palette.
  * @property {string[]?} [paletteSlots] - Unique ID of the palette.
  * @property {boolean?} [optimise] - Optimise the tile map?
+ * @property {number?} [tileWidth] - Display tile width for the tile set.
  * @exports
  */

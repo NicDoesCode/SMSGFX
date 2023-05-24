@@ -5,6 +5,7 @@ import ProjectUtil from "./util/projectUtil.js";
 import PaletteFactory from "./factory/paletteFactory.js";
 import TileFactory from "./factory/tileFactory.js";
 import TileSetFactory from "./factory/tileSetFactory.js";
+import TileMapTileFactory from "./factory/tileMapTileFactory.js";
 import PaletteColourFactory from "./factory/paletteColourFactory.js";
 import UndoManager from "./components/undoManager.js";
 import ProjectFactory from "./factory/projectFactory.js";
@@ -892,6 +893,10 @@ function handleTileManagerOnCommand(args) {
             createNewTileSet();
             break;
 
+        case TileManager.Commands.tileSetToTileMap:
+            createNewTileSetFromTileMap();
+            break;
+
         case TileManager.Commands.tileSetSelect:
             selectTileSetOrMap();
             break;
@@ -910,6 +915,10 @@ function handleTileManagerOnCommand(args) {
 
         case TileManager.Commands.tileMapChange:
             updateTileMap(args.tileMapId, args);
+            break;
+
+        case TileManager.Commands.tileSetChange:
+            updateTileSet(args);
             break;
 
     }
@@ -2619,13 +2628,49 @@ function createNewTileSet() {
         rows: 4,
         defaultTileId: firstTile.tileId
     });
+    getTileMapList().addTileMap(newTileMap);
 
     state.setProject(getProject());
     state.saveToLocalStorage();
 
     instanceState.selectedTileMapId = newTileMap.tileMapId;
 
+    tileManager.setState({
+        tileMapList: getTileMapList(),
+        selectedTileMapId: newTileMap.tileMapId
+    });
+    tileEditor.setState({
+        selectedTileIndex: -1,
+        tileGrid: getTileGrid(),
+        tileSet: getTileSet()
+    });
+}
+
+/**
+ * Creates a new tile set from tile map.
+ */
+function createNewTileSetFromTileMap() {
+    addUndoState();
+
+    const tileSet = getTileSet();
+    const newTileMap = TileMapFactory.create({
+        title: 'Tile map from tile set',
+        columns: tileSet.columnCount,
+        rows: Math.ceil(tileSet.tileCount / tileSet.columnCount),
+        tiles: tileSet.getTiles().map((tile) => {
+            return TileMapTileFactory.create({
+                tileId: tile.tileId, 
+                palette: 0
+            })
+        })
+    });
     getTileMapList().addTileMap(newTileMap);
+
+    state.setProject(getProject());
+    state.saveToLocalStorage();
+
+    instanceState.selectedTileMapId = newTileMap.tileMapId;
+
     tileManager.setState({
         tileMapList: getTileMapList(),
         selectedTileMapId: newTileMap.tileMapId
@@ -2648,6 +2693,39 @@ function selectTileSetOrMap(tileMapId) {
     tileManager.setState({
         tileMapList: getTileMapList(),
         selectedTileMapId: instanceState.selectedTileMapId
+    });
+    tileEditor.setState({
+        selectedTileIndex: -1,
+        tileGrid: getTileGrid(),
+        tileSet: getTileSet()
+    });
+}
+
+/**
+ * Updates a tile set.
+ * @param {import("./ui/tileManager.js").TileManagerCommandEventArgs} args
+ */
+function updateTileSet(args) {
+
+    let undoAdded = false;
+
+    // Update tile map
+    const tileWidth = (typeof args.tileWidth === 'number') ? args.tileWidth : null;
+    if (tileWidth !== null && tileWidth > 0) {
+        if (!undoAdded) addUndoState();
+        undoAdded = true;
+        getTileSet().tileWidth = tileWidth;
+    }
+
+    // Update project
+    state.setProject(getProject());
+    state.saveToLocalStorage();
+
+    // Reset UI
+    tileEditorToolbar.setState({ tileWidth: getTileSet().tileWidth });
+    tileEditorBottomToolbar.setState({ tileWidth: getTileSet().tileWidth });
+    tileManager.setState({
+        tileSet: getTileSet()
     });
     tileEditor.setState({
         selectedTileIndex: -1,
@@ -2719,7 +2797,7 @@ function deleteTileMap(tileMapId) {
 }
 
 /**
- * Deletes a tile map.
+ * Updates a tile map.
  * @param {string} tileMapId - Unique ID of the tile map to delete.
  * @param {import("./ui/tileManager.js").TileManagerCommandEventArgs} args
  */
