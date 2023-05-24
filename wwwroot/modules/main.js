@@ -900,6 +900,10 @@ function handleTileManagerOnCommand(args) {
             selectTileSetOrMap(args.tileMapId);
             break;
 
+        case TileManager.Commands.tileMapClone:
+            cloneTileMap(args.tileMapId);
+            break;
+
         case TileManager.Commands.tileMapDelete:
             deleteTileMap(args.tileMapId);
             break;
@@ -2650,6 +2654,27 @@ function selectTileSetOrMap(tileMapId) {
         tileGrid: getTileGrid(),
         tileSet: getTileSet()
     });
+}
+
+/**
+ * Clones a tile map.
+ * @param {string} tileMapId - Unique ID of the tile map to delete.
+ */
+function cloneTileMap(tileMapId) {
+    if (!tileMapId) throw new Error('The tile map ID was invalid.');
+
+    const sourceTileMap = getTileMapList().getTileMapById(tileMapId);
+
+    if (!sourceTileMap) throw new Error('No tile map matched the given ID.');
+
+    addUndoState();
+
+    const clonedTileMap = TileMapFactory.clone(sourceTileMap);
+    clonedTileMap.title += " (copy)";
+
+    getTileMapList().addTileMap(clonedTileMap);
+
+    selectTileSetOrMap(clonedTileMap.tileMapId);
 }
 
 /**

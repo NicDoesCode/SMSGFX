@@ -17,6 +17,7 @@ const commands = {
     tileSetSelect: 'tileSetSelect',
     tileMapSelect: 'tileMapSelect',
     tileMapDelete: 'tileMapDelete',
+    tileMapClone: 'tileMapClone',
     tileSelect: 'tileSelect',
     tileMapChange: 'tileMapChange'
 }
@@ -49,6 +50,8 @@ export default class TileManager {
     #uiTileMapTitle;
     /** @type {HTMLInputElement} */
     #uiTileSetOptimise;
+    /** @type {HTMLElement} */
+    #uiTileMapSelect;
     /** @type {UiTileMapListing} */
     #uiTileMapListing;
     /** @type {UiTileSetList} */
@@ -81,6 +84,7 @@ export default class TileManager {
 
         this.#uiTileMapTitle = this.#element.querySelector('[data-command=tileMapChange][data-field=title]');
         this.#uiTileSetOptimise = this.#element.querySelector('[data-command=tileMapChange][data-field=optimise]');
+        this.#uiTileMapSelect = this.#element.querySelector('[data-smsgfx-id=tileMapSelectDropDown]');
 
         this.#wireAutoEvents(this.#element);
 
@@ -160,6 +164,7 @@ export default class TileManager {
         }
 
         if (tileMapListingDirty) {
+            this.#updateTileMapSelectList();
             this.#uiTileMapListing.setState({
                 showTileSet: this.#tileSet ? true : false,
                 tileMapList: this.#tileMapList,
@@ -206,6 +211,12 @@ export default class TileManager {
                 const select = this.#element.querySelector(`[data-command='tileMapChange'][data-field='paletteId'][data-palette-slot='${i}']`);
                 result.paletteSlots.push(select.value);
             }
+        }
+        if (command === TileManager.Commands.tileMapDelete) {
+            result.tileMapId = this.#selectedTileMapId;
+        }
+        if (command === TileManager.Commands.tileMapClone) {
+            result.tileMapId = this.#selectedTileMapId;
         }
         return result;
     }
@@ -336,6 +347,56 @@ export default class TileManager {
                 colourSampleElm.style.backgroundColor = `rgb(${colour.r}, ${colour.g}, ${colour.b})`;
                 colourElm.appendChild(colourSampleElm);
             });
+        });
+    }
+
+
+    #updateTileMapSelectList() {
+        const dropList = this.#element.querySelector('[data-smsgfx-id=tileMapSelectDropDown]');
+        const tileMapList = this.#tileMapList;
+
+        // Clear existing options
+        while (dropList.hasChildNodes()) {
+            dropList.childNodes[0].remove();
+        }
+
+        // Create tile set node
+        let li = document.createElement('li');
+        let a = document.createElement('a');
+        a.classList.add('dropdown-item');
+        a.href = '#';
+        a.innerText = 'Source tile set';
+        a.addEventListener('click', (ev) => {
+            // Fire tile selected event on click
+            const args = this.#createArgs(TileManager.Commands.tileSetSelect);
+            this.#dispatcher.dispatch(EVENT_OnCommand, args);
+        });
+        li.appendChild(a);
+        dropList.appendChild(li);
+
+        // Divider
+        li = document.createElement('li');
+        let hr = document.createElement('hr');
+        hr.classList.add('dropdown-divider');
+        li.appendChild(hr);
+        dropList.appendChild(li);
+
+        // Add tile maps to list
+        tileMapList.getTileMaps().forEach((tileMap) => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.classList.add('dropdown-item');
+            a.href = '#';
+            a.innerText = tileMap.title;
+            a.setAttribute('data-tile-map-id', tileMap.tileMapId);
+            a.addEventListener('click', (ev) => {
+                // Fire tile selected event on click
+                const args = this.#createArgs(TileManager.Commands.tileMapSelect);
+                args.tileMapId = tileMap.tileMapId;
+                this.#dispatcher.dispatch(EVENT_OnCommand, args);
+            });
+            li.appendChild(a);
+            dropList.appendChild(li);
         });
     }
 

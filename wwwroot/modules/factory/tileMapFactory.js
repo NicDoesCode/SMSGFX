@@ -6,12 +6,13 @@ import GeneralUtil from "../util/generalUtil.js";
 import TileUtil from "../util/tileUtil.js";
 import TileMapListFactory from "../factory/tileMapListFactory.js";
 import TileMapTileFactory from "../factory/tileMapTileFactory.js";
+import TileMapJsonSerialiser from "../serialisers/tileMapJsonSerialiser.js";
 
 export default class TileMapFactory {
 
 
     /**
-     * Creates a new instance of a tile map list object.
+     * Creates a new instance of a tile map object.
      * @param {TileMapFactoryCreateArgs} [args] - Arguments for tile map creation.
      * @returns {TileMap}
      */
@@ -49,6 +50,18 @@ export default class TileMapFactory {
         }
 
         return result;
+    }
+
+    /**
+     * Creates a deep copy of a tile map object, the new tile map will be the same but have a different ID.
+     * @param {TileMap} sourceTileMap - Source tile map.
+     * @returns {TileMap}
+     */
+    static clone(sourceTileMap) {
+        const sourceJSON = TileMapJsonSerialiser.serialise(sourceTileMap);
+        const cloneTileMap = TileMapJsonSerialiser.deserialise(sourceJSON);
+        cloneTileMap.tileMapId = GeneralUtil.generateRandomString(16);
+        return cloneTileMap;
     }
 
 
