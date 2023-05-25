@@ -1731,7 +1731,9 @@ function takeToolAction(args) {
                 const updatedTiles = PaintUtil.drawOnTileSet(tileSet, imageX, imageY, colourIndex, { brushSize: size, affectAdjacentTiles: true });
 
                 if (updatedTiles.affectedTileIndexes.length > 0) {
-                    tileEditor.setState({ updatedTiles: updatedTiles.affectedTileIndexes });
+                    tileEditor.setState({ 
+                        updatedTileIds: updatedTiles.affectedTileIds 
+                    });
                 }
             }
 
@@ -1758,7 +1760,9 @@ function takeToolAction(args) {
                 const updatedTiles = PaintUtil.replaceColourOnTileSet(tileSet, imageX, imageY, sourceColourindex, replacementColourIndex, { brushSize: size, affectAdjacentTiles: true });
 
                 if (updatedTiles.affectedTileIndexes.length > 0) {
-                    tileEditor.setState({ updatedTiles: updatedTiles.affectedTileIndexes });
+                    tileEditor.setState({ 
+                        updatedTileIds: updatedTiles.affectedTileIds 
+                     });
                 }
             }
 

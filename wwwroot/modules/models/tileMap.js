@@ -366,6 +366,21 @@ export default class TileMap extends TileGridProvider {
         return this.getTileInfoByIndex(index);
     }
 
+    /**
+     * Gets all indexes where a given tile ID occurs.
+     * @param {string} tileId - Unique ID of the tile.
+     * @returns {number[]}
+     */
+    getTileIdIndexes(tileId) {
+        const result = [];
+        this.#tiles.map((tile, index) => {
+            if (tile.tileId === tileId) {
+                result.push(index);
+            }
+        });
+        return result;
+    }
+
 
     /**
      * Gets the tile at a given X and Y coordinate, or null if out of range.

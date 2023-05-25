@@ -16,7 +16,9 @@ export default class PaintUtil {
      * @returns {DrawResult}
      */
     static drawOnTileSet(tileSet, x, y, colourIndex, options) {
-        const updatedTiles = [];
+        const updatedTileIndexes = [];
+        /** @type {Object.<string, number>} */
+        const updatedTileIds = {};
 
         const tileIndex = tileSet.getTileIndexByCoordinate(x, y);
         if (tileIndex === null || tileIndex < 0) return;
@@ -26,7 +28,8 @@ export default class PaintUtil {
 
         if (brushSize === 1) {
             if (tileSet.setPixelAt(x, y, colourIndex)) {
-                updatedTiles.push(tileIndex);
+                updatedTileIndexes.push(tileIndex);
+                updatedTileIds[tileSet.getTile(tileIndex).tileId] = tileIndex;
             }
         } else {
             const affect = options?.affectAdjacentTiles ?? true;
@@ -43,7 +46,8 @@ export default class PaintUtil {
                         const differentTile = thisTileIndex !== tileIndex;
                         if (!differentTile || affect) {
                             if (tileSet.setPixelAt(xPx, yPx, colourIndex)) {
-                                if (!updatedTiles.includes(thisTileIndex)) updatedTiles.push(thisTileIndex);
+                                if (!updatedTileIndexes.includes(thisTileIndex)) updatedTileIndexes.push(thisTileIndex);
+                                updatedTileIds[tileSet.getTile(thisTileIndex).tileId] = tileIndex;
                             }
                         }
                     }
@@ -51,7 +55,10 @@ export default class PaintUtil {
             }
         }
 
-        return { affectedTileIndexes: updatedTiles };
+        return { 
+            affectedTileIndexes: updatedTileIndexes,
+            affectedTileIds: Object.keys(updatedTileIds)
+         };
     }
 
 
@@ -66,7 +73,9 @@ export default class PaintUtil {
      * @returns {DrawResult}
      */
     static replaceColourOnTileSet(tileSet, x, y, sourceColourIndex, replacementColourIndex, options) {
-        const updatedTiles = [];
+        const updatedTileIndexes = [];
+        /** @type {Object.<string, number>} */
+        const updatedTileIds = {};
 
         const tileIndex = tileSet.getTileIndexByCoordinate(x, y);
         if (tileIndex === null || tileIndex < 0) return;
@@ -78,7 +87,8 @@ export default class PaintUtil {
             const currentColourIndex = tileSet.getPixelAt(x, y);
             if (currentColourIndex === sourceColourIndex) {
                 if (tileSet.setPixelAt(x, y, replacementColourIndex)) {
-                    updatedTiles.push(tileIndex);
+                    updatedTileIndexes.push(tileIndex);
+                    updatedTileIds[tileSet.getTile(tileIndex).tileId] = tileIndex;
                 }
             }
         } else {
@@ -98,7 +108,8 @@ export default class PaintUtil {
                             const currentColourIndex = tileSet.getPixelAt(xPx, yPx);
                             if (currentColourIndex === sourceColourIndex) {
                                 if (tileSet.setPixelAt(xPx, yPx, replacementColourIndex)) {
-                                    if (!updatedTiles.includes(thisTileIndex)) updatedTiles.push(thisTileIndex);
+                                    if (!updatedTileIndexes.includes(thisTileIndex)) updatedTileIndexes.push(thisTileIndex);
+                                    updatedTileIds[tileSet.getTile(thisTileIndex).tileId] = tileIndex;
                                 }
                             }
                         }
@@ -107,7 +118,10 @@ export default class PaintUtil {
             }
         }
 
-        return { affectedTileIndexes: updatedTiles };
+        return { 
+            affectedTileIndexes: updatedTileIndexes,
+            affectedTileIds: Object.keys(updatedTileIds)
+         };
     }
 
 
@@ -296,4 +310,5 @@ function setColourOnPixel(tileSet, x, y, colour) {
  * @typedef DrawResult
  * @type {object}
  * @property {number[]} affectedTileIndexes - The tiles that were affected by the draw operation.
+ * @property {string[]} affectedTileIds - The unique tile IDs that were affected by the draw operation.
  */

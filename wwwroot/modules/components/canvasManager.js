@@ -258,9 +258,20 @@ export default class CanvasManager {
 
     /**
      * Invalidates and forces a redraw of an individual tile on the tile set image.
+     * @param {number} index - Index of the tile to invalidate.
      */
     invalidateTile(index) {
         this.#redrawTiles.push(index);
+    }
+
+    /**
+     * Invalidates and forces a redraw of an individual tile on the tile set image.
+     * @param {string} tileId - Unique ID of the tile to invalide.
+     */
+    invalidateTileId(tileId) {
+        this.tileGrid.getTileIdIndexes(tileId).forEach((index) => {
+            this.invalidateTile(index);
+        });
     }
 
 

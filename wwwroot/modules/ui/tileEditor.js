@@ -152,6 +152,14 @@ export default class TileEditor {
             });
             dirty = true;
         }
+        // Updated tile IDs
+        if (state?.updatedTileIds && Array.isArray(state?.updatedTileIds)) {
+            const updatedTiles = state.updatedTileIds;
+            updatedTileIds.forEach((tileId) => {
+                this.#canvasManager.invalidateTileId(tileId);
+            });
+            dirty = true;
+        }
         // Changing scale?
         if (typeof state?.scale === 'number') {
             const scale = state.scale;
@@ -548,6 +556,7 @@ export default class TileEditor {
  * @property {boolean?} enabled - Is the control enabled or disabled?
  * @property {number?} focusedTile - Will ensure that this tile is shown on the screen.
  * @property {number[]?} updatedTiles - When passing updated tiles, the entire image will not be updated and instead only these tiles will be updated.
+ * @property {string[]?} [updatedTileIds] - Array of unique tile IDs that were updated.
  * @property {string?} theme - Name of the theme being used.
  * @property {string?} [canvasHighlightMode] - The highlight mode that the canvas should use.
  * @exports 

@@ -68,6 +68,15 @@ export default class TileSet extends TileGridProvider {
         return this.getTileInfoByIndex(index);
     }
 
+    /**
+     * Gets all indexes where a given tile ID occurs.
+     * @param {string} tileId - Unique ID of the tile.
+     * @returns {number[]}
+     */
+    getTileIdIndexes(tileId) {
+        return [ this.#getTilesByIdCache()[tileId].index ];
+    }
+
     // END: TileGridProvider implementation
 
 
@@ -107,7 +116,7 @@ export default class TileSet extends TileGridProvider {
 
     /** @type {Tile[]} */
     #tiles = [];
-    /** @type {Object.<string, Palette>} */
+    /** @type {Object.<string, {tile: Tile, index: number}>} */
     #tilesByIdCache = null;
     #tileWidth = 1;
     #pxPerRow = 8;
@@ -151,7 +160,7 @@ export default class TileSet extends TileGridProvider {
      */
     getTileById(tileId) {
         if (this.containsTileById(tileId)) {
-            return this.#getTilesByIdCache()[tileId];
+            return this.#getTilesByIdCache()[tileId].tile;
         } else {
             throw new Error('No tile with given ID was found.');
         }
@@ -461,7 +470,7 @@ export default class TileSet extends TileGridProvider {
     #getTilesByIdCache() {
         if (!this.#tilesByIdCache) {
             this.#tilesByIdCache = {};
-            this.#tiles.forEach((t) => this.#tilesByIdCache[t.tileId] = t);
+            this.#tiles.forEach((tile, index) => this.#tilesByIdCache[tile.tileId] = { tile: tile, index: index });
         }
         return this.#tilesByIdCache;
     }

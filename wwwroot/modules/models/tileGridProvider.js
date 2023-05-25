@@ -58,6 +58,15 @@ export default class TileGridProvider {
         throw new Error('Not implemented.');
     }
 
+    /**
+     * Gets all indexes where a given tile ID occurs.
+     * @param {string} tileId - Unique ID of the tile.
+     * @returns {number[]}
+     */
+    getTileIdIndexes(tileId) {
+        throw new Error('Not implemented.');
+    }
+
 
 }
 
