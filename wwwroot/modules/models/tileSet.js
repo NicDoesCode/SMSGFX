@@ -41,7 +41,7 @@ export default class TileSet extends TileGridProvider {
      */
     getTileInfoByIndex(tileIndex) {
         const tile = this.getTile(tileIndex);
-        return createTileInfo(tile);
+        return createTileInfo(tile, tileIndex);
     }
 
     /**
@@ -61,11 +61,13 @@ export default class TileSet extends TileGridProvider {
      * Gets information about a tile by the X and Y coordinate within the image.
      * @param {number} x - X pixel within the tile image.
      * @param {number} y - Y pixel within the tile image.
-     * @returns {import('./tileGridProvider.js').TileProviderTileInfo}
+     * @returns {import('./tileGridProvider.js').TileProviderTileInfo?}
      */
     getTileInfoByPixel(x, y) {
         const index = this.getTileIndexByCoordinate(x, y);
-        return this.getTileInfoByIndex(index);
+        if (index) {
+            return this.getTileInfoByIndex(index);
+        } else return null;
     }
 
     /**
@@ -74,7 +76,7 @@ export default class TileSet extends TileGridProvider {
      * @returns {number[]}
      */
     getTileIdIndexes(tileId) {
-        return [ this.#getTilesByIdCache()[tileId].index ];
+        return [this.#getTilesByIdCache()[tileId].index];
     }
 
     // END: TileGridProvider implementation
@@ -484,13 +486,15 @@ export default class TileSet extends TileGridProvider {
 
 /**
  * @param {Tile} tile - Tile to convert.
+ * @param {number} tileIndex
  * @returns {import('./tileGridProvider.js').TileProviderTileInfo}
  */
-function createTileInfo(tile) {
+function createTileInfo(tile, tileIndex) {
     return {
         tileId: tile.tileId,
         paletteIndex: 0,
         horizontalFlip: false,
-        verticalFlip: false
+        verticalFlip: false,
+        tileIndex: tileIndex
     };
 }

@@ -52,7 +52,7 @@ export default class TileGridProvider {
      * Gets information about a tile by the X and Y coordinate within the image.
      * @param {number} x - X pixel within the tile image.
      * @param {number} y - Y pixel within the tile image.
-     * @returns {TileProviderTileInfo}
+     * @returns {TileProviderTileInfo?}
      */
     getTileInfoByPixel(x, y) {
         throw new Error('Not implemented.');
@@ -68,6 +68,17 @@ export default class TileGridProvider {
     }
 
 
+    /**
+     * Gets the tile at a given X and Y coordinate, or null if out of range.
+     * @param {number} x - X coordinate in the tile grid.
+     * @param {number} y - Y coordinate in the tile grid.
+     * @returns {number?}
+     */
+    getTileIndexByCoordinate(x, y) {
+        throw new Error('Not implemented.');
+    }
+
+
 }
 
 /**
@@ -77,6 +88,7 @@ export default class TileGridProvider {
  * @property {number?} paletteIndex - Index of the palette to render the tile, null if none specified.
  * @property {boolean} horizontalFlip - Mirror the tile horizontally?
  * @property {boolean} verticalFlip - Mirror tile vertically?
+ * @property {number} tileIndex - Index of the tile within the tile grid.
  * @exports
  */
 

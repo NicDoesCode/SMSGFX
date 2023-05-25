@@ -46,6 +46,7 @@ import DocumentationViewer from "./ui/documentationViewer.js";
 import TileMap from "./models/tileMap.js";
 import TileMapUtil from "./util/tileMapUtil.js";
 import TileMapFactory from "./factory/tileMapFactory.js";
+import TileGridProvider from "./models/tileGridProvider.js";
 
 
 /* ****************************************************************************************************
@@ -1448,6 +1449,9 @@ function checkPersistentUIValues() {
 function getProject() {
     return state.project;
 }
+/**
+ * @returns {TileGridProvider}
+ */
 function getTileGrid() {
     if (getTileMap()) {
         return getTileMap();
@@ -1726,9 +1730,10 @@ function takeToolAction(args) {
                 instanceState.lastTileMapPx.x = imageX;
                 instanceState.lastTileMapPx.y = imageY;
 
+                const tileGrid = getTileGrid();
                 const tileSet = getTileSet();
                 const size = instanceState.pencilSize;
-                const updatedTiles = PaintUtil.drawOnTileSet(tileSet, imageX, imageY, colourIndex, { brushSize: size, affectAdjacentTiles: true });
+                const updatedTiles = PaintUtil.drawOnTileGrid(tileGrid, tileSet, imageX, imageY, colourIndex, { brushSize: size, affectAdjacentTiles: true });
 
                 if (updatedTiles.affectedTileIndexes.length > 0) {
                     tileEditor.setState({ 

@@ -1,8 +1,5 @@
 import TileMapTile from "./tileMapTile.js";
 import TileGridProvider from './tileGridProvider.js';
-import Tile from "./../models/tile.js";
-import TileSet from "./../models/tileSet.js";
-import TileUtil from "../util/tileUtil.js";
 import TileMapTileFactory from "../factory/tileMapTileFactory.js";
 
 /**
@@ -359,11 +356,13 @@ export default class TileMap extends TileGridProvider {
      * Gets information about a tile by the X and Y coordinate within the image.
      * @param {number} x - X pixel within the tile image.
      * @param {number} y - Y pixel within the tile image.
-     * @returns {import('./tileGridProvider.js').TileProviderTileInfo}
+     * @returns {import('./tileGridProvider.js').TileProviderTileInfo?}
      */
     getTileInfoByPixel(x, y) {
         const index = this.getTileIndexByCoordinate(x, y);
-        return this.getTileInfoByIndex(index);
+        if (index) {
+            return this.getTileInfoByIndex(index);
+        } else return null;
     }
 
     /**
@@ -402,14 +401,16 @@ export default class TileMap extends TileGridProvider {
 
     /**
      * @param {TileMapTile} tileMapTile - Tile map tile to convert.
+     * @param {number} tileIndex
      * @returns {import('./tileGridProvider.js').TileProviderTileInfo}
      */
-    #createTileInfo(tileMapTile) {
+    #createTileInfo(tileMapTile, tileIndex) {
         return {
             tileId: tileMapTile.tileId,
             paletteIndex: tileMapTile.palette,
             horizontalFlip: false,
-            verticalFlip: false
+            verticalFlip: false,
+            tileIndex: tileIndex
         };
     }
 
