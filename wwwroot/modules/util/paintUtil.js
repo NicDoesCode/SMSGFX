@@ -29,7 +29,8 @@ export default class PaintUtil {
         if (brushSize < 1 || brushSize > 100) throw new Error('Brush size must be between 1 and 100 px.');
 
         if (brushSize === 1) {
-            const drawSuccess = setTileGridPixelAt(tileGrid, tileSet, x, y, colourIndex);
+            const coord = translateCoordinate(tileInfo, x, y);
+            const drawSuccess = setTileGridPixelAt(tileGrid, tileSet, coord.x, coord.y, colourIndex);
             if (drawSuccess) {
                 updatedTileIndexes.push(tileInfo.tileIndex);
                 updatedTileIds[tileInfo.tileId] = tileInfo;
@@ -48,7 +49,8 @@ export default class PaintUtil {
                     if (thisTileInfo !== null && thisTileInfo.tileIndex >= 0) {
                         const differentTile = thisTileInfo.tileIndex !== tileInfo.tileIndex;
                         if (!differentTile || affect) {
-                            const drawSuccess = setTileGridPixelAt(tileGrid, tileSet, xPx, yPx, colourIndex);
+                            const coord = translateCoordinate(tileInfo, xPx, yPx);
+                            const drawSuccess = setTileGridPixelAt(tileGrid, tileSet, coord.x, coord.y, colourIndex);
                             if (drawSuccess) {
                                 if (!updatedTileIndexes.includes(thisTileInfo.tileIndex)) updatedTileIndexes.push(thisTileInfo.tileIndex);
                                 updatedTileIds[thisTileInfo.tileId] = tileInfo;
@@ -353,4 +355,18 @@ function setTileGridPixelAt(tileGrid, tileSet, x, y, paletteIndex) {
         }
     }
     return false;
+}
+
+/**
+ * Translates a coordinate based on the orientation of a given tile.
+ * @param {import('../models/tileGridProvider.js').TileProviderTileInfo} tileInfo 
+ * @param {number} x - X coordinate.
+ * @param {number} y - Y coordinate.
+ * @returns {{x: number, y: number}}
+ */
+function translateCoordinate(tileInfo, x, y) {
+    const result = {
+        x: tileInfo.horizontalFlip ? 8 - x : x,
+        y: tileInfo.verticalFlip ? 8 - y : y
+    };
 }
