@@ -65,7 +65,7 @@ export default class TileSet extends TileGridProvider {
      */
     getTileInfoByPixel(x, y) {
         const index = this.getTileIndexByCoordinate(x, y);
-        if (index) {
+        if (index !== null) {
             return this.getTileInfoByIndex(index);
         } else return null;
     }

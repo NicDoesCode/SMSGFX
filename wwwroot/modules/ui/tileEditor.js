@@ -154,7 +154,7 @@ export default class TileEditor {
         }
         // Updated tile IDs
         if (state?.updatedTileIds && Array.isArray(state?.updatedTileIds)) {
-            const updatedTiles = state.updatedTileIds;
+            const updatedTileIds = state.updatedTileIds;
             updatedTileIds.forEach((tileId) => {
                 this.#canvasManager.invalidateTileId(tileId);
             });

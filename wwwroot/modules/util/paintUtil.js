@@ -149,11 +149,11 @@ export default class PaintUtil {
      * @param {number} fillColour - Palette index to fill with.
      */
     static fillOnTileGrid(tileGrid, tileSet, x, y, fillColour) {
-        const w = tileSet.tileWidth * 8;
-        const h = tileSet.tileHeight * 8;
+        const w = tileGrid.columnCount * 8;
+        const h = tileGrid.rowCount * 8;
         if (x < 0 || x >= w || y < 0 || y >= h) throw 'Invalid origin coordinates.';
 
-        const tileInfo = tileGrid.getTileInfoByIndex(x, y);
+        const tileInfo = tileGrid.getTileInfoByPixel(x, y);
         const tile = tileSet.getTileById(tileInfo?.tileId ?? null);
         if (!tile) return;
 

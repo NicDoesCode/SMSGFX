@@ -336,7 +336,7 @@ export default class TileMap extends TileGridProvider {
      */
     getTileInfoByIndex(tileIndex) {
         const tileMapTile = this.getTileByIndex(tileIndex);
-        return this.#createTileInfo(tileMapTile);
+        return this.#createTileInfo(tileMapTile, tileIndex);
     }
 
     /**
@@ -360,7 +360,7 @@ export default class TileMap extends TileGridProvider {
      */
     getTileInfoByPixel(x, y) {
         const index = this.getTileIndexByCoordinate(x, y);
-        if (index) {
+        if (index !== null) {
             return this.getTileInfoByIndex(index);
         } else return null;
     }

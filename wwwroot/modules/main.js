@@ -1730,14 +1730,15 @@ function takeToolAction(args) {
                 instanceState.lastTileMapPx.x = imageX;
                 instanceState.lastTileMapPx.y = imageY;
 
-                const tileGrid = getTileGrid();
-                const tileSet = getTileSet();
                 const size = instanceState.pencilSize;
-                const updatedTiles = PaintUtil.drawOnTileGrid(tileGrid, tileSet, imageX, imageY, colourIndex, { brushSize: size, affectAdjacentTiles: true });
+                const updatedTiles = PaintUtil.drawOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, colourIndex, { brushSize: size, affectAdjacentTiles: true });
 
                 if (updatedTiles.affectedTileIndexes.length > 0) {
-                    tileEditor.setState({ 
-                        updatedTileIds: updatedTiles.affectedTileIds 
+                    tileEditor.setState({
+                        updatedTileIds: updatedTiles.affectedTileIds
+                    });
+                    tileManager.setState({
+                        tileSet: getTileSet()
                     });
                 }
             }
@@ -1760,24 +1761,28 @@ function takeToolAction(args) {
 
                 const sourceColourindex = instanceState.startingColourIndex;
                 const replacementColourIndex = colourIndex;
-                const tileGrid = getTileGrid();
-                const tileSet = getTileSet();
                 const size = instanceState.pencilSize;
-                const updatedTiles = PaintUtil.replaceColourOnTileGrid(tielGrid, tileSet, imageX, imageY, sourceColourindex, replacementColourIndex, { brushSize: size, affectAdjacentTiles: true });
+                const updatedTiles = PaintUtil.replaceColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, sourceColourindex, replacementColourIndex, { brushSize: size, affectAdjacentTiles: true });
 
                 if (updatedTiles.affectedTileIndexes.length > 0) {
-                    tileEditor.setState({ 
-                        updatedTileIds: updatedTiles.affectedTileIds 
-                     });
+                    tileEditor.setState({
+                        updatedTileIds: updatedTiles.affectedTileIds
+                    });
+                    tileManager.setState({
+                        tileSet: getTileSet()
+                    });
                 }
             }
 
         } else if (tool === TileEditorToolbar.Tools.bucket) {
 
             addUndoState();
-            PaintUtil.fillOnTileGrid(getTileSet(), imageX, imageY, colourIndex)
+            PaintUtil.fillOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, colourIndex)
             tileEditor.setState({
                 tileGrid: getTileGrid(),
+                tileSet: getTileSet()
+            });
+            tileManager.setState({
                 tileSet: getTileSet()
             });
 
