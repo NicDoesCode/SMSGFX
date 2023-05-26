@@ -1775,7 +1775,7 @@ function takeToolAction(args) {
         } else if (tool === TileEditorToolbar.Tools.bucket) {
 
             addUndoState();
-            PaintUtil.fillOnTileSet(getTileSet(), imageX, imageY, colourIndex)
+            PaintUtil.fillOnTileGrid(getTileSet(), imageX, imageY, colourIndex)
             tileEditor.setState({
                 tileGrid: getTileGrid(),
                 tileSet: getTileSet()

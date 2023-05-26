@@ -141,21 +141,28 @@ export default class PaintUtil {
 
 
     /**
-     * Fills a contiguious area on a tile set of one colour with another colour.
-     * @param {TileSet} tileSet - Tile set to fill.
+     * Fills a contiguious area on a tile grid of one colour with another colour.
+     * @param {TileGridProvider} tileGrid - Tile grid that contains information about the tile layout.
+     * @param {TileSet} tileSet - Tile set that countains the tiles.
      * @param {number} x - Origin X coordinate.
      * @param {number} y - Origin Y coordinate.
      * @param {number} fillColour - Palette index to fill with.
      */
-    static fillOnTileSet(tileSet, x, y, fillColour) {
+    static fillOnTileGrid(tileGrid, tileSet, x, y, fillColour) {
         const w = tileSet.tileWidth * 8;
         const h = tileSet.tileHeight * 8;
         if (x < 0 || x >= w || y < 0 || y >= h) throw 'Invalid origin coordinates.';
 
-        const originColour = tileSet.getPixelAt(x, y);
+        const tileInfo = tileGrid.getTileInfoByIndex(x, y);
+        const tile = tileSet.getTileById(tileInfo?.tileId ?? null);
+        if (!tile) return;
+
+        const coords = translateCoordinate(tileInfo, x % 8, y % 8);
+        const originColour = tile.readAtCoord(coords.x, coords.y);
         if (originColour === null || originColour === fillColour) return;
 
-        const props = { tileSet, w, h, originColour };
+        /** @type {FillProps} */
+        const props = { tileGrid, tileSet, w, h, originColour };
 
         if (pxIsInsideImageAndMatchesOriginColour(x, y, props)) {
 
@@ -169,14 +176,14 @@ export default class PaintUtil {
                 // Fill left of the origin
                 let leftX = scanCoord.x;
                 while (pxIsInsideImageAndMatchesOriginColour(pxToLeftOf(leftX), y, props)) {
-                    setColourOnPixel(tileSet, pxToLeftOf(leftX), y, fillColour);
+                    setColourOnPixel(tileGrid, tileSet, pxToLeftOf(leftX), y, fillColour);
                     leftX = pxToLeftOf(leftX);
                 }
 
                 // Fill right of the origin
                 let rightX = scanCoord.x - 1;
                 while (pxIsInsideImageAndMatchesOriginColour(pxToRightOf(rightX), y, props)) {
-                    setColourOnPixel(tileSet, pxToRightOf(rightX), y, fillColour);
+                    setColourOnPixel(tileGrid, tileSet, pxToRightOf(rightX), y, fillColour);
                     rightX = pxToRightOf(rightX);
                 }
 
@@ -270,34 +277,54 @@ function scanLineForBlocksOfPixelsWithSameOriginColour(leftX, rightX, y, props) 
  * @returns {boolean}
  */
 function pxIsInsideImageAndMatchesOriginColour(x, y, props) {
-    if (x < 0 || x >= props.w) {
-        return false;
-    } else if (y < 0 || y >= props.h) {
-        return false;
-    } else if (props.tileSet.getPixelAt(x, y) === null) {
-        return false;
-    } else if (props.tileSet.getPixelAt(x, y) !== props.originColour) {
-        return false;
+    if (x >= 0 && x < props.w && y >= 0 && y < props.h) {
+        const tileInfo = props.tileGrid.getTileInfoByPixel(x, y);
+        if (tileInfo) {
+            const tile = props.tileSet.getTileById(tileInfo.tileId);
+            const coords = translateCoordinate(tileInfo, x % 8, y % 8);
+            if (tile.readAtCoord(coords.x, coords.y) === props.originColour) {
+                return true;
+            }
+        }
     }
-    return true;
+    return false;
 }
 
 /**
  * If the pixel falls within the constraints of the image and
  * is the same colour as the origin colour then returns true.
+ * @param {TileGridProvider} tileGrid - Tile grid that contains information about the tile layout.
  * @param {TileSet} tileSet - Tile set to fill.
  * @param {number} x - Image X coordinate.
  * @param {number} y - Image Y coordinate.
  * @param {number} colour - Palette index to set.
  * @returns {boolean}
  */
-function setColourOnPixel(tileSet, x, y, colour) {
-    tileSet.setPixelAt(x, y, colour);
+function setColourOnPixel(tileGrid, tileSet, x, y, colour) {
+    const tileInfo = tileGrid.getTileInfoByPixel(x, y);
+    const tile = tileSet.getTileById(tileInfo.tileId);
+    const coords = translateCoordinate(tileInfo, x % 8, y % 8);
+    return tile.setValueAtCoord(coords.x, coords.y, colour);
+}
+
+/**
+ * Translates a coordinate based on the orientation of a given tile.
+ * @param {import('../models/tileGridProvider.js').TileProviderTileInfo} tileInfo 
+ * @param {number} x - X coordinate.
+ * @param {number} y - Y coordinate.
+ * @returns {{x: number, y: number}}
+ */
+function translateCoordinate(tileInfo, x, y) {
+    return {
+        x: tileInfo.horizontalFlip ? 8 - x : x,
+        y: tileInfo.verticalFlip ? 8 - y : y
+    };
 }
 
 /** 
  * @typedef FillProps
  * @type {object}
+ * @property {TileGridProvider} tileGrid - Tile grid provider with tile layout.
  * @property {TileSet} tileSet - Tile set to fill.
  * @property {number} w - Tile set image width.
  * @property {number} h - Tile set image height.
@@ -327,92 +354,3 @@ function setColourOnPixel(tileSet, x, y, colour) {
  * @property {number[]} affectedTileIndexes - The tiles that were affected by the draw operation.
  * @property {string[]} affectedTileIds - The unique tile IDs that were affected by the draw operation.
  */
-
-
-/**
- * Sets the palette slot of a pixel at a given coordinate on the tile grid.
- * @param {TileGridProvider} tileGrid - Tile grid provider to set the pixel on.
- * @param {TileSet} tileSet - Tile set that contains the tiles.
- * @param {number} x - X coordinate.
- * @param {number} y - Y coordinate.
- * @param {number} paletteIndex Palette index of the colour, 0 to 15.
- * @returns {boolean} true if the value was updated, otherwise false.
- */
-function setTileGridPixelAt(tileGrid, tileSet, x, y, paletteIndex) {
-    if (paletteIndex < 0 || paletteIndex > 15) throw new Error('setTileGridPixelAt: Palette index must be between 0 and 15.');
-
-    if (x < 0 || x > tileGrid.columnCount * 8 - 1) return;
-    if (y < 0 || y > tileGrid.rowCount * 8 - 1) return;
-
-    // Get the tile number
-    const tileX = (x - (x % 8)) / 8;
-    const tileY = (y - (y % 8)) / 8;
-    const tileNum = (tileY * tileGrid.columnCount) + tileX;
-
-    if (tileNum >= tileGrid.tileCount.length) return;
-
-    // Work out the coordinates and byte number within the tile itself
-    x = x % 8;
-    y = y % 8;
-    const byteNum = (y * 8) + x;
-
-    const tileId = tileGrid.getTileInfoByIndex(tileNum)?.tileId ?? null;
-    if (tileId) {
-        const tile = tileSet.getTileById(tileId);
-        if (tile) {
-            return tile.setValueAt(byteNum, paletteIndex);
-        }
-    }
-    return false;
-}
-
-// /**
-//  * Sets the palette slot of a pixel at a given coordinate on the tile grid.
-//  * @param {import('../models/tileGridProvider.js').TileProviderTileInfo} tileInfo - Details on the tile to set.
-//  * @param {TileSet} tileSet - Tile set that contains the tiles.
-//  * @param {number} x - X coordinate.
-//  * @param {number} y - Y coordinate.
-//  * @param {number} paletteIndex Palette index of the colour, 0 to 15.
-//  * @returns {boolean} true if the value was updated, otherwise false.
-//  */
-// function setTilePixel(tileInfo, tileSet, x, y, paletteIndex) {
-//     if (paletteIndex < 0 || paletteIndex > 15) throw new Error('setTileGridPixelAt: Palette index must be between 0 and 15.');
-
-//     if (x < 0 || x > tileGrid.columnCount * 8 - 1) return;
-//     if (y < 0 || y > tileGrid.rowCount * 8 - 1) return;
-
-//     // Get the tile number
-//     const tileX = (x - (x % 8)) / 8;
-//     const tileY = (y - (y % 8)) / 8;
-//     const tileNum = (tileY * tileGrid.columnCount) + tileX;
-
-//     if (tileNum >= tileGrid.tileCount.length) return;
-
-//     // Work out the coordinates and byte number within the tile itself
-//     x = x % 8;
-//     y = y % 8;
-//     const byteNum = (y * 8) + x;
-
-//     const tileId = tileGrid.getTileInfoByIndex(tileNum)?.tileId ?? null;
-//     if (tileId) {
-//         const tile = tileSet.getTileById(tileId);
-//         if (tile) {
-//             return tile.setValueAt(byteNum, paletteIndex);
-//         }
-//     }
-//     return false;
-// }
-
-/**
- * Translates a coordinate based on the orientation of a given tile.
- * @param {import('../models/tileGridProvider.js').TileProviderTileInfo} tileInfo 
- * @param {number} x - X coordinate.
- * @param {number} y - Y coordinate.
- * @returns {{x: number, y: number}}
- */
-function translateCoordinate(tileInfo, x, y) {
-    return {
-        x: tileInfo.horizontalFlip ? 8 - x : x,
-        y: tileInfo.verticalFlip ? 8 - y : y
-    };
-}

@@ -164,7 +164,7 @@ export default class TileSet extends TileGridProvider {
         if (this.containsTileById(tileId)) {
             return this.#getTilesByIdCache()[tileId].tile;
         } else {
-            throw new Error('No tile with given ID was found.');
+            return null;
         }
     }
 
