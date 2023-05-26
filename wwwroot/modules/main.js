@@ -1760,9 +1760,10 @@ function takeToolAction(args) {
 
                 const sourceColourindex = instanceState.startingColourIndex;
                 const replacementColourIndex = colourIndex;
+                const tileGrid = getTileGrid();
                 const tileSet = getTileSet();
                 const size = instanceState.pencilSize;
-                const updatedTiles = PaintUtil.replaceColourOnTileSet(tileSet, imageX, imageY, sourceColourindex, replacementColourIndex, { brushSize: size, affectAdjacentTiles: true });
+                const updatedTiles = PaintUtil.replaceColourOnTileGrid(tielGrid, tileSet, imageX, imageY, sourceColourindex, replacementColourIndex, { brushSize: size, affectAdjacentTiles: true });
 
                 if (updatedTiles.affectedTileIndexes.length > 0) {
                     tileEditor.setState({ 
