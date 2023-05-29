@@ -104,7 +104,7 @@ export default class TileMap extends TileGridProvider {
     getTileByIndex(index) {
         if (index >= 0 && index <= this.tileCount) {
             return this.#tiles[index];
-        } else throw new Error('Index out of range.');
+        } else return null;
     }
 
     /**
@@ -123,7 +123,7 @@ export default class TileMap extends TileGridProvider {
      * Returns a tile map tile by row and column index.
      * @param {number} rowIndex - Row index to obtain the tile from.
      * @param {number} columnIndex - Column index to obtain the tile from.
-     * @returns {TileMapTile | null}
+     * @returns {TileMapTile?}
      */
     getTileByCoordinate(rowIndex, columnIndex) {
         const index = (rowIndex * this.columnCount) + columnIndex;
@@ -134,7 +134,7 @@ export default class TileMap extends TileGridProvider {
     /**
      * Returns an array of tile map tiles from a given row index.
      * @param {number} index - Row index of tile map tiles to obtain.
-     * @returns {TileMapTile[]}
+     * @returns {TileMapTile[]?}
      */
     getTileMapRow(index) {
         if (index >= 0 && index <= this.rowCount) {
@@ -143,7 +143,7 @@ export default class TileMap extends TileGridProvider {
             const endIndex = startIndex + this.columnCount;
             return this.#tiles.slice(startIndex, endIndex);
 
-        } else throw new Error('Index out of range.');
+        } else return null;
     }
 
     /**

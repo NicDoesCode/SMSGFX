@@ -368,20 +368,41 @@ export default class CanvasManager {
     }
 
     /**
+     * @typedef RowAndColumnInfo
+     * @property {number} rowIndex - Index of the row relative to the given coordinate, this value may be out of bounds.
+     * @property {number} columnIndex - Index of the row relative to the given coordinate, this value may be out of bounds.
+     * @property {number} clampedRowIndex - Row index but clamped to a dafe value between 0 and the amount of rows.
+     * @property {number} clampedColumnIndex - Column index but clamped to a dafe value between 0 and the amount of columns.
+     * @property {number} nearestRowIndex - Nearest row index to the given coordinate.
+     * @property {number} nearestColumnIndex - Nearest column index to the given coordinate.
+     * @property {boolean} rowIsInBounds - True when the coordinate is witin the bounds of the row count, otherwise false.
+     * @property {boolean} columnIsInBounds - True when the coordinate is witin the bounds of the column count, otherwise false.
+     * @property {boolean} isInBounds - True when the coordinate is witin the bounds of the row and column count, otherwise false.
+     * @exports
+     */
+
+    /**
      * Gets the top left coordinate of where the tile image is to be drawn.
      * @param {HTMLCanvasElement} canvas - Canvas where the image is to be drawn.
      * @param {number} tileGridX - X coordinate within the tile grid.
      * @param {number} tileGridY - Y coordinate within the tile grid.
-     * @returns {{rowIndex: number, columnIndex: number, nearestRowIndex: number, nearestColumnIndex: number}}
+     * @returns {RowAndColumnInfo}
      */
     getRowAndColumnInfo(tileGridX, tileGridY) {
-        const row = Math.min(Math.max(Math.floor(tileGridY / 8), 0), this.tileGrid.rowCount);
-        const col = Math.min(Math.max(Math.floor(tileGridX / 8), 0), this.tileGrid.columnCount);
+        const row = Math.floor(tileGridY / 8);
+        const col = Math.floor(tileGridX / 8);
+        const clampedRow = Math.min(Math.max(row, 0), this.tileGrid.rowCount);
+        const clampedCol = Math.min(Math.max(col, 0), this.tileGrid.columnCount);
         return {
             rowIndex: row,
             columnIndex: col,
-            nearestRowIndex: (tileGridY % 4 > 4) ? row + 1 : row,
-            nearestColumnIndex: (tileGridX % 4 > 4) ? col + 1 : col
+            clampedRowIndex: clampedRow,
+            clampedColumnIndex: clampedCol,
+            nearestRowIndex: (tileGridY % 4 > 4) ? clampedRow + 1 : clampedRow,
+            nearestColumnIndex: (tileGridX % 4 > 4) ? clampedCol + 1 : clampedCol,
+            rowIsInBounds: row === clampedRow,
+            columnIsInBounds: col === clampedCol,
+            isInBounds: row === clampedRow && col === clampedCol
         };
     }
 
@@ -588,7 +609,6 @@ export default class CanvasManager {
         }
 
         const drawCoords = this.getDrawCoords(canvas);
-        const rowColInfo = this.getRowAndColumnInfo(mouseX, mouseY);
 
         let drawX = drawCoords.x;
         let drawY = drawCoords.y;

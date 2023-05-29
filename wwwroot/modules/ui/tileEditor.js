@@ -304,6 +304,7 @@ export default class TileEditor {
             if (ev.target === this.#tbCanvas) {
                 const coords = this.#canvasManager.convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
                 if (coords) {
+                    const pxInBounds = coords.x >= 0 && coords.y >= 0 && coords.x < this.#tileGrid.columnCount * 8 && coords.y < this.#tileGrid.rowCount * 8;
                     const rowColInfo = this.#canvasManager.getRowAndColumnInfo(coords.x, coords.y);
                     const lastCoords = this.#lastCoords;
                     if (!lastCoords || lastCoords.x !== coords.x || lastCoords.y !== coords.y) {
@@ -319,7 +320,8 @@ export default class TileEditor {
                             tileGridRowIndex: rowColInfo.rowIndex,
                             tileGridColumnIndex: rowColInfo.columnIndex,
                             tileGridInsertRowIndex: rowColInfo.nearestRowIndex,
-                            tileGridInsertColumnIndex: rowColInfo.nearestColumnIndex
+                            tileGridInsertColumnIndex: rowColInfo.nearestColumnIndex,
+                            isInBounds: pxInBounds && rowColInfo.isInBounds
                         };
                         this.#dispatcher.dispatch(EVENT_OnEvent, args);
                         this.#lastCoords = coords;
@@ -351,6 +353,7 @@ export default class TileEditor {
 
         const coords = this.#canvasManager.convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
         if (coords) {
+            const pxInBounds = coords.x >= 0 && coords.y >= 0 && coords.x < this.#tileGrid.columnCount * 8 && coords.y < this.#tileGrid.rowCount * 8;
             const rowColInfo = this.#canvasManager.getRowAndColumnInfo(coords.x, coords.y);
             /** @type {TileEditorEventArgs} */
             const args = {
@@ -366,7 +369,8 @@ export default class TileEditor {
                 tileGridRowIndex: rowColInfo.rowIndex,
                 tileGridColumnIndex: rowColInfo.columnIndex,
                 tileGridInsertRowIndex: rowColInfo.nearestRowIndex,
-                tileGridInsertColumnIndex: rowColInfo.nearestColumnIndex
+                tileGridInsertColumnIndex: rowColInfo.nearestColumnIndex,
+                isInBounds: pxInBounds && rowColInfo.isInBounds
             };
             this.#dispatcher.dispatch(EVENT_OnEvent, args);
         }
@@ -388,6 +392,7 @@ export default class TileEditor {
 
         const coords = this.#canvasManager.convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
         if (coords) {
+            const pxInBounds = coords.x >= 0 && coords.y >= 0 && coords.x < this.#tileGrid.columnCount * 8 && coords.y < this.#tileGrid.rowCount * 8;
             const rowColInfo = this.#canvasManager.getRowAndColumnInfo(coords.x, coords.y);
             /** @type {TileEditorEventArgs} */
             const args = {
@@ -403,7 +408,8 @@ export default class TileEditor {
                 tileGridRowIndex: rowColInfo.rowIndex,
                 tileGridColumnIndex: rowColInfo.columnIndex,
                 tileGridInsertRowIndex: rowColInfo.nearestRowIndex,
-                tileGridInsertColumnIndex: rowColInfo.nearestColumnIndex
+                tileGridInsertColumnIndex: rowColInfo.nearestColumnIndex,
+                isInBounds: pxInBounds && rowColInfo.isInBounds
             };
             this.#dispatcher.dispatch(EVENT_OnEvent, args);
         }
@@ -423,7 +429,8 @@ export default class TileEditor {
             isPrimaryButton: this.#canvasMouseLeftDown,
             isSecondaryButton: this.#canvasMouseRightDown,
             isAuxButton: this.#canvasMouseMiddleDown,
-            ctrlKeyPressed: ev.ctrlKey
+            ctrlKeyPressed: ev.ctrlKey,
+            isInBounds: false
         };
         if (this.#lastCoords) {
             args.x = this.#lastCoords.x;
@@ -602,6 +609,7 @@ export default class TileEditor {
  * @property {number?} [tileGridColumnIndex] - Index of the tile grid column that corresponds with the X mouse coordinate.
  * @property {number?} [tileGridInsertRowIndex] - Index in the tile grid row for inserting a new row.
  * @property {number?} [tileGridInsertColumnIndex] - Index in the tile grid column for inserting a new column.
+ * @property {boolean} isInBounds - True when the given coordinate was out of bounds of the tile grid.
  * @property {boolean} mousePrimaryIsDown - True when the primary mouse button is down, otherwise false.
  * @property {boolean} mouseSecondaryIsDown - True when the secondary mouse button is down, otherwise false.
  * @property {boolean} mouseAuxIsDown - True when the auxiliary mouse button is down, otherwise false.
