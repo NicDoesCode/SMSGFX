@@ -59,7 +59,7 @@ export default class PaletteList {
         if (this.containsPaletteById(paletteId)) {
             return this.#getPalettesByIdCache()[paletteId];
         } else {
-            throw new Error('No palette with given ID was found.');
+            return null;
         }
     }
 

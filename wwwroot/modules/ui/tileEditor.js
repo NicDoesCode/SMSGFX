@@ -242,6 +242,10 @@ export default class TileEditor {
         } else if (typeof state?.canvasHighlightMode === 'object' && state.canvasHighlightMode === null) {
             this.#canvasManager.highlightMode = CanvasManager.HighlightModes.pixel;
         }
+        // Force refresh?
+        if (typeof state.forceRefresh === 'boolean' && state.forceRefresh === true) {
+            dirty = true;
+        }
         // Refresh image?
         if (dirty && this.#tileGrid && this.#tileSet && this.#paletteList && this.#paletteList.length > 0) {
             let paletteList = !this.#displayNative ? this.#paletteList : this.#nativePaletteList;
@@ -559,6 +563,7 @@ export default class TileEditor {
  * @property {string[]?} [updatedTileIds] - Array of unique tile IDs that were updated.
  * @property {string?} theme - Name of the theme being used.
  * @property {string?} [canvasHighlightMode] - The highlight mode that the canvas should use.
+ * @property {boolean?} [forceRefresh] - When true the tile grid image will be refreshed.
  * @exports 
  */
 
