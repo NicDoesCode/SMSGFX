@@ -204,6 +204,7 @@ function wireUpEventHandlers() {
 
     tileEditor.addHandlerOnCommand(handleTileEditorOnCommand);
     tileEditor.addHandlerOnEvent(handleTileEditorOnEvent);
+
     tileEditorToolbar.addHandlerOnCommand(handleTileEditorToolbarOnCommand);
     tileEditorBottomToolbar.addHandlerOnCommand(handleTileEditorToolbarOnCommand);
     tileContextToolbar.addHandlerOnCommand(handleTileContextToolbarCommand);
@@ -1522,6 +1523,53 @@ function getNumberOfPaletteSlots() {
     }
 }
 
+function isTileSet() {
+    return !getTileMap();
+}
+function isTileMap() {
+    return getTileMap();
+}
+
+function refreshProjectUI() {
+
+    const maps = getTileMapList();
+    if (!maps.getTileMapById(instanceState.selectedTileMapId)) instanceState.selectedTileMapId = null;
+
+    const tileSet = getTileSet();
+    if (!tileSet.getTileById(instanceState.selectedTileId)) instanceState.selectedTileId = null;
+
+    if (instanceState.paletteSlot < 0) instanceState.paletteSlot = 0;
+    if (instanceState.paletteSlot >= getNumberOfPaletteSlots()) instanceState.paletteSlot = getNumberOfPaletteSlots() - 1;
+
+    const palette = getPalette();
+    if (instanceState.colourIndex < 0) instanceState.colourIndex = 0;
+    if (instanceState.colourIndex >= palette.getColours().length) instanceState.colourIndex = palette.getColours().length - 1;
+
+    if (instanceState.tileIndex < -1) instanceState.tileIndex = -1;
+    if (instanceState.tileIndex >= getTileGrid().tileCount) instanceState.tileIndex = -1;
+
+    paletteEditor.setState({
+        paletteList: getPaletteList(),
+        selectedPaletteIndex: instanceState.paletteSlot,
+        selectedColourIndex: instanceState.colourIndex
+    });
+
+    tileEditor.setState({
+        paletteList: getPaletteList(),
+        tileSet: getTileSet(),
+        tileGrid: getTileGrid(),
+        selectedTileIndex: instanceState.tileIndex
+    });
+
+    tileManager.setState({
+        tileMapList: getTileMapList(),
+        selectedTileMapId: instanceState.selectedTileMapId,
+        tileSet: getTileSet(),
+        selectedTileId: instanceState.selectedTileId
+    });
+
+}
+
 function formatForProject() {
 
     instanceState.colourIndex = 0;
@@ -2776,16 +2824,9 @@ function createNewTileSet() {
     state.saveToLocalStorage();
 
     instanceState.selectedTileMapId = newTileMap.tileMapId;
+    instanceState.tileIndex = -1;
 
-    tileManager.setState({
-        tileMapList: getTileMapList(),
-        selectedTileMapId: newTileMap.tileMapId
-    });
-    tileEditor.setState({
-        selectedTileIndex: -1,
-        tileGrid: getTileGrid(),
-        tileSet: getTileSet()
-    });
+    refreshProjectUI();
 }
 
 /**
@@ -2812,16 +2853,9 @@ function createNewTileSetFromTileMap() {
     state.saveToLocalStorage();
 
     instanceState.selectedTileMapId = newTileMap.tileMapId;
+    instanceState.tileIndex = -1;
 
-    tileManager.setState({
-        tileMapList: getTileMapList(),
-        selectedTileMapId: newTileMap.tileMapId
-    });
-    tileEditor.setState({
-        selectedTileIndex: -1,
-        tileGrid: getTileGrid(),
-        tileSet: getTileSet()
-    });
+    refreshProjectUI();
 }
 
 /**
@@ -3207,14 +3241,7 @@ function changePalette(index) {
     state.persistentUIState.paletteIndex = index;
     state.saveToLocalStorage();
 
-    paletteEditor.setState({
-        paletteList: getPaletteList(),
-        selectedPaletteIndex: index
-    });
-    tileEditor.setState({
-        tileGrid: getTileGrid(),
-        paletteList: getTileGridPaletteList()
-    });
+    refreshProjectUI();
 }
 
 /**

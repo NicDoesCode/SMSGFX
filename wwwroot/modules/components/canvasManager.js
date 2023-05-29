@@ -55,8 +55,10 @@ export default class CanvasManager {
         return this.#tileGrid;
     }
     set tileGrid(value) {
-        this.invalidateImage()
-        this.#tileGrid = value;
+        if (this.#tileGrid !== value) {
+            this.invalidateImage()
+            this.#tileGrid = value;
+        }
     }
 
     /**
@@ -66,8 +68,10 @@ export default class CanvasManager {
         return this.#tileSet;
     }
     set tileSet(value) {
-        this.invalidateImage()
-        this.#tileSet = value;
+        if (this.#tileSet !== value) {
+            this.invalidateImage()
+            this.#tileSet = value;
+        }
     }
 
     /**
