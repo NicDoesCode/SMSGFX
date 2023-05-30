@@ -280,7 +280,7 @@ export default class TileContextToolbar {
         }
 
         if (command === coms.paletteSlot) {
-            args.paletteSlot = parseInt(element.getAttribute('data-slot-number'));
+            result.paletteSlot = parseInt(element.getAttribute('data-slot-number'));
         }
 
         return result;
