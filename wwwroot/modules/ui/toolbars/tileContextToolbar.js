@@ -16,6 +16,7 @@ const commands = {
     referenceImageDisplay: 'referenceImageDisplay',
     referenceImageRevert: 'referenceImageRevert',
     rowColumnMode: 'rowColumnMode',
+    rowColumnFillMode: 'rowColumnFillMode',
     paletteSlot: 'paletteSlot'
 }
 const toolstrips = {
@@ -25,6 +26,13 @@ const toolstrips = {
     rowColumn: 'rowColumn',
     palettePaint: 'palettePaint',
     tileStamp: 'tileStamp'
+}
+const tileFileMode = {
+    useSelected: 'useSelected',
+    copyOnceSelected: 'copyOnceSelected',
+    copyAllSelected: 'copyAllSelected',
+    newOnce: 'newOnce',
+    newAll: 'newAll'
 }
 
 export default class TileContextToolbar {
@@ -36,6 +44,10 @@ export default class TileContextToolbar {
 
     static get Toolstrips() {
         return toolstrips;
+    }
+
+    static get TileFileMode() {
+        return tileFileMode;
     }
 
 
@@ -67,6 +79,8 @@ export default class TileContextToolbar {
                 }
                 if (args.command === TileContextToolbar.Commands.rowColumnMode) {
                     args.rowColumnMode = button.getAttribute('data-mode');
+                    const fillModeSelect = this.#element.querySelector(`select[data-command=rowColumnFillMode]');
+                    args.rowColumnFillMode = fillModeSelect.value;
                 }
                 this.#dispatcher.dispatch(EVENT_OnCommand, args);
             };
@@ -81,6 +95,16 @@ export default class TileContextToolbar {
 
         this.#element.querySelectorAll('select[data-command]').forEach(select => {
             select.onchange = () => {
+                if (args.command === TileContextToolbar.Commands.rowColumnFillMode) {
+                    const modeButton = this.#element.querySelector(`button[data-command=${commands.rowColumnMode}].active`);
+                    if (modeButton) {
+                        const args = this.#createArgs(modeButton);
+                        args.rowColumnMode = modeButton.getAttribute('data-mode');
+                        args.rowColumnFillMode = select.value;
+                        this.#dispatcher.dispatch(EVENT_OnCommand, args);
+                    }
+                    return;
+                }
                 const args = this.#createArgs(select);
                 this.#dispatcher.dispatch(EVENT_OnCommand, args);
             };
@@ -308,6 +332,7 @@ function isToggled(element) {
  * @property {string} command - Command being invoked.
  * @property {number?} [brushSize] - Brush size, 1 to 5.
  * @property {string?} [rowColumnMode] - Mode for add / remove row / column.
+ * @property {string?} [rowColumnFillMode] - Tile fill mode for add / remove row / column.
  * @property {number?} [paletteSlot] - Palette slot.
  * @property {DOMRect} referenceBounds - Bounds for the reference image.
  * @property {boolean} referenceLockAspect - Whether or not to lock the aspect ratio for the reference image.

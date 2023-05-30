@@ -211,6 +211,20 @@
                 </button>
             </div>
         </div>
+        <div data-toolstrip="rowColumn" class="col-auto">
+            <div class="input-group input-group-sm p-0 m-0">
+                <span class="input-group-text">Fill mode</span>
+                <select data-command="rowColumnFillMode" class="form-select">
+                    <options>
+                        <option value="useSelected">Use selected tile</option>
+                        <option value="copyOnceSelected">Copy of selected tile once</option>
+                        <option value="copyAllSelected">Copy of selected tile for each tile</option>
+                        <option value="newOnce">Create a single new blank tile</option>
+                        <option value="newAll">Create new blank tile per tile</option>
+                    </options>
+                </select>
+            </div>
+        </div>
         <!-- End: Tile map add remove toolstrip -->
         <!-- Palette paint toolstrip -->
         <div data-toolstrip="palettePaint" class="col-auto ps-0">
