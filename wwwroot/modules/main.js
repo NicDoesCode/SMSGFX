@@ -49,6 +49,8 @@ import TileMapFactory from "./factory/tileMapFactory.js";
 import TileGridProvider from "./models/tileGridProvider.js";
 import PaletteList from "./models/paletteList.js";
 
+import TileMapRowColumnTool from "./tools/tileMapRowColumn.js";
+
 
 /* ****************************************************************************************************
    State
@@ -80,6 +82,8 @@ const instanceState = {
     pencilSize: 1,
     /** @type {string?} */
     rowColumnMode: 'addRow',
+    /** @type {string?} */
+    rowColumnFillMode: TileMapRowColumnTool.TileFillMode.useSelected,
     /** @type {number} */
     paletteSlot: 0,
     /** @type {string?} */
@@ -874,8 +878,8 @@ function handleTileContextToolbarCommand(args) {
             setPencilSize(args.brushSize);
         }
     }
-    if (args.command === TileContextToolbar.Commands.rowColumnMode) {
-        setRowColumnMode(args.rowColumnMode);
+    if (args.command === TileContextToolbar.Commands.rowColumnMode || args.command === TileContextToolbar.Commands.rowColumnFillMode) {
+        setRowColumnMode(args.rowColumnMode, args.rowColumnFillMode);
     }
     if (args.command === TileContextToolbar.Commands.paletteSlot) {
         setPaletteSlot(args.paletteSlot);
@@ -1396,7 +1400,7 @@ function createEmptyProject(args) {
     project.tileSet = TileSetFactory.create();
     project.tileSet.tileWidth = 8;
     for (let i = 0; i < 64; i++) {
-        project.tileSet.addTile(TileFactory.create(null, defaultTileColourIndex));
+        project.tileSet.addTile(TileFactory.create({ defaultColourIndex: defaultTileColourIndex }));
     }
 
     // Create a default palette 
@@ -1884,28 +1888,28 @@ function takeToolAction(args) {
 
             if (tool === TileEditorToolbar.Tools.rowColumn) {
 
-                if (instanceState.rowColumnMode === 'addRow') {
-                    addUndoState();
-                    getTileMap().insertRow(args.tileGridInsertRowIndex);
-                    getTileMap().getTileMapRow(args.tileGridInsertRowIndex).forEach((t) => {
-                        t.tileId = getTileSet().getTile(0).tileId;
+                addUndoState();
+                try {
+                    let index = -1;
+                    switch (instanceState.rowColumnMode) {
+                        case TileMapRowColumnTool.Mode.addRow: index = args.tileGridRowIndex; break;
+                        case TileMapRowColumnTool.Mode.deleteRow: index = args.tileGridInsertRowIndex; break;
+                        case TileMapRowColumnTool.Mode.addColumn: index = args.tileGridColumnIndex; break;
+                        case TileMapRowColumnTool.Mode.deleteColumn: index = args.tileGridInsertColumnIndex; break;
+                    }
+                    TileMapRowColumnTool.takeAction({
+                        tileMap: getTileMap(),
+                        tileSet: getTileSet(),
+                        mode: instanceState.rowColumnMode,
+                        fillMode: instanceState.rowColumnFillMode,
+                        index: index,
+                        tileId: instanceState.selectedTileId,
+                        colourIndex: instanceState.colourIndex
                     });
                     actionTaken = true;
-                } else if (instanceState.rowColumnMode === 'deleteRow') {
-                    addUndoState();
-                    getTileMap().removeRow(args.tileGridRowIndex);
-                    actionTaken = true;
-                } else if (instanceState.rowColumnMode === 'addColumn') {
-                    addUndoState();
-                    getTileMap().insertColumn(args.tileGridInsertColumnIndex);
-                    getTileMap().getTileMapColumn(args.tileGridInsertColumnIndex).forEach((t) => {
-                        t.tileId = getTileSet().getTile(0).tileId;
-                    });
-                    actionTaken = true;
-                } else if (instanceState.rowColumnMode === 'deleteColumn') {
-                    addUndoState();
-                    getTileMap().removeColumn(args.tileGridColumnIndex);
-                    actionTaken = true;
+                } catch (e) {
+                    undoManager.removeLastUndo();
+                    throw e;
                 }
 
             } else if (tool === TileEditorToolbar.Tools.tileStamp && args.isInBounds) {
@@ -2229,17 +2233,20 @@ function setPencilSize(brushSize) {
 
 /**
  * Sets the row column insert delete mode.
- * @param {string} rowColumnMode - Row column mode to set.
+ * @param {string} mode - Row column mode to set.
+ * @param {string} fillMode - Fill mode to use when adding rows or columns.
  */
-function setRowColumnMode(rowColumnMode) {
-    switch (rowColumnMode) {
+function setRowColumnMode(mode, fillMode) {
+    switch (mode) {
         case 'addRow':
         case 'deleteRow':
         case 'addColumn':
         case 'deleteColumn':
-            instanceState.rowColumnMode = rowColumnMode;
+            instanceState.rowColumnMode = mode;
+            instanceState.rowColumnFillMode = fillMode;
             tileContextToolbar.setState({
-                rowColumnMode: rowColumnMode
+                rowColumnMode: mode,
+                rowColumnFillMode: fillMode
             });
             tileEditor.setState({
                 canvasHighlightMode: getTileEditorHighlightMode()
@@ -2487,7 +2494,7 @@ function tileNew() {
     if (getTileSet()) {
         addUndoState();
 
-        const newTile = TileFactory.create(null, null);
+        const newTile = TileFactory.create();
         getTileSet().addTile(newTile);
 
         state.setProject(getProject());
@@ -3247,6 +3254,7 @@ function selectTool(tool) {
         tileContextToolbar.setState({
             visible: true,
             brushSize: instanceState.pencilSize,
+            rowColumnFillMode: instanceState.rowColumnFillMode ?? TileMapRowColumnTool.TileFillMode.useSelected,
             visibleToolstrips: visibleStrips
         });
         tileEditor.setState({

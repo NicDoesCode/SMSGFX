@@ -37,14 +37,14 @@ export default class Tile {
      * @argument {Uint8ClampedArray?} [tileData] - Initial data to fill the tile data array with.
      */
     constructor(tileId, tileData) {
-        if (tileData && Array.isArray(tileData) && tileData && tileData.length !== 64) throw new Error('Initial tile data must be of length 64.');
+        if (tileData && tileData instanceof Uint8ClampedArray && tileData.length !== 64) throw new Error('Initial tile data must be of length 64.');
 
         if (typeof tileId !== 'undefined' && tileId !== null) {
             this.tileId = tileId;
         } else {
             this.tileId = GeneralUtil.generateRandomString(12);
         }
-        if (tileData && Array.isArray(tileData)) {
+        if (tileData && tileData instanceof Uint8ClampedArray) {
             this.#data = tileData;
         } else {
             this.#data = new Uint8ClampedArray(64);
@@ -64,7 +64,7 @@ export default class Tile {
      * @returns {Uint8ClampedArray}
      */
     readAll() {
-        return this.#data.slice(0);
+        return this.#data.slice();
     }
 
     /**

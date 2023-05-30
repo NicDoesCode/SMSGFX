@@ -65,6 +65,13 @@ export default class UndoManager {
     }
 
     /**
+     * Removes the last undo item from the cache. 
+     */
+    removeLastUndo() {
+        this.#undoStates.pop();
+    }
+
+    /**
      * Rolls back and returns the last project state in the undo cache, records the current state to redo cache. 
      * @param {Project} currentProjectState - Current project state that will be added to the redo cache.
      * @returns {Project|null}

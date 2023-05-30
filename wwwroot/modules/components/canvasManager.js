@@ -501,6 +501,12 @@ export default class CanvasManager {
         this.#drawTile(context, tileIndex, transparencyColour);
     }
 
+    /**
+     * 
+     * @param {CanvasRenderingContext2D} context 
+     * @param {number} tileindex 
+     * @param {number} transparencyColour 
+     */
     #drawTile(context, tileindex, transparencyColour) {
         const pxSize = this.scale;
         const tileInfo = this.tileGrid.getTileInfoByIndex(tileindex);
@@ -511,26 +517,44 @@ export default class CanvasManager {
         const palette = this.paletteList.getPalette(tileInfo.paletteIndex);
         const numColours = palette.getColours().length;
 
-        for (let tilePx = 0; tilePx < 64; tilePx++) {
+        if (tile) {
+            for (let tilePx = 0; tilePx < 64; tilePx++) {
 
-            const tileCol = tilePx % 8;
-            const tileRow = (tilePx - tileCol) / 8;
+                const tileCol = tilePx % 8;
+                const tileRow = (tilePx - tileCol) / 8;
 
-            const x = ((tileGridCol * 8) + tileCol) * pxSize;
-            const y = ((tileGridRow * 8) + tileRow) * pxSize;
+                const x = ((tileGridCol * 8) + tileCol) * pxSize;
+                const y = ((tileGridRow * 8) + tileRow) * pxSize;
 
-            let pixelPaletteIndex = tile.readAt(tilePx);
+                let pixelPaletteIndex = tile.readAt(tilePx);
 
-            // Set colour
-            if (pixelPaletteIndex >= 0 && pixelPaletteIndex < numColours) {
-                const colour = palette.getColour(pixelPaletteIndex);
-                const hex = ColourUtil.toHex(colour.r, colour.g, colour.b);
-                context.fillStyle = hex;
+                // Set colour
+                if (pixelPaletteIndex >= 0 && pixelPaletteIndex < numColours) {
+                    const colour = palette.getColour(pixelPaletteIndex);
+                    const hex = ColourUtil.toHex(colour.r, colour.g, colour.b);
+                    context.fillStyle = hex;
+                }
+
+                if (transparencyColour === -1 || pixelPaletteIndex !== transparencyColour) {
+                    context.moveTo(0, 0);
+                    context.fillRect(x, y, pxSize, pxSize);
+                }
             }
+        } else {
+            const originX = (tileGridCol * 8) * pxSize;
+            const originY = (tileGridRow * 8) * pxSize;
 
-            if (transparencyColour === -1 || pixelPaletteIndex !== transparencyColour) {
-                context.moveTo(0, 0);
-                context.fillRect(x, y, pxSize, pxSize);
+            context.fillStyle = '#FFFFFF';
+            context.fillRect(originX, originY, pxSize * 8, pxSize * 8);
+            context.fillStyle = '#777777';
+            for (let x = 0; x < pxSize * 8; x++) {
+                const drawX = originX + x;
+                for (let y = 0; y < pxSize * 8; y++) {
+                    const drawY = originY + y;
+                    if ((x % 2 === 0 && y % 2 === 1) || (x % 2 === 1 && y % 2 === 0)) {
+                        context.fillRect(drawX, drawY, 1, 1);
+                    }
+                }
             }
         }
     }

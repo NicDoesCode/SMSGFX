@@ -1,4 +1,5 @@
 import EventDispatcher from "../../components/eventDispatcher.js";
+import TileMapRowColumnTool from "../../tools/tileMapRowColumn.js";
 import TemplateUtil from "../../util/templateUtil.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
@@ -27,13 +28,6 @@ const toolstrips = {
     palettePaint: 'palettePaint',
     tileStamp: 'tileStamp'
 }
-const tileFileMode = {
-    useSelected: 'useSelected',
-    copyOnceSelected: 'copyOnceSelected',
-    copyAllSelected: 'copyAllSelected',
-    newOnce: 'newOnce',
-    newAll: 'newAll'
-}
 
 export default class TileContextToolbar {
 
@@ -44,10 +38,6 @@ export default class TileContextToolbar {
 
     static get Toolstrips() {
         return toolstrips;
-    }
-
-    static get TileFileMode() {
-        return tileFileMode;
     }
 
 
@@ -69,45 +59,15 @@ export default class TileContextToolbar {
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 
-        const buttonLinkReferenceAspect = this.#element.querySelector('button[data-toggle=referenceImageAspect]');
-
-        this.#element.querySelectorAll('button[data-command]').forEach(button => {
-            button.onclick = () => {
-                const args = this.#createArgs(button);
-                if (args.command === TileContextToolbar.Commands.brushSize) {
-                    args.brushSize = parseInt(button.getAttribute('data-brush-size') ?? 0);
-                }
-                if (args.command === TileContextToolbar.Commands.rowColumnMode) {
-                    args.rowColumnMode = button.getAttribute('data-mode');
-                    const fillModeSelect = this.#element.querySelector(`select[data-command=rowColumnFillMode]');
-                    args.rowColumnFillMode = fillModeSelect.value;
-                }
+        this.#element.querySelectorAll('[data-command][data-auto-event]').forEach((elm) => {
+            const autoEvent = elm.getAttribute('data-auto-event');
+            const eventFn = () => {
+                const command = elm.getAttribute('data-command');
+                const args = this.#createArgs(command, elm);
                 this.#dispatcher.dispatch(EVENT_OnCommand, args);
             };
-        });
-
-        this.#element.querySelectorAll('input[data-command]').forEach(textbox => {
-            textbox.onchange = () => {
-                const args = this.#createArgs(textbox);
-                this.#dispatcher.dispatch(EVENT_OnCommand, args);
-            };
-        });
-
-        this.#element.querySelectorAll('select[data-command]').forEach(select => {
-            select.onchange = () => {
-                if (args.command === TileContextToolbar.Commands.rowColumnFillMode) {
-                    const modeButton = this.#element.querySelector(`button[data-command=${commands.rowColumnMode}].active`);
-                    if (modeButton) {
-                        const args = this.#createArgs(modeButton);
-                        args.rowColumnMode = modeButton.getAttribute('data-mode');
-                        args.rowColumnFillMode = select.value;
-                        this.#dispatcher.dispatch(EVENT_OnCommand, args);
-                    }
-                    return;
-                }
-                const args = this.#createArgs(select);
-                this.#dispatcher.dispatch(EVENT_OnCommand, args);
-            };
+            if (autoEvent === 'click') elm.addEventListener('click', eventFn);
+            if (autoEvent === 'change') elm.addEventListener('change', eventFn);
         });
     }
 
@@ -169,6 +129,11 @@ export default class TileContextToolbar {
                     .forEach((button) => button.classList.add('active'));
             }
         }
+        if (typeof state?.rowColumnFillMode !== 'undefined') {
+            const mode = state.rowColumnFillMode ?? TileMapRowColumnTool.TileFillMode.useSelected;
+            this.#element.querySelectorAll(`select[data-command=${TileContextToolbar.Commands.rowColumnFillMode}]`)
+                .forEach((select) => select.value = mode);
+        }
         if (state?.visibleToolstrips && Array.isArray(state.visibleToolstrips)) {
             this.#element.querySelectorAll('[data-toolstrip]').forEach(element => {
                 const toolstrip = element.getAttribute('data-toolstrip');
@@ -228,8 +193,8 @@ export default class TileContextToolbar {
                     button.setAttribute('data-slot-number', i);
                     container.appendChild(button);
                     button.addEventListener('click', () => {
-                        const args = this.#createArgs(button);
-                        args.paletteSlot = parseInt(button.getAttribute('data-slot-number'));
+                        const command = button.getAttribute('data-command');
+                        const args = this.#createArgs(command, button);
                         this.#dispatcher.dispatch(EVENT_OnCommand, args);
                     });
                 }
@@ -258,16 +223,19 @@ export default class TileContextToolbar {
 
 
     /**
+     * @param {string} command 
      * @param {HTMLElement} element 
      * @returns {TileContextToolbarCommandEventArgs}
      */
-    #createArgs(element) {
+    #createArgs(command, element) {
+
         const referenceBounds = new DOMRect(
             parseInt(this.#element.querySelector('[data-field=referenceX]')?.value ?? 0),
             parseInt(this.#element.querySelector('[data-field=referenceY]')?.value ?? 0),
             parseInt(this.#element.querySelector('[data-field=referenceWidth]')?.value ?? 0),
             parseInt(this.#element.querySelector('[data-field=referenceHeight]')?.value ?? 0)
         );
+
         const buttonLinkReferenceAspect = this.#element.querySelector('button[data-toggle=referenceImageAspect]');
 
         if (this.#lastBounds) {
@@ -284,13 +252,38 @@ export default class TileContextToolbar {
         }
 
         /** @type {TileContextToolbarCommandEventArgs} */
-        return {
-            command: element.getAttribute('data-command') ?? null,
+        const result = {
+            command: command ?? null,
             brushSize: 0,
             referenceBounds: referenceBounds,
             referenceLockAspect: isToggled(buttonLinkReferenceAspect),
             referenceTransparency: parseInt(this.#element.querySelector('[data-field=referenceTransparency]')?.value ?? 0)
         };
+
+        const coms = TileContextToolbar.Commands;
+
+        if (command === coms.rowColumnMode || command === coms.rowColumnFillMode) {
+            /** @type {HTMLButtonElement} */
+            const modeButton = command === coms.rowColumnMode ? element : this.#element.querySelector(`button[data-command=${commands.rowColumnMode}].active`);
+            /** @type {HTMLSelectElement} */
+            const fillModeSelect = this.#element.querySelector(`select[data-command=${commands.rowColumnFillMode}]`);
+            if (modeButton) {
+                result.rowColumnMode = modeButton.getAttribute('data-mode');
+                result.rowColumnFillMode = fillModeSelect.value;
+            } else {
+                throw new Error('Unable to determine active fill mode.');
+            }
+        }
+
+        if (command === coms.brushSize) {
+            result.brushSize = parseInt(element.getAttribute('data-brush-size') ?? 0);
+        }
+
+        if (command === coms.paletteSlot) {
+            args.paletteSlot = parseInt(element.getAttribute('data-slot-number'));
+        }
+
+        return result;
     }
 
 
@@ -313,6 +306,7 @@ function isToggled(element) {
  * @property {string[]?} disabledCommands - An array of strings containing disabled buttons.
  * @property {number?} [brushSize] - Selected brush size, 1 to 5.
  * @property {string?} [rowColumnMode] - Mode for add / remove row / column.
+ * @property {string?} [rowColumnFillMode] - Fill mode for the row / column tool.
  * @property {number?} [paletteSlot] - Palette slot.
  * @property {number?} [paletteSlotCount] - Number of palette slots.
  * @property {DOMRect?} referenceBounds - Bounds for the reference image.
