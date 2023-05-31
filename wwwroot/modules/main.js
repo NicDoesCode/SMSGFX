@@ -51,6 +51,7 @@ import PaletteList from "./models/paletteList.js";
 
 import TileMapRowColumnTool from "./tools/tileMapRowColumn.js";
 import TileLinkBreakTool from "./tools/tileLinkBreak.js";
+import EyedropperTool from "./tools/eyedropperTool.js";
 
 
 /* ****************************************************************************************************
@@ -1054,10 +1055,16 @@ function handleTileEditorOnEvent(args) {
                 }
 
                 // Show the palette colour
-                const pixel = tileSet.getPixelAt(args.x, args.y);
-                if (pixel !== null) {
+                if (args.isInBounds) {
+                    const colourIndex = EyedropperTool.getPixelColour(getTileGrid(), getTileSet(), args.x, args.y);
+                    if (colourIndex !== null) {
+                        paletteEditor.setState({
+                            highlightedColourIndex: colourIndex
+                        });
+                    }
+                } else {
                     paletteEditor.setState({
-                        highlightedColourIndex: pixel
+                        highlightedColourIndex: null
                     });
                 }
                 break;
@@ -1878,7 +1885,7 @@ function takeToolAction(args) {
 
         } else if (tool === TileEditorToolbar.Tools.eyedropper) {
 
-            const colourIndex = getTileSet().getPixelAt(imageX, imageY);
+            const colourIndex = EyedropperTool.getPixelColour(getTileGrid(), getTileSet(), imageX, imageY);
             if (colourIndex !== null) {
                 selectColourIndex(colourIndex);
             }

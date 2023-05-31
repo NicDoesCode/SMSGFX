@@ -154,6 +154,8 @@ export default class PaletteEditor {
         }
         if (typeof state?.highlightedColourIndex === 'number' && state?.highlightedColourIndex >= 0 && state?.highlightedColourIndex < 16) {
             this.#highlightPaletteColour(state.highlightedColourIndex);
+        } else if (state.highlightedColourIndex === null) {
+            this.#highlightPaletteColour(-1);
         }
         if (typeof state?.title === 'string') {
             this.#element.querySelectorAll(`[data-command=${commands.paletteTitle}]`).forEach(element => {

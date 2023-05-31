@@ -316,8 +316,8 @@ function setColourOnPixel(tileGrid, tileSet, x, y, colour) {
  */
 function translateCoordinate(tileInfo, x, y) {
     return {
-        x: tileInfo.horizontalFlip ? 8 - x : x,
-        y: tileInfo.verticalFlip ? 8 - y : y
+        x: tileInfo.horizontalFlip ? 7 - x : x,
+        y: tileInfo.verticalFlip ? 7 - y : y
     };
 }
 
