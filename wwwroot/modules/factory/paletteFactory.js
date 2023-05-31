@@ -2,6 +2,7 @@ import Palette from "../models/palette.js";
 import PaletteColourFactory from "../factory/paletteColourFactory.js";
 import PaletteJsonSerialiser from "../serialisers/paletteJsonSerialiser.js";
 import ColourUtil from "../util/colourUtil.js";
+import PaletteColour from "../models/paletteColour.js";
 
 export default class PaletteFactory {
 
@@ -170,8 +171,11 @@ export default class PaletteFactory {
      * @returns {Palette}
      */
     static clone(palette) {
-        const serialiseable = PaletteJsonSerialiser.toSerialisable(palette);
-        return PaletteJsonSerialiser.fromSerialisable(serialiseable);
+        const newPalette = PaletteFactory.create(null, palette.title, palette.system);
+        palette.getColours().forEach((colour, index) => {
+            newPalette.setColour(index, PaletteColourFactory.create(colour.r, colour.g, colour.b));
+        });
+        return newPalette;
     }
 
     /**

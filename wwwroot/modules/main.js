@@ -1605,7 +1605,7 @@ function refreshProjectUI() {
 
     paletteEditor.setState({
         paletteList: getPaletteList(),
-        selectedPaletteIndex: instanceState.paletteSlot,
+        selectedPaletteIndex: state.persistentUIState.paletteIndex,
         selectedColourIndex: instanceState.colourIndex
     });
 

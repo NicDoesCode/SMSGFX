@@ -21,6 +21,20 @@ button:disabled img {
 .sms-layout label {
     font-size: 12px;
 }
+
+.sms-layout .sms-layout-header .navbar-brand img {
+    width: 75px;
+    height: auto;
+    box-shadow: 1px 1px 5px 1px rgba(0, 0, 0, 0.25);
+}
+.sms-layout .sms-layout-header .navbar-brand label {
+    font-size: 22px;
+    text-shadow: 1px 1px 5px #000000;
+}
+.sms-layout .sms-layout-header .sms-project-toolbar {
+    width: 400px;
+}
+
 .sms-layout .sms-layout-content .sms-layout-content-left {
     width: 250px;
 }
