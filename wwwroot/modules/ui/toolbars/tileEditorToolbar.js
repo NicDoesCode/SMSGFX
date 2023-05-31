@@ -34,7 +34,7 @@ const toolstrips = {
     tileAdd: 'tileAdd',
     scale: 'scale',
     tileWidth: 'tileWidth',
-    tools: 'tools',
+    tileSetTools: 'tileTools',
     tileMapTools: 'tileMapTools',
     undo: 'undo',
     showTileGrid: 'showTileGrid',

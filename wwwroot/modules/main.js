@@ -1631,6 +1631,17 @@ function refreshProjectUI() {
         disabledCommands.push(TileContextToolbar.Commands.tileClamp);
     }
 
+    const strips = TileEditorToolbar.ToolStrips;
+    const topVisibleStrips = [strips.tileAdd, strips.undo];
+    if (isTileSet()) topVisibleStrips.push(strips.tileSetTools);
+    if (isTileMap()) topVisibleStrips.push(strips.tileMapTools);
+    tileEditorToolbar.setState({
+        visibleToolstrips: topVisibleStrips
+    });
+    tileEditorBottomToolbar.setState({
+        visibleToolstrips: [strips.scale, strips.showTileGrid, strips.showPixelGrid]
+    });
+
     tileContextToolbar.setState({
         disabledCommands: disabledCommands,
         clampToTile: instanceState.clampToTile
@@ -2854,21 +2865,6 @@ function undoOrRedo(undoOrRedo) {
 
         // Set UI state
         refreshProjectUI();
-        // projectToolbar.setState({
-        //     projectTitle: getProject().title
-        // });
-        // projectDropdown.setState({
-        //     projectTitle: getProject().title
-        // });
-        // tileEditor.setState({
-        //     tileGrid: getTileGrid(),
-        //     tileSet: getTileSet(),
-        //     paletteList: getTileEditorPaletteList(),
-        //     palette: getPalette()
-        // });
-        // paletteEditor.setState({
-        //     paletteList: getPaletteList()
-        // });
     }
     setCommonTileToolbarStates({
         undoEnabled: undoManager.canUndo,
@@ -3575,8 +3571,11 @@ window.addEventListener('load', async () => {
 
     // Set up tool strips
     const strips = TileEditorToolbar.ToolStrips;
+    const topVisibleStrips = [strips.tileAdd, strips.undo];
+    if (isTileSet()) topVisibleStrips.push(strips.tileSetTools);
+    if (isTileMap()) topVisibleStrips.push(strips.tileMapTools);
     tileEditorToolbar.setState({
-        visibleToolstrips: [strips.tileAdd, strips.undo, strips.tools, strips.tileMapTools]
+        visibleToolstrips: topVisibleStrips
     });
     tileEditorBottomToolbar.setState({
         visibleToolstrips: [strips.scale, strips.showTileGrid, strips.showPixelGrid]
