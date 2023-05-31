@@ -50,6 +50,7 @@ import TileGridProvider from "./models/tileGridProvider.js";
 import PaletteList from "./models/paletteList.js";
 
 import TileMapRowColumnTool from "./tools/tileMapRowColumn.js";
+import TileLinkBreakTool from "./tools/tileLinkBreak.js";
 
 
 /* ****************************************************************************************************
@@ -1793,7 +1794,7 @@ function takeToolAction(args) {
 
         if (tool === TileEditorToolbar.Tools.select) {
 
-            const tileIndex = getTileSet().getTileIndexByCoordinate(imageX, imageY);
+            const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
             selectTile(tileIndex);
 
             instanceState.lastTileMapPx.x = -1;
@@ -1883,7 +1884,7 @@ function takeToolAction(args) {
 
         }
 
-        if (getTileMap()) {
+        if (isTileMap()) {
             let actionTaken = false;
 
             if (tool === TileEditorToolbar.Tools.rowColumn) {
@@ -1928,6 +1929,18 @@ function takeToolAction(args) {
                     addUndoState();
                     tile.palette = instanceState.paletteSlot;
                     actionTaken = true;
+                }
+
+            } else if (tool === TileEditorToolbar.Tools.tileLinkBreak && args.isInBounds) {
+
+                addUndoState();
+                try {
+                    const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
+                    actionTaken = TileLinkBreakTool.run(tileIndex, getTileMap(), getTileSet());
+                    if (!actionTaken) undoManager.removeLastUndo();
+                } catch (e) {
+                    undoManager.removeLastUndo();
+                    throw e;
                 }
 
             }
@@ -3231,6 +3244,9 @@ function selectTool(tool) {
         }
         if ([tools.rowColumn].includes(tool)) {
             visibleStrips.push(TileContextToolbar.Toolstrips.rowColumn);
+        }
+        if ([tools.tileLinkBreak].includes(tool)) {
+            visibleStrips.push(TileContextToolbar.Toolstrips.tileLinkBreak);
         }
         if ([tools.palettePaint].includes(tool)) {
             visibleStrips.push(TileContextToolbar.Toolstrips.palettePaint);

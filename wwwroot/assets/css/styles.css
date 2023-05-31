@@ -28,6 +28,10 @@ button:disabled img {
     width: 250px;
 }
 
+.btn.btn-outline-secondary i.bi img[src$=".svg"] {
+    opacity: 0.5;
+}
+
 
 /* Main layout */
 

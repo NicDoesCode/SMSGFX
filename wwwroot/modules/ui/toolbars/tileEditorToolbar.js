@@ -25,7 +25,8 @@ const tools = {
     referenceImage: 'referenceImage',
     palettePaint: 'palettePaint',
     tileStamp: 'tileStamp',
-    rowColumn: 'rowColumn'
+    rowColumn: 'rowColumn',
+    tileLinkBreak: 'tileLinkBreak'
 };
 const scales = [1, 2, 5, 10, 15, 20, 50];
 const toolstrips = {
