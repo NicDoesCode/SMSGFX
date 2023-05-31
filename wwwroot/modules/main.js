@@ -930,6 +930,7 @@ function handleTileManagerOnCommand(args) {
 
         case TileManager.Commands.tileSelect:
             selectTileSetTile(args.tileId);
+            setTileSetTileIfTileMapTileSelected(args.tileId);
             break;
 
         case TileManager.Commands.tileMapClone:
@@ -2308,11 +2309,11 @@ function setTileAttributes(tileAttributes) {
     if (!tileAttributes) return;
     if (instanceState.tileIndex < 0 || instanceState.tileIndex >= getTileGrid().tileCount) return;
 
-    addUndoState();
-
     const tileIndex = instanceState.tileIndex;
     const tileMapTile = getTileMap().getTileByIndex(tileIndex);
     if (!tileMapTile) return;
+
+    addUndoState();
 
     if (typeof tileAttributes.horizontalFlip === 'boolean') {
         tileMapTile.horizontalFlip = tileAttributes.horizontalFlip;
@@ -2326,6 +2327,37 @@ function setTileAttributes(tileAttributes) {
     if (typeof tileAttributes.palette === 'number') {
         tileMapTile.palette = tileAttributes.palette;
     }
+
+    state.setProject(getProject());
+    state.saveToLocalStorage();
+
+    tileEditor.setState({
+        tileGrid: getTileGrid(),
+        tileSet: getTileSet()
+    });
+    selectTile(tileIndex);
+}
+
+/**
+ * Sets the tile ID of a particular tile if a tile map tile is selected.
+ * @param {string} tileId - Unique tile ID to set.
+ */
+function setTileSetTileIfTileMapTileSelected(tileId) {
+    if (!isTileMap()) return;
+    if (!tileId) return;
+    if (instanceState.tileIndex < 0 || instanceState.tileIndex >= getTileGrid().tileCount) return;
+    if (instanceState.tool !== TileEditorToolbar.Tools.tileAttributes) return;
+
+    const tile = getTileSet().getTileById(tileId);
+    if (!tile) return;
+
+    const tileIndex = instanceState.tileIndex;
+    const tileMapTile = getTileMap().getTileByIndex(tileIndex);
+    if (!tileMapTile) return;
+
+    addUndoState();
+
+    tileMapTile.tileId = tile.tileId;
 
     state.setProject(getProject());
     state.saveToLocalStorage();
