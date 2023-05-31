@@ -408,8 +408,8 @@ export default class TileMap extends TileGridProvider {
         return {
             tileId: tileMapTile.tileId,
             paletteIndex: tileMapTile.palette,
-            horizontalFlip: false,
-            verticalFlip: false,
+            horizontalFlip: tileMapTile.horizontalFlip,
+            verticalFlip: tileMapTile.verticalFlip,
             tileIndex: tileIndex
         };
     }

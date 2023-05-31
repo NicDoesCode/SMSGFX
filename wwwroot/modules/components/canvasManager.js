@@ -518,6 +518,7 @@ export default class CanvasManager {
         const numColours = palette.getColours().length;
 
         if (tile) {
+            let pixelPaletteIndex = 0;
             for (let tilePx = 0; tilePx < 64; tilePx++) {
 
                 const tileCol = tilePx % 8;
@@ -526,7 +527,17 @@ export default class CanvasManager {
                 const x = ((tileGridCol * 8) + tileCol) * pxSize;
                 const y = ((tileGridRow * 8) + tileRow) * pxSize;
 
-                let pixelPaletteIndex = tile.readAt(tilePx);
+                if (tileInfo.horizontalFlip && tileInfo.verticalFlip) {
+                    pixelPaletteIndex = tile.readAt(63 - tilePx);
+                } else if (tileInfo.horizontalFlip) {
+                    const readPx = (tileRow * 8) + (7 - tileCol);
+                    pixelPaletteIndex = tile.readAt(readPx);
+                } else if (tileInfo.verticalFlip) {
+                    const readPx = ((7 - tileRow) * 8) + tileCol;
+                    pixelPaletteIndex = tile.readAt(readPx);
+                } else {
+                    pixelPaletteIndex = tile.readAt(tilePx);
+                }
 
                 // Set colour
                 if (pixelPaletteIndex >= 0 && pixelPaletteIndex < numColours) {
