@@ -1,3 +1,5 @@
+import GeneralUtil from "./generalUtil.js";
+
 const componentRegex = /^[A-z\d_]+(\/[A-z\d_]+)*$/;
 const componentCache = document.createElement('div');
 let documentLoadAttempted = false;
@@ -51,7 +53,50 @@ export default class TemplateUtil {
     }
 
 
+    /**
+     * Wires up label elements to their form elements.
+     * @param {HTMLElement} rootElement - Element to scan.
+     */
+    static wireUpLabels(rootElement) {
+        rootElement.querySelectorAll('[data-labelled-by]').forEach(labelledElement => {
+            const labelledBy = labelledElement.getAttribute('data-labelled-by');
+            const labelElm = rootElement.querySelector(`label[for=${labelledBy}]`)
+            if (labelElm) {
+                const id = `smsgfx${GeneralUtil.generateRandomString(16)}`;
+                labelElm.setAttribute('for', id);
+                labelledElement.id = id;
+            }
+        });
+    }
+
+    /**
+     * Wires up label auto events on their elements.
+     * @param {HTMLElement} rootElement - Element to scan.
+     * @param {TemplateCommandAutoEventCallback} callback - Event callback.
+     */
+    static wireUpCommandAutoEvents(rootElement, callback) {
+        if (typeof callback !== 'function') return;
+
+        rootElement.querySelectorAll('[data-command][data-auto-event]').forEach((elm) => {
+            const command = elm.getAttribute('data-command');
+            const autoEvent = elm.getAttribute('data-auto-event');
+            if (autoEvent === 'click') elm.addEventListener('click', () => callback(elm, autoEvent, command));
+            if (autoEvent === 'change') elm.addEventListener('change', () => callback(elm, autoEvent, command));
+        });
+    }
+
+
 }
+
+
+/**
+ * Event callback.
+ * @callback TemplateCommandAutoEventCallback
+ * @argument {HTMLElement} sender - Element that initiated the event.
+ * @argument {string} eventType - Type of event that occurred.
+ * @argument {string} command - Associated command.
+ * @exports
+ */
 
 
 /** @param {string} componentName */

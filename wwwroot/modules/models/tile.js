@@ -130,10 +130,7 @@ export default class Tile {
      * @returns {boolean} true if the value was updated, otherwise false.
      */
     setValueAtCoord(x, y, value) {
-        if (x === null) throw new Error('X coordinate not specified.');
-        if (x < 0 || x > 8) throw new Error('X coordinate must be between 0 and 8.');
-        if (y === null) throw new Error('Y coordinate not specified.');
-        if (y < 0 || y > 8) throw new Error('Y coordinate must be between 0 and 8.');
+        if (x === null || y === null || x < 0 || x >= 8 || y < 0 || y >= 8) return false;
         return this.setValueAt(y * 8 + x, value);
     }
 

@@ -31,13 +31,13 @@ const tools = {
 };
 const scales = [1, 2, 5, 10, 15, 20, 50];
 const toolstrips = {
-    tileAdd: 'tileAdd', 
-    scale: 'scale', 
-    tileWidth: 'tileWidth', 
-    tools: 'tools', 
+    tileAdd: 'tileAdd',
+    scale: 'scale',
+    tileWidth: 'tileWidth',
+    tools: 'tools',
     tileMapTools: 'tileMapTools',
     undo: 'undo',
-    showTileGrid: 'showTileGrid', 
+    showTileGrid: 'showTileGrid',
     showPixelGrid: 'showPixelGrid'
 }
 
@@ -76,29 +76,16 @@ export default class TileEditorToolbar {
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 
-        this.#element.querySelectorAll('button[data-command]').forEach(element => {
-            element.onclick = () => this.#handleToolbarButton(element);
-        });
-
-        this.#element.querySelectorAll(`[data-command=${commands.tileWidth}]`).forEach(element => {
-            element.onchange = () => this.#handleTileWidthChange(element);
-        });
-
-        this.#element.querySelectorAll(`select[data-command=${commands.scale}]`).forEach(element => {
-            element.onchange = () => this.#handleScaleChange(element);
-        });
-
-        this.#element.querySelectorAll(`input[type=checkbox][data-command]`).forEach(element => {
-            element.onchange = () => this.#handleCheckedChanged(element);
-        });
-
-        this.#element.querySelectorAll('[data-labelled-by]').forEach(element => {
-            const labelledBy = element.getAttribute('data-labelled-by');
-            const labelElm = this.#element.querySelector(`label[for=${labelledBy}]`)
-            if (labelElm) {
-                const id = `smsgfx${GeneralUtil.generateRandomString(16)}`;
-                labelElm.setAttribute('for', id);
-                element.id = id;
+        TemplateUtil.wireUpLabels(this.#element);
+        TemplateUtil.wireUpCommandAutoEvents(this.#element, (sender, ev, command) => {
+            if (sender.tagName === 'BUTTON') {
+                this.#handleToolbarButton(sender);
+            } else if (sender.tagName === 'INPUT' && sender.type === 'checkbox') {
+                this.#handleCheckedChanged(element);
+            } else if (command === commands.tileWidth) {
+                this.#handleTileWidthChange(sender);
+            } else if (command === commands.scale) {
+                this.#handleScaleChange(sender);
             }
         });
     }

@@ -1,5 +1,5 @@
 import EventDispatcher from "../../components/eventDispatcher.js";
-import TileMapRowColumnTool from "../../tools/tileMapRowColumn.js";
+import TileMapRowColumnTool from "../../tools/tileMapRowColumnTool.js";
 import TemplateUtil from "../../util/templateUtil.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
@@ -11,6 +11,7 @@ const commands = {
     mirrorHorizontal: 'mirrorHorizontal', mirrorVertical: 'mirrorVertical',
     insertBefore: 'insertBefore', insertAfter: 'insertAfter',
     brushSize: 'brushSize',
+    tileClamp: 'tileClamp',
     referenceImageLockAspect: 'referenceImageLockAspect',
     referenceImageSelect: 'referenceImageSelect',
     referenceImageClear: 'referenceImageClear',
@@ -62,15 +63,10 @@ export default class TileContextToolbar {
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 
-        this.#element.querySelectorAll('[data-command][data-auto-event]').forEach((elm) => {
-            const autoEvent = elm.getAttribute('data-auto-event');
-            const eventFn = () => {
-                const command = elm.getAttribute('data-command');
-                const args = this.#createArgs(command, elm);
-                this.#dispatcher.dispatch(EVENT_OnCommand, args);
-            };
-            if (autoEvent === 'click') elm.addEventListener('click', eventFn);
-            if (autoEvent === 'change') elm.addEventListener('change', eventFn);
+        TemplateUtil.wireUpLabels(this.#element);
+        TemplateUtil.wireUpCommandAutoEvents(this.#element, (sender, ev, command) => {
+            const args = this.#createArgs(command, sender);
+            this.#dispatcher.dispatch(EVENT_OnCommand, args);
         });
     }
 
@@ -104,14 +100,14 @@ export default class TileContextToolbar {
             }
         }
         if (state?.disabledCommands && Array.isArray(state.disabledCommands)) {
-            this.#element.querySelectorAll('[data-command]').forEach(button => {
+            this.#element.querySelectorAll('[data-command]').forEach((button) => {
                 button.removeAttribute('disabled');
             });
-            state.disabledCommands.forEach(disabledButton => {
-                if (disabledButton && typeof disabledButton === 'string') {
-                    if (this.#buttons[disabledButton]) {
-                        this.#buttons[disabledButton].addAttribute('disabled', 'disabled');
-                    }
+            state.disabledCommands.forEach((disabledCommand) => {
+                if (disabledCommand && typeof disabledCommand === 'string') {
+                    this.#element.querySelectorAll(`[data-command=${disabledCommand}]`).forEach((elm) => {
+                        elm.setAttribute('disabled', 'disabled');
+                    });
                 }
             });
         }
@@ -123,6 +119,11 @@ export default class TileContextToolbar {
                     button.classList.add('active');
                 }
             });
+        }
+        if (typeof state?.clampToTile === 'boolean') {
+            /** @type {HTMLInputElement?} */
+            const check = this.#element.querySelector(`[data-command=${TileContextToolbar.Commands.tileClamp}]`);
+            if (check) check.checked = state.clampToTile;
         }
         if (typeof state?.rowColumnMode !== 'undefined') {
             this.#element.querySelectorAll(`button[data-command=${TileContextToolbar.Commands.rowColumnMode}][data-mode]`)
@@ -317,6 +318,10 @@ export default class TileContextToolbar {
             result.brushSize = parseInt(element.getAttribute('data-brush-size') ?? 0);
         }
 
+        if (command === coms.tileClamp) {
+            result.tileClamp = element.nodeName === 'INPUT' && element.type === 'checkbox' && element.checked;
+        }
+
         if (command === coms.paletteSlot) {
             result.paletteSlot = parseInt(element.getAttribute('data-slot-number'));
         }
@@ -370,6 +375,7 @@ function isToggled(element) {
  * @property {string[]?} visibleToolstrips - An array of strings containing visible toolstrips.
  * @property {string[]?} disabledCommands - An array of strings containing disabled buttons.
  * @property {number?} [brushSize] - Selected brush size, 1 to 5.
+ * @property {boolean?} [clampToTile] - Clamp to tile?
  * @property {string?} [rowColumnMode] - Mode for add / remove row / column.
  * @property {string?} [rowColumnFillMode] - Fill mode for the row / column tool.
  * @property {number?} [paletteSlot] - Palette slot.
@@ -400,6 +406,7 @@ function isToggled(element) {
  * @typedef {object} TileContextToolbarCommandEventArgs
  * @property {string} command - Command being invoked.
  * @property {number?} [brushSize] - Brush size, 1 to 5.
+ * @property {boolean?} [tileClamp] - Clamp to tile?
  * @property {string?} [rowColumnMode] - Mode for add / remove row / column.
  * @property {string?} [rowColumnFillMode] - Tile fill mode for add / remove row / column.
  * @property {number?} [paletteSlot] - Palette slot.

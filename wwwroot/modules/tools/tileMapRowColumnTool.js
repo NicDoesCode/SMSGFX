@@ -19,7 +19,7 @@ const TILE_FILL_MODE = {
 };
 
 
-export default class TileMapRowColumn {
+export default class TileMapRowColumnTool {
 
 
     static get Mode() {
@@ -48,8 +48,8 @@ export default class TileMapRowColumn {
         if (!args) throw new Error('Invalid arguments.');
         if (!args.tileMap && !args.tileMap instanceof TileMap) throw new Error('Tile map must be supplied.');
         if (!args.tileSet && !args.tileSet instanceof TileSet) throw new Error('Tile set must be supplied.');
-        if (!TileMapRowColumn.Modes.includes(args.mode)) throw new Error('Unknown mode.');
-        if (!TileMapRowColumn.TileFillModes.includes(args.fillMode)) throw new Error('Unknown fill mode.');
+        if (!TileMapRowColumnTool.Modes.includes(args.mode)) throw new Error('Unknown mode.');
+        if (!TileMapRowColumnTool.TileFillModes.includes(args.fillMode)) throw new Error('Unknown fill mode.');
         if (typeof args.index !== 'number') throw new Error('Index must be supplied.');
 
         const tileMap = args.tileMap;
@@ -92,7 +92,7 @@ export default class TileMapRowColumn {
  * @param {number?} [colourIndex]
  */
 function insertTileMapRow(tileMap, tileSet, index, fillMode, tileId, colourIndex) {
-    if (typeof fillMode === 'undefined' || !TileMapRowColumn.TileFillModes.includes(fillMode)) {
+    if (typeof fillMode === 'undefined' || !TileMapRowColumnTool.TileFillModes.includes(fillMode)) {
         throw new Error('Unrecognised fill mode.');
     }
     tileMap.insertRow(index);
@@ -109,7 +109,7 @@ function insertTileMapRow(tileMap, tileSet, index, fillMode, tileId, colourIndex
  * @param {number?} [colourIndex]
  */
 function insertTileMapColumn(tileMap, tileSet, index, fillMode, tileId, colourIndex) {
-    if (typeof fillMode === 'undefined' || !TileMapRowColumn.TileFillModes.includes(fillMode)) {
+    if (typeof fillMode === 'undefined' || !TileMapRowColumnTool.TileFillModes.includes(fillMode)) {
         throw new Error('Unrecognised fill mode.');
     }
     tileMap.insertColumn(index);

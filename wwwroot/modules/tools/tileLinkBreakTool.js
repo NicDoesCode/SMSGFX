@@ -3,7 +3,7 @@ import Project from "../models/project.js";
 import TileMap from "../models/tileMap.js";
 import TileSet from "../models/tileSet.js";
 
-export default class TileLinkBreak {
+export default class TileLinkBreakTool {
 
     /**
      * Breaks a link from a tile index and promotes it to a new tile.
