@@ -162,7 +162,7 @@
         </div>
         <div data-toolstrip="referenceImage" class="col-auto">
             <div class="input-group input-group-sm p-0 m-0">
-                <select data-command="referenceImageDisplay" data-field="referenceTransparency" data-auto-event="change" 
+                <select data-command="referenceImageDisplay" data-field="referenceTransparency" data-auto-event="change"
                     class="form-select">
                     <options>
                         <option value="-1">Overlay above image</option>
@@ -269,5 +269,38 @@
             </p>
         </div>
         <!-- End: Tile stamp toolstrip -->
+        <!-- Tile attributes toolstrip -->
+        <div data-toolstrip="tileAttributes" class="col-auto ps-0">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text"><strong>Tile attributes</strong></span>
+            </div>
+        </div>
+        <div data-toolstrip="tileAttributes" class="col-auto ps-0">
+            <div class="input-group input-group-sm p-0 m-0">
+                <span class="input-group-text">Mirror</span>
+                <button class="btn btn-outline-secondary" title="Mirror tile horizontally."
+                    data-command="tileAttributes" data-field="horizontalFlip" data-auto-event="click">
+                    <i class="bi bi-vr"></i>
+                </button>
+                <button class="btn btn-outline-secondary" title="Mirror tile vertically." data-command="tileAttributes"
+                    data-field="verticalFlip" data-auto-event="click">
+                    <i class="bi bi-hr"></i>
+                </button>
+            </div>
+        </div>
+        <div data-toolstrip="tileAttributes" class="col-auto ps-0">
+            <div class="input-group input-group-sm p-0 m-0">
+                <button class="btn btn-sm btn-outline-secondary" title="Mirror tile horizontally."
+                    data-command="tileAttributes" data-field="priority" data-auto-event="click">
+                    <i class="bi bi-layers-fill"></i> Priority
+                </button>
+            </div>
+        </div>
+        <div data-toolstrip="tileAttributes" class="col-auto ps-0">
+            <div data-smsgfx-id="tileAttributePaletteSlot" class="input-group input-group-sm">
+                <span class="input-group-text">Palette slot</span>
+            </div>
+        </div>
+        <!-- End: Tile attributes toolstrip -->
     </div>
 </div>

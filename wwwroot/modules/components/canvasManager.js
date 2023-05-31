@@ -810,9 +810,9 @@ export default class CanvasManager {
         }
 
         // Highlight selected tile
-        if (this.selectedTileIndex >= 0 && this.selectedTileIndex < this.tileSet.length) {
-            const selCol = this.selectedTileIndex % this.tileSet.tileWidth;
-            const selRow = Math.floor(this.selectedTileIndex / this.tileSet.tileWidth);
+        if (this.selectedTileIndex >= 0 && this.selectedTileIndex < this.tileGrid.tileCount) {
+            const selCol = this.selectedTileIndex % this.tileGrid.columnCount;
+            const selRow = Math.floor(this.selectedTileIndex / this.tileGrid.columnCount);
             const tileX = 8 * selCol * pxSize;
             const tileY = 8 * selRow * pxSize;
 

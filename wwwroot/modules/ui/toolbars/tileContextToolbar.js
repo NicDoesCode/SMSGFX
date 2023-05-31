@@ -18,7 +18,8 @@ const commands = {
     referenceImageRevert: 'referenceImageRevert',
     rowColumnMode: 'rowColumnMode',
     rowColumnFillMode: 'rowColumnFillMode',
-    paletteSlot: 'paletteSlot'
+    paletteSlot: 'paletteSlot',
+    tileAttributes: 'tileAttributes'
 }
 const toolstrips = {
     select: 'select',
@@ -27,7 +28,8 @@ const toolstrips = {
     rowColumn: 'rowColumn',
     palettePaint: 'palettePaint',
     tileStamp: 'tileStamp',
-    tileLinkBreak: 'tileLinkBreak'
+    tileLinkBreak: 'tileLinkBreak',
+    tileAttributes: 'tileAttributes'
 }
 
 export default class TileContextToolbar {
@@ -173,6 +175,45 @@ export default class TileContextToolbar {
             const element = this.#element.querySelector(`[data-command=${commands.referenceImageDisplay}][data-field=referenceTransparency]`);
             if (element) element.value = state.referenceTransparency;
         }
+        if (state?.tileAttributes) {
+            this.#element.querySelectorAll('button[data-command=tileAttributes][data-field=horizontalFlip]').forEach((el) => {
+                if (state.tileAttributes.horizontalFlip) {
+                    el.classList.add('active');
+                    el.setAttribute('data-selected', 'true');
+                } else {
+                    el.classList.remove('active');
+                    el.removeAttribute('data-selected');
+                }
+            });
+            this.#element.querySelectorAll('button[data-command=tileAttributes][data-field=verticalFlip]').forEach((el) => {
+                if (state.tileAttributes.verticalFlip) {
+                    el.classList.add('active');
+                    el.setAttribute('data-selected', 'true');
+                } else {
+                    el.classList.remove('active');
+                    el.removeAttribute('data-selected');
+                }
+            });
+            this.#element.querySelectorAll('button[data-command=tileAttributes][data-field=priority]').forEach((el) => {
+                if (state.tileAttributes.priority) {
+                    el.classList.add('active');
+                    el.setAttribute('data-selected', 'true');
+                } else {
+                    el.classList.remove('active');
+                    el.removeAttribute('data-selected');
+                }
+            });
+            this.#element.querySelectorAll('button[data-command=tileAttributes][data-field=palette]').forEach((el) => {
+                const slotNumber = parseInt(el.getAttribute('data-slot-number'));
+                if (state.tileAttributes.palette === slotNumber) {
+                    el.classList.add('active');
+                    el.setAttribute('data-selected', 'true');
+                } else {
+                    el.classList.remove('active');
+                    el.removeAttribute('data-selected');
+                }
+            });
+        }
 
         if (typeof state?.enabled === 'boolean') {
             this.#enabled = state?.enabled;
@@ -183,22 +224,18 @@ export default class TileContextToolbar {
 
         if (typeof state?.paletteSlotCount === 'number') {
             this.#element.querySelectorAll('[data-smsgfx-id=paletteSlotSelect]').forEach((container) => {
-                container.querySelectorAll('button').forEach((button) => {
-                    button.remove();
+                fillPaletteSlotButtons(container, TileContextToolbar.Commands.paletteSlot, null, state.paletteSlotCount, (e, n) => {
+                    const command = e.getAttribute('data-command');
+                    const args = this.#createArgs(command, e);
+                    this.#dispatcher.dispatch(EVENT_OnCommand, args);
                 });
-                for (let i = 0; i < state.paletteSlotCount; i++) {
-                    const button = document.createElement('button');
-                    button.classList.add('btn', 'btn-outline-secondary');
-                    button.innerText = i;
-                    button.setAttribute('data-command', TileContextToolbar.Commands.paletteSlot);
-                    button.setAttribute('data-slot-number', i);
-                    container.appendChild(button);
-                    button.addEventListener('click', () => {
-                        const command = button.getAttribute('data-command');
-                        const args = this.#createArgs(command, button);
-                        this.#dispatcher.dispatch(EVENT_OnCommand, args);
-                    });
-                }
+            });
+            this.#element.querySelectorAll('[data-smsgfx-id=tileAttributePaletteSlot]').forEach((container) => {
+                fillPaletteSlotButtons(container, TileContextToolbar.Commands.tileAttributes, 'palette', state.paletteSlotCount, (e, n) => {
+                    const command = e.getAttribute('data-command');
+                    const args = this.#createArgs(command, e);
+                    this.#dispatcher.dispatch(EVENT_OnCommand, args);
+                });
             });
         }
 
@@ -284,6 +321,33 @@ export default class TileContextToolbar {
             result.paletteSlot = parseInt(element.getAttribute('data-slot-number'));
         }
 
+        if (command === coms.tileAttributes) {
+            const field = element.getAttribute('data-field');
+            /** @type {TileContextToolbarTileAttributes} */ const attr = {};
+            if (field === 'horizontalFlip') {
+                attr.horizontalFlip = element.getAttribute('data-selected') ? false : true;
+            } else {
+                attr.horizontalFlip = this.#element.querySelector(`[data-command=${command}][data-field=horizontalFlip]`).getAttribute('data-selected') ? true : false;
+            }
+            if (field === 'verticalFlip') {
+                attr.verticalFlip = element.getAttribute('data-selected') ? false : true;
+            } else {
+                attr.verticalFlip = this.#element.querySelector(`[data-command=${command}][data-field=verticalFlip]`).getAttribute('data-selected') ? true : false;
+            }
+            if (field === 'priority') {
+                attr.priority = element.getAttribute('data-selected') ? false : true;
+            } else {
+                attr.priority = this.#element.querySelector(`[data-command=${command}][data-field=priority]`).getAttribute('data-selected') ? true : false;
+            }
+            if (field === 'palette') {
+                attr.palette = parseInt(element.getAttribute('data-slot-number') ?? '0');
+            } else {
+                const selected = this.#element.querySelector(`[data-command=${command}][data-field=palette][data-selected]`);
+                attr.palette = parseInt(selected?.getAttribute('data-slot-number') ?? '0');
+            }
+            result.tileAttributes = attr;
+        }
+
         return result;
     }
 
@@ -313,6 +377,16 @@ function isToggled(element) {
  * @property {DOMRect?} referenceBounds - Bounds for the reference image.
  * @property {boolean?} referenceLockAspect - Whether or not to lock the aspect ratio for the reference image.
  * @property {number?} referenceTransparency - Transparency colour for the reference image.
+ * @property {TileContextToolbarTileAttributes?} [tileAttributes] - Tile attributes to fill.
+ * @exports
+ */
+
+/**
+ * @typedef {object} TileContextToolbarTileAttributes
+ * @property {boolean} horizontalFlip - Flip the tile horizontally?
+ * @property {boolean} verticalFlip - Flip the tile vertically?
+ * @property {boolean} priority - Does the tile have render priority?
+ * @property {boolean} palette - Which palette slot is the tile using?
  * @exports
  */
 
@@ -332,6 +406,38 @@ function isToggled(element) {
  * @property {DOMRect} referenceBounds - Bounds for the reference image.
  * @property {boolean} referenceLockAspect - Whether or not to lock the aspect ratio for the reference image.
  * @property {number} referenceTransparency - Colour index to draw transparent.
+ * @property {TileContextToolbarTileAttributes?} [tileAttributes] - Tile map tile attributes.
  * @exports
  */
+
+/**
+ * @callback PaletteSlotClickCallback
+ * @argument {HTMLElement} element
+ * @argument {number} slotNumber
+ */
+/**
+ * 
+ * @param {HTMLElement} element 
+ * @param {string} command 
+ * @param {string?} [field] 
+ * @param {number} slotCount 
+ * @param {PaletteSlotClickCallback} clickEvent 
+ */
+function fillPaletteSlotButtons(element, command, field, slotCount, clickEvent) {
+    element.querySelectorAll('button').forEach((button) => {
+        button.remove();
+    });
+    for (let slotNumber = 0; slotNumber < slotCount; slotNumber++) {
+        const button = document.createElement('button');
+        button.classList.add('btn', 'btn-outline-secondary');
+        button.innerText = slotNumber;
+        button.setAttribute('data-command', command);
+        if (field) {
+            button.setAttribute('data-field', field);
+        }
+        button.setAttribute('data-slot-number', slotNumber);
+        element.appendChild(button);
+        button.addEventListener('click', () => clickEvent(button, slotNumber));
+    }
+}
 

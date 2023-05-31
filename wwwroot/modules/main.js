@@ -885,6 +885,9 @@ function handleTileContextToolbarCommand(args) {
     if (args.command === TileContextToolbar.Commands.paletteSlot) {
         setPaletteSlot(args.paletteSlot);
     }
+    if (args.command === TileContextToolbar.Commands.tileAttributes) {
+        setTileAttributes(args.tileAttributes);
+    }
     if (args.command === TileContextToolbar.Commands.referenceImageSelect) {
         selectReferenceImage();
     }
@@ -1887,7 +1890,15 @@ function takeToolAction(args) {
         if (isTileMap()) {
             let actionTaken = false;
 
-            if (tool === TileEditorToolbar.Tools.rowColumn) {
+            if (tool === TileEditorToolbar.Tools.tileAttributes && args.isInBounds) {
+
+                const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
+                selectTile(tileIndex);
+
+                instanceState.lastTileMapPx.x = -1;
+                instanceState.lastTileMapPx.y = -1;
+
+            } else if (tool === TileEditorToolbar.Tools.rowColumn) {
 
                 addUndoState();
                 try {
@@ -2276,7 +2287,12 @@ function setPaletteSlot(paletteSlot) {
     paletteSlot = Math.max(paletteSlot, 0);
     paletteSlot = Math.min(paletteSlot, getNumberOfPaletteSlots() - 1);
 
+    addUndoState();
+
     instanceState.paletteSlot = paletteSlot;
+
+    state.setProject(getProject());
+    state.saveToLocalStorage();
 
     tileContextToolbar.setState({
         paletteSlot: instanceState.paletteSlot
@@ -2284,11 +2300,49 @@ function setPaletteSlot(paletteSlot) {
 }
 
 /**
+ * Sets the attributes on the currently selected tile.
+ * @param {import("./ui/toolbars/tileContextToolbar.js").TileContextToolbarTileAttributes} tileAttributes - Attributes to set.
+ */
+function setTileAttributes(tileAttributes) {
+    if (!isTileMap()) return;
+    if (!tileAttributes) return;
+    if (instanceState.tileIndex < 0 || instanceState.tileIndex >= getTileGrid().tileCount) return;
+
+    addUndoState();
+
+    const tileIndex = instanceState.tileIndex;
+    const tileMapTile = getTileMap().getTileByIndex(tileIndex);
+    if (!tileMapTile) return;
+
+    if (typeof tileAttributes.horizontalFlip === 'boolean') {
+        tileMapTile.horizontalFlip = tileAttributes.horizontalFlip;
+    }
+    if (typeof tileAttributes.verticalFlip === 'boolean') {
+        tileMapTile.verticalFlip = tileAttributes.verticalFlip;
+    }
+    if (typeof tileAttributes.priority === 'boolean') {
+        tileMapTile.priority = tileAttributes.priority;
+    }
+    if (typeof tileAttributes.palette === 'number') {
+        tileMapTile.palette = tileAttributes.palette;
+    }
+
+    state.setProject(getProject());
+    state.saveToLocalStorage();
+
+    tileEditor.setState({
+        tileGrid: getTileGrid(),
+        tileSet: getTileSet()
+    });
+    selectTile(tileIndex);
+}
+
+/**
  * Selects a tile at a given index.
  * @param {number} index - Tile index to insert.
  */
 function selectTile(index) {
-    if (index < 0 || index > getTileSet().length) return;
+    if (index < 0 || index > getTileGrid().tileCount) return;
 
     if (index !== instanceState.tileIndex) {
         instanceState.tileIndex = index;
@@ -2298,6 +2352,18 @@ function selectTile(index) {
     tileEditor.setState({
         selectedTileIndex: instanceState.tileIndex
     });
+
+    if (isTileMap() && instanceState.tool === TileEditorToolbar.Tools.tileAttributes) {
+        const tileSetTile = getTileMap().getTileByIndex(index);
+        tileContextToolbar.setState({
+            tileAttributes: {
+                horizontalFlip: tileSetTile.horizontalFlip,
+                verticalFlip: tileSetTile.verticalFlip,
+                priority: tileSetTile.priority,
+                palette: tileSetTile.palette
+            }
+        });
+    }
 }
 
 /**
@@ -3241,6 +3307,9 @@ function selectTool(tool) {
         }
         if ([tools.referenceImage].includes(tool)) {
             visibleStrips.push(TileContextToolbar.Toolstrips.referenceImage);
+        }
+        if ([tools.tileAttributes].includes(tool)) {
+            visibleStrips.push(TileContextToolbar.Toolstrips.tileAttributes);
         }
         if ([tools.rowColumn].includes(tool)) {
             visibleStrips.push(TileContextToolbar.Toolstrips.rowColumn);
