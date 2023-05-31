@@ -34,4 +34,18 @@ export default class PaintTool {
         return PaintUtil.replaceColourOnTileGrid(tileGrid, tileSet, x, y, sourceColourIndex, replacementColourIndex, { brushSize: pencilSize, affectAdjacentTiles: !clampToTile });
     }
 
+    /**
+     * Fills pixels on a tile grid.
+     * @param {TileGridProvider} tileGrid - Tile grid with the tiles that comprise the image.
+     * @param {TileSet} tileSet - Tile set that contains the tiles to modify.
+     * @param {number} x - X coordinate.
+     * @param {number} y - Y coordinate.
+     * @param {number} colourIndex - Colour index to be filled.
+     * @param {boolean} clampToTile - Will neigbouring tiles be affected?
+     * @returns {boolean}
+     */
+    static fillColourOnTileGrid(tileGrid, tileSet, x, y, colourIndex, clampToTile) {
+        PaintUtil.fillOnTileGrid(tileGrid, tileSet, x, y, colourIndex, { affectAdjacentTiles: !clampToTile });
+    }
+
 }

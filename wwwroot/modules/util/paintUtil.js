@@ -3,6 +3,7 @@ import Palette from '../models/palette.js';
 import Tile from '../models/tile.js';
 import TileSet from '../models/tileSet.js'
 import TileGridProvider from '../models/tileGridProvider.js';
+import TileSetFactory from '../factory/tileSetFactory.js';
 
 export default class PaintUtil {
 
@@ -147,8 +148,9 @@ export default class PaintUtil {
      * @param {number} x - Origin X coordinate.
      * @param {number} y - Origin Y coordinate.
      * @param {number} fillColour - Palette index to fill with.
+     * @param {FillOptions} options - Options for bucked tool.
      */
-    static fillOnTileGrid(tileGrid, tileSet, x, y, fillColour) {
+    static fillOnTileGrid(tileGrid, tileSet, x, y, fillColour, options) {
         const w = tileGrid.columnCount * 8;
         const h = tileGrid.rowCount * 8;
         if (x < 0 || x >= w || y < 0 || y >= h) throw 'Invalid origin coordinates.';
@@ -156,6 +158,15 @@ export default class PaintUtil {
         const tileInfo = tileGrid.getTileInfoByPixel(x, y);
         const tile = tileSet.getTileById(tileInfo?.tileId ?? null);
         if (!tile) return;
+
+        // Constrain? Create a virtual tile set and operate on that
+        if (!options.affectAdjacentTiles) {
+            const newTileSet = TileSetFactory.create();
+            newTileSet.addTile(tile);
+            tileGrid = newTileSet;
+            x = x % 8;
+            y = y % 8;
+        }
 
         const coords = translateCoordinate(tileInfo, x % 8, y % 8);
         const originColour = tile.readAtCoord(coords.x, coords.y);
@@ -345,6 +356,13 @@ function translateCoordinate(tileInfo, x, y) {
  * @type {object}
  * @property {number} brushSize - Size of the brush in pixels, between 1 and 100.
  * @property {boolean} affectAdjacentTiles - Default: true. Will neigbouring tiles also be drawn onto?
+ * @exports
+ */
+
+/**
+ * @typedef FillOptions
+ * @type {object}
+ * @property {boolean} affectAdjacentTiles - Default: true. Will neigbouring tiles also be affected?
  * @exports
  */
 
