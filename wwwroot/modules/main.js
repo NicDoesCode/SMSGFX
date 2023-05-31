@@ -1936,7 +1936,7 @@ function takeToolAction(args) {
                 addUndoState();
                 try {
                     const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
-                    actionTaken = TileLinkBreakTool.run(tileIndex, getTileMap(), getTileSet());
+                    actionTaken = TileLinkBreakTool.run(tileIndex, getTileMap(), getTileSet(), getProject());
                     if (!actionTaken) undoManager.removeLastUndo();
                 } catch (e) {
                     undoManager.removeLastUndo();
