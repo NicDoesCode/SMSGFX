@@ -81,7 +81,8 @@ export default class TileEditor {
 
         this.#tbCanvas = this.#element.querySelector('[data-sms-id=tile-editor-canvas]');
         this.#canvasManager = new CanvasManager();
-        this.#canvasManager.backgroundColour = window.getComputedStyle(this.#element).backgroundColor;
+        // this.#canvasManager.backgroundColour = window.getComputedStyle(this.#element).backgroundColor;
+        this.#canvasManager.backgroundColour = null;
 
         document.addEventListener('mousedown', (ev) => this.#handleCanvasMouseDown(ev));
         document.addEventListener('mouseup', (ev) => this.#handleCanvasMouseUp(ev));
@@ -90,13 +91,22 @@ export default class TileEditor {
         this.#tbCanvas.addEventListener('contextmenu', (ev) => this.#handleCanvasContextMenu(ev));
         this.#tbCanvas.addEventListener('wheel', (ev) => this.#handleCanvasMouseWheel(ev));
 
-        const canvasObserver = new ResizeObserver((entries) => {
+        // Observe size changes and redraw where needed
+        const canvasResizeObserver = new ResizeObserver(() => {
             if (this.#enabled && this.#canvasManager.canDraw) {
                 this.#canvasManager.drawUI(this.#tbCanvas);
             }
         });
-        canvasObserver.observe(this.#tbCanvas);
+        canvasResizeObserver.observe(this.#tbCanvas);
 
+        const containerResizeObserver = new ResizeObserver(() => {
+            if (this.#enabled && this.#canvasManager.canDraw) {
+                resizeCanvas(this.#tbCanvas);
+            }
+        });
+        containerResizeObserver.observe(this.#tbCanvas.parentElement);
+
+        // Load up the tile set context menu
         TileEditorContextMenu.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=tile-editor-context-menu]'))
             .then((obj) => {
                 this.#tileEditorContextMenu = obj
@@ -228,12 +238,12 @@ export default class TileEditor {
         // Theme
         if (typeof state?.theme === 'string') {
             if (state.theme === 'light') {
-                this.#canvasManager.backgroundColour = '#e9ecef';
-                dirty = true;
+                // this.#canvasManager.backgroundColour = '#e9ecef';
+                // dirty = true;
             }
             if (state.theme === 'dark') {
-                this.#canvasManager.backgroundColour = '#151719';
-                dirty = true;
+                // this.#canvasManager.backgroundColour = '#151719';
+                // dirty = true;
             }
         }
         // Canvas highlight mode
@@ -619,3 +629,14 @@ export default class TileEditor {
  * @property {boolean} ctrlKeyPressed - True when the control key is pressed, otherwise false, otherwise false.
  * @exports
  */
+
+/**
+ * @param {HTMLCanvasElement} canvas
+ */
+function resizeCanvas(canvas) {
+    const parent = canvas.parentElement;
+    const parentRect = parent.getBoundingClientRect();
+    canvas.style.position = 'absolute';
+    canvas.width = parentRect.width;
+    canvas.height = parentRect.height;
+}

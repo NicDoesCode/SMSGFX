@@ -597,32 +597,13 @@ export default class CanvasManager {
         const tileCanvas = this.#tileCanvas;
         const context = canvas.getContext('2d');
 
-        // Ensure the canvas itself is the correct height
-        const rect = canvas.parentElement.getBoundingClientRect();
-        // const lastRect = canvas.getBoundingClientRect();
-        canvas.width = rect.width - 15;
-        canvas.height = rect.height - 10;
-        // const thisRect = canvas.getBoundingClientRect();
-        // if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
-        //     // // TODO
-        //     // const lastHeight = canvas.clientHeight;
-        //     // const lwstWidth = canvas.clientHeight;
-        //     // // canvas.style.boxSizing = 'border-box';
-        //     // canvas.width = canvas.clientWidth;
-        //     // canvas.height -= canvas.clientHeight - lastHeight;
-        //     // canvas.height = canvas.clientHeight;
-        //     // canvas.height = canvas.clientHeight - 7;
-        //     // canvas.height -= canvas.clientHeight - lastHeight;
-        //     // console.log(canvas.clientHeight - lastHeight);
-        //     // const parent = canvas.parentElement;
-        //     // const parentRect = parent.getBoundingClientRect();
-        //     // canvas.width = parentRect.width;
-        //     // canvas.height = parentRect.height;
-        // }
-
         // Fill canvas background
-        context.fillStyle = this.backgroundColour;
-        context.fillRect(0, 0, canvas.width, canvas.height);
+        if (this.backgroundColour === null || this.backgroundColour === 'transparent') {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+        } else {
+            context.fillStyle = this.backgroundColour;
+            context.fillRect(0, 0, canvas.width, canvas.height);
+   }
 
         // Leave if no tile set or tile grid
         if (!this.tileSet || !this.tileGrid) return;

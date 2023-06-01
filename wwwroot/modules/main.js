@@ -1048,8 +1048,6 @@ function handleTileEditorOnEvent(args) {
                 break;
 
             case TileEditor.Events.pixelMouseOver:
-                const tileSet = getTileSet();
-
                 if (args.mousePrimaryIsDown) {
                     takeToolAction({
                         tool: instanceState.tool,
