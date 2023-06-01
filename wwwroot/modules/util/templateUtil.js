@@ -41,7 +41,17 @@ export default class TemplateUtil {
         if (component) {
             addComponentGlobalScopedCss(componentName, component);
 
+            /** @type {HTMLElement} */
             const clonedComponent = component.cloneNode(true);
+            element.classList.forEach((className) => {
+                clonedComponent.classList.add(className);
+            })
+            element.removeAttribute('class');
+            element.getAttributeNames().forEach((attrName) => {
+                if (attrName !== 'data-smsgfx-component-id') {
+                    clonedComponent.setAttribute(attrName, element.getAttribute(attrName));
+                }
+            });
             clonedComponent.removeAttribute('data-smsgfx-component');
             element.after(clonedComponent);
             element.remove();

@@ -1,39 +1,26 @@
-<div data-smsgfx-component="components/tileSetList">
-    <div data-smsgfx-id="tile-set-list"
-        class="sms-tile-set-list d-flex flex-row flex-wrap justify-content-center mt-1 mb-1">
-    </div>
+<div data-smsgfx-component="components/tileSetList" class="sms-tile-set-list">
     <script data-smsgfx-id="tile-set-list-template" type="text/x-handlebars-template">
         {{#each this}}
-            <button data-command="tileSelect" data-tile-id="{{tileId}}">
-            </button>
+            <button data-command="tileSelect" data-tile-id="{{tileId}}" class="btn btn-secondary"></button>
         {{/each}}
     </script>
     <style data-css-scope="global">
-        .sms-tile-set-list {
-            max-height: 500px;
-            overflow: scroll;
-        }
-
         .sms-tile-set-list button {
-            box-sizing: border-box;
-            cursor: pointer;
-            margin: 2px;
+            overflow: hidden;
             padding: 0;
-            background: none;
-            border: none;
-            width: 36px;
-            height: 36px;
+            margin: 0;
+            margin-right: 1px;
+            margin-bottom: 1px;
         }
 
         .sms-tile-set-list button.selected {
-            border: 2px solid white;
-            margin: 0;
+            border-color: white;
         }
 
         .sms-tile-set-list button canvas {
-            width: 32px;
-            height: 32px;
-            opacity: 0.5;
+            width: 100%;
+            height: auto;
+            opacity: 0.4;
         }
 
         .sms-tile-set-list button.selected canvas {

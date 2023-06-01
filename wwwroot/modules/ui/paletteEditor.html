@@ -1,32 +1,31 @@
 <div data-smsgfx-component="paletteEditor">
-    <!-- Palette editor : header -->
-    <div class="sms-toolstrip input-group input-group-sm">
-        <span class="input-group-text form-control">Palette</span>
-        <button data-command="paletteNew" class="btn btn-outline-secondary" title="Create a new palette.">
-            <i class="bi bi-plus-lg"></i>
-        </button>
-        <button data-command="paletteImport" class="btn btn-outline-secondary"
-            title="Import a palette from your assembly code.">
-            <i class="bi bi-code"></i>
-        </button>
-    </div>
-    <!-- End: Palette editor : header -->
-    <div class="sms-toolbox sms-palette card mt-2">
-        <!-- Palette editor : palette select and title -->
-        <div class="card-header p-0">
-            <select data-command="paletteSelect" class="form-select d-none">
-            </select>
-            <div class="input-group input-group-sm">
-                <input data-command="paletteTitle" type="text" class="form-control border border-0" aria-label="Enter name"
-                    list="tbPaletteSelect">
-                <button class="btn btn-outline-secondary btn-ui dropdown-toggle border border-0 border-start" type="button" data-bs-toggle="dropdown"
-                    aria-expanded="false"></button>
-                <ul data-linked-command="paletteSelect" class="sms-dropdown-menu dropdown-menu dropdown-menu-end">
-                </ul>
-            </div>
+    <select data-command="paletteSelect" class="form-select d-none">
+    </select>
+    <div class="sms-toolbox sms-palette card m-0 mb-2">
+        <!-- Palette editor : header -->
+        <div class="card-header sms-card-toolbar p-0 d-flex">
+            <span class="flex-fill p-1 ps-2">Palette</span>
+            <button data-command="paletteNew" class="btn btn-ui btn-outline-secondary border border-start border-0"
+                title="Create a new palette.">
+                <i class="bi bi-plus-lg"></i>
+            </button>
+            <button data-command="paletteImport" class="btn btn-ui btn-outline-secondary border border-start border-0"
+                title="Import a palette from your assembly code.">
+                <i class="bi bi-code"></i>
+            </button>
+            <button class="btn btn-outline-secondary dropdown-toggle btn-ui border border-0 border-start" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"></button>
+            <ul data-linked-command="paletteSelect" class="sms-dropdown-menu dropdown-menu dropdown-menu-end">
+            </ul>
         </div>
-        <!-- End: Palette editor : palette select and title -->
+        <!-- End: Palette editor : header -->
         <div class="card-body p-2">
+            <div class="row mb-2">
+                <div class="col">
+                    <input data-command="paletteTitle" type="text" class="form-control" aria-label="Enter name"
+                        list="tbPaletteSelect">
+                </div>
+            </div>
             <select data-command="paletteSystem" class="form-select form-select-sm visually-hidden">
                 <option value="ms">Master System</option>
                 <option value="gg">Game Gear</option>
@@ -83,12 +82,14 @@
             </div>
             <div class="row mt-1 mb-0 ps-3 pe-3">
                 <div class="col p-1">
-                    <button data-command="paletteClone" class="btn btn-sm btn-outline-secondary btn-ui m-0 w-100" type="button">
+                    <button data-command="paletteClone" class="btn btn-sm btn-outline-secondary btn-ui m-0 w-100"
+                        type="button">
                         <i class="bi bi-file-earmark-plus"></i> Clone
                     </button>
                 </div>
                 <div class="col p-1">
-                    <button data-command="paletteDelete" class="btn btn-sm btn-outline-secondary btn-ui m-0 w-100" type="button">
+                    <button data-command="paletteDelete" class="btn btn-sm btn-outline-secondary btn-ui m-0 w-100"
+                        type="button">
                         <i class="bi bi bi-trash-fill"></i> Remove
                     </button>
                 </div>

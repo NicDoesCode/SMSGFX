@@ -59,6 +59,17 @@ body {}
     background-color: var(--bs-dark-bg-subtle);
 }
 
+.sms-card-toolbar button {
+    min-width: 31px;
+    padding: .25rem .5rem;
+    border-radius: 0;
+    font-size: .875rem !important;
+}
+
+.sms-card-toolbar button:last-of-type {
+    border-top-right-radius: var(--bs-border-radius);
+}
+
 /* Utility classes */
 
 button:disabled img {

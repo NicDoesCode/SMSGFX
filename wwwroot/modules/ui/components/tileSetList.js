@@ -29,8 +29,6 @@ export default class TileSetList {
     #palette;
     /** @type {string?} */
     #selectedTileId = null;
-    /** @type {HTMLElement} */
-    #listElmement;
     /** @type {Object.<string, HTMLCanvasElement>} */
     #canvases = {};
 
@@ -41,12 +39,13 @@ export default class TileSetList {
      */
     constructor(element) {
         this.#element = element;
-        this.#listElmement = this.#element.querySelector('[data-smsgfx-id=tile-set-list]');
 
         this.#dispatcher = new EventDispatcher();
 
         // Compile handlebars template
-        const source = this.#element.querySelector('[data-smsgfx-id=tile-set-list-template]').innerHTML;
+        const templateElement = this.#element.querySelector('[data-smsgfx-id=tile-set-list-template]');
+        const source = templateElement.innerHTML;
+        templateElement.remove();
         this.#tileSetListTemplate = Handlebars.compile(source);
     }
 
@@ -129,9 +128,15 @@ export default class TileSetList {
             };
         });
         const html = this.#tileSetListTemplate(renderList);
+        const dom = document.createElement('div');
+        dom.innerHTML = html;
 
-        this.#listElmement.innerHTML = html;
-        this.#listElmement.querySelectorAll('[data-command]').forEach((button) => {
+        this.#element.querySelectorAll('[data-command]').forEach((button) => {
+            button.remove();
+        });
+
+        dom.querySelectorAll('[data-command]').forEach((button) => {
+            this.#element.appendChild(button);
             const command = button.getAttribute('data-command');
             const tileId = button.getAttribute('data-tile-id');
             if (command && tileId) {
@@ -142,6 +147,7 @@ export default class TileSetList {
                 if (canvas) {
                     while (button.hasChildNodes()) button.firstChild.remove();
                     button.appendChild(canvas);
+                    button.style.height = `${canvas.getBoundingClientRect().height}px`;
                 }
                 /** @param {MouseEvent} ev */
                 button.onclick = (ev) => {

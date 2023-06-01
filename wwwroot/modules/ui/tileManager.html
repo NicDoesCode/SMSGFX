@@ -1,25 +1,18 @@
-<div data-smsgfx-component="tileManager" class="sms-tile-manager">
-
-    <div class="sms-toolbox input-group input-group-sm mb-2 rounded-top">
-        <span class="input-group-text form-control">Tile map</span>
-        <button data-command="tileMapNew" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
-            title="Create a new tile map.">
-            <i class="bi bi-plus-lg"></i>
-        </button>
-    </div>
+<div data-smsgfx-component="tileManager" class="sms-tile-manager d-flex flex-column h-100">
+    <select data-command="tileMapSelect" data-auto-event="change" class="form-select d-none">
+    </select>
 
     <div class="sms-toolbox card mb-2">
-        <div class="card-header p-0">
-            <select data-command="tileMapSelect" data-auto-event="change" class="form-select d-none">
-            </select>
-            <div class="input-group input-group-sm">
-                <input data-command="tileMapChange" data-auto-event="change" data-field="title" type="text"
-                    class="form-control border border-0" aria-label="Enter name">
-                <button class="btn btn-outline-secondary btn-ui dropdown-toggle border-0 border-start"
-                    data-bs-toggle="dropdown" title="Select a tile set."></button>
-                <ul data-smsgfx-id="tileMapSelectDropDown" class="dropdown-menu">
-                </ul>
-            </div>
+        <div class="card-header sms-card-toolbar p-0 d-flex">
+            <span class="flex-fill p-1 ps-2">Tile map</span>
+            <button data-command="tileMapNew" data-auto-event="click"
+                class="btn btn-ui btn-outline-secondary border border-start border-0" title="Create a new tile map.">
+                <i class="bi bi-plus-lg"></i>
+            </button>
+            <button class="btn btn-outline-secondary dropdown-toggle btn-ui border border-0 border-start" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false" title="Select a tile map."></button>
+            <ul data-smsgfx-id="tileMapSelectDropDown" class="dropdown-menu">
+            </ul>
         </div>
         <div class="card-body p-2 visually-hidden" data-smsgfx-id="tileSetProperties">
             <div class="row mt-1 mb-0 ps-3 pe-3">
@@ -54,12 +47,19 @@
             <div class="row mt-1 mb-0 ps-3 pe-3">
                 <div class="col p-1">
                     <label class="form-label">Display tile width</label>
-                    <input data-smsgfx-id="tileSetTileWidth" data-command="tileSetChange" data-field="tileWidth" data-auto-event="change" type="number" class="form-control form-control-sm"
+                    <input data-smsgfx-id="tileSetTileWidth" data-command="tileSetChange" data-field="tileWidth"
+                        data-auto-event="change" type="number" class="form-control form-control-sm"
                         title="Sets how many tiles to display per line in the tile editor.">
                 </div>
             </div>
         </div>
         <div class="card-body p-2 visually-hidden" data-smsgfx-id="tileMapProperties">
+            <div class="row mb-2">
+                <div class="col">
+                    <input data-command="tileMapChange" data-auto-event="change" data-field="title" type="text"
+                        class="form-control" aria-label="Enter name">
+                </div>
+            </div>
             <div class="row">
                 <div class="col">
                     <p class="mb-1">Palette slots</p>
@@ -116,17 +116,27 @@
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header">
-            Tile palette
+    <div class="sms-toolbox card flex-fill">
+        <div class="card-header sms-card-toolbar p-0">
+            <p class="flex-fill p-1 ps-2 m-0">Tile palette</p>
         </div>
         <div class="card-body p-0">
-            <div data-smsgfx-component-id="tile-set-list">
+            <div data-smsgfx-component-id="tile-set-list" class="sms-tile-manager-tiles position-absolute top-0 start-0 bottom-0 end-0 p-2 overflow-scroll">
             </div>
         </div>
     </div>
 
+    <div data-toolstrip="tileAdd" class="col-auto m-0 mt-2 me-2 p-0 invisible">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text border border-0">&nbsp;</span>
+        </div>
+    </div>
+
     <style data-css-scope="global">
+        .sms-tile-manager .sms-tile-manager-tiles {
+            margin-top: 30px;
+        }
+
         .sms-tile-manager .sms-palette-display .sms-palette-display-colours {
             display: flex;
             flex-direction: row;
