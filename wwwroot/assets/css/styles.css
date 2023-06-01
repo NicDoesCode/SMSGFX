@@ -1,3 +1,11 @@
+body {
+}
+
+[data-bs-theme=dark] body {
+    background-image: url(./../image/background-02.png);
+    background-blend-mode: multiply;
+}
+
 /* Utility classes */
 
 button:disabled img {
@@ -15,6 +23,7 @@ button:disabled img {
 .sms-layout {
     font-size: 14px;
 }
+
 .sms-layout input,
 .sms-layout select,
 .sms-layout button,
@@ -27,10 +36,12 @@ button:disabled img {
     height: auto;
     box-shadow: 1px 1px 5px 1px rgba(0, 0, 0, 0.25);
 }
+
 .sms-layout .sms-layout-header .navbar-brand label {
     font-size: 22px;
     text-shadow: 1px 1px 5px #000000;
 }
+
 .sms-layout .sms-layout-header .sms-project-toolbar {
     width: 400px;
 }
@@ -38,6 +49,7 @@ button:disabled img {
 .sms-layout .sms-layout-content .sms-layout-content-left {
     width: 250px;
 }
+
 .sms-layout .sms-layout-content .sms-layout-content-right {
     width: 250px;
 }
