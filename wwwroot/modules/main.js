@@ -338,11 +338,11 @@ function createEventListeners() {
                     handled = true;
                 } else if (keyEvent.code === 'ArrowDown') {
                     // Lower palette
-                    changePalette(getUIState().paletteIndex + 1);
+                    changePalette(getProjectUIState().paletteIndex + 1);
                     handled = true;
                 } else if (keyEvent.code === 'ArrowUp') {
                     // Higher palette
-                    changePalette(getUIState().paletteIndex - 1);
+                    changePalette(getProjectUIState().paletteIndex - 1);
                     handled = true;
                 } else if (keyEvent.code === 'ArrowLeft') {
                     // Lower palette
@@ -1117,14 +1117,14 @@ function handleImportPaletteModalDialogueOnConfirm(args) {
         getPaletteList().addPalette(palette);
     }
 
-    getUIState().paletteIndex = getPaletteList().length - 1;
+    getProjectUIState().paletteIndex = getPaletteList().length - 1;
     getUIState().importPaletteSystem = args.system;
     getUIState().importPaletteAssemblyCode = args.paletteData;
     state.saveToLocalStorage();
 
     paletteEditor.setState({
         paletteList: getPaletteList(),
-        selectedPaletteIndex: getUIState().paletteIndex
+        selectedPaletteIndex: getProjectUIState().paletteIndex
     });
     tileEditor.setState({
         paletteList: getTileEditorPaletteList()
@@ -1139,7 +1139,7 @@ function handleImportPaletteModalDialogueOnConfirm(args) {
  */
 function handleColourPickerChange(args) {
 
-    const palette = getPaletteList().getPalette(getUIState().paletteIndex);
+    const palette = getPaletteList().getPalette(getProjectUIState().paletteIndex);
     const currentColour = palette.getColour(args.index);
 
     if (args.r !== currentColour.r || args.g !== currentColour.g || args.b !== currentColour.b) {
@@ -1164,7 +1164,7 @@ function handleColourPickerChange(args) {
  * @param {import('./ui/colourPickerDialogue').ColourPickerDialogueColourEventArgs} args - Event args.
  */
 function handleColourPickerConfirm(args) {
-    changeColourIndex(getUIState().paletteIndex, args.index, { r: args.r, g: args.g, b: args.b })
+    changeColourIndex(getProjectUIState().paletteIndex, args.index, { r: args.r, g: args.g, b: args.b })
     colourPickerDialogue.hide();
 }
 
@@ -1174,7 +1174,7 @@ function handleColourPickerConfirm(args) {
  */
 function handleColourPickerCancel(args) {
 
-    const palette = getPaletteList().getPalette(getUIState().paletteIndex);
+    const palette = getPaletteList().getPalette(getProjectUIState().paletteIndex);
     const currentColour = palette.getColour(args.index);
 
     if (args.originalR !== currentColour.r || args.originalG !== currentColour.g || args.originalB !== currentColour.b) {
@@ -1208,7 +1208,7 @@ function handleColourPickerToolboxOnCommand(args) {
             break;
 
         case ColourPickerToolbox.Commands.colourChanged:
-            changeColourIndex(getUIState().paletteIndex, instanceState.colourIndex, { r: args.r, g: args.g, b: args.b })
+            changeColourIndex(getProjectUIState().paletteIndex, instanceState.colourIndex, { r: args.r, g: args.g, b: args.b })
             break;
 
     }
@@ -1300,7 +1300,7 @@ function handleImageImportModalOnConfirm(args) {
         });
     }
 
-    getUIState().paletteIndex = getPaletteList().length - 1;
+    getProjectUIState().paletteIndex = getPaletteList().length - 1;
 
     state.setProject(getProject());
     state.saveToLocalStorage();
@@ -1444,8 +1444,8 @@ function createEmptyProject(args) {
 
 function checkPersistentUIValues() {
     let dirty = false;
-    if (state.project && (state.persistentUIState.paletteIndex < 0 || state.persistentUIState.paletteIndex >= state.project.paletteList.length)) {
-        state.persistentUIState.paletteIndex = 0;
+    if (state.project && (getProjectUIState().paletteIndex < 0 || getProjectUIState().paletteIndex >= state.project.paletteList.length)) {
+        getProjectUIState().paletteIndex = 0;
         dirty = true;
     }
     if (state.persistentUIState.scale < 1 || state.persistentUIState.scale > 50) {
@@ -1494,7 +1494,8 @@ function getTileMapList() {
 }
 /** @returns {TileMap?} */
 function getTileMap() {
-    const tileMapId = instanceState.selectedTileMapId;
+    if (!state.project) return null;
+    const tileMapId = getProjectUIState().tileMapId;
     if (tileMapId) {
         return getTileMapList().getTileMapById(tileMapId) ?? null;
     } else {
@@ -1546,17 +1547,29 @@ function getTileEditorPaletteList() {
 // }
 function getPalette() {
     if (getPaletteList().length > 0) {
-        const paletteIndex = getUIState().paletteIndex;
+        const paletteIndex = getProjectUIState().paletteIndex;
         if (paletteIndex >= 0 && paletteIndex < getPaletteList().length) {
             return getPaletteList().getPalette(paletteIndex);
         } else {
-            getUIState().paletteIndex = 0;
+            getProjectUIState().paletteIndex = 0;
             return getPaletteList().getPalette(0);
         }
     } else return null;
 }
 function getUIState() {
     return state.persistentUIState;
+}
+function getProjectUIState() {
+    const projectId = getProject().id;
+    if (!getUIState().projectStates[projectId]) {
+        getUIState().projectStates[projectId] = {
+            projectId: projectId,
+            paletteIndex: 0,
+            tileId: null,
+            tileMapId: null
+        };
+    }
+    return getUIState().projectStates[projectId];
 }
 
 function getNumberOfPaletteSlots() {
@@ -1576,22 +1589,29 @@ function isTileMap() {
 }
 
 function refreshProjectUI() {
+    let dirty = false;
 
     const maps = getTileMapList();
-    if (!maps.getTileMapById(instanceState.selectedTileMapId)) instanceState.selectedTileMapId = null;
+    if (!maps.containsTileMapById(getProjectUIState().tileMapId)) { getProjectUIState().tileMapId = null; dirty = true; }
 
     const tileSet = getTileSet();
-    if (!tileSet.getTileById(instanceState.selectedTileId)) instanceState.selectedTileId = null;
+    if (!tileSet.containsTileById(getProjectUIState().tileId)) { getProjectUIState().tileId = null; dirty = true; }
 
-    if (instanceState.paletteSlot < 0) instanceState.paletteSlot = 0;
-    if (instanceState.paletteSlot >= getNumberOfPaletteSlots()) instanceState.paletteSlot = getNumberOfPaletteSlots() - 1;
+    if (instanceState.paletteSlot < 0) { instanceState.paletteSlot = 0; dirty = true; }
+    if (instanceState.paletteSlot >= getNumberOfPaletteSlots()) { instanceState.paletteSlot = getNumberOfPaletteSlots() - 1; dirty = true; }
 
     const palette = getPalette();
-    if (instanceState.colourIndex < 0) instanceState.colourIndex = 0;
-    if (instanceState.colourIndex >= palette.getColours().length) instanceState.colourIndex = palette.getColours().length - 1;
+    if (instanceState.colourIndex < 0) { instanceState.colourIndex = 0; dirty = true; }
+    if (instanceState.colourIndex >= palette.getColours().length) { instanceState.colourIndex = palette.getColours().length - 1; dirty = true; }
 
-    if (instanceState.tileIndex < -1) instanceState.tileIndex = -1;
-    if (instanceState.tileIndex >= getTileGrid().tileCount) instanceState.tileIndex = -1;
+    if (instanceState.tileIndex < -1) { instanceState.tileIndex = -1; dirty = true; }
+    if (instanceState.tileIndex >= getTileGrid().tileCount) { instanceState.tileIndex = -1; dirty = true; }
+
+    // if (dirty) {
+    //     // Removed because of recursion
+    //     state.setProject(getProject());
+    //     state.saveToLocalStorage();
+    // }
 
     projectToolbar.setState({
         projectTitle: getProject().title
@@ -1603,7 +1623,7 @@ function refreshProjectUI() {
 
     paletteEditor.setState({
         paletteList: getPaletteList(),
-        selectedPaletteIndex: state.persistentUIState.paletteIndex,
+        selectedPaletteIndex: getProjectUIState().paletteIndex,
         selectedColourIndex: instanceState.colourIndex
     });
 
@@ -1618,9 +1638,9 @@ function refreshProjectUI() {
     tileManager.setState({
         paletteList: getPaletteList(),
         tileMapList: getTileMapList(),
-        selectedTileMapId: instanceState.selectedTileMapId,
+        selectedTileMapId: getProjectUIState().tileMapId,
         tileSet: getTileSet(),
-        selectedTileId: instanceState.selectedTileId
+        selectedTileId: getProjectUIState().tileId
     });
 
     const disabledCommands = [];
@@ -1676,7 +1696,7 @@ function formatForProject() {
     });
     paletteEditor.setState({
         paletteList: getPaletteList(),
-        selectedPaletteIndex: getUIState().paletteIndex,
+        selectedPaletteIndex: getProjectUIState().paletteIndex,
         lastPaletteInputSystem: getUIState().importPaletteSystem,
         selectedColourIndex: instanceState.colourIndex,
         displayNative: getUIState().displayNativeColour,
@@ -1973,7 +1993,7 @@ function takeToolAction(args) {
                         mode: instanceState.rowColumnMode,
                         fillMode: instanceState.rowColumnFillMode,
                         index: index,
-                        tileId: instanceState.selectedTileId,
+                        tileId: getProjectUIState().tileId,
                         colourIndex: instanceState.colourIndex
                     });
                     actionTaken = true;
@@ -1985,9 +2005,9 @@ function takeToolAction(args) {
             } else if (tool === TileEditorToolbar.Tools.tileStamp && args.isInBounds) {
 
                 const tile = getTileMap().getTileByCoordinate(args.tileGridRowIndex, args.tileGridColumnIndex);
-                if (tile && tile.tileId !== instanceState.selectedTileId) {
+                if (tile && tile.tileId !== getProjectUIState().tileId) {
                     addUndoState();
-                    tile.tileId = instanceState.selectedTileId;
+                    tile.tileId = getProjectUIState().tileId;
                     actionTaken = true;
                 }
 
@@ -2487,7 +2507,7 @@ function newPalette() {
     const selectedPaletteIndex = getPaletteList().length - 1;
 
     // Update state
-    getUIState().paletteIndex = selectedPaletteIndex;
+    getProjectUIState().paletteIndex = selectedPaletteIndex;
     paletteEditor.setState({
         paletteList: getPaletteList(),
         selectedPaletteIndex: selectedPaletteIndex
@@ -2518,7 +2538,7 @@ function clonePalette(paletteIndex) {
             paletteList: getTileEditorPaletteList()
         });
 
-        getUIState().paletteIndex = newPaletteIndex;
+        getProjectUIState().paletteIndex = newPaletteIndex;
         state.saveToLocalStorage();
     }
 }
@@ -2537,7 +2557,7 @@ function deletePalette(paletteIndex) {
                 paletteList: getPaletteList(),
                 selectedPaletteIndex: newSelectedIndex
             });
-            getUIState().paletteIndex = newSelectedIndex;
+            getProjectUIState().paletteIndex = newSelectedIndex;
         } else {
             const newPalette = PaletteFactory.createNewStandardColourPaletteBySystemType(getProject().systemType);
             getPaletteList().addPalette(newPalette);
@@ -2545,7 +2565,7 @@ function deletePalette(paletteIndex) {
                 paletteList: getPaletteList(),
                 selectedPaletteIndex: 0
             });
-            getUIState().paletteIndex = 0;
+            getProjectUIState().paletteIndex = 0;
         }
 
         // Refresh image
@@ -2745,7 +2765,7 @@ function newProject(args) {
         systemType: args.systemType
     });
     state.setProject(newProject);
-    getUIState().paletteIndex = 0;
+    getProjectUIState().paletteIndex = 0;
     state.saveToLocalStorage();
 
     instanceState.tileIndex = -1;
@@ -2761,7 +2781,7 @@ function newProject(args) {
     paletteEditor.setState({
         paletteList: getPaletteList(),
         selectedColourIndex: instanceState.colourIndex,
-        selectedPaletteIndex: getUIState().paletteIndex
+        selectedPaletteIndex: getProjectUIState().paletteIndex
     });
     setCommonTileToolbarStates({
         tileWidth: getTileSet().tileWidth
@@ -2797,7 +2817,7 @@ function importProjectFromJson() {
 
                 state.setProject(project);
                 state.saveProjectToLocalStorage();
-                getUIState().paletteIndex = 0;
+                getProjectUIState().paletteIndex = 0;
 
                 displaySelectedProject();
                 projectDropdown.setState({ visible: false });
@@ -3087,7 +3107,7 @@ function createNewTileMapFromTileSet() {
  */
 function selectTileSetOrMap(tileMapId) {
 
-    instanceState.selectedTileMapId = tileMapId ?? null;
+    getProjectUIState().tileMapId = tileMapId ?? null;
 
     const tileMap = getTileMap();
     if (tileMap) checkTileMap(tileMap);
@@ -3097,6 +3117,9 @@ function selectTileSetOrMap(tileMapId) {
     }
 
     instanceState.tileIndex = -1;
+
+    state.setProject(getProject());
+    state.saveToLocalStorage();
 
     refreshProjectUI();
 }
@@ -3122,7 +3145,7 @@ function checkTileMap(tileMap) {
 function selectTileSetTile(tileId) {
     const tile = getTileSet().getTileById(tileId);
     if (tile) {
-        instanceState.selectedTileId = tileId;
+        getProjectUIState().tileId = tileId;
         tileManager.setState({
             selectedTileId: tileId
         });
@@ -3203,10 +3226,10 @@ function deleteTileMap(tileMapId) {
 
     // Select the next available tile map
     if (getTileMapList().getTileMaps().length === 0) {
-        instanceState.selectedTileMapId = null;
+        getProjectUIState().tileMapId = null;
     } else {
         const newSelectedTileMapIndex = Math.min(tileMapIndex, getTileMapList().getTileMaps().length - 1);
-        instanceState.selectedTileMapId = getTileMapList().getTileMap(newSelectedTileMapIndex).tileMapId;
+        getProjectUIState().tileMapId = getTileMapList().getTileMap(newSelectedTileMapIndex).tileMapId;
     }
 
     instanceState.tileIndex = -1;
@@ -3249,7 +3272,7 @@ function updateTileMap(tileMapId, args) {
     // Reset UI
     tileManager.setState({
         tileMapList: getTileMapList(),
-        selectedTileMapId: instanceState.selectedTileMapId
+        selectedTileMapId: getProjectUIState().tileMapId
     });
     tileEditor.setState({
         selectedTileIndex: -1,
@@ -3487,7 +3510,7 @@ function decreaseScale() {
 function changePalette(index) {
     if (index < 0 || index >= getPaletteList().length) return;
 
-    state.persistentUIState.paletteIndex = index;
+    getProjectUIState().paletteIndex = index;
     state.saveToLocalStorage();
 
     refreshProjectUI();
@@ -3565,6 +3588,13 @@ window.addEventListener('load', async () => {
     });
     projectDropdown.setState({
         projects: projects
+    });
+
+    // Clean up unused project states
+    Object.keys(getUIState().projectStates).forEach((projectId) => {
+        if(!projects.containsProjectById(projectId)) {
+            delete getUIState().projectStates[projectId];
+        }
     });
 
     // Set up tool strips

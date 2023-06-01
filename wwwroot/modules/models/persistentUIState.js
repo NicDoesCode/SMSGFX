@@ -52,16 +52,6 @@ export default class PersistentUIState {
     }
 
     /**
-     * Index in the palette list of the last selected palette.
-     */
-    get paletteIndex() {
-        return this.#paletteIndex;
-    }
-    set paletteIndex(value) {
-        this.#paletteIndex = value;
-    }
-
-    /**
      * Scale level.
      */
     get scale() {
@@ -167,6 +157,16 @@ export default class PersistentUIState {
         }
     }
 
+    /**
+     * Gets or sets the project UI states.
+     */
+    get projectStates() {
+        return this.#projectStates;
+    }
+    set projectStates(value) {
+        this.#projectStates = value;
+    }
+
 
     /** @type {string} */
     #lastProjectId = null;
@@ -178,8 +178,6 @@ export default class PersistentUIState {
     #importTileAssemblyCode = '';
     /** @type {boolean} */
     #importTileReplace = false;
-    /** @type {number} */
-    #paletteIndex = 0;
     /** @type {number} */
     #scale = 10;
     /** @type {boolean} */
@@ -200,6 +198,8 @@ export default class PersistentUIState {
     #exportTileMapPaletteIndex = 0;
     /** @type {number} */
     #exportTileMapVramOffset = 0;
+    /** @type {Object.<string, ProjectState>} */
+    #projectStates = {};
 
 
     constructor() {
@@ -207,3 +207,13 @@ export default class PersistentUIState {
 
 
 }
+
+/** 
+ * Saved state for an individual project.
+ * @typedef {object} ProjectState
+ * @property {string} projectId - Unique ID of the project.
+ * @property {number?} paletteIndex - Last selected palette index.
+ * @property {string?} tileMapId - Unique ID of the last selected tile map.
+ * @property {string?} tileId - Unique ID of the last selected tile map.
+ * @exports
+ */

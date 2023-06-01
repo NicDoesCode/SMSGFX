@@ -36,6 +36,18 @@ export default class TileMapList {
     }
 
     /**
+     * Gets whether the project contains a tile map by ID.
+     * @param {string} tileMapId - ID of the item to check.
+     * @returns {boolean}
+     */
+    containsTileMapById(tileMapId) {
+        if (tileMapId) {
+            return this.#tileMaps.filter(tm => tm.tileMapId === tileMapId).length > 0;
+        }
+        return false;
+    }
+
+    /**
      * Gets an item by ID.
      * @param {string} tileMapId - ID of the item to get.
      * @returns {TileMap|null}
