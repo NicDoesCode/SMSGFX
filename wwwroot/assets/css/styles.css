@@ -1,9 +1,62 @@
-body {
-}
+body {}
 
 [data-bs-theme=dark] body {
     background-image: url(./../image/background-02.png);
     background-blend-mode: multiply;
+}
+
+.sms-toolstrip {
+    background-color: var(--bs-white);
+}
+
+[data-bs-theme=dark] .sms-toolstrip {
+    background-color: var(--bs-dark-bg-subtle);
+}
+
+.sms-toolstrip button.btn-ui:not([disabled]):not(.btn-link):not(.active),
+.sms-toolstrip input[type=text]:not([disabled]),
+.sms-toolstrip input[type=number]:not([disabled]),
+.sms-toolstrip select:not([disabled]) {
+    background-color: var(--bs-white);
+}
+
+[data-bs-theme=dark] .sms-toolstrip button.btn-ui:not([disabled]):not(.active),
+[data-bs-theme=dark] .sms-toolstrip input[type=text]:not([disabled]),
+[data-bs-theme=dark] .sms-toolstrip input[type=number]:not([disabled]),
+[data-bs-theme=dark] .sms-toolstrip select:not([disabled]) {
+    background-color: var(--bs-dark-bg-subtle);
+}
+
+.sms-toolbox button.btn-ui:not([disabled]):not(.btn-link),
+.sms-toolbox input[type=text]:not([disabled]),
+.sms-toolbox input[type=number]:not([disabled]),
+.sms-toolbox textarea:not([disabled]),
+.sms-toolbox select:not([disabled]) {
+    background-color: var(--bs-white);
+}
+
+[data-bs-theme=dark] .sms-toolbox button.btn-ui:not([disabled]):not(.btn-link),
+[data-bs-theme=dark] .sms-toolbox input[type=text]:not([disabled]),
+[data-bs-theme=dark] .sms-toolbox input[type=number]:not([disabled]),
+[data-bs-theme=dark] .sms-toolbox textarea:not([disabled]),
+[data-bs-theme=dark] .sms-toolbox select:not([disabled]) {
+    background-color: var(--bs-dark-bg-subtle);
+}
+
+.sms-dialogue button.btn-ui:not([disabled]),
+.sms-dialogue input[type=text]:not([disabled]),
+.sms-dialogue input[type=number]:not([disabled]),
+.sms-dialogue textarea:not([disabled]),
+.sms-dialogue select:not([disabled]) {
+    background-color: var(--bs-white);
+}
+
+[data-bs-theme=dark] .sms-dialogue button.btn-ui:not([disabled]),
+[data-bs-theme=dark] .sms-dialogue input[type=text]:not([disabled]),
+[data-bs-theme=dark] .sms-dialogue input[type=number]:not([disabled]),
+[data-bs-theme=dark] .sms-dialogue textarea:not([disabled]),
+[data-bs-theme=dark] .sms-dialogue select:not([disabled]) {
+    background-color: var(--bs-dark-bg-subtle);
 }
 
 /* Utility classes */

@@ -231,15 +231,9 @@ export default class TileEditorToolbar {
         const buttons = this.#element.querySelectorAll('button[data-tool]');
         buttons.forEach(button => {
             if (button.getAttribute('data-tool') === toolName) {
-                button.classList.remove('btn-outline-secondary');
-                if (!button.classList.contains('btn-secondary')) {
-                    button.classList.add('btn-secondary');
-                }
+                button.classList.add('active');
             } else {
-                button.classList.remove('btn-secondary');
-                if (!button.classList.contains('btn-outline-secondary')) {
-                    button.classList.add('btn-outline-secondary');
-                }
+                button.classList.remove('active');
             }
         });
     }

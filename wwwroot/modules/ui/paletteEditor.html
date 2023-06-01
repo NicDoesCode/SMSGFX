@@ -1,6 +1,6 @@
 <div data-smsgfx-component="paletteEditor">
     <!-- Palette editor : header -->
-    <div class="input-group input-group-sm">
+    <div class="sms-toolstrip input-group input-group-sm">
         <span class="input-group-text form-control">Palette</span>
         <button data-command="paletteNew" class="btn btn-outline-secondary" title="Create a new palette.">
             <i class="bi bi-plus-lg"></i>
@@ -11,7 +11,7 @@
         </button>
     </div>
     <!-- End: Palette editor : header -->
-    <div class="sms-palette card mt-2">
+    <div class="sms-toolbox sms-palette card mt-2">
         <!-- Palette editor : palette select and title -->
         <div class="card-header p-0">
             <select data-command="paletteSelect" class="form-select d-none">
@@ -19,7 +19,7 @@
             <div class="input-group input-group-sm">
                 <input data-command="paletteTitle" type="text" class="form-control border border-0" aria-label="Enter name"
                     list="tbPaletteSelect">
-                <button class="btn btn-outline-secondary dropdown-toggle border border-0 border-start" type="button" data-bs-toggle="dropdown"
+                <button class="btn btn-outline-secondary btn-ui dropdown-toggle border border-0 border-start" type="button" data-bs-toggle="dropdown"
                     aria-expanded="false"></button>
                 <ul data-linked-command="paletteSelect" class="sms-dropdown-menu dropdown-menu dropdown-menu-end">
                 </ul>
@@ -32,7 +32,7 @@
                 <option value="gg">Game Gear</option>
                 <option value="gb">Game Boy</option>
             </select>
-            <div data-smsgfx-id="system-select" class="row mb-2">
+            <div data-smsgfx-id="system-select" class="sms-system-select row mb-2">
                 <div class="col">
                     <ul class="nav nav-pills nav-fill">
                         <li class="nav-item">
@@ -83,12 +83,12 @@
             </div>
             <div class="row mt-1 mb-0 ps-3 pe-3">
                 <div class="col p-1">
-                    <button data-command="paletteClone" class="btn btn-sm btn-outline-secondary m-0 w-100" type="button">
+                    <button data-command="paletteClone" class="btn btn-sm btn-outline-secondary btn-ui m-0 w-100" type="button">
                         <i class="bi bi-file-earmark-plus"></i> Clone
                     </button>
                 </div>
                 <div class="col p-1">
-                    <button data-command="paletteDelete" class="btn btn-sm btn-outline-secondary m-0 w-100" type="button">
+                    <button data-command="paletteDelete" class="btn btn-sm btn-outline-secondary btn-ui m-0 w-100" type="button">
                         <i class="bi bi bi-trash-fill"></i> Remove
                     </button>
                 </div>
@@ -137,6 +137,14 @@
 
         .sms-palette .sms-palette-colours td.sms-selected button.sms-palette-button span {
             background-color: #0d6efd;
+        }
+
+        .sms-palette .sms-system-select button:not(.active) {
+            background-color: transparent;
+        }
+
+        [data-bs-theme=dark] .sms-palette .sms-system-select button:not(.active) {
+            background-color: transparent;
         }
 
         .sms-palette .sms-palette-colours td.sms-highlight button {
