@@ -82,7 +82,7 @@ export default class TileEditorToolbar extends ComponentBase {
             if (sender.tagName === 'BUTTON') {
                 this.#handleToolbarButton(sender);
             } else if (sender.tagName === 'INPUT' && sender.type === 'checkbox') {
-                this.#handleCheckedChanged(element);
+                this.#handleCheckedChanged(sender);
             } else if (command === commands.tileWidth) {
                 this.#handleTileWidthChange(sender);
             } else if (command === commands.scale) {
