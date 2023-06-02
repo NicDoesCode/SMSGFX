@@ -1,3 +1,4 @@
+import ComponentBase from "../componentBase.js";
 import EventDispatcher from "../../components/eventDispatcher.js";
 import TileMapRowColumnTool from "../../tools/tileMapRowColumnTool.js";
 import TemplateUtil from "../../util/templateUtil.js";
@@ -33,7 +34,7 @@ const toolstrips = {
     tileAttributes: 'tileAttributes'
 }
 
-export default class TileContextToolbar {
+export default class TileContextToolbar extends ComponentBase {
 
 
     static get Commands() {
@@ -60,6 +61,7 @@ export default class TileContextToolbar {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
+        super(element);
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 

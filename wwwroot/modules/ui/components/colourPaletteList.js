@@ -1,3 +1,4 @@
+import ComponentBase from "../componentBase.js";
 import EventDispatcher from "../../components/eventDispatcher.js";
 import ColourUtil from "../../util/colourUtil.js";
 import TemplateUtil from "../../util/templateUtil.js";
@@ -8,7 +9,7 @@ const commands = {
     colourSelect: 'colourSelect'
 }
 
-export default class ColourPaletteList {
+export default class ColourPaletteList extends ComponentBase {
 
 
     static get Commands() {
@@ -32,6 +33,7 @@ export default class ColourPaletteList {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
+        super(element);
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
     }

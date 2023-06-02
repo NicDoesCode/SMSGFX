@@ -1,4 +1,4 @@
-import GeneralUtil from "../../util/generalUtil.js";
+import ComponentBase from "../componentBase.js";
 import EventDispatcher from "../../components/eventDispatcher.js";
 import TemplateUtil from "../../util/templateUtil.js";
 
@@ -41,7 +41,7 @@ const toolstrips = {
     showPixelGrid: 'showPixelGrid'
 }
 
-export default class TileEditorToolbar {
+export default class TileEditorToolbar extends ComponentBase {
 
 
     static get Commands() {
@@ -73,6 +73,7 @@ export default class TileEditorToolbar {
      * @param {HTMLElement} element - Element that the tile editor is to be initialised from.
      */
     constructor(element) {
+        super(element);
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 

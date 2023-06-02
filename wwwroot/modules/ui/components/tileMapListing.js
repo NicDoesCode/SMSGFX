@@ -1,6 +1,7 @@
 import EventDispatcher from "../../components/eventDispatcher.js";
 import TileMapList from "../../models/tileMapList.js";
 import TemplateUtil from "../../util/templateUtil.js";
+import ComponentBase from "../componentBase.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -10,7 +11,7 @@ const commands = {
     tileMapDelete: 'tileMapDelete'
 }
 
-export default class TileMapListing {
+export default class TileMapListing extends ComponentBase {
 
 
     static get Commands() {
@@ -24,7 +25,6 @@ export default class TileMapListing {
     #listElmement;
     /** @type {EventDispatcher} */
     #dispatcher;
-    #tileMapListTemplate;
     #enabled = true;
     /** @type {string?} */
     #selectedTileMapId = null;
@@ -43,10 +43,6 @@ export default class TileMapListing {
         this.#listElmement = this.#element.querySelector('[data-smsgfx-id=tile-map-list]');
 
         this.#dispatcher = new EventDispatcher();
-
-        // Compile handlebars template
-        const source = this.#element.querySelector('[data-smsgfx-id=tile-map-list-template]').innerHTML;
-        this.#tileMapListTemplate = Handlebars.compile(source);
     }
 
 
@@ -143,7 +139,7 @@ export default class TileMapListing {
             });
         }
 
-        this.#listElmement.innerHTML = this.#tileMapListTemplate(renderList);
+        this.renderTemplateToElement(this.#listElmement, 'tile-map-list-template', renderList);
 
         this.#listElmement.querySelectorAll('[data-command]').forEach((elm) => {
             const command = elm.getAttribute('data-command');

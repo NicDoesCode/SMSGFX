@@ -1,3 +1,4 @@
+import ComponentBase from "./componentBase.js";
 import EventDispatcher from "../components/eventDispatcher.js";
 import ColourUtil from "../util/colourUtil.js";
 import TemplateUtil from "../util/templateUtil.js";
@@ -10,7 +11,7 @@ const commands = {
     tabChanged: 'tabChanged'
 }
 
-export default class ColourPickerToolbox {
+export default class ColourPickerToolbox extends ComponentBase {
 
 
     static get Commands() {
@@ -58,6 +59,7 @@ export default class ColourPickerToolbox {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
+        super(element);
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 

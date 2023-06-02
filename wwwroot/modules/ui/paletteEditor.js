@@ -1,3 +1,4 @@
+import ComponentBase from "./componentBase.js";
 import Palette from "../models/palette.js";
 import ColourUtil from "../util/colourUtil.js";
 import EventDispatcher from "../components/eventDispatcher.js";
@@ -22,7 +23,7 @@ const commands = {
     colourIndexReplace: 'colourIndexReplace'
 }
 
-export default class PaletteEditor {
+export default class PaletteEditor extends ComponentBase {
 
 
     static get Commands() {
@@ -50,6 +51,7 @@ export default class PaletteEditor {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
+        super(element);
         this.#element = element;
 
         this.#dispatcher = new EventDispatcher();

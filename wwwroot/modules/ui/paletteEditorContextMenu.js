@@ -1,3 +1,4 @@
+import ComponentBase from "./componentBase.js";
 import EventDispatcher from "../components/eventDispatcher.js";
 import TemplateUtil from "../util/templateUtil.js";
 
@@ -8,7 +9,7 @@ const commands = {
     replaceColour: 'replaceColour'
 }
 
-export default class PaletteEditorContextMenu {
+export default class PaletteEditorContextMenu extends ComponentBase {
 
 
     static get Commands() {
@@ -33,6 +34,7 @@ export default class PaletteEditorContextMenu {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
      constructor(element) {
+        super(element);
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 

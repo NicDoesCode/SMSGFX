@@ -1,6 +1,7 @@
 import EventDispatcher from "../../components/eventDispatcher.js";
 import ProjectList from "../../models/projectList.js";
 import TemplateUtil from "../../util/templateUtil.js";
+import ComponentBase from "../componentBase.js";
 import ProjectListing from "../components/projectListing.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
@@ -15,7 +16,7 @@ const commands = {
     showDocumentation: 'showDocumentation'
 }
 
-export default class WelcomeScreen {
+export default class WelcomeScreen extends ComponentBase {
 
 
     static get Commands() {
@@ -37,6 +38,7 @@ export default class WelcomeScreen {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
+        super(element);
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 

@@ -1,3 +1,4 @@
+import ComponentBase from "../componentBase.js";
 import EventDispatcher from "../../components/eventDispatcher.js";
 import ProjectList from "../../models/projectList.js";
 import TemplateUtil from "../../util/templateUtil.js";
@@ -9,7 +10,7 @@ const commands = {
     projectDelete: 'projectDelete'
 }
 
-export default class ProjectListing {
+export default class ProjectListing extends ComponentBase {
 
 
     static get Commands() {
@@ -23,7 +24,6 @@ export default class ProjectListing {
     #listElmement;
     /** @type {EventDispatcher} */
     #dispatcher;
-    #projectListTemplate;
     #enabled = true;
     #showDeleteButton = false;
 
@@ -33,14 +33,12 @@ export default class ProjectListing {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
+        super(element);
+        
         this.#element = element;
         this.#listElmement = this.#element.querySelector('[data-smsgfx-id=project-list]');
 
         this.#dispatcher = new EventDispatcher();
-
-        // Compile handlebars template
-        const source = this.#element.querySelector('[data-smsgfx-id=project-list-template]').innerHTML;
-        this.#projectListTemplate = Handlebars.compile(source);
     }
 
 
@@ -111,9 +109,9 @@ export default class ProjectListing {
                 isGb: p.systemType === 'gb'
             };
         });
-        const html = this.#projectListTemplate(renderList);
 
-        this.#listElmement.innerHTML = html;
+        this.renderTemplateToElement(this.#listElmement, 'project-list-template', renderList);
+
         this.#listElmement.querySelectorAll('[data-command]').forEach((elm) => {
             const command = elm.getAttribute('data-command');
             const id = elm.getAttribute('data-project-id');

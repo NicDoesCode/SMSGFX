@@ -1,3 +1,4 @@
+import ComponentBase from "../componentBase.js";
 import EventDispatcher from "./../../components/eventDispatcher.js";
 import PaintUtil from "./../../util/paintUtil.js";
 import TemplateUtil from "./../../util/templateUtil.js";
@@ -10,7 +11,7 @@ const commands = {
     tileSelect: 'tileSelect'
 }
 
-export default class TileSetList {
+export default class TileSetList extends ComponentBase {
 
 
     static get Commands() {
@@ -22,7 +23,6 @@ export default class TileSetList {
     #element;
     /** @type {EventDispatcher} */
     #dispatcher;
-    #tileSetListTemplate;
     /** @type {TileSet} */
     #tileSet;
     /** @type {Palette} */
@@ -38,15 +38,10 @@ export default class TileSetList {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
+        super(element);
         this.#element = element;
 
         this.#dispatcher = new EventDispatcher();
-
-        // Compile handlebars template
-        const templateElement = this.#element.querySelector('[data-smsgfx-id=tile-set-list-template]');
-        const source = templateElement.innerHTML;
-        templateElement.remove();
-        this.#tileSetListTemplate = Handlebars.compile(source);
     }
 
 
@@ -127,9 +122,9 @@ export default class TileSetList {
                 tileId: t.tileId
             };
         });
-        const html = this.#tileSetListTemplate(renderList);
+
         const dom = document.createElement('div');
-        dom.innerHTML = html;
+        this.renderTemplateToElement(dom, 'tile-set-list-template', renderList);
 
         this.#element.querySelectorAll('[data-command]').forEach((button) => {
             button.remove();

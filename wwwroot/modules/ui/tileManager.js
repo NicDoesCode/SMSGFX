@@ -1,3 +1,4 @@
+import ComponentBase from "./componentBase.js";
 import EventDispatcher from "../components/eventDispatcher.js";
 import Palette from "./../models/palette.js";
 import TemplateUtil from "../util/templateUtil.js";
@@ -28,7 +29,7 @@ const fields = {
     tileWidth: 'tileWidth'
 }
 
-export default class TileManager {
+export default class TileManager extends ComponentBase {
 
 
     static get Commands() {
@@ -62,7 +63,6 @@ export default class TileManager {
     #selectedTileMapId = null;
     /** @type {PaletteList?} */
     #paletteList = null;
-    #paletteSelectorTemplate;
 
 
     /**
@@ -70,13 +70,11 @@ export default class TileManager {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
+        super(element);
+
         this.#element = element;
 
         this.#dispatcher = new EventDispatcher();
-
-        // Compile handlebars template
-        const source = this.#element.querySelector('[data-smsgfx-id=palette-selector-template]').innerHTML;
-        this.#paletteSelectorTemplate = Handlebars.compile(source);
 
         this.#paletteSelectorElement = this.#element.querySelector('[data-smsgfx-id=palette-selectors]');
 
@@ -283,7 +281,7 @@ export default class TileManager {
             renderList.push({ slotNumber: i });
         }
 
-        this.#paletteSelectorElement.innerHTML = this.#paletteSelectorTemplate(renderList);
+        this.renderTemplateToElement(this.#paletteSelectorElement, 'palette-selector-template', renderList);
 
         this.#paletteSelectorElement.querySelectorAll('select[data-field=paletteId]').forEach((/** @type {HTMLSelectElement} */ select) => {
             const slotNumber = parseInt(select.getAttribute('data-palette-slot'));

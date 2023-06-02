@@ -1,8 +1,8 @@
+import ComponentBase from "./componentBase.js";
 import CanvasManager from "../components/canvasManager.js";
 import EventDispatcher from "../components/eventDispatcher.js";
 import PaletteFactory from "../factory/paletteFactory.js";
 import PaletteListFactory from "../factory/paletteListFactory.js";
-import Palette from "../models/palette.js";
 import ReferenceImage from "../models/referenceImage.js";
 import TileSet from "../models/tileSet.js";
 import TileEditorContextMenu from "./tileEditorContextMenu.js";
@@ -28,7 +28,7 @@ const events = {
     pixelMouseUp: 'pixelMouseUp'
 }
 
-export default class TileEditor {
+export default class TileEditor extends ComponentBase {
 
 
     static get Commands() {
@@ -76,6 +76,7 @@ export default class TileEditor {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
+        super(element);
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 
