@@ -346,8 +346,10 @@ export default class CanvasManager {
      * @returns {{x: number, y: number}}
      */
     convertViewportCoordsToTileGridCoords(canvas, viewportX, viewportY) {
-        const rect = canvas.getBoundingClientRect();
-        return this.convertCanvasCoordsToTileGridCoords(canvas, viewportX - rect.left, viewportY - rect.top);
+        const canvasRect = canvas.getBoundingClientRect();
+        const canvasX = viewportX - canvasRect.left - (this.scale / 2);
+        const canvasY = viewportY - canvasRect.top - (this.scale / 2);
+        return this.convertCanvasCoordsToTileGridCoords(canvas, canvasX, canvasY);
     }
 
     /**
