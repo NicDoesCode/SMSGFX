@@ -85,6 +85,10 @@ export default class TileSetList extends ComponentBase {
             this.#refreshCanvases(this.#tileSet, this.#palette);
             this.#displayTiles(this.#tileSet);
         }
+
+        if (state?.updatedTileIds && Array.isArray(state.updatedTileIds)) {
+            this.#updateTileImages(state.updatedTileIds);
+        }
     }
 
 
@@ -177,6 +181,21 @@ export default class TileSetList extends ComponentBase {
         };
     }
 
+    /**
+     * @param {string[]} updateTileIds - Array of tile IDs to be updated.
+     */
+    #updateTileImages(updateTileIds) {
+        if (!this.#tileSet) return;
+        updateTileIds.forEach((tileId) => {
+            const canvas = this.#canvases[tileId];
+            const tile = this.#tileSet.getTileById(tileId);
+            const palette = this.#palette;
+            if (canvas && tile && palette) {
+                PaintUtil.drawTile(canvas, tile, palette);
+            }
+        });
+    }
+
 
 }
 
@@ -187,6 +206,7 @@ export default class TileSetList extends ComponentBase {
  * @property {TileSet?} [tileSet] - Tile set to be displayed.
  * @property {Palette?} [palette] - Palette to use to render the tiles.
  * @property {string?} [selectedTileId] - Unique ID of the selected tile.
+ * @property {string[]?} [updatedTileIds] - Array of unique tile IDs that were updated.
  */
 
 /**

@@ -113,6 +113,7 @@ export default class TileManager extends ComponentBase {
         let tileMapListingDirty = false;
         let tileListDirty = false;
         let paletteSlotsDirty = false;
+        let updatedTileIds = null;
 
         if (state?.tileMapList && typeof state.tileMapList.addTileMap === 'function') {
             this.#tileMapList = state.tileMapList;
@@ -143,6 +144,10 @@ export default class TileManager extends ComponentBase {
             });
         }
 
+        if (state?.updatedTileIds && Array.isArray(state?.updatedTileIds)) {
+            updatedTileIds = state.updatedTileIds;
+        }
+
         if (typeof state?.numberOfPaletteSlots === 'number') {
             this.#numberOfPaletteSlots = state.numberOfPaletteSlots;
             paletteSlotsDirty = true;
@@ -167,6 +172,12 @@ export default class TileManager extends ComponentBase {
             this.#uiTileSetList.setState({
                 tileSet: this.#tileSet ?? undefined,
                 palette: this.#palette ?? undefined
+            });
+        }
+
+        if (updatedTileIds) {
+            this.#uiTileSetList.setState({
+                updatedTileIds: updatedTileIds
             });
         }
 
@@ -384,6 +395,7 @@ export default class TileManager extends ComponentBase {
  * @property {PaletteList?} [paletteList] - Available palettes for the palette slots.
  * @property {string?} [selectedTileMapId] - Unique ID of the selected tile map.
  * @property {string?} [selectedTileId] - Unique ID of the selected tile.
+ * @property {string[]?} [updatedTileIds] - Array of unique tile IDs that were updated.
  * @property {number?} [numberOfPaletteSlots] - Amount of palette slots that the tile map provides.
  * @property {number?} [tileWidth] - Display tile width for the tile set.
  */

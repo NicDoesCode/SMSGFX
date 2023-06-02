@@ -1891,7 +1891,7 @@ function takeToolAction(args) {
                             updatedTileIds: updatedTiles.affectedTileIds
                         });
                         tileManager.setState({
-                            tileSet: getTileSet()
+                            updatedTileIds: updatedTiles.affectedTileIds
                         });
                     }
 
@@ -1930,7 +1930,8 @@ function takeToolAction(args) {
                             updatedTileIds: updatedTiles.affectedTileIds
                         });
                         tileManager.setState({
-                            tileSet: getTileSet()
+                            tileSet: getTileSet(),
+                            updatedTileIds: updatedTiles.affectedTileIds
                         });
                     }
 
@@ -3592,7 +3593,7 @@ window.addEventListener('load', async () => {
 
     // Clean up unused project states
     Object.keys(getUIState().projectStates).forEach((projectId) => {
-        if(!projects.containsProjectById(projectId)) {
+        if (!projects.containsProjectById(projectId)) {
             delete getUIState().projectStates[projectId];
         }
     });
