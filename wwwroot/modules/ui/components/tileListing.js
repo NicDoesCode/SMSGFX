@@ -11,7 +11,7 @@ const commands = {
     tileSelect: 'tileSelect'
 }
 
-export default class TileSetList extends ComponentBase {
+export default class TileListing extends ComponentBase {
 
 
     static get Commands() {
@@ -48,17 +48,17 @@ export default class TileSetList extends ComponentBase {
     /**
      * Creates an instance of the object inside a container element.
      * @param {HTMLElement} element - Container element.
-     * @returns {Promise<TileSetList>}
+     * @returns {Promise<TileListing>}
      */
     static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('components/tileSetList', element);
-        return new TileSetList(componentElement);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('components/tileListing', element);
+        return new TileListing(componentElement);
     }
 
 
     /**
      * Sets the state of the object.
-     * @param {TileSetListState} state - State to set.
+     * @param {TileListingState} state - State to set.
      */
     setState(state) {
         let dirty = false;
@@ -94,7 +94,7 @@ export default class TileSetList extends ComponentBase {
 
     /**
      * Registers a handler for a command.
-     * @param {TileSetListCommandCallback} callback - Callback that will receive the command.
+     * @param {TileListingCommandCallback} callback - Callback that will receive the command.
      */
     addHandlerOnCommand(callback) {
         this.#dispatcher.on(EVENT_OnCommand, callback);
@@ -128,7 +128,7 @@ export default class TileSetList extends ComponentBase {
         });
 
         const dom = document.createElement('div');
-        this.renderTemplateToElement(dom, 'tile-set-list-template', renderList);
+        this.renderTemplateToElement(dom, 'item-template', renderList);
 
         this.#element.querySelectorAll('[data-command]').forEach((button) => {
             button.remove();
@@ -150,7 +150,7 @@ export default class TileSetList extends ComponentBase {
                 }
                 /** @param {MouseEvent} ev */
                 button.onclick = (ev) => {
-                    this.#handleTileSetListCommandButtonClicked(command, tileId);
+                    this.#handleTileListingCommandButtonClicked(command, tileId);
                     ev.stopImmediatePropagation();
                     ev.preventDefault();
                 }
@@ -163,7 +163,7 @@ export default class TileSetList extends ComponentBase {
      * @param {string} command 
      * @param {string} tileId 
      */
-    #handleTileSetListCommandButtonClicked(command, tileId) {
+    #handleTileListingCommandButtonClicked(command, tileId) {
         const args = this.#createArgs(command);
         args.tileId = tileId;
         this.#dispatcher.dispatch(EVENT_OnCommand, args);
@@ -172,7 +172,7 @@ export default class TileSetList extends ComponentBase {
 
     /**
      * @param {string} command
-     * @returns {TileSetListCommandEventArgs}
+     * @returns {TileListingCommandEventArgs}
      */
     #createArgs(command) {
         return {
@@ -202,7 +202,7 @@ export default class TileSetList extends ComponentBase {
 
 /**
  * Tile manager state.
- * @typedef {object} TileSetListState
+ * @typedef {object} TileListingState
  * @property {TileSet?} [tileSet] - Tile set to be displayed.
  * @property {Palette?} [palette] - Palette to use to render the tiles.
  * @property {string?} [selectedTileId] - Unique ID of the selected tile.
@@ -211,12 +211,12 @@ export default class TileSetList extends ComponentBase {
 
 /**
  * When a command is issued from the tile manager.
- * @callback TileSetListCommandCallback
- * @param {TileSetListCommandEventArgs} args - Arguments.
+ * @callback TileListingCommandCallback
+ * @param {TileListingCommandEventArgs} args - Arguments.
  * @exports
  */
 /**
- * @typedef {object} TileSetListCommandEventArgs
+ * @typedef {object} TileListingCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string} tileId - Unique ID of the tile.
  * @exports
