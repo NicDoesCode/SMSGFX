@@ -1,5 +1,5 @@
 import ComponentBase from "./componentBase.js";
-import PaletteListComponent from "./components/paletteList.js";
+import UiPaletteListing from "./components/paletteListing.js";
 import Palette from "../models/palette.js";
 import ColourUtil from "../util/colourUtil.js";
 import EventDispatcher from "../components/eventDispatcher.js";
@@ -48,7 +48,7 @@ export default class PaletteEditor extends ComponentBase {
     #contextMenu;
     /** @type {EventDispatcher} */
     #dispatcher;
-    /** @type {PaletteListComponent?} */
+    /** @type {UiPaletteListing?} */
     #paletteListComponent = null;
     #enabled = true;
 
@@ -113,7 +113,7 @@ export default class PaletteEditor extends ComponentBase {
                 this.#contextMenu.addHandlerOnCommand((args) => this.#handlePaletteEditorContextMenuOnCommand(args));
             });
 
-        PaletteListComponent.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=palette-list]'))
+        UiPaletteListing.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=palette-list]'))
             .then((component) => {
                 this.#paletteListComponent = component;
                 this.#paletteListComponent.addHandlerOnCommand((args) => this.#handlePaletteListOnCommand(args));
@@ -287,10 +287,10 @@ export default class PaletteEditor extends ComponentBase {
     }
 
     /**
-     * @param {import("./components/paletteList.js").PaletteListCommandEventArgs} args - Arguments.
+     * @param {import("./components/paletteListing.js").PaletteListCommandEventArgs} args - Arguments.
      */
     #handlePaletteListOnCommand(args) {
-        if (args.command === PaletteListComponent.Commands.paletteSelect) {
+        if (args.command === UiPaletteListing.Commands.paletteSelect) {
             const thisArgs = this.#createEventArgs(commands.paletteSelect);
             thisArgs.paletteId = args.paletteId;
             this.#dispatcher.dispatch(EVENT_OnCommand, thisArgs);

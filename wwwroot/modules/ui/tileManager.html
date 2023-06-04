@@ -1,8 +1,8 @@
-<div data-smsgfx-component="tileManager" class="sms-tile-manager d-flex flex-column h-100">
+<div data-smsgfx-component="tileManager" class="tile-manager d-flex flex-column h-100">
     <select data-command="tileMapSelect" data-auto-event="change" class="form-select d-none">
     </select>
 
-    <div class="sms-toolbox tile-map card mb-2">
+    <div class="tile-map sms-toolbox card mb-2">
         <div class="card-header sms-card-toolbar p-0 d-flex">
             <span class="flex-fill p-1 ps-2">Tile map</span>
             <button data-command="tileMapNew" data-auto-event="click"
@@ -165,70 +165,70 @@
     </div>
 
     <style data-css-scope="global">
-        .sms-tile-manager .tile-map .tile-map-list-item {
+        .tile-manager .tile-map .tile-map-list-item {
             background-color: var(--bs-dark-bg-subtle);
         }
 
-        .sms-tile-manager .tile-map .tile-map-list-item.active {
+        .tile-manager .tile-map .tile-map-list-item.active {
             color: var(--bs-light-text-emphasis);
             background-color: var(--bs-primary-border-subtle);
             border-bottom: none !important;
         }
 
-        .sms-tile-manager .tile-map .tile-map-list-item .icon-expand {
+        .tile-manager .tile-map .tile-map-list-item .icon-expand {
             display: block;
         }
 
-        .sms-tile-manager .tile-map .tile-map-list-item .icon-expanded {
+        .tile-manager .tile-map .tile-map-list-item .icon-expanded {
             display: none;
         }
 
-        .sms-tile-manager .tile-map .tile-map-list-item.active .icon-expand {
+        .tile-manager .tile-map .tile-map-list-item.active .icon-expand {
             display: none;
         }
 
-        .sms-tile-manager .tile-map .tile-map-list-item.active .icon-expanded {
+        .tile-manager .tile-map .tile-map-list-item.active .icon-expanded {
             display: block;
         }
 
-        .sms-tile-manager .tile-map .tile-map-list-bottom button {
+        .tile-manager .tile-map .tile-map-list-bottom button {
             border-top: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color) !important;
             border-bottom: none !important;
         }
 
-        .sms-tile-manager .tile-map .tile-map-list-bottom button:last-of-type {
+        .tile-manager .tile-map .tile-map-list-bottom button:last-of-type {
             border-bottom-left-radius: var(--bs-card-border-radius);
             border-bottom-right-radius: var(--bs-card-border-radius);
         }
 
-        .sms-tile-manager .tile-map .tile-map-editor {
+        .tile-manager .tile-map .tile-map-editor {
             background: linear-gradient(180deg, var(--bs-primary-border-subtle) 0%, rgba(33, 37, 41, 0) 40%);
         }
 
 
-        .sms-tile-manager .sms-tile-manager-tiles {
+        .tile-manager .sms-tile-manager-tiles {
             margin-top: 30px;
         }
 
-        .sms-tile-manager .sms-palette-display .sms-palette-display-colours {
+        .tile-manager .sms-palette-display .sms-palette-display-colours {
             display: flex;
             flex-direction: row;
             flex-wrap: wrap;
         }
 
-        .sms-tile-manager .sms-palette-display .sms-palette-display-colours div {
+        .tile-manager .sms-palette-display .sms-palette-display-colours div {
             width: 12.5%;
             min-height: 10px;
         }
 
 
-        .sms-tile-manager .sms-palette-selector .sms-colours {
+        .tile-manager .sms-palette-selector .sms-colours {
             display: flex;
             flex-direction: row;
             flex-wrap: wrap;
         }
 
-        .sms-tile-manager .sms-palette-selector .sms-colours div {
+        .tile-manager .sms-palette-selector .sms-colours div {
             width: 12.5%;
             min-height: 10px;
         }

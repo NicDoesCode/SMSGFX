@@ -1,7 +1,7 @@
 import ComponentBase from "../componentBase.js";
 import EventDispatcher from "./../../components/eventDispatcher.js";
 import TemplateUtil from "./../../util/templateUtil.js";
-import PaletteListObj from './../../models/paletteList.js';
+import PaletteList from './../../models/paletteList.js';
 import Palette from "./../../models/palette.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
@@ -10,7 +10,7 @@ const commands = {
     paletteSelect: 'paletteSelect'
 }
 
-export default class PaletteList extends ComponentBase {
+export default class PaletteListing extends ComponentBase {
 
 
     static get Commands() {
@@ -22,8 +22,8 @@ export default class PaletteList extends ComponentBase {
     #element;
     /** @type {EventDispatcher} */
     #dispatcher;
-    /** @type {PaletteListObj} */
-    #sourcePaletteList;
+    /** @type {PaletteList} */
+    #paletteList;
     /** @type {string?} */
     #selectedPaletteId = null;
 
@@ -43,23 +43,23 @@ export default class PaletteList extends ComponentBase {
     /**
      * Creates an instance of the object inside a container element.
      * @param {HTMLElement} element - Container element.
-     * @returns {Promise<PaletteList>}
+     * @returns {Promise<PaletteListing>}
      */
     static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('components/paletteList', element);
-        return new PaletteList(componentElement);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('components/paletteListing', element);
+        return new PaletteListing(componentElement);
     }
 
 
     /**
      * Sets the state of the object.
-     * @param {PaletteListState} state - State to set.
+     * @param {PaletteListingState} state - State to set.
      */
     setState(state) {
         let dirty = false;
 
-        if (state?.paletteList instanceof PaletteListObj) {
-            this.#sourcePaletteList = state.paletteList;
+        if (state?.paletteList instanceof PaletteList) {
+            this.#paletteList = state.paletteList;
             dirty = true;
         }
 
@@ -71,22 +71,22 @@ export default class PaletteList extends ComponentBase {
             dirty = true;
         }
 
-        if (dirty && this.#sourcePaletteList) {
-            this.#displayPalettes(this.#sourcePaletteList);
+        if (dirty && this.#paletteList) {
+            this.#displayPalettes(this.#paletteList);
         }
     }
 
 
     /**
      * Registers a handler for a command.
-     * @param {PaletteListCommandCallback} callback - Callback that will receive the command.
+     * @param {PaletteListingCommandCallback} callback - Callback that will receive the command.
      */
     addHandlerOnCommand(callback) {
         this.#dispatcher.on(EVENT_OnCommand, callback);
     }
 
     /**
-     * @param {PaletteListObj} paletteList
+     * @param {PaletteList} paletteList
      */
     #displayPalettes(paletteList) {
         const renderList = paletteList.getPalettes().map((p) => {
@@ -104,11 +104,11 @@ export default class PaletteList extends ComponentBase {
             const paletteId = button.getAttribute('data-palette-id');
             if (command && paletteId) {
                 if (paletteId === this.#selectedPaletteId) {
-                    button.classList.add('selected');
+                    button.classList.add('active');
                 }
                 /** @param {MouseEvent} ev */
                 button.addEventListener('click', (ev) => {
-                    /** @type {PaletteListCommandEventArgs} */
+                    /** @type {PaletteListingCommandEventArgs} */
                     const args = {
                         command: command,
                         paletteId: paletteId
@@ -127,19 +127,19 @@ export default class PaletteList extends ComponentBase {
 
 /**
  * Palette list state.
- * @typedef {object} PaletteListState
- * @property {PaletteListObj?} [paletteList] - Palette list to be displayed.
+ * @typedef {object} PaletteListingState
+ * @property {PaletteList?} [paletteList] - Palette list to be displayed.
  * @property {string?} [selectedPaletteId] - Unique ID of the selected palette.
  */
 
 /**
  * When a command is issued from the palette list.
- * @callback PaletteListCommandCallback
- * @param {PaletteListCommandEventArgs} args - Arguments.
+ * @callback PaletteListingCommandCallback
+ * @param {PaletteListingCommandEventArgs} args - Arguments.
  * @exports
  */
 /**
- * @typedef {object} PaletteListCommandEventArgs
+ * @typedef {object} PaletteListingCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string} paletteId - Unique ID of the palette.
  * @exports
