@@ -6,7 +6,7 @@ import TileMapList from "../models/tileMapList.js";
 import PaletteList from "../models/paletteList.js";
 import TileSet from "./../models/tileSet.js";
 import UiTileSetList from "./components/tileSetList.js";
-import TileSetList from "./components/tileSetList.js";
+import UiTileMapListing from "./components/tileMapListing.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -55,6 +55,8 @@ export default class TileManager extends ComponentBase {
     #uiTileSetOptimise;
     /** @type {UiTileSetList} */
     #uiTileSetList;
+    /** @type {UiTileMapListing} */
+    #uiTileMapListing;
     /** @type {HTMLElement} */
     #paletteSelectorElement;
     /** @type {number} */
@@ -85,9 +87,15 @@ export default class TileManager extends ComponentBase {
         this.#wireAutoEvents(this.#element);
 
         UiTileSetList.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=tile-set-list]'))
-            .then((obj) => {
-                this.#uiTileSetList = obj;
+            .then((component) => {
+                this.#uiTileSetList = component;
                 this.#uiTileSetList.addHandlerOnCommand((args) => this.#handleTileSetListOnCommand(args));
+            });
+
+        UiTileMapListing.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=tile-map-listing]'))
+            .then((component) => {
+                this.#uiTileMapListing = component;
+                this.#uiTileMapListing.addHandlerOnCommand((args) => this.#handleTileMapListingOnCommand(args));
             });
 
         this.#populateTileMapDetails();
@@ -115,20 +123,20 @@ export default class TileManager extends ComponentBase {
         let paletteSlotsDirty = false;
         let updatedTileIds = null;
 
-        if (state?.tileMapList && typeof state.tileMapList.addTileMap === 'function') {
+        if (state?.tileMapList && state.tileMapList instanceof TileMapList) {
             this.#tileMapList = state.tileMapList;
             tileMapListingDirty = true;
             paletteSlotsDirty = true;
         }
 
-        if (state?.tileSet && typeof state.tileSet.addTile === 'function') {
+        if (state?.tileSet && state.tileSet instanceof TileSet) {
             this.#tileSet = state.tileSet;
             this.#element.querySelector('[data-smsgfx-id=tileSetTileWidth]').value = this.#tileSet.tileWidth;
             tileMapListingDirty = true;
             tileListDirty = true;
         }
 
-        if (state?.palette && typeof state.palette.getColour === 'function') {
+        if (state?.palette && state.palette instanceof Palette) {
             this.#palette = state.palette;
             tileListDirty = true;
         }
@@ -136,6 +144,7 @@ export default class TileManager extends ComponentBase {
         if (typeof state?.selectedTileMapId !== 'undefined') {
             this.#selectedTileMapId = state.selectedTileMapId;
             this.#populateTileMapDetails();
+            tileMapListingDirty = true;
         }
 
         if (typeof state?.selectedTileId !== 'undefined') {
@@ -166,6 +175,11 @@ export default class TileManager extends ComponentBase {
 
         if (tileMapListingDirty) {
             this.#updateTileMapSelectList();
+            this.#uiTileMapListing.setState({
+                tileMapList: this.#tileMapList,
+                selectedTileMapId: this.#selectedTileMapId
+            });
+            this.#shuffleTileMapList();
         }
 
         if (tileListDirty) {
@@ -215,6 +229,9 @@ export default class TileManager extends ComponentBase {
                 result.paletteSlots.push(select.value);
             }
         }
+        if (command === TileManager.Commands.tileMapSelect) {
+            result.tileMapId = this.#selectedTileMapId;
+        }
         if (command === TileManager.Commands.tileMapDelete) {
             result.tileMapId = this.#selectedTileMapId;
         }
@@ -249,11 +266,32 @@ export default class TileManager extends ComponentBase {
      */
     #handleTileSetListOnCommand(args) {
         switch (args.command) {
-            case TileSetList.Commands.tileSelect:
+            case UiTileSetList.Commands.tileSelect:
                 const args1 = this.#createArgs(commands.tileSelect);
                 args1.tileId = args.tileId;
                 this.#dispatcher.dispatch(EVENT_OnCommand, args1);
                 break;
+        }
+    }
+
+    /**
+     * When a command is received from the tile map list.
+     * @param {import("./components/tileMapListing.js").TileMapListingCommandEventArgs} args - Arguments.
+     */
+    #handleTileMapListingOnCommand(args) {
+        if (args.command === UiTileMapListing.Commands.tileMapSelect) {
+            /** @type {TileManagerCommandEventArgs} */
+            const thisArgs = {
+                command: args.command,
+                tileMapId: args.tileMapId
+            }
+            this.#dispatcher.dispatch(EVENT_OnCommand, thisArgs);
+        } else if (args.command === UiTileMapListing.Commands.tileSetSelect) {
+            /** @type {TileManagerCommandEventArgs} */
+            const thisArgs = {
+                command: args.command
+            }
+            this.#dispatcher.dispatch(EVENT_OnCommand, thisArgs);
         }
     }
 
@@ -380,6 +418,31 @@ export default class TileManager extends ComponentBase {
             li.appendChild(a);
             dropList.appendChild(li);
         });
+    }
+
+
+    #shuffleTileMapList() {
+        const listTop = this.#element.querySelector('[data-smsgfx-id=tile-map-list-top] div.list-group');
+        const listBottom = this.#element.querySelector('[data-smsgfx-id=tile-map-list-bottom] div.list-group');
+        if (listTop && listBottom) {
+            listBottom.innerHTML = '';
+            let move = false;
+            if (!this.#selectedTileMapId) {
+                const tileSetButton = listTop.querySelector(`button[data-command=${CSS.escape(commands.tileSetSelect)}]`);
+                tileSetButton.classList.add('active');
+            }
+            this.#tileMapList.getTileMaps().forEach((tileMap) => {
+                if (move || !this.#selectedTileMapId) {
+                    const tileMapButton = listTop.querySelector(`button[data-tile-map-id=${CSS.escape(tileMap.tileMapId)}]`);
+                    if (tileMapButton) {
+                        listBottom.appendChild(tileMapButton);
+                    }
+                }
+                if (tileMap.tileMapId === this.#selectedTileMapId) {
+                    move = true;
+                }
+            });
+        }
     }
 
 

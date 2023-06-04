@@ -39,8 +39,10 @@ export default class TileMapListing extends ComponentBase {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
+        super(element);
+
         this.#element = element;
-        this.#listElmement = this.#element.querySelector('[data-smsgfx-id=tile-map-list]');
+        this.#listElmement = this.#element.querySelector('[data-smsgfx-id=tile-map-list]') ?? this.#element;
 
         this.#dispatcher = new EventDispatcher();
     }
@@ -139,7 +141,7 @@ export default class TileMapListing extends ComponentBase {
             });
         }
 
-        this.renderTemplateToElement(this.#listElmement, 'tile-map-list-template', renderList);
+        this.renderTemplateToElement(this.#listElmement, 'item-template', renderList);
 
         this.#listElmement.querySelectorAll('[data-command]').forEach((elm) => {
             const command = elm.getAttribute('data-command');
@@ -163,7 +165,7 @@ export default class TileMapListing extends ComponentBase {
 
 
     #highlightSelectedTileMapId() {
-        this.#listElmement.querySelectorAll('[data-list-item]').forEach((elm) => {
+        this.#listElmement.querySelectorAll('[data-tile-map-id]').forEach((elm) => {
             elm.classList.remove('active');
             const tileMapId = elm.getAttribute('data-tile-map-id');
             if (tileMapId && tileMapId === this.#selectedTileMapId) {

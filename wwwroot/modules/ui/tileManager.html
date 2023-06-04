@@ -2,7 +2,7 @@
     <select data-command="tileMapSelect" data-auto-event="change" class="form-select d-none">
     </select>
 
-    <div class="sms-toolbox card mb-2">
+    <div class="sms-toolbox tile-map card mb-2">
         <div class="card-header sms-card-toolbar p-0 d-flex">
             <span class="flex-fill p-1 ps-2">Tile map</span>
             <button data-command="tileMapNew" data-auto-event="click"
@@ -14,7 +14,30 @@
             <ul data-smsgfx-id="tileMapSelectDropDown" class="dropdown-menu">
             </ul>
         </div>
-        <div class="card-body p-2 visually-hidden" data-smsgfx-id="tileSetProperties">
+
+        <div data-smsgfx-id="tile-map-list-top" data-smsgfx-component-id="tile-map-listing"
+            class="tile-map-list tile-map-list-top card-body p-0">
+            <template>
+                <script data-smsgfx-template-id="item-template" type="text/x-handlebars-template">
+                    <div class="list-group rounded-0 border border-0">
+                        <button data-command="tileSetSelect"
+                            class="tile-map-list-item list-group-item border border-0 border-bottom text-start fw-bold">
+                            <span class="icon-expand float-end"><i class="bi bi-caret-down-fill"></i></span>
+                            <span>Tile set</span>
+                        </button>
+                        {{#each this}}
+                        <button data-command="tileMapSelect" data-tile-map-id="{{tileMapId}}" 
+                            class="tile-map-list-item list-group-item border border-0 border-bottom text-start fw-bold">
+                            <span class="icon-expand float-end"><i class="bi bi-caret-down-fill"></i></span>
+                            <span>{{title}}</span>
+                        </button>
+                        {{/each}}
+                    </div>
+                </script>
+            </template>
+        </div>
+
+        <div class="tile-map-editor card-body p-2 visually-hidden" data-smsgfx-id="tileSetProperties">
             <div class="row mt-1 mb-0 ps-3 pe-3">
                 <div class="col p-1">
                     <p class="m-0 mb-1">
@@ -53,7 +76,7 @@
                 </div>
             </div>
         </div>
-        <div class="card-body p-2 visually-hidden" data-smsgfx-id="tileMapProperties">
+        <div class="tile-map-editor card-body p-2 visually-hidden" data-smsgfx-id="tileMapProperties">
             <div class="row mb-2">
                 <div class="col">
                     <input data-command="tileMapChange" data-auto-event="change" data-field="title" type="text"
@@ -90,8 +113,10 @@
                 <div class="col">
                     <div class="form-check form-switch">
                         <input id="tileSetOptimise" data-command="tileMapChange" data-auto-event="change"
-                            data-field="optimise" class="form-check-input" type="checkbox" role="switch" checked title="When checked the system will try and re-use tiles in the tile map, and apply flipping where possible.">
-                        <label class="form-check-label" for="tileSetOptimise" title="When checked the system will try and re-use tiles in the tile map, and apply flipping where possible.">
+                            data-field="optimise" class="form-check-input" type="checkbox" role="switch" checked
+                            title="When checked the system will try and re-use tiles in the tile map, and apply flipping where possible.">
+                        <label class="form-check-label" for="tileSetOptimise"
+                            title="When checked the system will try and re-use tiles in the tile map, and apply flipping where possible.">
                             Optimise on export
                         </label>
                     </div>
@@ -114,6 +139,12 @@
                 </div>
             </div>
         </div>
+
+        <div data-smsgfx-id="tile-map-list-bottom" class="tile-map-list tile-map-list-bottom card-body p-0">
+            <div class="list-group rounded-0 border border-0">
+            </div>
+        </div>
+
     </div>
 
     <div class="sms-toolbox card flex-fill">
@@ -121,7 +152,8 @@
             <p class="flex-fill p-1 ps-2 m-0">Tile palette</p>
         </div>
         <div class="card-body p-0">
-            <div data-smsgfx-component-id="tile-set-list" class="sms-tile-manager-tiles position-absolute top-0 start-0 bottom-0 end-0 p-2 overflow-scroll">
+            <div data-smsgfx-component-id="tile-set-list"
+                class="sms-tile-manager-tiles position-absolute top-0 start-0 bottom-0 end-0 p-2 overflow-scroll">
             </div>
         </div>
     </div>
@@ -133,6 +165,47 @@
     </div>
 
     <style data-css-scope="global">
+        .sms-tile-manager .tile-map .tile-map-list-item {
+            background-color: var(--bs-dark-bg-subtle);
+        }
+
+        .sms-tile-manager .tile-map .tile-map-list-item.active {
+            color: var(--bs-light-text-emphasis);
+            background-color: var(--bs-primary-border-subtle);
+            border-bottom: none !important;
+        }
+
+        .sms-tile-manager .tile-map .tile-map-list-item .icon-expand {
+            display: block;
+        }
+
+        .sms-tile-manager .tile-map .tile-map-list-item .icon-expanded {
+            display: none;
+        }
+
+        .sms-tile-manager .tile-map .tile-map-list-item.active .icon-expand {
+            display: none;
+        }
+
+        .sms-tile-manager .tile-map .tile-map-list-item.active .icon-expanded {
+            display: block;
+        }
+
+        .sms-tile-manager .tile-map .tile-map-list-bottom button {
+            border-top: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color) !important;
+            border-bottom: none !important;
+        }
+
+        .sms-tile-manager .tile-map .tile-map-list-bottom button:last-of-type {
+            border-bottom-left-radius: var(--bs-card-border-radius);
+            border-bottom-right-radius: var(--bs-card-border-radius);
+        }
+
+        .sms-tile-manager .tile-map .tile-map-editor {
+            background: linear-gradient(180deg, var(--bs-primary-border-subtle) 0%, rgba(33, 37, 41, 0) 40%);
+        }
+
+
         .sms-tile-manager .sms-tile-manager-tiles {
             margin-top: 30px;
         }

@@ -203,25 +203,7 @@ export default class PaletteEditor extends ComponentBase {
                 paletteList: this.#paletteList,
                 selectedPaletteId: this.#selectedPaletteId
             });
-            if (this.#selectedPaletteId) {
-                const listTop = this.#element.querySelector('[data-smsgfx-id=palette-list-top] div.list-group');
-                const listBottom = this.#element.querySelector('[data-smsgfx-id=palette-list-bottom] div.list-group');
-                if (listTop && listBottom) {
-                    listBottom.innerHTML = '';
-                    let move = false;
-                    this.#paletteList.getPalettes().forEach((palette, index) => {
-                        if (move) {
-                            const paletteButton = listTop.querySelector(`button[data-palette-id=${CSS.escape(palette.paletteId)}]`);
-                            if (paletteButton) {
-                                listBottom.appendChild(paletteButton);
-                            }
-                        }
-                        if (palette.paletteId === this.#selectedPaletteId) {
-                            move = true;
-                        }
-                    });
-                }
-            }
+            this.#shufflePaletteList(); 
         }
 
         if (typeof state?.enabled === 'boolean') {
@@ -240,7 +222,6 @@ export default class PaletteEditor extends ComponentBase {
             });
         }
     }
-
 
     /**
      * Registers a handler for a command.
@@ -417,6 +398,28 @@ export default class PaletteEditor extends ComponentBase {
             element.value = palette.system;
         });
         this.#updateSystemSelectVirtualList(palette.system);
+    }
+
+    #shufflePaletteList() {
+        if (this.#selectedPaletteId) {
+            const listTop = this.#element.querySelector('[data-smsgfx-id=palette-list-top] div.list-group');
+            const listBottom = this.#element.querySelector('[data-smsgfx-id=palette-list-bottom] div.list-group');
+            if (listTop && listBottom) {
+                listBottom.innerHTML = '';
+                let move = false;
+                this.#paletteList.getPalettes().forEach((palette, index) => {
+                    if (move) {
+                        const paletteButton = listTop.querySelector(`button[data-palette-id=${CSS.escape(palette.paletteId)}]`);
+                        if (paletteButton) {
+                            listBottom.appendChild(paletteButton);
+                        }
+                    }
+                    if (palette.paletteId === this.#selectedPaletteId) {
+                        move = true;
+                    }
+                });
+            }
+        }
     }
 
     /**
