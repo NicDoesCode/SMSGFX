@@ -53,6 +53,21 @@ export default class PaletteList {
     /**
      * Gets an item by ID.
      * @param {string} paletteId - Unique Palette ID to fetch.
+     * @returns {number}
+     */
+    indexOf(paletteId) {
+        if (typeof paletteId !== 'string') return -1;
+        for (let i = 0; i < this.#palettes.length; i++) {
+            if (this.#palettes[i].paletteId === paletteId) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Gets an item by ID.
+     * @param {string} paletteId - Unique Palette ID to fetch.
      * @returns {Palette|null}
      */
     getPaletteById(paletteId) {

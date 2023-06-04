@@ -1,4 +1,5 @@
 import ComponentBase from "./componentBase.js";
+import PaletteListComponent from "./components/paletteList.js";
 import Palette from "../models/palette.js";
 import ColourUtil from "../util/colourUtil.js";
 import EventDispatcher from "../components/eventDispatcher.js";
@@ -33,6 +34,10 @@ export default class PaletteEditor extends ComponentBase {
 
     /** @type {HTMLDivElement} */
     #element;
+    /** @type {PaletteList?} */
+    #paletteList = null;
+    /** @type {string?} */
+    #selectedPaletteId = null;
     /** @type {HTMLButtonElement[]} */
     #paletteButtons = [];
     /** @type {HTMLTableCellElement[]} */
@@ -43,6 +48,8 @@ export default class PaletteEditor extends ComponentBase {
     #contextMenu;
     /** @type {EventDispatcher} */
     #dispatcher;
+    /** @type {PaletteListComponent?} */
+    #paletteListComponent = null;
     #enabled = true;
 
 
@@ -101,9 +108,15 @@ export default class PaletteEditor extends ComponentBase {
         // this.#createPaletteColourIndexButtons();
 
         PaletteEditorContextMenu.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=palette-editor-context-menu]'))
-            .then((obj) => {
-                this.#contextMenu = obj;
+            .then((component) => {
+                this.#contextMenu = component;
                 this.#contextMenu.addHandlerOnCommand((args) => this.#handlePaletteEditorContextMenuOnCommand(args));
+            });
+
+        PaletteListComponent.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=palette-list]'))
+            .then((component) => {
+                this.#paletteListComponent = component;
+                this.#paletteListComponent.addHandlerOnCommand((args) => this.#handlePaletteListOnCommand(args));
             });
     }
 
@@ -127,10 +140,12 @@ export default class PaletteEditor extends ComponentBase {
         /** @type {PaletteList} */
         let paletteList;
         let updateVirtualList = false;
+        let paletteListDirty = false;
         if (state?.paletteList && typeof state?.paletteList.getPalettes === 'function') {
-            paletteList = state.paletteList;
-            this.#refreshPaletteSelectList(state.paletteList);
+            this.#paletteList = state.paletteList;
+            this.#refreshPaletteSelectList(this.#paletteList);
             updateVirtualList = true;
+            paletteListDirty = true;
         }
         if (typeof state?.selectedPaletteIndex === 'number') {
             this.#element.querySelectorAll(`[data-command=${commands.paletteSelect}]`).forEach(element => {
@@ -138,15 +153,22 @@ export default class PaletteEditor extends ComponentBase {
                 updateVirtualList = true;
             });
         }
+        if (typeof state?.selectedPaletteId === 'string') {
+            this.#selectedPaletteId = state.selectedPaletteId;
+            paletteListDirty = true;
+        } else if (state && state.selectedPaletteId === null) {
+            this.#selectedPaletteId = null;
+            paletteListDirty = true;
+        }
         if (typeof state?.displayNative === 'boolean') {
             this.#element.querySelectorAll(`[data-command=${commands.displayNativeColours}]`).forEach(element => {
                 element.checked = state.displayNative;
             });
         }
-        if (paletteList) {
+        if (this.#paletteList) {
             const select = this.#element.querySelector(`[data-command=${commands.paletteSelect}]`);
             if (select) {
-                const selectedPalette = paletteList.getPalette(select.selectedIndex);
+                const selectedPalette = this.#paletteList.getPalette(select.selectedIndex);
                 this.#setPalette(selectedPalette);
             }
         }
@@ -173,6 +195,33 @@ export default class PaletteEditor extends ComponentBase {
         // Refresh the virtual list if needed
         if (updateVirtualList) {
             this.#updatePaletteSelectVirtualList();
+        }
+
+        // Refresh the palette stack
+        if (paletteListDirty && this.#paletteList) {
+            this.#paletteListComponent.setState({
+                paletteList: this.#paletteList,
+                selectedPaletteId: this.#selectedPaletteId
+            });
+            if (this.#selectedPaletteId) {
+                const listTop = this.#element.querySelector('[data-smsgfx-id=palette-list-top] div.list-group');
+                const listBottom = this.#element.querySelector('[data-smsgfx-id=palette-list-bottom] div.list-group');
+                if (listTop && listBottom) {
+                    listBottom.innerHTML = '';
+                    let move = false;
+                    this.#paletteList.getPalettes().forEach((palette, index) => {
+                        if (move) {
+                            const paletteButton = listTop.querySelector(`button[data-palette-id=${CSS.escape(palette.paletteId)}]`);
+                            if (paletteButton) {
+                                listBottom.appendChild(paletteButton);
+                            }
+                        }
+                        if (palette.paletteId === this.#selectedPaletteId) {
+                            move = true;
+                        }
+                    });
+                }
+            }
         }
 
         if (typeof state?.enabled === 'boolean') {
@@ -253,6 +302,17 @@ export default class PaletteEditor extends ComponentBase {
                 this.#contextMenu.setState({ visible: false });
                 break;
 
+        }
+    }
+
+    /**
+     * @param {import("./components/paletteList.js").PaletteListCommandEventArgs} args - Arguments.
+     */
+    #handlePaletteListOnCommand(args) {
+        if (args.command === PaletteListComponent.Commands.paletteSelect) {
+            const thisArgs = this.#createEventArgs(commands.paletteSelect);
+            thisArgs.paletteId = args.paletteId;
+            this.#dispatcher.dispatch(EVENT_OnCommand, thisArgs);
         }
     }
 
@@ -427,7 +487,7 @@ export default class PaletteEditor extends ComponentBase {
     #setUI(palette) {
         document.querySelectorAll('[data-smsgfx-id=system-select]').forEach(elm => {
             switch (palette.system) {
-                case 'sms' : case 'gg': elm.style.display = null; break;
+                case 'sms': case 'gg': elm.style.display = null; break;
                 case 'gb': elm.style.display = 'none'; break;
                 case 'nes': elm.style.display = 'none'; break;
             }
@@ -481,6 +541,7 @@ export default class PaletteEditor extends ComponentBase {
  * @property {string?} title - Title of the palette.
  * @property {string?} selectedSystem - Sets the selected system, either 'ms', 'gg', 'gb' or 'nes'.
  * @property {number?} selectedPaletteIndex - Sets the selected palette index.
+ * @property {number?} selectedPaletteId - Sets the unique ID of the selected palette.
  * @property {number?} selectedColourIndex - Sets the selected colour index.
  * @property {number?} highlightedColourIndex - Sets the selected colour index.
  * @property {boolean?} displayNative - Should the palette editor display native colours?
@@ -497,6 +558,7 @@ export default class PaletteEditor extends ComponentBase {
  * @typedef {object} PaletteEditorCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {number?} paletteIndex - Index of the selected palette.
+ * @property {number?} paletteId - Unique ID of the selected palette.
  * @property {string?} paletteTitle - Title value for the selected palette.
  * @property {string?} paletteSystem - Selected system value for the selected palette, either 'ms', 'gg', 'gb' or 'nes'.
  * @property {number?} colourIndex - Index from 0 to 15 for the given colour.

@@ -1,7 +1,10 @@
 <div data-smsgfx-component="paletteEditor">
+
     <select data-command="paletteSelect" class="form-select d-none">
     </select>
+
     <div class="sms-toolbox sms-palette card m-0 mb-2">
+
         <!-- Palette editor : header -->
         <div class="card-header sms-card-toolbar p-0 d-flex">
             <span class="flex-fill p-1 ps-2">Palette</span>
@@ -19,7 +22,22 @@
             </ul>
         </div>
         <!-- End: Palette editor : header -->
-        <div class="card-body p-2">
+
+        <div data-smsgfx-id="palette-list-top" data-smsgfx-component-id="palette-list"
+            class="palette-list palette-list-above card-body p-0">
+            <template>
+                <script data-smsgfx-template-id="item-template" type="text/x-handlebars-template">
+                    <div class="list-group rounded-0 border border-0">
+                        {{#each this}}
+                        <button data-command="paletteSelect" data-palette-id="{{paletteId}}" 
+                            class="palette-list-item list-group-item border border-0 border-bottom text-start fw-bold">{{title}}</button>
+                        {{/each}}
+                    </div>
+                </script>
+            </template>
+        </div>
+
+        <div class="palette-editor card-body p-2">
             <div class="row mb-2">
                 <div class="col">
                     <input data-command="paletteTitle" type="text" class="form-control" aria-label="Enter name"
@@ -73,8 +91,10 @@
                 <div class="col">
                     <div class="form-check form-switch ms-2 mt-2">
                         <input id="displayNativeColours" data-command="displayNativeColours" class="form-check-input"
-                            type="checkbox" role="switch" checked  title="When enabled the tile set or tile map preview will be rendered in colours that approximate that of the target system.">
-                        <label class="form-check-label" for="displayNativeColours" title="When enabled the tile set or tile map preview will be rendered in colours that approximate that of the target system.">
+                            type="checkbox" role="switch" checked
+                            title="When enabled the tile set or tile map preview will be rendered in colours that approximate that of the target system.">
+                        <label class="form-check-label" for="displayNativeColours"
+                            title="When enabled the tile set or tile map preview will be rendered in colours that approximate that of the target system.">
                             Emulate system colours
                         </label>
                     </div>
@@ -95,6 +115,11 @@
                 </div>
             </div>
         </div>
+
+        <div data-smsgfx-id="palette-list-bottom" class="palette-list palette-list-bottom palette-list-above card-body p-0">
+            <div class="list-group rounded-0 border border-0">
+            </div>
+        </div>
     </div>
 
     <!-- Palette editor context menu -->
@@ -103,6 +128,30 @@
     <!-- End: Palette editor context menu -->
 
     <style data-css-scope="global">
+        .sms-palette .palette-list .palette-list-item {
+            background-color: var(--bs-dark-bg-subtle);
+        }
+
+        .sms-palette .palette-list .palette-list-item.selected {
+            color: var(--bs-light-text-emphasis);
+            background-color: var(--bs-primary-border-subtle);
+            border-bottom: none!important;
+        }
+
+        .sms-palette .palette-list.palette-list-bottom button {
+            border-top: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color) !important;
+            border-bottom: none!important;
+        }
+
+        .sms-palette .palette-list.palette-list-bottom button:last-of-type {
+            border-bottom-left-radius: var(--bs-card-border-radius);
+            border-bottom-right-radius: var(--bs-card-border-radius);
+        }
+
+        .sms-palette .palette-editor {
+            background: linear-gradient(180deg, var(--bs-primary-border-subtle) 0%, rgba(33,37,41,0) 40%);
+        }
+
         .sms-palette .sms-palette-colours td {
             border: none;
         }

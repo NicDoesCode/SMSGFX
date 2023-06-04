@@ -21,7 +21,11 @@ export default class TemplateUtil {
         if (!componentName) throw new Error('Must supply a component name.');
         if (!componentRegex.test(componentName)) throw new Error(`Component name '${componentName}' was not valid.`);
 
-        let component = getComponent(componentName);
+        let component = getUserDefinedTemplateAsComponent(componentName, element);
+
+        if (!component) {
+            component = getComponent(componentName);
+        }
 
         if (!component) {
             ensureEmbeddedComponentsFromDocumentCached();
@@ -40,22 +44,22 @@ export default class TemplateUtil {
 
         if (component) {
             addComponentGlobalScopedCss(componentName, component);
-
-            /** @type {HTMLElement} */
-            const clonedComponent = component.cloneNode(true);
+       
+            /** @type {HTMLElement?} */
+            let componentElement = component.cloneNode(true);
             element.classList.forEach((className) => {
-                clonedComponent.classList.add(className);
+                componentElement.classList.add(className);
             })
             element.removeAttribute('class');
             element.getAttributeNames().forEach((attrName) => {
                 if (attrName !== 'data-smsgfx-component-id') {
-                    clonedComponent.setAttribute(attrName, element.getAttribute(attrName));
+                    componentElement.setAttribute(attrName, element.getAttribute(attrName));
                 }
             });
-            clonedComponent.removeAttribute('data-smsgfx-component');
-            element.after(clonedComponent);
+            componentElement.removeAttribute('data-smsgfx-component');
+            element.after(componentElement);
             element.remove();
-            return clonedComponent;
+            return componentElement;
         } else {
             console.error(`Failed to load component '${componentName}'.`);
             return element;
@@ -107,6 +111,23 @@ export default class TemplateUtil {
  * @argument {string} command - Associated command.
  * @exports
  */
+
+
+/** 
+ * @param {string} componentName
+ * @param {HTMLElement} element 
+ */
+function getUserDefinedTemplateAsComponent(componentName, element) {
+    const userDefinedTemplate = element.querySelector('template');
+    if (userDefinedTemplate) {
+        const componentInstanceId = `${componentName}/${GeneralUtil.generateRandomString(8)}`;
+        addComponentGlobalScopedCss(componentInstanceId, userDefinedTemplate);
+        const result = document.createElement(element.tagName);
+        result.innerHTML = userDefinedTemplate.innerHTML;
+        return result;
+    }
+    return null;
+}
 
 
 /** @param {string} componentName */

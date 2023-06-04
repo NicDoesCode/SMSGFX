@@ -338,11 +338,11 @@ function createEventListeners() {
                     handled = true;
                 } else if (keyEvent.code === 'ArrowDown') {
                     // Lower palette
-                    changePalette(getProjectUIState().paletteIndex + 1);
+                    changePaletteIndex(getProjectUIState().paletteIndex + 1);
                     handled = true;
                 } else if (keyEvent.code === 'ArrowUp') {
                     // Higher palette
-                    changePalette(getProjectUIState().paletteIndex - 1);
+                    changePaletteIndex(getProjectUIState().paletteIndex - 1);
                     handled = true;
                 } else if (keyEvent.code === 'ArrowLeft') {
                     // Lower palette
@@ -728,7 +728,11 @@ function handleExportDialogueOnCommand(args) {
 function handlePaletteEditorOnCommand(args) {
     switch (args.command) {
         case PaletteEditor.Commands.paletteSelect:
-            changePalette(args.paletteIndex);
+            if (args.paletteId) {
+                changePalette(args.paletteId);
+            } else {
+                changePaletteIndex(args.paletteIndex);
+            }
             break;
 
         case PaletteEditor.Commands.paletteNew:
@@ -1623,6 +1627,7 @@ function refreshProjectUI() {
 
     paletteEditor.setState({
         paletteList: getPaletteList(),
+        selectedPaletteId: getPalette().paletteId, 
         selectedPaletteIndex: getProjectUIState().paletteIndex,
         selectedColourIndex: instanceState.colourIndex
     });
@@ -3508,10 +3513,20 @@ function decreaseScale() {
 }
 
 /**
+ * Changes the selected palette by palette ID.
+ * @param {number} paletteId - Unique palette ID.
+ */
+function changePalette(paletteId) {
+    if (typeof paletteId !== 'string') return;
+    let index = getPaletteList().indexOf(paletteId);
+    changePaletteIndex(index);
+}
+
+/**
  * Selects a given palette.
  * @param {number} index - Palette index in the palette list.
  */
-function changePalette(index) {
+function changePaletteIndex(index) {
     if (index < 0 || index >= getPaletteList().length) return;
 
     getProjectUIState().paletteIndex = index;
