@@ -30,7 +30,10 @@
                     <div class="list-group rounded-0 border border-0">
                         {{#each this}}
                         <button data-command="paletteSelect" data-palette-id="{{paletteId}}" 
-                            class="palette-list-item list-group-item border border-0 border-bottom text-start fw-bold">{{title}}</button>
+                            class="palette-list-item list-group-item border border-0 border-bottom text-start fw-bold">
+                            <span class="icon-expand float-end"><i class="bi bi-caret-down-fill"></i></span>
+                            <span>{{title}}</span>
+                        </button>
                         {{/each}}
                     </div>
                 </script>
@@ -136,6 +139,22 @@
             color: var(--bs-light-text-emphasis);
             background-color: var(--bs-primary-border-subtle);
             border-bottom: none!important;
+        }
+
+        .sms-palette .palette-list .palette-list-item .icon-expand {
+            display: block;
+        }
+
+        .sms-palette .palette-list .palette-list-item .icon-expanded {
+            display: none;
+        }
+
+        .sms-palette .palette-list .palette-list-item.selected .icon-expand {
+            display: none;
+        }
+
+        .sms-palette .palette-list .palette-list-item.selected .icon-expanded {
+            display: block;
         }
 
         .sms-palette .palette-list.palette-list-bottom button {
