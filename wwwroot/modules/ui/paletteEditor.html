@@ -1,4 +1,4 @@
-<div data-smsgfx-component="paletteEditor" class="palette-editor">
+<div data-smsgfx-component="paletteEditor" class="sms-palette-editor">
 
     <select data-command="paletteSelect" class="form-select d-none">
     </select>
@@ -24,7 +24,7 @@
         <!-- End: Palette editor : header -->
 
         <div data-smsgfx-id="palette-list-top" data-smsgfx-component-id="palette-list"
-            class="palette-list palette-list-top card-body p-0">
+            class="sms-palette-list sms-palette-list-top card-body p-0">
             <template>
                 <script data-smsgfx-template-id="item-template" type="text/x-handlebars-template">
                     <div class="list-group rounded-0 border border-0">
@@ -40,7 +40,7 @@
             </template>
         </div>
 
-        <div class="palette-properties card-body p-2">
+        <div class="sms-palette-properties card-body p-2">
             <div class="row mb-2">
                 <div class="col">
                     <input data-command="paletteTitle" type="text" class="form-control" aria-label="Enter name"
@@ -119,7 +119,7 @@
             </div>
         </div>
 
-        <div data-smsgfx-id="palette-list-bottom" class="palette-list palette-list-bottom card-body p-0">
+        <div data-smsgfx-id="palette-list-bottom" class="sms-palette-list sms-palette-list-bottom card-body p-0">
             <div class="list-group rounded-0 border border-0">
             </div>
         </div>
@@ -132,51 +132,51 @@
     <!-- End: Palette editor context menu -->
 
     <style data-css-scope="global">
-        .palette-editor .palette-list button {
+        .sms-palette-editor .sms-palette-list button {
             background-color: var(--bs-dark-bg-subtle);
         }
 
-        .palette-editor .palette-list button.active {
+        .sms-palette-editor .sms-palette-list button.active {
             color: var(--bs-light-text-emphasis);
             background-color: var(--bs-primary-border-subtle);
             border-bottom: none!important;
         }
 
-        .palette-editor .palette-list button .icon-expand {
+        .sms-palette-editor .sms-palette-list button .icon-expand {
             display: block;
         }
 
-        .palette-editor .palette-list button .icon-expanded {
+        .sms-palette-editor .sms-palette-list button .icon-expanded {
             display: none;
         }
 
-        .palette-editor .palette-list button.active .icon-expand {
+        .sms-palette-editor .sms-palette-list button.active .icon-expand {
             display: none;
         }
 
-        .palette-editor .palette-list button.active .icon-expanded {
+        .sms-palette-editor .sms-palette-list button.active .icon-expanded {
             display: block;
         }
 
-        .palette-editor .palette-list.palette-list-bottom button {
+        .sms-palette-editor .sms-palette-list.sms-palette-list-bottom button {
             border-top: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color) !important;
             border-bottom: none!important;
         }
 
-        .palette-editor .palette-list.palette-list-bottom button:last-of-type {
+        .sms-palette-editor .sms-palette-list.sms-palette-list-bottom button:last-of-type {
             border-bottom-left-radius: var(--bs-card-border-radius);
             border-bottom-right-radius: var(--bs-card-border-radius);
         }
 
-        .palette-editor .palette-properties {
+        .sms-palette-editor .sms-palette-properties {
             background: linear-gradient(180deg, var(--bs-primary-border-subtle) 0%, rgba(33,37,41,0) 40%);
         }
 
-        .palette-editor .sms-palette-colours td {
+        .sms-palette-editor .sms-palette-colours td {
             border: none;
         }
 
-        .palette-editor .sms-palette-colours button.sms-palette-button {
+        .sms-palette-editor .sms-palette-colours button.sms-palette-button {
             display: flex;
             flex-direction: column;
             width: 100%;
@@ -188,7 +188,7 @@
             box-sizing: border-box;
         }
 
-        .palette-editor .sms-palette-colours button.sms-palette-button span {
+        .sms-palette-editor .sms-palette-colours button.sms-palette-button span {
             text-align: center;
             background-color: rgba(0, 0, 0, 0.75);
             color: #FFFFFF;
@@ -200,32 +200,32 @@
             width: 100%;
         }
 
-        .palette-editor .sms-palette-colours td.sms-selected button.sms-palette-button {
+        .sms-palette-editor .sms-palette-colours td.sms-selected button.sms-palette-button {
             border-color: #0d6efd;
             box-shadow: 0px 0px 0px 1px #0d6efd;
         }
 
-        .palette-editor .sms-palette-colours td.sms-selected button.sms-palette-button span {
+        .sms-palette-editor .sms-palette-colours td.sms-selected button.sms-palette-button span {
             background-color: #0d6efd;
         }
 
-        .palette-editor .sms-system-select button:not(.active) {
+        .sms-palette-editor .sms-system-select button:not(.active) {
             background-color: transparent;
         }
 
-        [data-bs-theme=dark] .palette-editor .sms-system-select button:not(.active) {
+        [data-bs-theme=dark] .sms-palette-editor .sms-system-select button:not(.active) {
             background-color: transparent;
         }
 
-        .palette-editor .sms-palette-colours td.sms-highlight button {
+        .sms-palette-editor .sms-palette-colours td.sms-highlight button {
             box-shadow: 0px 0px 0px 3px #AAAAAA;
         }
 
-        [data-bs-theme=dark] .palette-editor .sms-palette-colours td.sms-highlight button {
+        [data-bs-theme=dark] .sms-palette-editor .sms-palette-colours td.sms-highlight button {
             box-shadow: 0px 0px 0px 3px #FFFFFF;
         }
 
-        .palette-editor .sms-console-icon {
+        .sms-palette-editor .sms-console-icon {
             width: 60px;
             height: auto;
         }
