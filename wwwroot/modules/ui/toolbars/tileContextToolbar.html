@@ -34,12 +34,15 @@
         <div data-toolstrip="pencil" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm">
                 <div class="input-group-text">
-                    <input data-command="tileClamp" data-auto-event="change" data-labelled-by="tileClamp" class="form-check-input mt-0"
-                        type="checkbox" value="" aria-label="Checkbox for following text input">
-                    <label for="tileClamp" class="ps-1">Clamp to tile</label>
+                    <input data-command="tileClamp" data-auto-event="change" data-labelled-by="tileClamp"
+                        class="form-check-input mt-0" type="checkbox" value="" aria-label="Clamp to tile"
+                        title="Clamp to tile: Limits the actions of the pencil, colour replace and paint bucket tools to the current tile.">
+                    <label for="tileClamp" class="ps-1"
+                        title="Clamp to tile: Limits the actions of the pencil, colour replace and paint bucket tools to the current tile.">Clamp
+                        to tile</label>
                 </div>
             </div>
-            </div>
+        </div>
         <!-- End: Pencil toolstrip -->
         <!-- Select toolstrip -->
         <div data-toolstrip="select" class="col-auto sms-toolstrip m-0 me-2 p-0">
@@ -49,14 +52,15 @@
         </div>
         <div data-toolstrip="select" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
-                <button class="btn btn-outline-secondary btn-ui" title="Cut tile." data-command="cut" data-auto-event="click">
+                <button class="btn btn-outline-secondary btn-ui" title="Cut tile: Places a copy of the tile data into memory and removes it from the tile set." data-command="cut"
+                    data-auto-event="click">
                     <i class="bi bi-scissors"></i>
                 </button>
-                <button class="btn btn-outline-secondary btn-ui" title="Copy tile." data-command="copy"
+                <button class="btn btn-outline-secondary btn-ui" title="Copy tile: Places a copy of the tile data into memory." data-command="copy"
                     data-auto-event="click">
                     <i class="bi bi-files"></i>
                 </button>
-                <button class="btn btn-outline-secondary btn-ui" title="Paste tile." data-command="paste"
+                <button class="btn btn-outline-secondary btn-ui" title="Paste tile: Pastes (inserts) any tile that is in memory into the tile map." data-command="paste"
                     data-auto-event="click">
                     <i class="bi bi-clipboard"></i>
                 </button>
@@ -64,7 +68,7 @@
         </div>
         <div data-toolstrip="select" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
-                <button class="btn btn-outline-secondary btn-ui" title="Clone tile." data-command="clone"
+                <button class="btn btn-outline-secondary btn-ui" title="Clones / duplicates the currently selected tile in-place." data-command="clone"
                     data-auto-event="click">
                     <i class="bi bi-file-earmark-plus"></i>
                 </button>
@@ -72,7 +76,7 @@
         </div>
         <div data-toolstrip="select" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
-                <button class="btn btn-outline-secondary btn-ui" title="Remove tile." data-command="remove"
+                <button class="btn btn-outline-secondary btn-ui" title="Removes the selected tile from the tile set." data-command="remove"
                     data-auto-event="click">
                     <i class="bi bi-trash-fill"></i>
                 </button>
@@ -81,11 +85,11 @@
         <div data-toolstrip="select" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <span class="input-group-text">Move</span>
-                <button class="btn btn-outline-secondary btn-ui" title="Move tile to left." data-command="moveLeft"
+                <button class="btn btn-outline-secondary btn-ui" title="Moves the position of this tile one spot to the left." data-command="moveLeft"
                     data-auto-event="click">
                     <i class="bi bi-arrow-left"></i>
                 </button>
-                <button class="btn btn-outline-secondary btn-ui" title="Move tile to right." data-command="moveRight"
+                <button class="btn btn-outline-secondary btn-ui" title="Moves the position of this tile one spot to the right." data-command="moveRight"
                     data-auto-event="click">
                     <i class="bi bi-arrow-right"></i>
                 </button>
@@ -98,8 +102,8 @@
                     data-command="mirrorHorizontal" data-auto-event="click">
                     <i class="bi bi-vr"></i>
                 </button>
-                <button class="btn btn-outline-secondary btn-ui" title="Mirror tile vertically." data-command="mirrorVertical"
-                    data-auto-event="click">
+                <button class="btn btn-outline-secondary btn-ui" title="Mirror tile vertically."
+                    data-command="mirrorVertical" data-auto-event="click">
                     <i class="bi bi-hr"></i>
                 </button>
             </div>
@@ -138,8 +142,8 @@
         </div>
         <div data-toolstrip="referenceImage" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
-                <button class="btn btn-outline-secondary btn-ui" data-command="referenceImageRevert" data-auto-event="click"
-                    title="Revert proportions.">
+                <button class="btn btn-outline-secondary btn-ui" data-command="referenceImageRevert"
+                    data-auto-event="click" title="Revert proportions of the reference image to default.">
                     <i class="bi bi-arrow-counterclockwise"></i>
                 </button>
             </div>
@@ -148,22 +152,22 @@
             <div class="input-group input-group-sm p-0 m-0">
                 <span class="input-group-text">X</span>
                 <input data-command="referenceImageDisplay" data-field="referenceX" data-auto-event="change"
-                    type="number" class="form-control sms-toolstrip" style="width: 60px">
+                    type="number" class="form-control sms-toolstrip" style="width: 60px" title="Changes the horizontal (X) display coordinate of the reference image.">
                 <span class="input-group-text">Y</span>
                 <input data-command="referenceImageDisplay" data-field="referenceY" data-auto-event="change"
-                    type="number" class="form-control sms-toolstrip" style="width: 60px">
+                    type="number" class="form-control sms-toolstrip" style="width: 60px" title="Changes the vertical (Y) display coordinate of the reference image.">
             </div>
         </div>
         <div data-toolstrip="referenceImage" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <span class="input-group-text">W</span>
                 <input data-command="referenceImageDisplay" data-field="referenceWidth" data-auto-event="change"
-                    type="number" class="form-control sms-toolstrip" style="width: 60px">
+                    type="number" class="form-control sms-toolstrip" style="width: 60px" title="Changes the width of the reference image.">
                 <span class="input-group-text">H</span>
                 <input data-command="referenceImageDisplay" data-field="referenceHeight" data-auto-event="change"
-                    type="number" class="form-control sms-toolstrip" style="width: 60px">
+                    type="number" class="form-control sms-toolstrip" style="width: 60px" title="Changes the height of the reference image.">
                 <button class="btn btn-outline-secondary btn-ui active" data-command="referenceImageLockAspect"
-                    data-auto-event="click" title="Maintain aspect ratio of reference image?" aria-pressed="true"
+                    data-auto-event="click" title="Maintain aspect ratio of reference image while resizing?" aria-pressed="true"
                     data-toggle="referenceImageAspect" data-bs-toggle="button">
                     <i class="bi bi-link-45deg"></i>
                 </button>
@@ -172,7 +176,7 @@
         <div data-toolstrip="referenceImage" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <select data-command="referenceImageDisplay" data-field="referenceTransparency" data-auto-event="change"
-                    class="form-select sms-toolstrip">
+                    class="form-select sms-toolstrip" title="Changes how the reference image is drawn, it can either be drawn above the current image, or can be drawn in-place of a given colour index.">
                     <options>
                         <option value="-1">Overlay above image</option>
                         <option value="0">Draw over colour #0</option>
@@ -210,7 +214,8 @@
                     <i class="bi bi-plus-lg"></i>
                 </button>
                 <button data-command="rowColumnMode" data-mode="deleteRow" data-auto-event="click"
-                    class="btn btn-outline-secondary btn-ui" title="Remove tile map row: Deletes a row at the index clicked.">
+                    class="btn btn-outline-secondary btn-ui"
+                    title="Remove tile map row: Deletes a row at the index clicked.">
                     <i class="bi bi-dash-lg"></i>
                 </button>
             </div>
@@ -219,7 +224,8 @@
             <div class="input-group input-group-sm">
                 <span class="input-group-text">Column</span>
                 <button data-command="rowColumnMode" data-mode="addColumn" data-auto-event="click"
-                    class="btn btn-outline-secondary btn-ui" title="Add tile map column: Adds a column at the index clicked.">
+                    class="btn btn-outline-secondary btn-ui"
+                    title="Add tile map column: Adds a column at the index clicked.">
                     <i class="bi bi-plus-lg"></i>
                 </button>
                 <button data-command="rowColumnMode" data-mode="deleteColumn" data-auto-event="click"
@@ -232,7 +238,7 @@
         <div data-toolstrip="rowColumn" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <span class="input-group-text">Fill mode</span>
-                <select data-command="rowColumnFillMode" data-auto-event="change" class="form-select">
+                <select data-command="rowColumnFillMode" data-auto-event="change" class="form-select" title="If a new row or coloumn is added, this determines how new tiles are created.">
                     <options>
                         <option value="useSelected">Use selected tile</option>
                         <option value="copyOnceSelected">Copy of selected tile once</option>
@@ -287,19 +293,19 @@
         <div data-toolstrip="tileAttributes" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <span class="input-group-text">Mirror</span>
-                <button class="btn btn-outline-secondary btn-ui" title="Mirror tile horizontally."
+                <button class="btn btn-outline-secondary btn-ui" title="Sets or reverts the mirror horizontal flag."
                     data-command="tileAttributes" data-field="horizontalFlip" data-auto-event="click">
                     <i class="bi bi-vr"></i>
                 </button>
-                <button class="btn btn-outline-secondary btn-ui" title="Mirror tile vertically." data-command="tileAttributes"
-                    data-field="verticalFlip" data-auto-event="click">
+                <button class="btn btn-outline-secondary btn-ui" title="Sets or reverts the mirror vertical flag."
+                    data-command="tileAttributes" data-field="verticalFlip" data-auto-event="click">
                     <i class="bi bi-hr"></i>
                 </button>
             </div>
         </div>
         <div data-toolstrip="tileAttributes" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
-                <button class="btn btn-sm btn-outline-secondary btn-ui" title="Mirror tile horizontally."
+                <button class="btn btn-sm btn-outline-secondary btn-ui" title="Sets the render priority of the tile."
                     data-command="tileAttributes" data-field="priority" data-auto-event="click">
                     <i class="bi bi-layers-fill"></i> Priority
                 </button>

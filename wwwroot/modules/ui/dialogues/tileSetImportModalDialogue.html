@@ -1,26 +1,32 @@
-<div data-smsgfx-component="dialogues/tileSetImportModalDialogue" data-smsgfx-id="modal" class="sms-dialogue modal fade" tabindex="-1">
+<div data-smsgfx-component="dialogues/tileSetImportModalDialogue" data-smsgfx-id="modal" class="sms-dialogue modal fade"
+    tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Import tile set from assembly code</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                    title="Cancel this operation and dismisses the dialogue."></button>
             </div>
             <div class="modal-body">
                 <p>Copy and paste the HEX tile data from your WLA-DX project below and it will be decoded.</p>
                 <div class="mb-3">
-                    <textarea data-smsgfx-id="text-tile-data" class="form-control" rows="10"></textarea>
+                    <textarea data-smsgfx-id="text-tile-data" class="form-control" rows="10"
+                        title="Paste in your assembly code into this field."></textarea>
                 </div>
                 <div class="form-check">
                     <input data-smsgfx-id="check-replace-tiles" class="form-check-input" type="checkbox" value=""
-                        id="flexCheckDefault">
-                    <label class="form-check-label" for="flexCheckDefault">
+                        id="flexCheckDefault" title="Replaces existing tiles in the project with these ones.">
+                    <label class="form-check-label" for="flexCheckDefault"
+                        title="Replaces existing tiles in the project with these ones.">
                         Replace existing tiles in project with these
                     </label>
                 </div>
             </div>
             <div class="modal-footer">
-                <button data-button-type="confirm" type="button" class="btn btn-primary">Import tiles</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button data-button-type="confirm" type="button" class="btn btn-primary"
+                    title="Attempts to import the tiles and dismiss the dialogue.">Import tiles</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                    title="Cancel this operation and dismisses the dialogue.">Cancel</button>
             </div>
         </div>
     </div>

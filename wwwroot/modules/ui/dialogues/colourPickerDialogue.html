@@ -1,11 +1,11 @@
-<div data-smsgfx-component="dialogues/colourPickerDialogue" data-smsgfx-id="modal" class="sms-dialogue sms-colour-picker modal fade"
-    tabindex="-1">
+<div data-smsgfx-component="dialogues/colourPickerDialogue" data-smsgfx-id="modal"
+    class="sms-dialogue sms-colour-picker modal fade" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Colour picker</h5>
                 <button type="button" class="btn-close me-2" data-bs-dismiss="modal" aria-label="Close"
-                    data-button-type="cancel"></button>
+                    data-button-type="cancel" title="Cancel this operation and dismisses the dialogue."></button>
             </div>
             <div class="modal-body p-0">
                 <div class="sms-preview-row row m-0 p-0">
@@ -39,11 +39,11 @@
                         </div>
                         <div class="col">
                             <input type="range" class="form-range mt-2" data-smsgfx-id="tbColourPickerRedSlider" min="0"
-                                max="255" step="17">
+                                max="255" step="17" title="Adjust the red value for the selected palette slot.">
                         </div>
                         <div class="col-auto">
                             <input data-smsgfx-id="tbColourPickerRed" class="form-control form-control-sm" type="number"
-                                min="0" max="255">
+                                min="0" max="255" title="Manually set the red value for the selected palette slot.">
                         </div>
                     </div>
                     <div class="row align-items-center">
@@ -52,11 +52,13 @@
                         </div>
                         <div class="col">
                             <input type="range" class="form-range mt-2" data-smsgfx-id="tbColourPickerGreenSlider"
-                                min="0" max="255" step="17">
+                                min="0" max="255" step="17"
+                                title="Adjust the green value for the selected palette slot.">
                         </div>
                         <div class="col-auto">
                             <input data-smsgfx-id="tbColourPickerGreen" class="form-control form-control-sm"
-                                type="number" min="0" max="255">
+                                type="number" min="0" max="255"
+                                title="Manually set the green value for the selected palette slot.">
                         </div>
                     </div>
                     <div class="row align-items-center">
@@ -65,11 +67,13 @@
                         </div>
                         <div class="col">
                             <input type="range" class="form-range mt-2" data-smsgfx-id="tbColourPickerBlueSlider"
-                                min="0" max="255" step="17">
+                                min="0" max="255" step="17"
+                                title="Adjust the blue value for the selected palette slot.">
                         </div>
                         <div class="col-auto">
                             <input data-smsgfx-id="tbColourPickerBlue" class="form-control form-control-sm"
-                                type="number" min="0" max="255">
+                                type="number" min="0" max="255"
+                                title="Manually set the blue value for the selected palette slot.">
                         </div>
                     </div>
                     <div class="row align-items-center mt-2">
@@ -79,9 +83,11 @@
                         <div class="col-auto">
                             <div class="input-group m-0">
                                 <input id="tbColourPickerHex" data-smsgfx-id="tbColourPickerHex" type="text"
-                                    class="form-control form-control-sm">
+                                    class="form-control form-control-sm"
+                                    title="Set the colour of the given palette slot via a hexadecimal colour code.">
                                 <input data-smsgfx-id="btnColourPickerPick" type="color"
-                                    class="form-control form-control-sm p-0">
+                                    class="form-control form-control-sm p-0"
+                                    title="Colour preview: Click this to display the native colour picker.">
                             </div>
                         </div>
                     </div>
@@ -101,8 +107,10 @@
             </div>
             <div class="modal-footer">
                 <div data-smsgfx-id="tbPreview" class="sms-colour-preview"></div>
-                <button type="button" class="btn btn-secondary" data-button-type="cancel">Revert</button>
-                <button type="button" class="btn btn-primary" data-button-type="confirm">Select colour</button>
+                <button type="button" class="btn btn-primary" data-button-type="confirm"
+                    title="Confirms the changes made here and dismisses the dialogue.">Confirm</button>
+                <button type="button" class="btn btn-secondary" data-button-type="cancel"
+                    title="Cancel changes made here and dismiss the dialogue.">Cancel</button>
             </div>
         </div>
     </div>

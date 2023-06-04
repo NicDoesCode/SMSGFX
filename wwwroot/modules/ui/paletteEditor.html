@@ -14,7 +14,7 @@
                 <i class="bi bi-code"></i>
             </button>
             <button class="btn btn-outline-secondary dropdown-toggle btn-ui border border-0 border-start" type="button"
-                data-bs-toggle="dropdown" aria-expanded="false"></button>
+                data-bs-toggle="dropdown" aria-expanded="false" title="Select an existing palette to edit."></button>
             <ul data-linked-command="paletteSelect" class="sms-dropdown-menu dropdown-menu dropdown-menu-end">
             </ul>
         </div>
@@ -23,7 +23,7 @@
             <div class="row mb-2">
                 <div class="col">
                     <input data-command="paletteTitle" type="text" class="form-control" aria-label="Enter name"
-                        list="tbPaletteSelect">
+                        list="tbPaletteSelect" title="Change the title of the palette.">
                 </div>
             </div>
             <select data-command="paletteSystem" class="form-select form-select-sm visually-hidden">
@@ -73,8 +73,8 @@
                 <div class="col">
                     <div class="form-check form-switch ms-2 mt-2">
                         <input id="displayNativeColours" data-command="displayNativeColours" class="form-check-input"
-                            type="checkbox" role="switch" checked>
-                        <label class="form-check-label" for="displayNativeColours">
+                            type="checkbox" role="switch" checked  title="When enabled the tile set or tile map preview will be rendered in colours that approximate that of the target system.">
+                        <label class="form-check-label" for="displayNativeColours" title="When enabled the tile set or tile map preview will be rendered in colours that approximate that of the target system.">
                             Emulate system colours
                         </label>
                     </div>
@@ -83,13 +83,13 @@
             <div class="row mt-1 mb-0 ps-3 pe-3">
                 <div class="col p-1">
                     <button data-command="paletteClone" class="btn btn-sm btn-outline-secondary btn-ui m-0 w-100"
-                        type="button">
+                        type="button" title="Clones / duplicates this palette.">
                         <i class="bi bi-file-earmark-plus"></i> Clone
                     </button>
                 </div>
                 <div class="col p-1">
                     <button data-command="paletteDelete" class="btn btn-sm btn-outline-secondary btn-ui m-0 w-100"
-                        type="button">
+                        type="button" title="Deletes this colour palette.">
                         <i class="bi bi bi-trash-fill"></i> Remove
                     </button>
                 </div>

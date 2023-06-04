@@ -445,6 +445,7 @@ function fillPaletteSlotButtons(element, command, field, slotCount, clickEvent) 
             button.setAttribute('data-field', field);
         }
         button.setAttribute('data-slot-number', slotNumber);
+        button.setAttribute('title', `Palette slot ${slotNumber}.`)
         element.appendChild(button);
         button.addEventListener('click', () => clickEvent(button, slotNumber));
     }

@@ -148,14 +148,12 @@ export default class TileEditorToolbar extends ComponentBase {
             if (elm) elm.checked = state?.showPixelGridChecked;
         }
         if (state?.visibleToolstrips && Array.isArray(state.visibleToolstrips)) {
-            this.#element.querySelectorAll('[data-toolstrip]').forEach(element => {
-                const toolstrip = element.getAttribute('data-toolstrip');
+            this.#element.querySelectorAll('[data-toolstrip]').forEach(tsElm => {
+                const toolstrip = tsElm.getAttribute('data-toolstrip');
                 if (state.visibleToolstrips.includes(toolstrip)) {
-                    while (element.classList.contains('visually-hidden')) {
-                        element.classList.remove('visually-hidden');
-                    }
+                    tsElm.classList.remove('visually-hidden');
                 } else {
-                    element.classList.add('visually-hidden');
+                    tsElm.classList.add('visually-hidden');
                 }
             });
         }

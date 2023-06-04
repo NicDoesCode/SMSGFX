@@ -10,7 +10,7 @@
                 <i class="bi bi-plus-lg"></i>
             </button>
             <button class="btn btn-outline-secondary dropdown-toggle btn-ui border border-0 border-start" type="button"
-                data-bs-toggle="dropdown" aria-expanded="false" title="Select a tile map."></button>
+                data-bs-toggle="dropdown" aria-expanded="false" title="Select an existing tile map to edit."></button>
             <ul data-smsgfx-id="tileMapSelectDropDown" class="dropdown-menu">
             </ul>
         </div>
@@ -30,7 +30,7 @@
                 <div class="col p-1">
                     <button data-command="tileSetToTileMap" data-auto-event="click"
                         class="btn btn-sm btn-outline-secondary btn-ui m-0 w-100" type="button"
-                        title="Removes the tile map from the project.">
+                        title="Directly converts the displayed tile set into a tile map.">
                         <i class="bi bi bi-plus-lg"></i> Convert to tile map
                     </button>
                 </div>
@@ -39,7 +39,7 @@
                 <div class="col p-1">
                     <button data-command="tileMapNew" data-auto-event="click"
                         class="btn btn-sm btn-outline-secondary btn-ui m-0 w-100" type="button"
-                        title="Removes the tile map from the project.">
+                        title="Creates a blank tile map.">
                         <i class="bi bi-plus-lg"></i> Create blank tile map
                     </button>
                 </div>
@@ -49,7 +49,7 @@
                     <label class="form-label">Display tile width</label>
                     <input data-smsgfx-id="tileSetTileWidth" data-command="tileSetChange" data-field="tileWidth"
                         data-auto-event="change" type="number" class="form-control form-control-sm"
-                        title="Sets how many tiles to display per line in the tile editor.">
+                        title="Tile width: Number of tiles to display per row before another row is created.">
                 </div>
             </div>
         </div>
@@ -57,7 +57,7 @@
             <div class="row mb-2">
                 <div class="col">
                     <input data-command="tileMapChange" data-auto-event="change" data-field="title" type="text"
-                        class="form-control" aria-label="Enter name">
+                        class="form-control" aria-label="Enter name" title="Change the title of the tile map.">
                 </div>
             </div>
             <div class="row">
@@ -76,7 +76,7 @@
                                     {{slotNumber}}
                                 </div>
                                 <div class="col p-0 m-0">
-                                    <select data-command="tileMapChange" data-auto-event="change" data-field="paletteId" data-palette-slot="{{slotNumber}}" class="form-select border border-0">
+                                    <select data-command="tileMapChange" data-auto-event="change" data-field="paletteId" data-palette-slot="{{slotNumber}}" class="form-select border border-0" title="Change the palette used to colour tiles that are assigned to this slot.">
                                     </select>
                                 </div>
                             </div>
@@ -90,8 +90,8 @@
                 <div class="col">
                     <div class="form-check form-switch">
                         <input id="tileSetOptimise" data-command="tileMapChange" data-auto-event="change"
-                            data-field="optimise" class="form-check-input" type="checkbox" role="switch" checked>
-                        <label class="form-check-label" for="tileSetOptimise">
+                            data-field="optimise" class="form-check-input" type="checkbox" role="switch" checked title="When checked the system will try and re-use tiles in the tile map, and apply flipping where possible.">
+                        <label class="form-check-label" for="tileSetOptimise" title="When checked the system will try and re-use tiles in the tile map, and apply flipping where possible.">
                             Optimise on export
                         </label>
                     </div>

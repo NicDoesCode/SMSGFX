@@ -1650,12 +1650,15 @@ function refreshProjectUI() {
     }
 
     const toolStrips = TileEditorToolbar.ToolStrips;
-    const topVisibleStrips = [toolStrips.tileAdd, toolStrips.undo];
-    if (isTileSet()) topVisibleStrips.push(toolStrips.tileSetTools);
-    if (isTileMap()) topVisibleStrips.push(toolStrips.tileMapTools);
-    tileEditorToolbar.setState({
-        visibleToolstrips: topVisibleStrips
-    });
+    if (isTileSet()) {
+        tileEditorToolbar.setState({
+            visibleToolstrips: [toolStrips.tileAdd, toolStrips.undo, toolStrips.tileSetTools]
+        });
+    } else if (isTileMap()) {
+        tileEditorToolbar.setState({
+            visibleToolstrips: [toolStrips.undo, toolStrips.tileMapTools]
+        });
+    }
     tileEditorBottomToolbar.setState({
         visibleToolstrips: [toolStrips.scale, toolStrips.showTileGrid, toolStrips.showPixelGrid]
     });
@@ -3600,12 +3603,15 @@ window.addEventListener('load', async () => {
 
     // Set up tool strips
     const strips = TileEditorToolbar.ToolStrips;
-    const topVisibleStrips = [strips.tileAdd, strips.undo];
-    if (isTileSet()) topVisibleStrips.push(strips.tileSetTools);
-    if (isTileMap()) topVisibleStrips.push(strips.tileMapTools);
-    tileEditorToolbar.setState({
-        visibleToolstrips: topVisibleStrips
-    });
+    if (isTileSet()) {
+        tileEditorToolbar.setState({
+            visibleToolstrips: [strips.tileAdd, strips.undo, strips.tileSetTools]
+        });
+    } else if (isTileMap()) {
+        tileEditorToolbar.setState({
+            visibleToolstrips: [strips.undo, strips.tileMapTools]
+        });
+    }
     tileEditorBottomToolbar.setState({
         visibleToolstrips: [strips.scale, strips.showTileGrid, strips.showPixelGrid]
     });

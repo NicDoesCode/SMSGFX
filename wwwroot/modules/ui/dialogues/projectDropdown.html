@@ -1,5 +1,5 @@
-<div data-smsgfx-component="dialogues/projectDropdown" data-smsgfx-id="modal" class="sms-dialogue sms-project-dropdown modal fade"
-    tabindex="-1">
+<div data-smsgfx-component="dialogues/projectDropdown" data-smsgfx-id="modal"
+    class="sms-dialogue sms-project-dropdown modal fade" tabindex="-1">
     <div class="modal-dialog mt-0">
         <div class="modal-content rounded-0 rounded-bottom">
             <div class="modal-header pt-2 pb-2">
@@ -9,9 +9,10 @@
                         <strong>Current project</strong>
                     </span>
                     <input data-command="title" type="text" class="form-control border-secondary"
-                        placeholder="Project title" aria-label="Project title">
-                    <button data-command="projectSaveToFile" class="btn btn-sm btn-outline-secondary"
-                        title="Save project to file." type="button">
+                        placeholder="Project title" aria-label="Project title"
+                        title="Project title: Modify this field to change the title of the current project.">
+                    <button data-command="projectSaveToFile" class="btn btn-sm btn-outline-secondary" type="button"
+                        title="Download the current project as a JSON file.">
                         <i class="bi bi-download"></i> Save to file
                     </button>
                 </div>
@@ -22,19 +23,21 @@
                     <h5>Create project</h5>
                     <div class="d-flex justify-content-start p-2">
                         <button type="button" class="btn btn-secondary flex-fill me-2 p-3" data-command="projectNew"
-                            data-target-system-type="smsgg">
+                            data-target-system-type="smsgg"
+                            title="Create a new Sega Game Gear and Master System project.">
                             <img src="assets/image/game-gear-console.svg" alt="Sega Game Gear.">
                         </button>
                         <button type="button" class="btn btn-secondary flex-fill me-2 p-3" data-command="projectNew"
-                            data-target-system-type="smsgg">
+                            data-target-system-type="smsgg"
+                            title="Create a new Sega Game Gear and Master System project.">
                             <img src="assets/image/master-system-console.svg" alt="Sega Master System.">
                         </button>
                         <button type="button" class="btn btn-secondary flex-fill me-2 p-3" data-command="projectNew"
-                            data-target-system-type="nes">
+                            data-target-system-type="nes" title="Create a new Nintendo Entertainment System project.">
                             <img src="assets/image/nes.svg" alt="Nintendo Entertainment System.">
                         </button>
                         <button type="button" class="btn btn-secondary flex-fill p-3" data-command="projectNew"
-                            data-target-system-type="gb">
+                            data-target-system-type="gb" title="Create a new Nintendo Game Boy project.">
                             <img src="assets/image/game-boy.svg" alt="Nintendo Game Boy.">
                         </button>
                     </div>
@@ -47,7 +50,7 @@
                         </div>
                         <div class="col text-end">
                             <button data-command="projectLoadFromFile" class="btn btn-sm btn-ui btn-outline-secondary"
-                                title="Load project from file." type="button">
+                                type="button" title="Loads a project from a JSON file.">
                                 <i class="bi bi-upload"></i> Load from file
                             </button>
                         </div>
@@ -64,11 +67,13 @@
             <div class="modal-footer">
                 <div class="row m-0 p-0">
                     <div class="col m-0 p-0 text-start">
-                        <button type="button" class="btn btn-sm btn-link" data-command="showWelcomeScreen">Show welcome
+                        <button type="button" class="btn btn-sm btn-link" data-command="showWelcomeScreen"
+                            title="Click to close this menu and display the welcome screen.">Show welcome
                             screen</button>
                     </div>
                     <div class="col-auto m-0 p-0 text-end">
-                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal"
+                            title="Dismiss this menu.">Close</button>
                     </div>
                 </div>
             </div>
@@ -99,6 +104,5 @@
         .sms-project-dropdown .sms-project-load .sms-project-list li [data-field=console] img {
             max-height: 20px;
         }
-
     </style>
 </div>
