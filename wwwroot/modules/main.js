@@ -1532,7 +1532,8 @@ function getTileEditorPaletteList() {
         const palettes = getTileMap().getPalettes().map((paletteId) => getPaletteList().getPaletteById(paletteId));
         return PaletteListFactory.create(palettes);
     } else {
-        return getPaletteList();
+        const palette = getPaletteList().getPalette(getProjectUIState().paletteIndex);
+        return PaletteListFactory.create([palette]);
     }
 }
 // function getTileEditorPaletteList() {
@@ -3528,6 +3529,7 @@ function changePalette(paletteId) {
  */
 function changePaletteIndex(index) {
     if (index < 0 || index >= getPaletteList().length) return;
+    if (index === getProjectUIState().paletteIndex) return;
 
     getProjectUIState().paletteIndex = index;
     state.saveToLocalStorage();
