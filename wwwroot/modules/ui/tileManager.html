@@ -37,7 +37,7 @@
             </template>
         </div>
 
-        <div class="sms-tile-map-properties card-body p-2 visually-hidden" data-smsgfx-id="tileSetProperties">
+        <div class="sms-tile-map-properties card-body p-2 pt-0 visually-hidden" data-smsgfx-id="tileSetProperties">
             <div class="row mt-1 mb-0 ps-3 pe-3">
                 <div class="col p-1">
                     <p class="m-0 mb-1">
@@ -76,7 +76,7 @@
                 </div>
             </div>
         </div>
-        <div class="sms-tile-map-properties card-body p-2 visually-hidden" data-smsgfx-id="tileMapProperties">
+        <div class="sms-tile-map-properties card-body p-2 pt-0 visually-hidden" data-smsgfx-id="tileMapProperties">
             <div class="row mb-2">
                 <div class="col">
                     <input data-command="tileMapChange" data-auto-event="change" data-field="title" type="text"
@@ -171,8 +171,9 @@
 
         .sms-tile-manager .sms-tile-map .sms-tile-map-list button.active {
             color: var(--bs-light-text-emphasis);
-            background-color: var(--bs-primary-border-subtle);
-            border-bottom: none !important;
+            background-color: var(--bs-secondary-bg);
+            border-bottom: none!important;
+            text-shadow: 0 0 3px #000000;
         }
 
         .sms-tile-manager .sms-tile-map .sms-tile-map-list button .icon-expand {
@@ -202,7 +203,7 @@
         }
 
         .sms-tile-manager .sms-tile-map .sms-tile-map-properties {
-            background: linear-gradient(180deg, var(--bs-primary-border-subtle) 0%, rgba(33, 37, 41, 0) 40%);
+            background: linear-gradient(180deg, var(--bs-secondary-bg) 0%, rgba(33,37,41,0) 40%);
         }
 
 

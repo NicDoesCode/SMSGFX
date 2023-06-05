@@ -203,7 +203,7 @@ export default class PaletteEditor extends ComponentBase {
                 paletteList: this.#paletteList,
                 selectedPaletteId: this.#selectedPaletteId
             });
-            this.#shufflePaletteList(); 
+            this.#shufflePaletteList();
         }
 
         if (typeof state?.enabled === 'boolean') {
@@ -425,68 +425,6 @@ export default class PaletteEditor extends ComponentBase {
     /**
      * @param {Palette} palette - The palette to show on the buttons.
      */
-    #createPaletteColourIndexButtons(palette) {
-
-        /** @type {HTMLTableElement} */
-        const table = this.#element.querySelector('#tbPalette');
-        /** @type {HTMLTableSectionElement} */
-        const tbody = table.querySelector('tbody');
-
-        while (tbody.firstChild) {
-            tbody.removeChild(tbody.firstChild);
-        }
-        this.#paletteCells = [];
-        this.#paletteButtons = [];
-
-        const totalColours = palette.getColours().length;
-
-        let tr, td;
-        for (let idx = 0; idx < totalColours; idx++) {
-
-            if (idx % 4 === 0) {
-                tr = document.createElement('tr');
-                tbody.appendChild(tr);
-            }
-
-            // Colour button
-            td = document.createElement('td');
-            td.setAttribute('data-colour-index', idx.toString());
-            td.classList.add('text-center');
-            tr.appendChild(td);
-
-            const btnColour = document.createElement('button');
-            btnColour.classList.add('sms-palette-button');
-            // btnColour.classList.add('btn', 'btn-sm', 'btn-outline-secondary', 'position-relative', 'sms-palette-button');
-            btnColour.setAttribute('data-colour-index', idx.toString());
-            btnColour.onclick = () => {
-                const colourCurrentlySelected = this.#currentColourIndex === idx;
-                const args = this.#createEventArgs(colourCurrentlySelected ? commands.colourIndexEdit : commands.colourIndexChange);
-                args.colourIndex = idx;
-                this.#dispatcher.dispatch(EVENT_OnCommand, args);
-            };
-            btnColour.oncontextmenu = (event) => {
-                this.#contextMenu.setState({
-                    colourIndex: idx, visible: true,
-                    position: { x: event.clientX, y: event.clientY }
-                });
-                return false;
-            };
-            td.appendChild(btnColour);
-
-            const lblContent = document.createElement('span');
-            // lblContent.classList.add('position-absolute', 'translate-middle', 'badge');
-            lblContent.innerHTML = `#${idx}`;
-            btnColour.appendChild(lblContent);
-
-            this.#paletteCells.push(td);
-            this.#paletteButtons.push(btnColour);
-        }
-
-    }
-
-    /**
-     * @param {Palette} palette - The palette to show on the buttons.
-     */
     #setUI(palette) {
         document.querySelectorAll('[data-smsgfx-id=system-select]').forEach(elm => {
             switch (palette.system) {
@@ -503,16 +441,61 @@ export default class PaletteEditor extends ComponentBase {
     }
 
     /**
+     * @param {Palette} palette
+     */
+    #createPaletteColourIndexButtons(palette) {
+
+        const data = palette.getColours().map((colour, index) => {
+            return {
+                colourIndex: index,
+                hex: ColourUtil.toHex(colour.r, colour.g, colour.b),
+                r: colour.r,
+                g: colour.g,
+                b: colour.b,
+            };
+        });
+
+        const element = this.#element.querySelector('[data-smsgfx-id=palette-colours]');
+        this.renderTemplateToElement(element, 'palette-colour-template', data);
+
+        element.querySelectorAll('button[data-colour-index]').forEach((/** @type {HTMLButtonElement} */ button) => {
+            const colourIndex = parseInt(button.getAttribute('data-colour-index'));
+            button.addEventListener('click', () => {
+                const isSelected = this.#currentColourIndex === colourIndex;
+                const args = this.#createEventArgs(isSelected ? commands.colourIndexEdit : commands.colourIndexChange);
+                args.colourIndex = colourIndex;
+                this.#dispatcher.dispatch(EVENT_OnCommand, args);
+            });
+            button.addEventListener('contextmenu', (event) => {
+                this.#contextMenu.setState({
+                    colourIndex: colourIndex,
+                    visible: true,
+                    position: {
+                        x: event.clientX,
+                        y: event.clientY
+                    }
+                });
+                event.stopImmediatePropagation();
+                event.preventDefault();
+                return false;
+            });
+            if (colourIndex === this.#currentColourIndex) {
+                button.classList.add('active');
+            }
+        });
+
+    }
+
+    /**
      * @param {number} colourIndex
      */
     #selectPaletteColour(colourIndex) {
-        this.#paletteCells.forEach((cell, index) => {
-            if (index !== null && index === colourIndex) {
-                if (!cell.classList.contains('table-dark')) {
-                    cell.classList.add('sms-selected');
-                }
-            } else {
-                cell.classList.remove('sms-selected');
+        const element = this.#element.querySelector('[data-smsgfx-id=palette-colours]');
+        element.querySelectorAll('button[data-colour-index]').forEach((/** @type {HTMLButtonElement} */ button) => {
+            const buttonColourIndex = parseInt(button.getAttribute('data-colour-index'));
+            button.classList.remove('active');
+            if (colourIndex === buttonColourIndex) {
+                button.classList.add('active');
             }
         });
     }
@@ -521,14 +504,12 @@ export default class PaletteEditor extends ComponentBase {
      * @param {number} colourIndex
      */
     #highlightPaletteColour(colourIndex) {
-        const paletteCells = this.#paletteCells;
-        paletteCells.forEach((cell, index) => {
-            if (index === colourIndex) {
-                if (!cell.classList.contains('table-secondary')) {
-                    cell.classList.add('sms-highlight');
-                }
-            } else {
-                cell.classList.remove('sms-highlight');
+        const element = this.#element.querySelector('[data-smsgfx-id=palette-colours]');
+        element.querySelectorAll('button[data-colour-index]').forEach((/** @type {HTMLButtonElement} */ button) => {
+            const buttonColourIndex = parseInt(button.getAttribute('data-colour-index'));
+            button.classList.remove('highlighted');
+            if (colourIndex === buttonColourIndex) {
+                button.classList.add('highlighted');
             }
         });
     }
