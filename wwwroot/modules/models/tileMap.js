@@ -7,6 +7,14 @@ import TileMapTileFactory from "../factory/tileMapTileFactory.js";
  */
 export default class TileMap extends TileGridProvider {
 
+    
+    get isTileSet() {
+        return false;
+    }
+
+    get isTileMap() {
+        return true;
+    }
 
     get tileMapId() {
         return this.#tileMapId;

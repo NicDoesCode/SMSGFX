@@ -5,6 +5,22 @@ export default class TileGridProvider {
 
 
     /**
+     * Gets whether this object is a tile set.
+     * @returns {boolean}
+     */
+    get isTileSet() {
+        throw new Error('Not implemented.');
+    }
+
+    /**
+     * Gets whether this object is a tile map.
+     * @returns {booelan}
+     */
+    get isTileMap() {
+        throw new Error('Not implemented.');
+    }
+
+    /**
      * Gets the total amount of tiles.
      * @returns {number}
      */
@@ -92,3 +108,4 @@ export default class TileGridProvider {
  * @exports
  */
 
+ 

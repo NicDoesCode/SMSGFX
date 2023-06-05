@@ -7,6 +7,10 @@ body {
     background-blend-mode: multiply;
 }
 
+.sms-hidden-system {
+    display: none;
+}
+
 .sms-toolstrip {
     background-color: var(--bs-white);
 }

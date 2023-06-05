@@ -8,6 +8,14 @@ export default class TileSet extends TileGridProvider {
 
 
     // BEGIN: TileGridProvider implementation
+    
+    get isTileSet() {
+        return true;
+    }
+
+    get isTileMap() {
+        return false;
+    }
 
     /**
      * Gets the total amount of tiles.

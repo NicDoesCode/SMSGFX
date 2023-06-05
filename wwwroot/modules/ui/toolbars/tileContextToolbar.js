@@ -113,6 +113,20 @@ export default class TileContextToolbar extends ComponentBase {
                 }
             });
         }
+        if (typeof state?.systemType === 'string') {
+            this.#element.querySelectorAll('[data-system-type]').forEach((element) => {
+                element.classList.remove('sms-hidden-system');
+                const systems = element.getAttribute('data-system-type')?.split(',') ?? [];
+                const containsSystem = systems.indexOf(state.systemType) >= 0;
+                if (!containsSystem) {
+                    element.classList.add('sms-hidden-system');
+                }
+            });
+        } else if (state?.systemType === null) {
+            this.#element.querySelectorAll('[data-system-type]').forEach((element) => {
+                element.classList.remove('sms-hidden-system');
+            });
+        }
         if (typeof state?.brushSize === 'number') {
             this.#element.querySelectorAll(`[data-command=${commands.brushSize}]`).forEach(button => {
                 button.classList.remove('active');
@@ -376,6 +390,7 @@ function isToggled(element) {
  * @property {boolean?} enabled - Is the toolbar enabled?
  * @property {string[]?} visibleToolstrips - An array of strings containing visible toolstrips.
  * @property {string[]?} disabledCommands - An array of strings containing disabled buttons.
+ * @property {string?} [systemType] - Type of system, which will affect fields with 'data-system-type' attribute .
  * @property {number?} [brushSize] - Selected brush size, 1 to 5.
  * @property {boolean?} [clampToTile] - Clamp to tile?
  * @property {string?} [rowColumnMode] - Mode for add / remove row / column.

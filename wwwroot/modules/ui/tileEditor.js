@@ -457,7 +457,7 @@ export default class TileEditor extends ComponentBase {
 
     /** @param {MouseEvent} ev */
     #handleCanvasContextMenu(ev) {
-        if (!this.#enabled) return;
+        if (!this.#enabled || this.#tileGrid.isTileMap) return;
 
         const coords = this.#canvasManager.convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
         if (coords) {

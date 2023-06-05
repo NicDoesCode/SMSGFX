@@ -157,6 +157,20 @@ export default class TileEditorToolbar extends ComponentBase {
                 }
             });
         }
+        if (typeof state?.systemType === 'string') {
+            this.#element.querySelectorAll('[data-system-type]').forEach((element) => {
+                element.classList.remove('sms-hidden-system');
+                const systems = element.getAttribute('data-system-type')?.split(',') ?? [];
+                const containsSystem = systems.indexOf(state.systemType) >= 0;
+                if (!containsSystem) {
+                    element.classList.add('sms-hidden-system');
+                }
+            });
+        } else if (state?.systemType === null) {
+            this.#element.querySelectorAll('[data-system-type]').forEach((element) => {
+                element.classList.remove('sms-hidden-system');
+            });
+        }
 
         if (typeof state?.enabled === 'boolean') {
             this.#enabled = state?.enabled;
@@ -264,6 +278,7 @@ export default class TileEditorToolbar extends ComponentBase {
  * @typedef {object} TileEditorToolbarState
  * @property {boolean?} enabled - Is the toolbar enabled?
  * @property {string[]?} visibleToolstrips - An array of strings containing visible toolstrips.
+ * @property {string?} [systemType] - Type of system, which will affect fields with 'data-system-type' attribute .
  * @property {number?} tileWidth - Tile width to display.
  * @property {string?} selectedTool - Currently selected tool.
  * @property {number?} scale - New scale level.

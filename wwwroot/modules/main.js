@@ -1598,12 +1598,6 @@ function refreshProjectUI() {
     if (instanceState.tileIndex < -1) { instanceState.tileIndex = -1; dirty = true; }
     if (instanceState.tileIndex >= getTileGrid().tileCount) { instanceState.tileIndex = -1; dirty = true; }
 
-    // if (dirty) {
-    //     // Removed because of recursion
-    //     state.setProject(getProject());
-    //     state.saveToLocalStorage();
-    // }
-
     projectToolbar.setState({
         projectTitle: getProject().title
     });
@@ -1640,24 +1634,31 @@ function refreshProjectUI() {
         instanceState.clampToTile = true;
         disabledCommands.push(TileContextToolbar.Commands.tileClamp);
     }
+    if (isTileMap() && getProject().systemType === 'gb') {
+        disabledCommands.push(TileContextToolbar.Commands.tileAttributes);
+    }
 
     const toolStrips = TileEditorToolbar.ToolStrips;
     if (isTileSet()) {
         tileEditorToolbar.setState({
-            visibleToolstrips: [toolStrips.tileAdd, toolStrips.undo, toolStrips.tileSetTools]
+            visibleToolstrips: [toolStrips.tileAdd, toolStrips.undo, toolStrips.tileSetTools],
+            systemType: getProject().systemType
         });
     } else if (isTileMap()) {
         tileEditorToolbar.setState({
-            visibleToolstrips: [toolStrips.undo, toolStrips.tileMapTools]
+            visibleToolstrips: [toolStrips.undo, toolStrips.tileMapTools],
+            systemType: getProject().systemType
         });
     }
     tileEditorBottomToolbar.setState({
-        visibleToolstrips: [toolStrips.scale, toolStrips.showTileGrid, toolStrips.showPixelGrid]
+        visibleToolstrips: [toolStrips.scale, toolStrips.showTileGrid, toolStrips.showPixelGrid],
+        systemType: getProject().systemType
     });
 
     tileContextToolbar.setState({
         disabledCommands: disabledCommands,
-        clampToTile: instanceState.clampToTile
+        clampToTile: instanceState.clampToTile,
+        systemType: getProject().systemType
     });
 
 }
