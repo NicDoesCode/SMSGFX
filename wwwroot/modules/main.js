@@ -1614,7 +1614,7 @@ function refreshProjectUI() {
 
     paletteEditor.setState({
         paletteList: getPaletteList(),
-        selectedPaletteId: getPalette().paletteId, 
+        selectedPaletteId: getPalette().paletteId,
         selectedPaletteIndex: getProjectUIState().paletteIndex,
         selectedColourIndex: instanceState.colourIndex
     });
@@ -3105,11 +3105,39 @@ function selectTileSetOrMap(tileMapId) {
 
     getProjectUIState().tileMapId = tileMapId ?? null;
 
-    const tileMap = getTileMap();
-    if (tileMap) checkTileMap(tileMap);
+    if (isTileMap()) {
 
-    if (isTileMap() && instanceState.tool === TileEditorToolbar.Tools.bucket) {
-        instanceState.clampToTile = true;
+        // Ensure the tile map is in good order
+        const tileMap = getTileMap();
+        checkTileMap(tileMap);
+
+        // Don't allow tile set only tools to be selected
+        if (instanceState.tool === TileEditorToolbar.Tools.select) {
+            selectTool(TileEditorToolbar.Tools.tileAttributes);
+        }
+        if (instanceState.tool === TileEditorToolbar.Tools.bucket) {
+            instanceState.clampToTile = true;
+        }
+
+    } else if (isTileSet()) {
+     
+        // Don't allow tile map only tools to be selected
+        if (instanceState.tool === TileEditorToolbar.Tools.tileAttributes) {
+            selectTool(TileEditorToolbar.Tools.select);
+        }
+        if (instanceState.tool === TileEditorToolbar.Tools.rowColumn) {
+            selectTool(TileEditorToolbar.Tools.select);
+        }
+        if (instanceState.tool === TileEditorToolbar.Tools.tileLinkBreak) {
+            selectTool(TileEditorToolbar.Tools.select);
+        }
+        if (instanceState.tool === TileEditorToolbar.Tools.tileStamp) {
+            selectTool(TileEditorToolbar.Tools.select);
+        }
+        if (instanceState.tool === TileEditorToolbar.Tools.palettePaint) {
+            selectTool(TileEditorToolbar.Tools.select);
+        }
+        
     }
 
     instanceState.tileIndex = -1;
