@@ -1536,20 +1536,6 @@ function getTileEditorPaletteList() {
         return PaletteListFactory.create([palette]);
     }
 }
-// function getTileEditorPaletteList() {
-//     const list = PaletteListFactory.create();
-//     const tileMap = getTileMap();
-//     if (tileMap) {
-//         tileMap.getPalettes().forEach((pId) => {
-//             if (pId) {
-//                 list.addPalette(getPaletteList().getPaletteById(pId));
-//             }
-//         });
-//     } else {
-//         list.addPalette(getPalette());
-//     }
-//     return list;
-// }
 function getPalette() {
     if (getPaletteList().length > 0) {
         const paletteIndex = getProjectUIState().paletteIndex;
