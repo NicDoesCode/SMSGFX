@@ -24,13 +24,13 @@
         <!-- End: Palette editor : header -->
 
         <div data-smsgfx-id="palette-list-top" data-smsgfx-component-id="palette-list"
-            class="sms-palette-list sms-palette-list-top card-body p-0">
+            class="sms-accordion-list sms-accordion-list-top card-body p-0">
             <template>
                 <script data-smsgfx-template-id="item-template" type="text/x-handlebars-template">
                     <div class="list-group rounded-0 border border-0">
                         {{#each this}}
                         <button data-command="paletteSelect" data-palette-id="{{paletteId}}" 
-                            class="palette-list-item list-group-item border border-0 border-bottom text-start fw-bold">
+                            class="sms-accordion-item list-group-item border border-0 border-bottom text-start fw-bold">
                             <span class="icon-expand float-end"><i class="bi bi-caret-down-fill"></i></span>
                             <span>{{title}}</span>
                         </button>
@@ -122,7 +122,7 @@
             </div>
         </div>
 
-        <div data-smsgfx-id="palette-list-bottom" class="sms-palette-list sms-palette-list-bottom card-body p-0">
+        <div data-smsgfx-id="palette-list-bottom" class="sms-accordion-list sms-accordion-list-bottom card-body p-0">
             <div class="list-group rounded-0 border border-0">
             </div>
         </div>
@@ -135,43 +135,6 @@
     <!-- End: Palette editor context menu -->
 
     <style data-css-scope="global">
-        .sms-palette-editor .sms-palette-list button {
-            background-color: var(--bs-dark-bg-subtle);
-        }
-
-        .sms-palette-editor .sms-palette-list button.active {
-            color: var(--bs-light-text-emphasis);
-            background-color: var(--bs-secondary-bg);
-            border-bottom: none !important;
-            text-shadow: 0 0 3px #000000;
-        }
-
-        .sms-palette-editor .sms-palette-list button .icon-expand {
-            display: block;
-        }
-
-        .sms-palette-editor .sms-palette-list button .icon-expanded {
-            display: none;
-        }
-
-        .sms-palette-editor .sms-palette-list button.active .icon-expand {
-            display: none;
-        }
-
-        .sms-palette-editor .sms-palette-list button.active .icon-expanded {
-            display: block;
-        }
-
-        .sms-palette-editor .sms-palette-list.sms-palette-list-bottom button {
-            border-top: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color) !important;
-            border-bottom: none !important;
-        }
-
-        .sms-palette-editor .sms-palette-list.sms-palette-list-bottom button:last-of-type {
-            border-bottom-left-radius: var(--bs-card-border-radius);
-            border-bottom-right-radius: var(--bs-card-border-radius);
-        }
-
         .sms-palette-editor .sms-palette-properties {
             background: linear-gradient(180deg, var(--bs-secondary-bg) 0%, rgba(33, 37, 41, 0) 40%);
         }
@@ -198,10 +161,15 @@
         }
 
         .sms-palette-editor .sms-palette-colours button label {
-            background-color: rgba(0, 0, 0, 0.75);
-            color: #FFFFFF;
+            background-color: rgba(255, 255, 255, 0.75);
+            color: #000000;
             font-size: 0.85em;
             padding: 1px;
+        }
+
+        [data-bs-theme=dark] .sms-palette-editor .sms-palette-colours button label {
+            background-color: rgba(0, 0, 0, 0.75);
+            color: #FFFFFF;
         }
 
         .sms-palette-editor .sms-palette-colours button.active {
@@ -215,8 +183,12 @@
         }
 
         .sms-palette-editor .sms-palette-colours button.highlighted {
-            border-color: var(--bs-light);
+            border-color: var(--bs-dark);
             border-width: 2px;
+        }
+
+        [data-bs-theme=dark] .sms-palette-editor .sms-palette-colours button.highlighted {
+            border-color: var(--bs-light);
         }
 
         .sms-palette-editor .sms-palette-colours button.highlighted label {

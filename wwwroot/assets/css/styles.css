@@ -122,6 +122,55 @@ button:disabled img {
     opacity: 0.5;
 }
 
+/* Accordion list (palette and tile set selectors) */
+
+.sms-accordion-list button.sms-accordion-item {
+    background-color: var(--bs-light-bg);
+}
+
+[data-bs-theme=dark] .sms-accordion-list button.sms-accordion-item {
+    background-color: var(--bs-dark-bg-subtle);
+}
+
+.sms-accordion-list button.sms-accordion-item.active {
+    color: var(--bs-dark-text);
+    background-color: var(--bs-secondary-bg);
+    border-bottom: none !important;
+    text-shadow: 0 0 3px #FFFFFF;
+}
+
+[data-bs-theme=dark] .sms-accordion-list button.sms-accordion-item.active {
+    color: var(--bs-light-text-emphasis);
+    text-shadow: 0 0 3px #000000;
+}
+
+.sms-accordion-list button.sms-accordion-item .icon-expand {
+    display: block;
+}
+
+.sms-accordion-list button.sms-accordion-item .icon-expanded {
+    display: none;
+}
+
+.sms-accordion-list button.sms-accordion-item.active .icon-expand {
+    display: none;
+}
+
+.sms-accordion-list button.sms-accordion-item.active .icon-expanded {
+    display: block;
+}
+
+.sms-accordion-list.sms-accordion-list-bottom button.sms-accordion-item {
+    border-top: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color) !important;
+    border-bottom: none !important;
+}
+
+.sms-accordion-list.sms-accordion-list-bottom button.sms-accordion-item:last-of-type {
+    border-bottom-left-radius: var(--bs-card-border-radius);
+    border-bottom-right-radius: var(--bs-card-border-radius);
+}
+
+
 
 /* Main layout */
 
