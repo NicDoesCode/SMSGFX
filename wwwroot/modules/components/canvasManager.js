@@ -395,6 +395,10 @@ export default class CanvasManager {
      * @property {number} clampedColumnIndex - Column index but clamped to a dafe value between 0 and the amount of columns.
      * @property {number} nearestRowIndex - Nearest row index to the given coordinate.
      * @property {number} nearestColumnIndex - Nearest column index to the given coordinate.
+     * @property {number} rowBlockIndex - Index of the row block relative to the given coordinate, this value may be out of bounds.
+     * @property {number} columnBlockIndex - Index of the row block relative to the given coordinate, this value may be out of bounds.
+     * @property {number} nearestRowBlockIndex - Row block index but clamped to a dafe value between 0 and the amount of rows.
+     * @property {number} nearestColumnBlockIndex - Column block index but clamped to a dafe value between 0 and the amount of columns.
      * @property {boolean} rowIsInBounds - True when the coordinate is witin the bounds of the row count, otherwise false.
      * @property {boolean} columnIsInBounds - True when the coordinate is witin the bounds of the column count, otherwise false.
      * @property {boolean} isInBounds - True when the coordinate is witin the bounds of the row and column count, otherwise false.
@@ -413,6 +417,10 @@ export default class CanvasManager {
         const col = Math.floor(tileGridX / 8);
         const clampedRow = Math.min(Math.max(row, 0), this.tileGrid.rowCount);
         const clampedCol = Math.min(Math.max(col, 0), this.tileGrid.columnCount);
+        const blockRow = Math.floor(clampedRow / this.tilesPerBlock);
+        const blockCol = Math.floor(clampedCol / this.tilesPerBlock);
+        const nearestBlockRow = Math.round(clampedRow / this.tilesPerBlock);
+        const nearestBlockCol = Math.round(clampedCol / this.tilesPerBlock);
         return {
             rowIndex: row,
             columnIndex: col,
@@ -420,6 +428,10 @@ export default class CanvasManager {
             clampedColumnIndex: clampedCol,
             nearestRowIndex: (tileGridY % 4 > 4) ? clampedRow + 1 : clampedRow,
             nearestColumnIndex: (tileGridX % 4 > 4) ? clampedCol + 1 : clampedCol,
+            rowBlockIndex: blockRow,
+            columnBlockIndex: blockCol,
+            nearestRowBlockIndex: nearestBlockRow, 
+            nearestColumnBlockIndex: nearestBlockCol, 
             rowIsInBounds: row === clampedRow,
             columnIsInBounds: col === clampedCol,
             isInBounds: row === clampedRow && col === clampedCol
@@ -763,9 +775,9 @@ export default class CanvasManager {
                 const tile = coords.tile;
                 const originX = drawX + (tile.sizePx * tile.col);
                 const originY = drawY + (tile.sizePx * tile.row);
-                context.strokeStyle = 'white';
-                context.strokeRect(originX, originY, tile.sizePx, tile.sizePx);
                 context.strokeStyle = 'black';
+                context.strokeRect(originX, originY, tile.sizePx, tile.sizePx);
+                context.strokeStyle = 'yellow';
                 context.strokeRect(originX - 1, originY - 1, tile.sizePx + 2, tile.sizePx + 2);
             }
         }
@@ -776,9 +788,9 @@ export default class CanvasManager {
                 const block = coords.block;
                 const originX = drawX + (block.sizePx * block.col);
                 const originY = drawY + (block.sizePx * block.row);
-                context.strokeStyle = 'white';
-                context.strokeRect(originX, originY, block.sizePx, block.sizePx);
                 context.strokeStyle = 'black';
+                context.strokeRect(originX, originY, block.sizePx, block.sizePx);
+                context.strokeStyle = 'yellow';
                 context.strokeRect(originX - 1, originY - 1, block.sizePx + 2, block.sizePx + 2);
             }
         }
@@ -899,7 +911,7 @@ export default class CanvasManager {
         }
 
         // Highlight mode is column index
-        if (this.#highlightMode === CanvasManager.HighlightModes.columnIndex + 'a') {
+        if (this.#highlightMode === CanvasManager.HighlightModes.columnIndex) {
             const pxInCol = 8;
             if (coords.x >= -(pxInCol / 2) && coords.x < (coords.gridColumns * pxInCol) + (pxInCol / 2)) {
                 const tile = coords.tile;
@@ -920,7 +932,7 @@ export default class CanvasManager {
         }
 
         // Highlight mode is column block index
-        if (this.#highlightMode === CanvasManager.HighlightModes.columnIndex) {
+        if (this.#highlightMode === CanvasManager.HighlightModes.columnBlockIndex) {
             const pxInCol = 8;
             const pxInBlock = this.tilesPerBlock * 8;
             if (coords.x >= -(pxInCol / 2) && coords.x < (coords.gridColumns * pxInCol) + ((pxInCol / 2) - 2)) {

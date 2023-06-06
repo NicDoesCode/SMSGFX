@@ -1041,10 +1041,11 @@ function handleTileEditorOnEvent(args) {
                         colourIndex: instanceState.colourIndex,
                         imageX: args.x,
                         imageY: args.y,
-                        tileGridRowIndex: args.tileGridRowIndex,
-                        tileGridColumnIndex: args.tileGridColumnIndex,
-                        tileGridInsertRowIndex: args.tileGridInsertRowIndex,
-                        tileGridInsertColumnIndex: args.tileGridInsertColumnIndex,
+                        tileBlockGridRowIndex: args.tileBlockGridRowIndex,
+                        tileBlockGridColumnIndex: args.tileBlockGridColumnIndex,
+                        tileBlockGridInsertRowIndex: args.tileBlockGridInsertRowIndex,
+                        tileBlockGridInsertColumnIndex: args.tileBlockGridInsertColumnIndex,
+                        tilesPerBlock: args.tilesPerBlock,
                         isInBounds: args.isInBounds,
                         event: TileEditor.Events.pixelMouseDown
                     });
@@ -1058,10 +1059,11 @@ function handleTileEditorOnEvent(args) {
                         colourIndex: instanceState.colourIndex,
                         imageX: args.x,
                         imageY: args.y,
-                        tileGridRowIndex: args.tileGridRowIndex,
-                        tileGridColumnIndex: args.tileGridColumnIndex,
-                        tileGridInsertRowIndex: args.tileGridInsertRowIndex,
-                        tileGridInsertColumnIndex: args.tileGridInsertColumnIndex,
+                        tileBlockGridRowIndex: args.tileBlockGridRowIndex,
+                        tileBlockGridColumnIndex: args.tileBlockGridColumnIndex,
+                        tileBlockGridInsertRowIndex: args.tileBlockGridInsertRowIndex,
+                        tileBlockGridInsertColumnIndex: args.tileBlockGridInsertColumnIndex,
+                        tilesPerBlock: args.tilesPerBlock,
                         isInBounds: args.isInBounds,
                         event: TileEditor.Events.pixelMouseOver
                     });
@@ -1672,6 +1674,12 @@ function formatForProject() {
     const palette = getPalette();
     const tileSet = getTileSet();
     const colour = palette.getColour(instanceState.colourIndex);
+    let tilesPerBlock = 1;
+    switch (getProject().systemType) {
+        case 'smsgg': tilesPerBlock = 1; break;
+        case 'nes': tilesPerBlock = 2; break;
+        case 'gb': tilesPerBlock = 1; break;
+    }
     const visibleTabs = [];
     switch (getPalette().system) {
         case 'ms': case 'gg': visibleTabs.push('rgb', 'sms'); break;
@@ -1725,6 +1733,7 @@ function formatForProject() {
         tileGrid: getTileGrid(),
         tileSet: tileSet,
         scale: getUIState().scale,
+        tilesPerBlock: tilesPerBlock,
         displayNative: getUIState().displayNativeColour,
         cursorSize: instanceState.pencilSize,
         showTileGrid: getUIState().showTileGrid,
@@ -1837,10 +1846,11 @@ function displayProjectList() {
  *      colourIndex: number, 
  *      imageX: number, 
  *      imageY: number, 
- *      tileGridRowIndex: number, 
- *      tileGridColumnIndex: number, 
- *      tileGridInsertRowIndex: number, 
- *      tileGridInsertColumnIndex: number, 
+ *      tileBlockGridRowIndex: number, 
+ *      tileBlockGridColumnIndex: number, 
+ *      tileBlockGridInsertRowIndex: number, 
+ *      tileBlockGridInsertColumnIndex: number, 
+ *      tilesPerBlock: number, 
  *      isInBounds: boolean, 
  *      event: string?
  * }} args 
@@ -1979,10 +1989,10 @@ function takeToolAction(args) {
                 try {
                     let index = -1;
                     switch (instanceState.rowColumnMode) {
-                        case TileMapRowColumnTool.Mode.addRow: index = args.tileGridRowIndex; break;
-                        case TileMapRowColumnTool.Mode.deleteRow: index = args.tileGridInsertRowIndex; break;
-                        case TileMapRowColumnTool.Mode.addColumn: index = args.tileGridColumnIndex; break;
-                        case TileMapRowColumnTool.Mode.deleteColumn: index = args.tileGridInsertColumnIndex; break;
+                        case TileMapRowColumnTool.Mode.addRow: index = args.tileBlockGridInsertRowIndex; break;
+                        case TileMapRowColumnTool.Mode.deleteRow: index = args.tileBlockGridRowIndex; break;
+                        case TileMapRowColumnTool.Mode.addColumn: index = args.tileBlockGridInsertColumnIndex; break;
+                        case TileMapRowColumnTool.Mode.deleteColumn: index = args.tileBlockGridColumnIndex; break;
                     }
                     TileMapRowColumnTool.takeAction({
                         tileMap: getTileMap(),
@@ -1990,6 +2000,7 @@ function takeToolAction(args) {
                         mode: instanceState.rowColumnMode,
                         fillMode: instanceState.rowColumnFillMode,
                         index: index,
+                        tilesPerBlock: args.tilesPerBlock,
                         tileId: getProjectUIState().tileId,
                         colourIndex: instanceState.colourIndex
                     });
@@ -2001,7 +2012,7 @@ function takeToolAction(args) {
 
             } else if (tool === TileEditorToolbar.Tools.tileStamp && args.isInBounds) {
 
-                const tile = getTileMap().getTileByCoordinate(args.tileGridRowIndex, args.tileGridColumnIndex);
+                const tile = getTileMap().getTileByCoordinate(args.tileBlockGridRowIndex, args.tileBlockGridColumnIndex);
                 if (tile && tile.tileId !== getProjectUIState().tileId) {
                     addUndoState();
                     tile.tileId = getProjectUIState().tileId;
@@ -2010,7 +2021,7 @@ function takeToolAction(args) {
 
             } else if (tool === TileEditorToolbar.Tools.palettePaint && args.isInBounds) {
 
-                const tile = getTileMap().getTileByCoordinate(args.tileGridRowIndex, args.tileGridColumnIndex);
+                const tile = getTileMap().getTileByCoordinate(args.tileBlockGridRowIndex, args.tileBlockGridColumnIndex);
                 if (tile && tile.palette !== instanceState.paletteSlot) {
                     addUndoState();
                     tile.palette = instanceState.paletteSlot;
@@ -3121,7 +3132,7 @@ function selectTileSetOrMap(tileMapId) {
         }
 
     } else if (isTileSet()) {
-     
+
         // Don't allow tile map only tools to be selected
         if (instanceState.tool === TileEditorToolbar.Tools.tileAttributes) {
             selectTool(TileEditorToolbar.Tools.select);
@@ -3138,7 +3149,7 @@ function selectTileSetOrMap(tileMapId) {
         if (instanceState.tool === TileEditorToolbar.Tools.palettePaint) {
             selectTool(TileEditorToolbar.Tools.select);
         }
-        
+
     }
 
     instanceState.tileIndex = -1;
@@ -3577,19 +3588,20 @@ function setCommonTileToolbarStates(state) {
 function getTileEditorHighlightMode() {
     switch (instanceState.tool) {
         case TileEditorToolbar.Tools.select:
-        case TileEditorToolbar.Tools.palettePaint:
         case TileEditorToolbar.Tools.tileStamp:
             return TileEditor.CanvasHighlightModes.tile;
+        case TileEditorToolbar.Tools.palettePaint:
+            return TileEditor.CanvasHighlightModes.tileBlock;
         case TileEditorToolbar.Tools.rowColumn:
             switch (instanceState.rowColumnMode) {
                 case 'addRow':
-                    return TileEditor.CanvasHighlightModes.rowIndex;
+                    return TileEditor.CanvasHighlightModes.rowBlockIndex;
                 case 'deleteRow':
-                    return TileEditor.CanvasHighlightModes.row;
+                    return TileEditor.CanvasHighlightModes.rowBlock;
                 case 'addColumn':
-                    return TileEditor.CanvasHighlightModes.columnIndex;
+                    return TileEditor.CanvasHighlightModes.columnBlockIndex;
                 case 'deleteColumn':
-                    return TileEditor.CanvasHighlightModes.column;
+                    return TileEditor.CanvasHighlightModes.columnBlock;
             }
             break;
         default:

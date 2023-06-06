@@ -61,6 +61,7 @@ export default class TileEditor extends ComponentBase {
     /** @type {Coordinates} */
     #lastCoords;
     #scale = 1;
+    #tilesPerBlock = 1;
     #canvasManager;
     #panCanvasOnMouseMove = false;
     #canvasMouseLeftDown = false;
@@ -181,6 +182,12 @@ export default class TileEditor extends ComponentBase {
             } else {
                 throw new Error('Scale must be between 1 and 50.');
             }
+        }
+        // Changing amount of tiles per block?
+        if (typeof state.tilesPerBlock === 'number') {
+            this.#canvasManager.tilesPerBlock = state.tilesPerBlock;
+        } else if (state.tilesPerBlock === null) {
+            this.#canvasManager.tilesPerBlock = 1;
         }
         // Display native?
         if (typeof state?.displayNative === 'boolean') {
@@ -332,6 +339,11 @@ export default class TileEditor extends ComponentBase {
                             tileGridColumnIndex: rowColInfo.columnIndex,
                             tileGridInsertRowIndex: rowColInfo.nearestRowIndex,
                             tileGridInsertColumnIndex: rowColInfo.nearestColumnIndex,
+                            tileBlockGridRowIndex: rowColInfo.rowBlockIndex,
+                            tileBlockGridColumnIndex: rowColInfo.columnBlockIndex,
+                            tileBlockGridInsertRowIndex: rowColInfo.nearestRowBlockIndex,
+                            tileBlockGridInsertColumnIndex: rowColInfo.nearestColumnBlockIndex,
+                            tilesPerBlock: this.#canvasManager.tilesPerBlock,
                             isInBounds: pxInBounds && rowColInfo.isInBounds
                         };
                         this.#dispatcher.dispatch(EVENT_OnEvent, args);
@@ -381,6 +393,11 @@ export default class TileEditor extends ComponentBase {
                 tileGridColumnIndex: rowColInfo.columnIndex,
                 tileGridInsertRowIndex: rowColInfo.nearestRowIndex,
                 tileGridInsertColumnIndex: rowColInfo.nearestColumnIndex,
+                tileBlockGridRowIndex: rowColInfo.rowBlockIndex,
+                tileBlockGridColumnIndex: rowColInfo.columnBlockIndex,
+                tileBlockGridInsertRowIndex: rowColInfo.nearestRowBlockIndex,
+                tileBlockGridInsertColumnIndex: rowColInfo.nearestColumnBlockIndex,
+                tilesPerBlock: this.#canvasManager.tilesPerBlock,
                 isInBounds: pxInBounds && rowColInfo.isInBounds
             };
             this.#dispatcher.dispatch(EVENT_OnEvent, args);
@@ -420,6 +437,11 @@ export default class TileEditor extends ComponentBase {
                 tileGridColumnIndex: rowColInfo.columnIndex,
                 tileGridInsertRowIndex: rowColInfo.nearestRowIndex,
                 tileGridInsertColumnIndex: rowColInfo.nearestColumnIndex,
+                tileBlockGridRowIndex: rowColInfo.rowBlockIndex,
+                tileBlockGridColumnIndex: rowColInfo.columnBlockIndex,
+                tileBlockGridInsertRowIndex: rowColInfo.nearestRowBlockIndex,
+                tileBlockGridInsertColumnIndex: rowColInfo.nearestColumnBlockIndex,
+                tilesPerBlock: this.#canvasManager.tilesPerBlock,
                 isInBounds: pxInBounds && rowColInfo.isInBounds
             };
             this.#dispatcher.dispatch(EVENT_OnEvent, args);
@@ -567,6 +589,7 @@ export default class TileEditor extends ComponentBase {
  * @property {TileSet?} tileSet - Tile set that will be drawn, passing this will trigger a redraw.
  * @property {PaletteList?} paletteList - Palette list to use for drawing, passing this will trigger a redraw.
  * @property {number?} scale - Current scale level.
+ * @property {number?} [tilesPerBlock] - The amount of tiles per tile block.
  * @property {boolean?} displayNative - Should the tile editor display native colours?
  * @property {number?} selectedTileIndex - Currently selected tile index.
  * @property {number?} cursorSize - Size of the cursor in px.
@@ -620,6 +643,11 @@ export default class TileEditor extends ComponentBase {
  * @property {number?} [tileGridColumnIndex] - Index of the tile grid column that corresponds with the X mouse coordinate.
  * @property {number?} [tileGridInsertRowIndex] - Index in the tile grid row for inserting a new row.
  * @property {number?} [tileGridInsertColumnIndex] - Index in the tile grid column for inserting a new column.
+ * @property {number?} [tileBlockGridRowIndex] - Index of the tile block grid row that corresponds with the Y mouse coordinate.
+ * @property {number?} [tileBlockGridColumnIndex] - Index of the tile block grid column that corresponds with the X mouse coordinate.
+ * @property {number?} [tileBlockGridInsertRowIndex] - Index in the tile block grid row for inserting a new row.
+ * @property {number?} [tileBlockGridInsertColumnIndex] - Index in the tile block grid column for inserting a new column.
+ * @property {number?} [tilesPerBlock] - The amount of tiles per tile block.
  * @property {boolean} isInBounds - True when the given coordinate was out of bounds of the tile grid.
  * @property {boolean} mousePrimaryIsDown - True when the primary mouse button is down, otherwise false.
  * @property {boolean} mouseSecondaryIsDown - True when the secondary mouse button is down, otherwise false.

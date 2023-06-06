@@ -54,27 +54,35 @@ export default class TileMapRowColumnTool {
 
         const tileMap = args.tileMap;
         const tileSet = args.tileSet;
-        const index = args.index;
+        const tileIndex = args.index * args.tilesPerBlock;
 
         if (args.mode === MODE.addRow) {
-            if (index < 0 || index > tileMap.rowCount) throw new Error('Index out or range for add new row.');
+            if (tileIndex < 0 || tileIndex > tileMap.rowCount) throw new Error('Index out or range for add new row.');
 
-            insertTileMapRow(tileMap, tileSet, index, args.fillMode, args.tileId, args.colourIndex);
+            for (let i = 0; i < args.tilesPerBlock; i++) {
+                insertTileMapRow(tileMap, tileSet, tileIndex, args.fillMode, args.tileId, args.colourIndex);
+            }
 
         } else if (args.mode === MODE.deleteRow) {
-            if (index < 0 || index >= tileMap.rowCount) throw new Error('Index out or range for delete row.');
+            if (tileIndex < 0 || tileIndex >= tileMap.rowCount) throw new Error('Index out or range for delete row.');
 
-            tileMap.removeRow(index);
+            for (let i = 0; i < args.tilesPerBlock; i++) {
+                tileMap.removeRow(tileIndex);
+            }
 
         } else if (args.mode === MODE.addColumn) {
-            if (index < 0 || index > tileMap.columnCount) throw new Error('Index out or range for add new column.');
+            if (tileIndex < 0 || tileIndex > tileMap.columnCount) throw new Error('Index out or range for add new column.');
 
-            insertTileMapColumn(tileMap, tileSet, index, args.fillMode, args.tileId, args.colourIndex);
+            for (let i = 0; i < args.tilesPerBlock; i++) {
+                insertTileMapColumn(tileMap, tileSet, tileIndex, args.fillMode, args.tileId, args.colourIndex);
+            }
 
         } else if (args.mode === MODE.deleteColumn) {
-            if (index < 0 || index >= tileMap.columnCount) throw new Error('Index out or range for delete column.');
+            if (tileIndex < 0 || tileIndex >= tileMap.columnCount) throw new Error('Index out or range for delete column.');
 
-            tileMap.removeColumn(index);
+            for (let i = 0; i < args.tilesPerBlock; i++) {
+                tileMap.removeColumn(tileIndex);
+            }
 
         }
     }
@@ -185,6 +193,7 @@ function fillNewTileRowColumn(tileSetTiles, tileSet, fillMode, tileId, colourInd
  * @property {string} mode - Mode to use for the operation.
  * @property {string?} [fillMode] - Fill mode to use for the operation, must be supplied when adding rows or columns.
  * @property {number} index - Index or the row or column to operate on.
+ * @property {number} tilesPerBlock - Size of the blocks to work on.
  * @property {string?} [tileId] - Unique ID of the selected tile to use when filling with a tile ID.
  * @property {number?} [colourIndex] - Index of the colour slot to fill the tile with.
  * @exports
