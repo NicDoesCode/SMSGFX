@@ -29,7 +29,7 @@ const tools = {
     rowColumn: 'rowColumn',
     tileLinkBreak: 'tileLinkBreak'
 };
-const scales = [1, 2, 5, 10, 15, 20, 50];
+const scales = [1, 2, 3, 4, 5, 10, 15, 20, 50];
 const toolstrips = {
     tileAdd: 'tileAdd',
     scale: 'scale',
