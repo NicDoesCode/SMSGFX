@@ -356,7 +356,7 @@ export default class TileMap extends TileGridProvider {
     getTileInfoByRowAndColumn(rowIndex, columnIndex) {
         if (rowIndex < 0 || rowIndex >= this.rowCount) throw new Error('Row index must be greater then zero and less then the row count.');
         if (columnIndex < 0 || columnIndex >= this.columnCount) throw new Error('Column index must be greater then zero and less then the column count.');
-        const index = (row * this.columnCount) + column;
+        const index = (rowIndex * this.columnCount) + columnIndex;
         return this.getTileInfoByIndex(index);
     }
 

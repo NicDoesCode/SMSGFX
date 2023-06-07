@@ -327,6 +327,19 @@ function createEventListeners() {
                     handled = true;
                 }
 
+            } else if (keyEvent.shiftKey) {
+                // Shift
+
+                if (keyEvent.code === 'KeyI') {
+                    // Tile eyedropper
+                    selectTool(TileEditorToolbar.Tools.tileEyedropper);
+                    handled = true;
+                } else if (keyEvent.code === 'KeyS') {
+                    // Tile stamp
+                    selectTool(TileEditorToolbar.Tools.tileStamp);
+                    handled = true;
+                }
+
             } else if (keyEvent.altKey) {
                 // Alt key only
 
@@ -1976,6 +1989,13 @@ function takeToolAction(args) {
             instanceState.lastTileMapPx.x = -1;
             instanceState.lastTileMapPx.y = -1;
 
+        } else if (tool === TileEditorToolbar.Tools.tileEyedropper) {
+
+            const tileInfo = getTileGrid().getTileInfoByRowAndColumn(args.tile.row, args.tile.col);
+            if (tileInfo) {
+                selectTileSetTile(tileInfo.tileId);
+            }
+
         }
 
         if (isTileMap()) {
@@ -3490,6 +3510,9 @@ function selectTool(tool) {
         }
         if ([tools.tileStamp].includes(tool)) {
             visibleStrips.push(TileContextToolbar.Toolstrips.tileStamp);
+        }
+        if ([tools.tileEyedropper].includes(tool)) {
+            visibleStrips.push(TileContextToolbar.Toolstrips.tileEyedropper);
         }
 
         let cursor = 'arrow';

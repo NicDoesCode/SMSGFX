@@ -25,6 +25,7 @@ const tools = {
     referenceImage: 'referenceImage',
     tileAttributes: 'tileAttributes',
     palettePaint: 'palettePaint',
+    tileEyedropper: 'tileEyedropper',
     tileStamp: 'tileStamp',
     rowColumn: 'rowColumn',
     tileLinkBreak: 'tileLinkBreak'
