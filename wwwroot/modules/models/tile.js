@@ -95,14 +95,14 @@ export default class Tile {
      * Gets the palette index of a pixal at the given X and Y coordinate.
      * @param {number} x X coordinate to read from (0 to 7).
      * @param {number} y Y coordinate to read from (0 to 7).
-     * @returns {number} Palette index of the pixel at the given coordinate.
+     * @returns {number?} Palette index of the pixel at the given coordinate.
      */
     readAtCoord(x, y) {
-        if (x === null) throw new Error('X coordinate not specified.');
-        if (x < 0 || x > 8) throw new Error('X coordinate must be between 0 and 8.');
-        if (y === null) throw new Error('Y coordinate not specified.');
-        if (y < 0 || y > 8) throw new Error('Y coordinate must be between 0 and 8.');
-        return this.readAt(y * 8 + x);
+        if (x === null || y === null) return null;
+        if (x >= 0 && x < 8 && y >= 0 && y < 8) {
+            return this.readAt(y * 8 + x);
+        } 
+        return null;
     }
 
     /**

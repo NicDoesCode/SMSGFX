@@ -114,9 +114,9 @@ export default class PaintUtil {
                 const xLeft = (brushSize > 3 && (yPx === startY || yPx === endY - 1)) ? startX + 1 : startX;
                 const xRight = (brushSize > 3 && (yPx === startY || yPx === endY - 1)) ? endX - 1 : endX;
                 for (let xPx = xLeft; xPx < xRight; xPx++) {
-                    const thisTileIndex = tileSet.getTileIndexByCoordinate(xPx, yPx);
-                    if (thisTileIndex !== null && thisTileIndex >= 0) {
-                        const differentTile = thisTileIndex !== tileIndex;
+                    const thisTileInfo = tileGrid.getTileInfoByPixel(xPx, yPx);
+                    if (thisTileInfo !== null) {
+                        const differentTile = thisTileInfo.tileIndex !== tileInfo.tileIndex;
                         if (!differentTile || affect) {
                             const coord = translateCoordinate(thisTileInfo, xPx % 8, yPx % 8);
                             const tile = tileSet.getTileById(thisTileInfo.tileId);
