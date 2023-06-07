@@ -53,6 +53,8 @@ import TileMapRowColumnTool from "./tools/tileMapRowColumnTool.js";
 import TileLinkBreakTool from "./tools/tileLinkBreakTool.js";
 import EyedropperTool from "./tools/eyedropperTool.js";
 import PaintTool from "./tools/paintTool.js";
+import PalettePaintTool from "./tools/palettePaintTool.js";
+import TileStampTool from "./tools/tileStampTool.js";
 
 
 /* ****************************************************************************************************
@@ -1041,10 +1043,10 @@ function handleTileEditorOnEvent(args) {
                         colourIndex: instanceState.colourIndex,
                         imageX: args.x,
                         imageY: args.y,
-                        tileBlockGridRowIndex: args.tileBlockGridRowIndex,
-                        tileBlockGridColumnIndex: args.tileBlockGridColumnIndex,
-                        tileBlockGridInsertRowIndex: args.tileBlockGridInsertRowIndex,
-                        tileBlockGridInsertColumnIndex: args.tileBlockGridInsertColumnIndex,
+                        tile: { row: args.tileGridRowIndex, col: args.tileGridColumnIndex },
+                        tileIndex: { row: args.tileGridInsertRowIndex, col: args.tileGridInsertColumnIndex },
+                        tileBlock: { row: args.tileBlockGridRowIndex, col: args.tileBlockGridColumnIndex },
+                        tileBlockIndex: { row: args.tileBlockGridInsertRowIndex, col: args.tileBlockGridInsertColumnIndex },
                         tilesPerBlock: args.tilesPerBlock,
                         isInBounds: args.isInBounds,
                         event: TileEditor.Events.pixelMouseDown
@@ -1059,10 +1061,10 @@ function handleTileEditorOnEvent(args) {
                         colourIndex: instanceState.colourIndex,
                         imageX: args.x,
                         imageY: args.y,
-                        tileBlockGridRowIndex: args.tileBlockGridRowIndex,
-                        tileBlockGridColumnIndex: args.tileBlockGridColumnIndex,
-                        tileBlockGridInsertRowIndex: args.tileBlockGridInsertRowIndex,
-                        tileBlockGridInsertColumnIndex: args.tileBlockGridInsertColumnIndex,
+                        tile: { row: args.tileGridRowIndex, col: args.tileGridColumnIndex },
+                        tileIndex: { row: args.tileGridInsertRowIndex, col: args.tileGridInsertColumnIndex },
+                        tileBlock: { row: args.tileBlockGridRowIndex, col: args.tileBlockGridColumnIndex },
+                        tileBlockIndex: { row: args.tileBlockGridInsertRowIndex, col: args.tileBlockGridInsertColumnIndex },
                         tilesPerBlock: args.tilesPerBlock,
                         isInBounds: args.isInBounds,
                         event: TileEditor.Events.pixelMouseOver
@@ -1846,6 +1848,10 @@ function displayProjectList() {
  *      colourIndex: number, 
  *      imageX: number, 
  *      imageY: number, 
+ *      tile: { row: number, col: number }, 
+ *      tileIndex: { row: number, col: number }, 
+ *      tileBlock: { row: number, col: number }, 
+ *      tileBlockIndex: { row: number, col: number }, 
  *      tileBlockGridRowIndex: number, 
  *      tileBlockGridColumnIndex: number, 
  *      tileBlockGridInsertRowIndex: number, 
@@ -1974,6 +1980,7 @@ function takeToolAction(args) {
 
         if (isTileMap()) {
             let actionTaken = false;
+            /** @type {string[]?} */ let updatedTileIds = null;
 
             if (tool === TileEditorToolbar.Tools.tileAttributes && args.isInBounds) {
 
@@ -1989,10 +1996,10 @@ function takeToolAction(args) {
                 try {
                     let index = -1;
                     switch (instanceState.rowColumnMode) {
-                        case TileMapRowColumnTool.Mode.addRow: index = args.tileBlockGridInsertRowIndex; break;
-                        case TileMapRowColumnTool.Mode.deleteRow: index = args.tileBlockGridRowIndex; break;
-                        case TileMapRowColumnTool.Mode.addColumn: index = args.tileBlockGridInsertColumnIndex; break;
-                        case TileMapRowColumnTool.Mode.deleteColumn: index = args.tileBlockGridColumnIndex; break;
+                        case TileMapRowColumnTool.Mode.addRow: index = args.tileBlockIndex.row; break;
+                        case TileMapRowColumnTool.Mode.deleteRow: index = args.tileBlock.row; break;
+                        case TileMapRowColumnTool.Mode.addColumn: index = args.tileBlockIndex.col; break;
+                        case TileMapRowColumnTool.Mode.deleteColumn: index = args.tileBlock.col; break;
                     }
                     TileMapRowColumnTool.takeAction({
                         tileMap: getTileMap(),
@@ -2012,20 +2019,45 @@ function takeToolAction(args) {
 
             } else if (tool === TileEditorToolbar.Tools.tileStamp && args.isInBounds) {
 
-                const tile = getTileMap().getTileByCoordinate(args.tileBlockGridRowIndex, args.tileBlockGridColumnIndex);
-                if (tile && tile.tileId !== getProjectUIState().tileId) {
-                    addUndoState();
-                    tile.tileId = getProjectUIState().tileId;
-                    actionTaken = true;
+                addUndoState();
+                try {
+                    const result = TileStampTool.stampTile({
+                        tileId: getProjectUIState().tileId,
+                        tileMap: getTileMap(),
+                        tileSet: getTileSet(),
+                        tileRow: args.tile.row,
+                        tileCol: args.tile.col
+                    });
+                    if (result.updatedTileIds.length > 0) {
+                        updatedTileIds = result.updatedTileIds;
+                    } else {
+                        undoManager.removeLastUndo();
+                    }
+                } catch (e) {
+                    undoManager.removeLastUndo();
+                    throw e;
                 }
 
             } else if (tool === TileEditorToolbar.Tools.palettePaint && args.isInBounds) {
 
-                const tile = getTileMap().getTileByCoordinate(args.tileBlockGridRowIndex, args.tileBlockGridColumnIndex);
-                if (tile && tile.palette !== instanceState.paletteSlot) {
-                    addUndoState();
-                    tile.palette = instanceState.paletteSlot;
-                    actionTaken = true;
+                addUndoState();
+                try {
+                    const result = PalettePaintTool.setTileBlockPaletteIndex({
+                        paletteIndex: instanceState.paletteSlot,
+                        tileMap: getTileMap(),
+                        tileSet: getTileSet(),
+                        tileBlockRow: args.tileBlock.row,
+                        tileBlockCol: args.tileBlock.col,
+                        tilesPerBlock: args.tilesPerBlock
+                    });
+                    if (result.updatedTileIds.length > 0) {
+                        updatedTileIds = result.updatedTileIds;
+                    } else {
+                        undoManager.removeLastUndo();
+                    }
+                } catch (e) {
+                    undoManager.removeLastUndo();
+                    throw e;
                 }
 
             } else if (tool === TileEditorToolbar.Tools.tileLinkBreak && args.isInBounds) {
@@ -2049,6 +2081,14 @@ function takeToolAction(args) {
                 tileEditor.setState({
                     tileGrid: getTileGrid(),
                     tileSet: getTileSet()
+                });
+            }
+            if (updatedTileIds) {
+                tileEditor.setState({
+                    updatedTileIds: updatedTileIds
+                });
+                tileManager.setState({
+                    updatedTileIds: updatedTileIds
                 });
             }
         }
@@ -2505,25 +2545,19 @@ function selectTile(index) {
 function newPalette() {
     addUndoState();
 
-    const system = getProject().systemType === 'gb' ? 'gb' : 'ms';
+    let system = null;
+    switch (getProject().systemType) {
+        case 'smsgg': system = 'sms';
+        case 'gb': system = 'gb';
+        case 'nes': system = 'nes';
+    }
     const newPalette = PaletteFactory.createNewStandardColourPalette('New palette', system);
     getPaletteList().addPalette(newPalette);
 
     state.setProject(getProject());
     state.saveToLocalStorage();
 
-    const selectedPaletteIndex = getPaletteList().length - 1;
-
-    // Update state
-    getProjectUIState().paletteIndex = selectedPaletteIndex;
-    paletteEditor.setState({
-        paletteList: getPaletteList(),
-        selectedPaletteIndex: selectedPaletteIndex
-    });
-    tileEditor.setState({
-        palette: getPalette(),
-        paletteList: getTileEditorPaletteList()
-    });
+    changePalette(newPalette.paletteId);
 }
 
 function clonePalette(paletteIndex) {
