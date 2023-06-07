@@ -104,6 +104,8 @@ const instanceState = {
     ctrlIsDown: false,
     shiftIsDown: false,
     altIsDown: false,
+    /** @type {string?} */
+    swapTool: null,
     sessionId: GeneralUtil.generateRandomString(32),
     /** @type {ReferenceImage} */
     referenceImage: null,
@@ -273,35 +275,58 @@ function createEventListeners() {
         // instanceState.altIsDown = keyEvent.altKey;
         // instanceState.shiftIsDown = keyEvent.shiftKey;
 
-        if (keyEvent.target === document.body) {
-            let handled = false;
-            if (keyEvent.ctrlKey && keyEvent.shiftKey) {
-                // Ctrl + Shift
+        if (keyEvent.target.tagName === 'INPUT') return;
+        if (keyEvent.target.tagName === 'SELECT') return;
+        if (keyEvent.target.tagName === 'TEXTAREA') return;
 
-                if (keyEvent.code === 'KeyE') { // Plus shift (capital letter)
-                    // Export
-                    exportProjectToAssembly();
+        let handled = false;
+        if (keyEvent.ctrlKey && keyEvent.shiftKey) {
+            // Ctrl + Shift
+
+            if (keyEvent.code === 'KeyE') { // Plus shift (capital letter)
+                // Export
+                exportProjectToAssembly();
+                handled = true;
+            }
+
+        } else if (keyEvent.ctrlKey) {
+            // Ctrl
+
+            if (keyEvent.code === 'KeyO') {
+                // Import project
+                importProjectFromJson();
+                handled = true;
+            } else if (keyEvent.code === 'KeyS') {
+                // Export project
+                exportProjectToJson();
+                handled = true;
+            } else {
+                // Ctrl key with no other modifier
+
+                if (instanceState.tool === TileEditorToolbar.Tools.pencil) {
+                    selectTool(TileEditorToolbar.Tools.eyedropper);
+                    instanceState.swapTool = TileEditorToolbar.Tools.pencil;
                     handled = true;
-                }
-
-            } else if (keyEvent.ctrlKey) {
-                // Ctrl
-
-                if (keyEvent.code === 'KeyO') {
-                    // Import project
-                    importProjectFromJson();
+                } else if (instanceState.tool === TileEditorToolbar.Tools.colourReplace) {
+                    selectTool(TileEditorToolbar.Tools.eyedropper);
+                    instanceState.swapTool = TileEditorToolbar.Tools.colourReplace;
                     handled = true;
-                } else if (keyEvent.code === 'KeyS') {
-                    // Export project
-                    exportProjectToJson();
+                } else if (instanceState.tool === TileEditorToolbar.Tools.bucket) {
+                    selectTool(TileEditorToolbar.Tools.eyedropper);
+                    instanceState.swapTool = TileEditorToolbar.Tools.bucket;
+                    handled = true;
+                } else if (instanceState.tool === TileEditorToolbar.Tools.tileStamp) {
+                    selectTool(TileEditorToolbar.Tools.tileEyedropper);
+                    instanceState.swapTool = TileEditorToolbar.Tools.tileStamp;
                     handled = true;
                 }
 
             }
-            if (handled) {
-                keyEvent.preventDefault();
-                keyEvent.stopImmediatePropagation();
-            }
+
+        }
+        if (handled) {
+            keyEvent.preventDefault();
+            keyEvent.stopImmediatePropagation();
         }
     });
 
@@ -312,218 +337,226 @@ function createEventListeners() {
         // instanceState.altIsDown = keyEvent.altKey;
         // instanceState.shiftIsDown = keyEvent.shiftKey;
 
-        if (keyEvent.target === document.body) {
-            let handled = false;
-            if (keyEvent.ctrlKey && keyEvent.altKey) {
-                // Ctrl + alt
+        if (keyEvent.target.tagName === 'INPUT') return;
+        if (keyEvent.target.tagName === 'SELECT') return;
+        if (keyEvent.target.tagName === 'TEXTAREA') return;
 
-                if (keyEvent.code === 'KeyP') {
-                    // New palette
-                    newPalette();
-                    handled = true;
-                } else if (keyEvent.code === 'KeyE') {
-                    // New tile
-                    tileNew();
-                    handled = true;
-                }
+        let handled = false;
+        if (keyEvent.ctrlKey && keyEvent.altKey) {
+            // Ctrl + alt
 
-            } else if (keyEvent.shiftKey) {
-                // Shift
-
-                if (keyEvent.code === 'KeyI') {
-                    // Tile eyedropper
-                    selectTool(TileEditorToolbar.Tools.tileEyedropper);
-                    handled = true;
-                } else if (keyEvent.code === 'KeyS') {
-                    // Tile stamp
-                    selectTool(TileEditorToolbar.Tools.tileStamp);
-                    handled = true;
-                }
-
-            } else if (keyEvent.altKey) {
-                // Alt key only
-
-                if (keyEvent.code === 'Equal' || keyEvent.code === 'NumpadAdd') {
-                    // Increase viewport scale
-                    increaseScale();
-                    handled = true;
-                } else if (keyEvent.code === 'Minus' || keyEvent.code === 'NumpadSubtract') {
-                    // Decrease viewport scale
-                    decreaseScale();
-                    handled = true;
-                } else if (keyEvent.code === 'ArrowDown') {
-                    // Lower palette
-                    changePaletteIndex(getProjectUIState().paletteIndex + 1);
-                    handled = true;
-                } else if (keyEvent.code === 'ArrowUp') {
-                    // Higher palette
-                    changePaletteIndex(getProjectUIState().paletteIndex - 1);
-                    handled = true;
-                } else if (keyEvent.code === 'ArrowLeft') {
-                    // Lower palette
-                    selectColourIndex(instanceState.colourIndex - 1);
-                    handled = true;
-                } else if (keyEvent.code === 'ArrowRight') {
-                    // Higher palette
-                    selectColourIndex(instanceState.colourIndex + 1);
-                    handled = true;
-                }
-
-            } else if (keyEvent.ctrlKey) {
-                // Ctrl key only
-
-                if (keyEvent.code === 'KeyN') {
-                    // Export
-                    newProject({
-                        systemType: getProject()?.systemType ?? 'smsgg'
-                    });
-                    handled = true;
-                } else if (keyEvent.code === 'KeyX') {
-                    // Cut tile
-                    if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
-                        cutTileToClipboardAt(instanceState.tileIndex);
-                        handled = true;
-                    }
-                } else if (keyEvent.code === 'KeyC') {
-                    // Copy tile
-                    if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
-                        copyTileToClipboardAt(instanceState.tileIndex);
-                        handled = true;
-                    }
-                } else if (keyEvent.code === 'KeyV') {
-                    // Paste tile
-                    if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
-                        pasteTileAt(instanceState.tileIndex);
-                        handled = true;
-                    }
-                } else if (keyEvent.code === 'KeyD') {
-                    // Clone tile
-                    if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
-                        cloneTileAt(instanceState.tileIndex);
-                        handled = true;
-                    }
-                } else if (keyEvent.code === 'KeyZ') {
-                    // Undo
-                    undoOrRedo('u');
-                    handled = true;
-                } else if (keyEvent.code === 'KeyY') {
-                    // Redo
-                    undoOrRedo('r');
-                    handled = true;
-                } else if (/^Digit([0-9])$/.test(keyEvent.code)) {
-                    // Brush size
-                    let size = parseInt(/^Digit([0-9])$/.exec(keyEvent.code)[1]);
-                    if (size === 0) size = 10;
-                    if (keyEvent.shiftKey) size += 10;
-                    setPencilSize(size);
-                    handled = true;
-                } else if (keyEvent.code === 'BracketLeft') {
-                    // Mirror horizontal
-                    if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
-                        mirrorHorizontal(instanceState.tileIndex);
-                        handled = true;
-                    }
-                } else if (keyEvent.code === 'BracketRight') {
-                    // Mirror Vertical
-                    if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
-                        mirrorVertical(instanceState.tileIndex);
-                        handled = true;
-                    }
-                } else if (keyEvent.code === 'ArrowLeft') {
-                    // Move tile left
-                    if (instanceState.tileIndex > 0 && instanceState.tileIndex < getTileSet().length) {
-                        swapTilesAt(instanceState.tileIndex - 1, instanceState.tileIndex);
-                        handled = true;
-                    }
-                } else if (keyEvent.code === 'ArrowRight') {
-                    // Move tile right
-                    if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length - 1) {
-                        swapTilesAt(instanceState.tileIndex, instanceState.tileIndex + 1);
-                        handled = true;
-                    }
-                } else if (keyEvent.code === 'ArrowUp') {
-                    // Move tile up
-                    const proposedIndex = instanceState.tileIndex - getTileSet().tileWidth;
-                    if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
-                        swapTilesAt(proposedIndex, instanceState.tileIndex);
-                        handled = true;
-                    }
-                } else if (keyEvent.code === 'ArrowDown') {
-                    // Move tile down
-                    const proposedIndex = instanceState.tileIndex + getTileSet().tileWidth;
-                    if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
-                        swapTilesAt(instanceState.tileIndex, proposedIndex);
-                        handled = true;
-                    }
-                }
-
-            } else {
-                // No modifier key
-
-                if (keyEvent.code === 'KeyF' || keyEvent.code === 'KeyB') {
-                    // Select fill tool
-                    selectTool(TileEditorToolbar.Tools.bucket);
-                    handled = true;
-                } else if (keyEvent.code === 'KeyS') {
-                    // Select selection tool
-                    selectTool(TileEditorToolbar.Tools.select);
-                    handled = true;
-                } else if (keyEvent.code === 'KeyP') {
-                    // Select pencil tool
-                    selectTool(TileEditorToolbar.Tools.pencil);
-                    handled = true;
-                } else if (keyEvent.code === 'KeyI') {
-                    // Select eyedropper tool
-                    selectTool(TileEditorToolbar.Tools.eyedropper);
-                    handled = true;
-                } else if (keyEvent.code === 'Delete') {
-                    // Delete any selected tile
-                    if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
-                        removeTileAt(instanceState.tileIndex);
-                        handled = true;
-                    }
-                } else if (keyEvent.code === 'ArrowLeft') {
-                    // Move selection tile left
-                    if (instanceState.tileIndex > 0 && instanceState.tileIndex < getTileSet().length) {
-                        selectTile(instanceState.tileIndex - 1);
-                        handled = true;
-                    }
-                } else if (keyEvent.code === 'ArrowRight') {
-                    // Move selection tile right
-                    if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length - 1) {
-                        selectTile(instanceState.tileIndex + 1);
-                        handled = true;
-                    }
-                } else if (keyEvent.code === 'ArrowUp') {
-                    // Move selection tile up
-                    const proposedIndex = instanceState.tileIndex - getTileSet().tileWidth;
-                    if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
-                        selectTile(proposedIndex);
-                        handled = true;
-                    }
-                } else if (keyEvent.code === 'ArrowDown') {
-                    // Move selection tile down
-                    const proposedIndex = instanceState.tileIndex + getTileSet().tileWidth;
-                    if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
-                        selectTile(proposedIndex);
-                        handled = true;
-                    }
-                }
-                else if (keyEvent.code === 'NumpadAdd') {
-                    // Increase viewport scale
-                    increaseScale();
-                    handled = true;
-                } else if (keyEvent.code === 'NumpadSubtract') {
-                    // Decrease viewport scale
-                    decreaseScale();
-                    handled = true;
-                }
-
+            if (keyEvent.code === 'KeyP') {
+                // New palette
+                newPalette();
+                handled = true;
+            } else if (keyEvent.code === 'KeyE') {
+                // New tile
+                tileNew();
+                handled = true;
             }
-            if (handled) {
-                keyEvent.preventDefault();
-                keyEvent.stopImmediatePropagation();
+
+        } else if (keyEvent.shiftKey) {
+            // Shift
+
+            if (keyEvent.code === 'KeyI') {
+                // Tile eyedropper
+                selectTool(TileEditorToolbar.Tools.tileEyedropper);
+                handled = true;
+            } else if (keyEvent.code === 'KeyS') {
+                // Tile stamp
+                selectTool(TileEditorToolbar.Tools.tileStamp);
+                handled = true;
             }
+
+        } else if (keyEvent.altKey) {
+            // Alt key only
+
+            if (keyEvent.code === 'Equal' || keyEvent.code === 'NumpadAdd') {
+                // Increase viewport scale
+                increaseScale();
+                handled = true;
+            } else if (keyEvent.code === 'Minus' || keyEvent.code === 'NumpadSubtract') {
+                // Decrease viewport scale
+                decreaseScale();
+                handled = true;
+            } else if (keyEvent.code === 'ArrowDown') {
+                // Lower palette
+                changePaletteIndex(getProjectUIState().paletteIndex + 1);
+                handled = true;
+            } else if (keyEvent.code === 'ArrowUp') {
+                // Higher palette
+                changePaletteIndex(getProjectUIState().paletteIndex - 1);
+                handled = true;
+            } else if (keyEvent.code === 'ArrowLeft') {
+                // Lower palette
+                selectColourIndex(instanceState.colourIndex - 1);
+                handled = true;
+            } else if (keyEvent.code === 'ArrowRight') {
+                // Higher palette
+                selectColourIndex(instanceState.colourIndex + 1);
+                handled = true;
+            }
+
+        } else if (keyEvent.ctrlKey) {
+            // Ctrl key only
+
+            if (keyEvent.code === 'KeyN') {
+                // Export
+                newProject({
+                    systemType: getProject()?.systemType ?? 'smsgg'
+                });
+                handled = true;
+            } else if (keyEvent.code === 'KeyX') {
+                // Cut tile
+                if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
+                    cutTileToClipboardAt(instanceState.tileIndex);
+                    handled = true;
+                }
+            } else if (keyEvent.code === 'KeyC') {
+                // Copy tile
+                if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
+                    copyTileToClipboardAt(instanceState.tileIndex);
+                    handled = true;
+                }
+            } else if (keyEvent.code === 'KeyV') {
+                // Paste tile
+                if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
+                    pasteTileAt(instanceState.tileIndex);
+                    handled = true;
+                }
+            } else if (keyEvent.code === 'KeyD') {
+                // Clone tile
+                if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
+                    cloneTileAt(instanceState.tileIndex);
+                    handled = true;
+                }
+            } else if (keyEvent.code === 'KeyZ') {
+                // Undo
+                undoOrRedo('u');
+                handled = true;
+            } else if (keyEvent.code === 'KeyY') {
+                // Redo
+                undoOrRedo('r');
+                handled = true;
+            } else if (/^Digit([0-9])$/.test(keyEvent.code)) {
+                // Brush size
+                let size = parseInt(/^Digit([0-9])$/.exec(keyEvent.code)[1]);
+                if (size === 0) size = 10;
+                if (keyEvent.shiftKey) size += 10;
+                setPencilSize(size);
+                handled = true;
+            } else if (keyEvent.code === 'BracketLeft') {
+                // Mirror horizontal
+                if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
+                    mirrorHorizontal(instanceState.tileIndex);
+                    handled = true;
+                }
+            } else if (keyEvent.code === 'BracketRight') {
+                // Mirror Vertical
+                if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
+                    mirrorVertical(instanceState.tileIndex);
+                    handled = true;
+                }
+            } else if (keyEvent.code === 'ArrowLeft') {
+                // Move tile left
+                if (instanceState.tileIndex > 0 && instanceState.tileIndex < getTileSet().length) {
+                    swapTilesAt(instanceState.tileIndex - 1, instanceState.tileIndex);
+                    handled = true;
+                }
+            } else if (keyEvent.code === 'ArrowRight') {
+                // Move tile right
+                if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length - 1) {
+                    swapTilesAt(instanceState.tileIndex, instanceState.tileIndex + 1);
+                    handled = true;
+                }
+            } else if (keyEvent.code === 'ArrowUp') {
+                // Move tile up
+                const proposedIndex = instanceState.tileIndex - getTileSet().tileWidth;
+                if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
+                    swapTilesAt(proposedIndex, instanceState.tileIndex);
+                    handled = true;
+                }
+            } else if (keyEvent.code === 'ArrowDown') {
+                // Move tile down
+                const proposedIndex = instanceState.tileIndex + getTileSet().tileWidth;
+                if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
+                    swapTilesAt(instanceState.tileIndex, proposedIndex);
+                    handled = true;
+                }
+            }
+
+        } else {
+            // No modifier key
+
+            if (keyEvent.code === 'KeyF' || keyEvent.code === 'KeyB') {
+                // Select fill tool
+                selectTool(TileEditorToolbar.Tools.bucket);
+                handled = true;
+            } else if (keyEvent.code === 'KeyS') {
+                // Select selection tool
+                selectTool(TileEditorToolbar.Tools.select);
+                handled = true;
+            } else if (keyEvent.code === 'KeyP') {
+                // Select pencil tool
+                selectTool(TileEditorToolbar.Tools.pencil);
+                handled = true;
+            } else if (keyEvent.code === 'KeyI') {
+                // Select eyedropper tool
+                selectTool(TileEditorToolbar.Tools.eyedropper);
+                handled = true;
+            } else if (keyEvent.code === 'Delete') {
+                // Delete any selected tile
+                if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
+                    removeTileAt(instanceState.tileIndex);
+                    handled = true;
+                }
+            } else if (keyEvent.code === 'ArrowLeft') {
+                // Move selection tile left
+                if (instanceState.tileIndex > 0 && instanceState.tileIndex < getTileSet().length) {
+                    selectTile(instanceState.tileIndex - 1);
+                    handled = true;
+                }
+            } else if (keyEvent.code === 'ArrowRight') {
+                // Move selection tile right
+                if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length - 1) {
+                    selectTile(instanceState.tileIndex + 1);
+                    handled = true;
+                }
+            } else if (keyEvent.code === 'ArrowUp') {
+                // Move selection tile up
+                const proposedIndex = instanceState.tileIndex - getTileSet().tileWidth;
+                if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
+                    selectTile(proposedIndex);
+                    handled = true;
+                }
+            } else if (keyEvent.code === 'ArrowDown') {
+                // Move selection tile down
+                const proposedIndex = instanceState.tileIndex + getTileSet().tileWidth;
+                if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
+                    selectTile(proposedIndex);
+                    handled = true;
+                }
+            } else if (keyEvent.code === 'NumpadAdd') {
+                // Increase viewport scale
+                increaseScale();
+                handled = true;
+            } else if (keyEvent.code === 'NumpadSubtract') {
+                // Decrease viewport scale
+                decreaseScale();
+                handled = true;
+            } else if (keyEvent.code === 'ControlLeft' || keyEvent.code === 'ControlRight') {
+                // Swap back to previous tool?
+                if (instanceState.swapTool) {
+                    selectTool(instanceState.swapTool);
+                    handled = true;
+                    instanceState.swapTool = null;
+                }
+            }
+
+        }
+        if (handled) {
+            keyEvent.preventDefault();
+            keyEvent.stopImmediatePropagation();
         }
     });
 }
@@ -3475,6 +3508,7 @@ function selectTool(tool) {
     if (TileEditorToolbar.Tools[tool]) {
         const tools = TileEditorToolbar.Tools;
         instanceState.tool = tool;
+        instanceState.swapTool = null;
         if (tool !== TileEditorToolbar.Tools.select) {
             instanceState.tileIndex = -1;
             tileEditor.setState({
