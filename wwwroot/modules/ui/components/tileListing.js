@@ -75,10 +75,10 @@ export default class TileListing extends ComponentBase {
 
         if (typeof state?.selectedTileId === 'string') {
             this.#selectedTileId = state.selectedTileId;
-            dirty = true;
+            selectTile(this.#selectedTileId, this.#element);
         } else if (typeof state?.selectedTileId === 'object' && state.selectedTileId === null) {
             this.#selectedTileId = null;
-            dirty = true;
+            selectTile(this.#selectedTileId, this.#element);
         }
 
         if (dirty && this.#tileSet && this.#palette) {
@@ -156,6 +156,8 @@ export default class TileListing extends ComponentBase {
                 }
             }
         });
+
+        selectTile(this.#selectedTileId, this.#element);
     }
 
 
@@ -221,3 +223,24 @@ export default class TileListing extends ComponentBase {
  * @property {string} tileId - Unique ID of the tile.
  * @exports
  */
+
+/**
+ * @param {string} tileIds - Tile ID to select.
+ * @param {HTMLElement} element - HTML element that contains the buttons.
+ */
+function selectTile(tileId, element) {
+    /** @type {HTMLButtonElement} */
+    let selectedButton = null;
+    element.querySelectorAll(`button[data-command=${commands.tileSelect}][data-tile-id]`).forEach((button) => {
+        const thisTileId = button.getAttribute('data-tile-id');
+        button.classList.remove('selected');
+        if (thisTileId === tileId) {
+            button.classList.add('selected');
+            selectedButton = button;
+        }
+    });
+
+    if (selectedButton) {
+        selectedButton.scrollIntoView({behavior: 'smooth', block: 'end', inline: 'nearest'});
+    }
+}
