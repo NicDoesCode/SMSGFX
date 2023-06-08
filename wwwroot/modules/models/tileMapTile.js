@@ -37,7 +37,7 @@ export default class TileMapTile {
     }
 
     /**
-     * Gets or sets whether to flip the tile horizontally?
+     * Gets or sets whether to flip the tile vertically?
      */
     get verticalFlip() {
         return this.#verticalFlip;
@@ -47,7 +47,7 @@ export default class TileMapTile {
     }
 
     /**
-     * Gets or sets whether to flip the tile vertically?
+     * Gets or sets whether to flip the tile horizontally?
      */
     get horizontalFlip() {
         return this.#horizontalFlip;

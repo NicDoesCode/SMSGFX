@@ -4,6 +4,9 @@ import PaletteList from "./../models/paletteList.js";
 import ColourUtil from "./../util/colourUtil.js";
 import ReferenceImage from "../models/referenceImage.js";
 import TileGridProvider from "../models/tileGridProvider.js";
+import Tile from "../models/tile.js";
+import TileMap from "../models/tileMap.js";
+import TileMapFactory from "../factory/tileMapFactory.js";
 
 const highlightModes = {
     pixel: 'pixel',
@@ -227,8 +230,12 @@ export default class CanvasManager {
     #tileCanvas;
     /** @type {boolean} */
     #needToDrawTileImage = true;
-    /** @type {TileGridProvider} */
+    /** @type {TileGridProvider?} */
     #tileGrid = null;
+    /** @type {TileMap?} */
+    #tilePreviewMap = null;
+    /** @type {HTMLCanvasElement} */
+    #tilePreviewCanvas = null;
     /** @type {TileSet} */
     #tileSet = null;
     /** @type {PaletteList} */
@@ -276,6 +283,7 @@ export default class CanvasManager {
      */
     invalidateImage() {
         this.#needToDrawTileImage = true;
+        this.#tilePreviewCanvas = null;
     }
 
     /**
@@ -284,6 +292,7 @@ export default class CanvasManager {
      */
     invalidateTile(index) {
         this.#redrawTiles.push(index);
+        this.#tilePreviewCanvas = null;
     }
 
     /**
@@ -304,6 +313,27 @@ export default class CanvasManager {
         const canvas = document.createElement('canvas');
         this.#drawTileImage(canvas, -1);
         return canvas.toDataURL('image/png');
+    }
+
+
+    /**
+     * Sets the tile preview image, this will be drawn over the tile index where the mouse is.
+     * @param {string|Tile|TileMap} tileOrTileIdOrTileMap 
+     */
+    setTilePreview(tileOrTileIdOrTileMap) {
+        /** @type {TileMap} */ let tileMap = null;
+        if (tileOrTileIdOrTileMap instanceof Tile || typeof tileOrTileIdOrTileMap === 'string') {
+            const tile = tileOrTileIdOrTileMap instanceof Tile ? tileOrTileIdOrTileMap : this.#tileSet.getTileById(tileOrTileIdOrTileMap);
+            if (tile) {
+                tileMap = TileMapFactory.create({ defaultTileId: tile.tileId, rows: 1, columns: 1 });
+            } else {
+                const tileId = tileOrTileIdOrTileMap instanceof Tile ? tileOrTileIdOrTileMap.tileId : tileOrTileIdOrTileMap;
+                console.warn(`CanvasManager.setTilePreview: Tile with ID '${tileId}' not found, tile preview will be slipped.`);
+            }
+        } else if (tileOrTileIdOrTileMap instanceof TileMap) {
+            tileMap = tileOrTileIdOrTileMap;
+        }
+        this.#tilePreviewMap = tileMap;
     }
 
 
@@ -430,8 +460,8 @@ export default class CanvasManager {
             nearestColumnIndex: (tileGridX % 4 > 4) ? clampedCol + 1 : clampedCol,
             rowBlockIndex: blockRow,
             columnBlockIndex: blockCol,
-            nearestRowBlockIndex: nearestBlockRow, 
-            nearestColumnBlockIndex: nearestBlockCol, 
+            nearestRowBlockIndex: nearestBlockRow,
+            nearestColumnBlockIndex: nearestBlockCol,
             rowIsInBounds: row === clampedRow,
             columnIsInBounds: col === clampedCol,
             isInBounds: row === clampedRow && col === clampedCol
@@ -674,17 +704,17 @@ export default class CanvasManager {
             gridColumns: this.#tileGrid.columnCount,
             gridRows: this.#tileGrid.rowCount
         }
-        coords.tile = {
+        coords.tile = typeof mouseX !== 'undefined' ? {
             col: Math.floor((mouseX - (mouseX % 8)) / 8),
             row: Math.floor((mouseY - (mouseY % 8)) / 8),
             sizePx: this.scale * 8
-        };
-        coords.block = {
+        } : null;
+        coords.block = typeof mouseX !== 'undefined' ? {
             col: Math.floor(coords.tile.col / this.tilesPerBlock),
             row: Math.floor(coords.tile.row / this.tilesPerBlock),
             sizePx: (this.scale * 8) * this.tilesPerBlock,
             sizeTiles: this.tilesPerBlock
-        };
+        } : null;
 
         // Draw the reference image below
         if (this.transparencyIndex >= 0 && this.transparencyIndex < 16) {
@@ -763,9 +793,9 @@ export default class CanvasManager {
 
                 // Draw the cursor
                 context.strokeStyle = 'white';
-                this.drawBrushBorder(context, coords, 1);
+                this.#drawBrushBorder(context, coords, 1);
                 context.strokeStyle = 'black';
-                this.drawBrushBorder(context, coords, 2);
+                this.#drawBrushBorder(context, coords, 2);
             }
         }
 
@@ -968,6 +998,38 @@ export default class CanvasManager {
             context.strokeRect(tileX + drawX, tileY + drawY, (8 * pxSize), (8 * pxSize));
             context.setLineDash([]);
         }
+
+        // Show the preview image
+        if (this.#tilePreviewMap && coords.tile) {
+            let redraw = false;
+            if (!this.#tilePreviewCanvas) {
+                this.#tilePreviewCanvas = document.createElement('canvas');
+                redraw = true;
+            }
+            // Set the palette slot on the preview tile set
+            for (let r = 0; r < this.#tilePreviewMap.rowCount; r++) {
+                const tsRow = coords.tile.row + r;
+                for (let c = 0; c < this.#tilePreviewMap.columnCount; c++) {
+                    const tsCol = coords.tile.col + r;
+                    const tsTile = this.tileGrid.getTileInfoByRowAndColumn(tsRow, tsCol);
+                    const pTile = this.#tilePreviewMap.getTileByCoordinate(r, c);
+                    if (tsTile && (pTile.paletteIndex !== tsTile.paletteIndex || pTile.horizontalFlip !== tsTile.horizontalFlip || pTile.verticalFlip !== tsTile.verticalFlip)) {
+                        pTile.palette = tsTile.paletteIndex;
+                        pTile.horizontalFlip = tsTile.horizontalFlip;
+                        pTile.verticalFlip = tsTile.verticalFlip;
+                        redraw = true;
+                    }
+                }
+            }
+            // Redraw
+            if (redraw) {
+                drawTileImage(this.#tilePreviewMap, this.tileSet, this.paletteList, this.#tilePreviewCanvas, this.transparencyIndex, this.scale);
+            }
+            // Place the preview image
+            const tileX = 8 * coords.tile.col * coords.pxSize;
+            const tileY = 8 * coords.tile.row * coords.pxSize;
+            context.drawImage(this.#tilePreviewCanvas, tileX + drawX, tileY + drawY, this.#tilePreviewCanvas.width, this.#tilePreviewCanvas.height);
+        }
     }
 
 
@@ -994,7 +1056,7 @@ export default class CanvasManager {
      * @param {CanvCoords} coords 
      * @param {number} drawOffset 
      */
-    drawBrushBorder(context, coords, drawOffset) {
+    #drawBrushBorder(context, coords, drawOffset) {
         const drawX = coords.drawX, drawY = coords.drawY;
         const offset = drawOffset;
         const pxSize = coords.pxSize;
@@ -1022,4 +1084,108 @@ export default class CanvasManager {
     }
 
 
+}
+
+/**
+ * 
+ * @param {TileGridProvider} tileGrid 
+ * @param {TileSet} tileSet 
+ * @param {PaletteList} paletteList 
+ * @param {HTMLCanvasElement} canvas 
+ * @param {number?} [transparencyColour]
+ * @param {number?} [pxSize]
+ */
+function drawTileImage(tileGrid, tileSet, paletteList, canvas, transparencyColour, pxSize) {
+    if (!tileGrid) throw new Error('drawTileImage: No tile grid.');
+    if (!tileSet) throw new Error('drawTileImage: No tile set.');
+    if (!paletteList) throw new Error('drawTileImage: No palette list.');
+
+    if (typeof pxSize !== 'number') pxSize = 1;
+    if (pxSize < 1) pxSize = 1;
+
+    if (typeof transparencyColour !== 'number') transparencyColour = -1;
+
+    const context = canvas.getContext('2d');
+
+    const tiles = Math.max(tileGrid.columnCount, 1);
+    const rows = Math.ceil(tileGrid.tileCount / tiles);
+
+    canvas.width = tiles * 8 * pxSize;
+    canvas.height = rows * 8 * pxSize;
+
+    for (let tileIndex = 0; tileIndex < tileGrid.tileCount; tileIndex++) {
+        drawTile(tileGrid, tileSet, paletteList, context, tileIndex, transparencyColour, pxSize);
+    }
+}
+
+
+/**
+ * @param {TileGridProvider} tileGrid 
+ * @param {TileSet} tileSet 
+ * @param {PaletteList} paletteList 
+ * @param {CanvasRenderingContext2D} context 
+ * @param {number} tileindex 
+ * @param {number?} [transparencyColour]
+ * @param {number?} [pxSize]
+ */
+function drawTile(tileGrid, tileSet, paletteList, context, tileindex, transparencyColour, pxSize) {
+    const tileInfo = tileGrid.getTileInfoByIndex(tileindex);
+    const tile = tileSet.getTileById(tileInfo.tileId);
+    const tileWidth = Math.max(tileGrid.columnCount, 1);
+    const tileGridCol = tileindex % tileWidth;
+    const tileGridRow = (tileindex - tileGridCol) / tileWidth;
+    const palette = paletteList.getPalette(tileInfo.paletteIndex);
+    const numColours = palette.getColours().length;
+
+    if (tile) {
+        let pixelPaletteIndex = 0;
+        for (let tilePx = 0; tilePx < 64; tilePx++) {
+
+            const tileCol = tilePx % 8;
+            const tileRow = (tilePx - tileCol) / 8;
+
+            const x = ((tileGridCol * 8) + tileCol) * pxSize;
+            const y = ((tileGridRow * 8) + tileRow) * pxSize;
+
+            if (tileInfo.horizontalFlip && tileInfo.verticalFlip) {
+                pixelPaletteIndex = tile.readAt(63 - tilePx);
+            } else if (tileInfo.horizontalFlip) {
+                const readPx = (tileRow * 8) + (7 - tileCol);
+                pixelPaletteIndex = tile.readAt(readPx);
+            } else if (tileInfo.verticalFlip) {
+                const readPx = ((7 - tileRow) * 8) + tileCol;
+                pixelPaletteIndex = tile.readAt(readPx);
+            } else {
+                pixelPaletteIndex = tile.readAt(tilePx);
+            }
+
+            // Set colour
+            if (pixelPaletteIndex >= 0 && pixelPaletteIndex < numColours) {
+                const colour = palette.getColour(pixelPaletteIndex);
+                const hex = ColourUtil.toHex(colour.r, colour.g, colour.b);
+                context.fillStyle = hex;
+            }
+
+            if (transparencyColour === -1 || pixelPaletteIndex !== transparencyColour) {
+                context.moveTo(0, 0);
+                context.fillRect(x, y, pxSize, pxSize);
+            }
+        }
+    } else {
+        const originX = (tileGridCol * 8) * pxSize;
+        const originY = (tileGridRow * 8) * pxSize;
+
+        context.fillStyle = '#FFFFFF';
+        context.fillRect(originX, originY, pxSize * 8, pxSize * 8);
+        context.fillStyle = '#777777';
+        for (let x = 0; x < pxSize * 8; x++) {
+            const drawX = originX + x;
+            for (let y = 0; y < pxSize * 8; y++) {
+                const drawY = originY + y;
+                if ((x % 2 === 0 && y % 2 === 1) || (x % 2 === 1 && y % 2 === 0)) {
+                    context.fillRect(drawX, drawY, 1, 1);
+                }
+            }
+        }
+    }
 }

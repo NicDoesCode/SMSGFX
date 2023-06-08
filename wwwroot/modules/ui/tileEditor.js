@@ -260,6 +260,10 @@ export default class TileEditor extends ComponentBase {
         } else if (typeof state?.canvasHighlightMode === 'object' && state.canvasHighlightMode === null) {
             this.#canvasManager.highlightMode = CanvasManager.HighlightModes.pixel;
         }
+        // Tile stamp preview
+        if (typeof state?.tileStampPreview !== 'undefined') {
+            this.#canvasManager.setTilePreview(state.tileStampPreview);
+        }
         // Force refresh?
         if (typeof state.forceRefresh === 'boolean' && state.forceRefresh === true) {
             dirty = true;
@@ -604,6 +608,7 @@ export default class TileEditor extends ComponentBase {
  * @property {string[]?} [updatedTileIds] - Array of unique tile IDs that were updated.
  * @property {string?} theme - Name of the theme being used.
  * @property {string?} [canvasHighlightMode] - The highlight mode that the canvas should use.
+ * @property {string|Tile|TileGridProvider|null} [tileStampPreview] - Either a tile ID, individual tile object or tile grid object with the tile stamp preview.
  * @property {boolean?} [forceRefresh] - When true the tile grid image will be refreshed.
  * @exports 
  */

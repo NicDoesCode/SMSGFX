@@ -99,8 +99,6 @@ const instanceState = {
     paletteSlot: 0,
     /** @type {string?} */
     selectedTileMapId: null,
-    /** @type {string?} */
-    selectedTileId: null,
     ctrlIsDown: false,
     shiftIsDown: false,
     altIsDown: false,
@@ -3303,9 +3301,15 @@ function selectTileSetTile(tileId) {
     const tile = getTileSet().getTileById(tileId);
     if (tile) {
         getProjectUIState().tileId = tileId;
+        state.saveUIStateToLocalStorage();
         tileManager.setState({
             selectedTileId: tileId
         });
+    }
+
+    // Set the stamp preview in the canvas
+    if (instanceState.tool === TileEditorToolbar.Tools.tileStamp) {
+        tileEditor.setState({ tileStampPreview: tile?.tileId ?? null });
     }
 }
 
@@ -3551,6 +3555,17 @@ function selectTool(tool) {
             tileEditor.setState({
                 selectedTileIndex: instanceState.tileIndex
             });
+        }
+
+        // Set the stamp preview in the canvas
+        if (tool === TileEditorToolbar.Tools.tileStamp) {
+            if (!getProjectUIState().tileId && getTileSet() && getTileSet().length > 0 || !getTileSet().getTileById(getProjectUIState().tileId)) {
+                getProjectUIState().tileId = getTileSet().getTile(0);
+                selectTileSetTile(getTileSet().getTile(0).tileId);
+            }
+            tileEditor.setState({ tileStampPreview: getProjectUIState().tileId });
+        } else {
+            tileEditor.setState({ tileStampPreview: null });
         }
 
         instanceState.clampToTile = instanceState.userClampToTile;
