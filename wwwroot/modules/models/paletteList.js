@@ -116,7 +116,11 @@ export default class PaletteList {
         index = Math.min(index, this.#palettes.length);
         if (index === 0) this.#palettes.unshift(value);
         else if (index === this.#palettes.length) this.#palettes.push(value);
-        else this.#palettes = this.#palettes.splice(index, 0, value);
+        else {
+            const start = this.#palettes.slice(0, index + 1);
+            const end = this.#palettes.slice(index + 1);
+            this.#palettes = start.concat([value]).concat(end);
+        }
         this.#resetPalettesByIdCache();
     }
 

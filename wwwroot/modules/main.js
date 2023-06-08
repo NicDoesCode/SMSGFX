@@ -1613,6 +1613,15 @@ function getProjectUIState() {
     return getUIState().projectStates[projectId];
 }
 
+function getDefaultPaletteSystemType() {
+    switch (getProject().systemType) {
+        case 'smsgg': return 'sms';
+        case 'nes': return 'nes';
+        case 'gb': return 'gg';
+        default: throw new Error('Unknown system type.');
+    }
+}
+
 function getNumberOfPaletteSlots() {
     switch (getProject().systemType) {
         case 'smsgg': return 2;
@@ -2641,13 +2650,7 @@ function selectTileIndexIfNotSelected(tileIndex) {
 function newPalette() {
     addUndoState();
 
-    let system = null;
-    switch (getProject().systemType) {
-        case 'smsgg': system = 'sms';
-        case 'gb': system = 'gb';
-        case 'nes': system = 'nes';
-    }
-    const newPalette = PaletteFactory.createNewStandardColourPalette('New palette', system);
+    const newPalette = PaletteFactory.createNewStandardColourPalette('New palette', getDefaultPaletteSystemType());
     getPaletteList().addPalette(newPalette);
 
     state.setProject(getProject());
@@ -2660,58 +2663,46 @@ function clonePalette(paletteIndex) {
     if (paletteIndex >= 0 && paletteIndex < getPaletteList().length) {
 
         addUndoState();
+        try {
+            const newPalette = PaletteFactory.clone(getPalette());
+            newPalette.title += ' (copy)';
+            getPaletteList().insertAt(paletteIndex, newPalette);
 
-        const newPalette = PaletteFactory.clone(getPalette());
-        newPalette.title += ' (copy)';
+            state.setProject(getProject());
+            state.saveToLocalStorage();
 
-        getPaletteList().addPalette(newPalette);
-
-        const newPaletteIndex = getPaletteList().length - 1;
-
-        paletteEditor.setState({
-            paletteList: getPaletteList(),
-            selectedPaletteIndex: newPaletteIndex
-        });
-        tileEditor.setState({
-            paletteList: getTileEditorPaletteList()
-        });
-
-        getProjectUIState().paletteIndex = newPaletteIndex;
-        state.saveToLocalStorage();
+            changePalette(newPalette.paletteId);
+        } catch (e) {
+            undoManager.removeLastUndo();
+            throw e;
+        }
     }
 }
 
 function deletePalette(paletteIndex) {
     if (paletteIndex >= 0 && paletteIndex < getPaletteList().length) {
-
         addUndoState();
+        try {
 
-        // Remove palette
-        getPaletteList().removeAt(paletteIndex);
-        const newSelectedIndex = Math.min(paletteIndex, getPaletteList().length - 1);
-        // Select a remaining palette or create a default if none exists.
-        if (getPaletteList().length > 0) {
-            paletteEditor.setState({
-                paletteList: getPaletteList(),
-                selectedPaletteIndex: newSelectedIndex
-            });
-            getProjectUIState().paletteIndex = newSelectedIndex;
-        } else {
-            const newPalette = PaletteFactory.createNewStandardColourPaletteBySystemType(getProject().systemType);
-            getPaletteList().addPalette(newPalette);
-            paletteEditor.setState({
-                paletteList: getPaletteList(),
-                selectedPaletteIndex: 0
-            });
-            getProjectUIState().paletteIndex = 0;
+            getPaletteList().removeAt(paletteIndex);
+            if (getPaletteList().length === 0) {
+                const newPalette = PaletteFactory.createNewStandardColourPalette('New palette', getDefaultPaletteSystemType());
+                getPaletteList().addPalette(newPalette);
+                paletteIndex = 0;
+            } else {
+                paletteIndex = Math.max(0, Math.min(paletteIndex, getPaletteList().length - 1));
+            }
+     
+            state.setProject(getProject());
+            state.saveToLocalStorage();
+
+            const palette = getPaletteList().getPalette(paletteIndex);
+            changePalette(palette.paletteId);
+
+        } catch (e) {
+            undoManager.removeLastUndo();
+            throw e;
         }
-
-        // Refresh image
-        tileEditor.setState({
-            paletteList: getTileEditorPaletteList()
-        });
-
-        state.saveToLocalStorage();
     }
 }
 
