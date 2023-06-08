@@ -107,5 +107,12 @@ export default class TileGridProvider {
  * @property {number} tileIndex - Index of the tile within the tile grid.
  * @exports
  */
-
  
+/**
+ * @typedef {object} TileGridRegion
+ * @property {number} rowIndex - Row index that the selection begins.
+ * @property {number} columnIndex - Column index that the selection begins.
+ * @property {number} width - Width of the selection.
+ * @property {number} height - Height of the selection.
+ * @exports
+ */

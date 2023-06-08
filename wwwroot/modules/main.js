@@ -66,6 +66,7 @@ const state = new State();
 const instanceState = {
     /** @type {string} */
     tool: null,
+    toolData: {},
     /** @type {number} */
     colourIndex: 0,
     /** @type {number} */
@@ -949,6 +950,12 @@ function handleTileContextToolbarCommand(args) {
     if (args.command === TileContextToolbar.Commands.tileAttributes) {
         setTileAttributes(args.tileAttributes);
     }
+    if (args.command === TileContextToolbar.Commands.tileStampDefine) {
+        setTileStampDefineMode();
+    }
+    if (args.command === TileContextToolbar.Commands.tileStampClear) {
+        clearTileStampRegion();
+    }
     if (args.command === TileContextToolbar.Commands.referenceImageSelect) {
         selectReferenceImage();
     }
@@ -1131,6 +1138,19 @@ function handleTileEditorOnEvent(args) {
                 break;
 
             case TileEditor.Events.pixelMouseUp:
+                takeToolAction({
+                    tool: instanceState.tool,
+                    colourIndex: instanceState.colourIndex,
+                    imageX: args.x,
+                    imageY: args.y,
+                    tile: { row: args.tileGridRowIndex, col: args.tileGridColumnIndex },
+                    tileIndex: { row: args.tileGridInsertRowIndex, col: args.tileGridInsertColumnIndex },
+                    tileBlock: { row: args.tileBlockGridRowIndex, col: args.tileBlockGridColumnIndex },
+                    tileBlockIndex: { row: args.tileBlockGridInsertRowIndex, col: args.tileBlockGridInsertColumnIndex },
+                    tilesPerBlock: args.tilesPerBlock,
+                    isInBounds: args.isInBounds,
+                    event: TileEditor.Events.pixelMouseUp
+                });
                 instanceState.operationTileIndex = -1;
                 if (instanceState.undoDisabled) {
                     state.saveToLocalStorage();
@@ -1599,16 +1619,25 @@ function getUIState() {
     return state.persistentUIState;
 }
 function getProjectUIState() {
-    const projectId = getProject().id;
-    if (!getUIState().projectStates[projectId]) {
-        getUIState().projectStates[projectId] = {
-            projectId: projectId,
-            paletteIndex: 0,
-            tileId: null,
-            tileMapId: null
-        };
-    }
-    return getUIState().projectStates[projectId];
+    if (getProject()) {
+        const projectId = getProject().id;
+        if (!getUIState().projectStates[projectId]) {
+            getUIState().projectStates[projectId] = {
+                projectId: projectId,
+                paletteIndex: 0,
+                tileId: null,
+                tileMapId: null
+            };
+        }
+        return getUIState().projectStates[projectId];
+    } 
+    return null;
+}
+
+function getToolState() {
+    if (!instanceState.tool) return {};
+    if (!instanceState.toolData[instanceState.tool]) instanceState.toolData[instanceState.tool] = {};
+    return instanceState.toolData[instanceState.tool];
 }
 
 function getDefaultPaletteSystemType() {
@@ -1897,25 +1926,24 @@ function displayProjectList() {
     });
 }
 
+/** 
+ * @typedef {object} ToolActionArgs
+ * @property {string} tool 
+ * @property {number} colourIndex 
+ * @property {number} imageX 
+ * @property {number} imageY 
+ * @property {{ row: number, col: number }} tile 
+ * @property {{ row: number, col: number }} tileIndex 
+ * @property {{ row: number, col: number }} tileBlock 
+ * @property {{ row: number, col: number }} tileBlockIndex 
+ * @property {number} tilesPerBlock 
+ * @property {boolean} isInBounds 
+ * @property {string} event 
+ */
+
 /**
  * Performs the action for a tool.
- * @param {{
- *      tool: string, 
- *      colourIndex: number, 
- *      imageX: number, 
- *      imageY: number, 
- *      tile: { row: number, col: number }, 
- *      tileIndex: { row: number, col: number }, 
- *      tileBlock: { row: number, col: number }, 
- *      tileBlockIndex: { row: number, col: number }, 
- *      tileBlockGridRowIndex: number, 
- *      tileBlockGridColumnIndex: number, 
- *      tileBlockGridInsertRowIndex: number, 
- *      tileBlockGridInsertColumnIndex: number, 
- *      tilesPerBlock: number, 
- *      isInBounds: boolean, 
- *      event: string?
- * }} args 
+ * @param {ToolActionArgs} args 
  */
 function takeToolAction(args) {
 
@@ -1926,126 +1954,7 @@ function takeToolAction(args) {
     if (tool !== null && colourIndex >= 0 && colourIndex < 16) {
 
         if (tool === TileEditorToolbar.Tools.select) {
-
-            const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
-            toggleTileIndexSelectedState(tileIndex);
-
-            instanceState.lastTileMapPx.x = -1;
-            instanceState.lastTileMapPx.y = -1;
-
-        } else if (tool === TileEditorToolbar.Tools.pencil && args.isInBounds) {
-
-            // CTRL not down, so draw pixel
-            const lastPx = instanceState.lastTileMapPx;
-            if (imageX !== lastPx.x || imageY !== lastPx.y) {
-
-                const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
-                const clamp = instanceState.clampToTile;
-                if (!clamp || (clamp && tileIndex === instanceState.operationTileIndex)) {
-
-                    addUndoState();
-                    if (!instanceState.undoDisabled) {
-                        instanceState.undoDisabled = true;
-                    }
-
-                    instanceState.lastTileMapPx.x = imageX;
-                    instanceState.lastTileMapPx.y = imageY;
-
-                    const size = instanceState.pencilSize;
-                    const updatedTiles = PaintTool.paintColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, colourIndex, size, clamp);
-
-                    if (updatedTiles.affectedTileIndexes.length > 0) {
-                        tileEditor.setState({
-                            updatedTileIds: updatedTiles.affectedTileIds
-                        });
-                        tileManager.setState({
-                            updatedTileIds: updatedTiles.affectedTileIds
-                        });
-                    }
-
-                }
-
-            }
-
-        } else if (tool === TileEditorToolbar.Tools.colourReplace && args.isInBounds) {
-
-            const lastPx = instanceState.lastTileMapPx;
-            if (imageX !== lastPx.x || imageY !== lastPx.y) {
-
-                const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
-                const clamp = instanceState.clampToTile;
-                if (!clamp || (clamp && tileIndex === instanceState.operationTileIndex)) {
-
-                    addUndoState();
-                    if (!instanceState.undoDisabled) {
-                        instanceState.undoDisabled = true;
-                    }
-
-                    if (event === TileEditor.Events.pixelMouseDown) {
-                        instanceState.startingColourIndex = getTileSet().getPixelAt(imageX, imageY);
-                    }
-
-                    instanceState.lastTileMapPx.x = imageX;
-                    instanceState.lastTileMapPx.y = imageY;
-
-                    const sourceColourindex = instanceState.startingColourIndex;
-                    const replacementColourIndex = colourIndex;
-                    const size = instanceState.pencilSize;
-                    const updatedTiles = PaintTool.replaceColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, sourceColourindex, replacementColourIndex, size, clamp);
-
-                    if (updatedTiles.affectedTileIndexes.length > 0) {
-                        tileEditor.setState({
-                            updatedTileIds: updatedTiles.affectedTileIds
-                        });
-                        tileManager.setState({
-                            tileSet: getTileSet(),
-                            updatedTileIds: updatedTiles.affectedTileIds
-                        });
-                    }
-
-                }
-            }
-
-        } else if (tool === TileEditorToolbar.Tools.bucket && args.isInBounds) {
-
-            addUndoState();
-            PaintTool.fillColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, colourIndex, instanceState.clampToTile);
-
-            tileEditor.setState({
-                tileGrid: getTileGrid(),
-                tileSet: getTileSet()
-            });
-            tileManager.setState({
-                tileSet: getTileSet()
-            });
-
-            instanceState.lastTileMapPx.x = -1;
-            instanceState.lastTileMapPx.y = -1;
-
-        } else if (tool === TileEditorToolbar.Tools.eyedropper) {
-
-            const colourIndex = EyedropperTool.getPixelColour(getTileGrid(), getTileSet(), imageX, imageY);
-            if (colourIndex !== null) {
-                selectColourIndex(colourIndex);
-            }
-
-            instanceState.lastTileMapPx.x = -1;
-            instanceState.lastTileMapPx.y = -1;
-
-        } else if (tool === TileEditorToolbar.Tools.tileEyedropper) {
-
-            const tileInfo = getTileGrid().getTileInfoByRowAndColumn(args.tile.row, args.tile.col);
-            if (tileInfo) {
-                selectTileSetTile(tileInfo.tileId);
-            }
-
-        }
-
-        if (isTileMap()) {
-            let actionTaken = false;
-            /** @type {string[]?} */ let updatedTileIds = null;
-
-            if (tool === TileEditorToolbar.Tools.tileAttributes && args.isInBounds) {
+            if (event === TileEditor.Events.pixelMouseOver) {
 
                 const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
                 toggleTileIndexSelectedState(tileIndex);
@@ -2053,94 +1962,218 @@ function takeToolAction(args) {
                 instanceState.lastTileMapPx.x = -1;
                 instanceState.lastTileMapPx.y = -1;
 
-            } else if (tool === TileEditorToolbar.Tools.rowColumn) {
+            }
+        } else if (tool === TileEditorToolbar.Tools.pencil && args.isInBounds) {
+            if (event === TileEditor.Events.pixelMouseDown || event === TileEditor.Events.pixelMouseOver) {
 
-                addUndoState();
-                try {
-                    let index = -1;
-                    switch (instanceState.rowColumnMode) {
-                        case TileMapRowColumnTool.Mode.addRow: index = args.tileBlockIndex.row; break;
-                        case TileMapRowColumnTool.Mode.deleteRow: index = args.tileBlock.row; break;
-                        case TileMapRowColumnTool.Mode.addColumn: index = args.tileBlockIndex.col; break;
-                        case TileMapRowColumnTool.Mode.deleteColumn: index = args.tileBlock.col; break;
-                    }
-                    TileMapRowColumnTool.takeAction({
-                        tileMap: getTileMap(),
-                        tileSet: getTileSet(),
-                        mode: instanceState.rowColumnMode,
-                        fillMode: instanceState.rowColumnFillMode,
-                        index: index,
-                        tilesPerBlock: args.tilesPerBlock,
-                        tileId: getProjectUIState().tileId,
-                        colourIndex: instanceState.colourIndex
-                    });
-                    actionTaken = true;
-                } catch (e) {
-                    undoManager.removeLastUndo();
-                    throw e;
-                }
+                // CTRL not down, so draw pixel
+                const lastPx = instanceState.lastTileMapPx;
+                if (imageX !== lastPx.x || imageY !== lastPx.y) {
 
-            } else if (tool === TileEditorToolbar.Tools.tileStamp && args.isInBounds) {
-
-                addUndoState();
-                try {
-                    const result = TileStampTool.stampTile({
-                        tileId: getProjectUIState().tileId,
-                        tileMap: getTileMap(),
-                        tileSet: getTileSet(),
-                        tileRow: args.tile.row,
-                        tileCol: args.tile.col
-                    });
-                    if (result.updatedTileIds.length > 0) {
-                        updatedTileIds = result.updatedTileIds;
-                    } else {
-                        undoManager.removeLastUndo();
-                    }
-                } catch (e) {
-                    undoManager.removeLastUndo();
-                    throw e;
-                }
-
-            } else if (tool === TileEditorToolbar.Tools.palettePaint && args.isInBounds) {
-
-                addUndoState();
-                try {
-                    const result = PalettePaintTool.setTileBlockPaletteIndex({
-                        paletteIndex: instanceState.paletteSlot,
-                        tileMap: getTileMap(),
-                        tileSet: getTileSet(),
-                        row: args.tileBlock.row,
-                        column: args.tileBlock.col,
-                        tilesPerBlock: args.tilesPerBlock
-                    });
-                    if (result.updatedTileIds.length > 0) {
-                        updatedTileIds = result.updatedTileIds;
-                    } else {
-                        undoManager.removeLastUndo();
-                    }
-                } catch (e) {
-                    undoManager.removeLastUndo();
-                    throw e;
-                }
-
-            } else if (tool === TileEditorToolbar.Tools.tileLinkBreak && args.isInBounds) {
-
-                addUndoState();
-                try {
                     const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
-                    actionTaken = TileLinkBreakTool.run(tileIndex, getTileMap(), getTileSet(), getProject());
-                    if (!actionTaken) undoManager.removeLastUndo();
-                } catch (e) {
-                    undoManager.removeLastUndo();
-                    throw e;
+                    const clamp = instanceState.clampToTile;
+                    if (!clamp || (clamp && tileIndex === instanceState.operationTileIndex)) {
+
+                        addUndoState();
+                        if (!instanceState.undoDisabled) {
+                            instanceState.undoDisabled = true;
+                        }
+
+                        instanceState.lastTileMapPx.x = imageX;
+                        instanceState.lastTileMapPx.y = imageY;
+
+                        const size = instanceState.pencilSize;
+                        const updatedTiles = PaintTool.paintColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, colourIndex, size, clamp);
+
+                        if (updatedTiles.affectedTileIndexes.length > 0) {
+                            tileEditor.setState({
+                                updatedTileIds: updatedTiles.affectedTileIds
+                            });
+                            tileManager.setState({
+                                updatedTileIds: updatedTiles.affectedTileIds
+                            });
+                        }
+
+                    }
                 }
 
             }
+        } else if (tool === TileEditorToolbar.Tools.colourReplace && args.isInBounds) {
+            if (event === TileEditor.Events.pixelMouseDown || event === TileEditor.Events.pixelMouseOver) {
+
+                const lastPx = instanceState.lastTileMapPx;
+                if (imageX !== lastPx.x || imageY !== lastPx.y) {
+
+                    const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
+                    const clamp = instanceState.clampToTile;
+                    if (!clamp || (clamp && tileIndex === instanceState.operationTileIndex)) {
+
+                        addUndoState();
+                        if (!instanceState.undoDisabled) {
+                            instanceState.undoDisabled = true;
+                        }
+
+                        if (event === TileEditor.Events.pixelMouseDown) {
+                            instanceState.startingColourIndex = getTileSet().getPixelAt(imageX, imageY);
+                        }
+
+                        instanceState.lastTileMapPx.x = imageX;
+                        instanceState.lastTileMapPx.y = imageY;
+
+                        const sourceColourindex = instanceState.startingColourIndex;
+                        const replacementColourIndex = colourIndex;
+                        const size = instanceState.pencilSize;
+                        const updatedTiles = PaintTool.replaceColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, sourceColourindex, replacementColourIndex, size, clamp);
+
+                        if (updatedTiles.affectedTileIndexes.length > 0) {
+                            tileEditor.setState({
+                                updatedTileIds: updatedTiles.affectedTileIds
+                            });
+                            tileManager.setState({
+                                tileSet: getTileSet(),
+                                updatedTileIds: updatedTiles.affectedTileIds
+                            });
+                        }
+
+                    }
+                }
+
+            }
+        } else if (tool === TileEditorToolbar.Tools.bucket && args.isInBounds) {
+            if (event === TileEditor.Events.pixelMouseUp) {
+
+                addUndoState();
+                PaintTool.fillColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, colourIndex, instanceState.clampToTile);
+
+                tileEditor.setState({
+                    tileGrid: getTileGrid(),
+                    tileSet: getTileSet()
+                });
+                tileManager.setState({
+                    tileSet: getTileSet()
+                });
+
+                instanceState.lastTileMapPx.x = -1;
+                instanceState.lastTileMapPx.y = -1;
+
+            }
+        } else if (tool === TileEditorToolbar.Tools.eyedropper) {
+            if (event === TileEditor.Events.pixelMouseUp) {
+
+                const colourIndex = EyedropperTool.getPixelColour(getTileGrid(), getTileSet(), imageX, imageY);
+                if (colourIndex !== null) {
+                    selectColourIndex(colourIndex);
+                }
+
+                instanceState.lastTileMapPx.x = -1;
+                instanceState.lastTileMapPx.y = -1;
+
+            }
+        } else if (tool === TileEditorToolbar.Tools.tileEyedropper) {
+            if (event === TileEditor.Events.pixelMouseUp) {
+
+                if (args.tile.row > 0 && args.tile.row < getTileGrid().rowCount && args.tile.col > 0 && args.tile.col < getTileGrid().columnCount) {
+                    const tileInfo = getTileGrid().getTileInfoByRowAndColumn(args.tile.row, args.tile.col);
+                    if (tileInfo) {
+                        selectTileSetTile(tileInfo.tileId);
+                    }
+                }
+
+            }
+        }
+
+        if (isTileMap()) {
+            let actionTaken = false;
+            /** @type {string[]} */ 
+            let updatedTileIds = [];
+
+            if (tool === TileEditorToolbar.Tools.tileAttributes && args.isInBounds) {
+                if (event === TileEditor.Events.pixelMouseUp) {
+
+                    const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
+                    toggleTileIndexSelectedState(tileIndex);
+
+                    instanceState.lastTileMapPx.x = -1;
+                    instanceState.lastTileMapPx.y = -1;
+
+                }
+            } else if (tool === TileEditorToolbar.Tools.rowColumn) {
+                if (event === TileEditor.Events.pixelMouseUp) {
+
+                    addUndoState();
+                    try {
+                        let index = -1;
+                        switch (instanceState.rowColumnMode) {
+                            case TileMapRowColumnTool.Mode.addRow: index = args.tileBlockIndex.row; break;
+                            case TileMapRowColumnTool.Mode.deleteRow: index = args.tileBlock.row; break;
+                            case TileMapRowColumnTool.Mode.addColumn: index = args.tileBlockIndex.col; break;
+                            case TileMapRowColumnTool.Mode.deleteColumn: index = args.tileBlock.col; break;
+                        }
+                        TileMapRowColumnTool.takeAction({
+                            tileMap: getTileMap(),
+                            tileSet: getTileSet(),
+                            mode: instanceState.rowColumnMode,
+                            fillMode: instanceState.rowColumnFillMode,
+                            index: index,
+                            tilesPerBlock: args.tilesPerBlock,
+                            tileId: getProjectUIState().tileId,
+                            colourIndex: instanceState.colourIndex
+                        });
+                        actionTaken = true;
+                    } catch (e) {
+                        undoManager.removeLastUndo();
+                        throw e;
+                    }
+
+                }
+            } else if (tool === TileEditorToolbar.Tools.tileStamp) {
+
+                const stampUpdatedTileIds = takeToolAction_tileStamp(args);
+                if (Array.isArray(stampUpdatedTileIds)) { 
+                    updatedTileIds = updatedTileIds.concat(stampUpdatedTileIds);
+                }
+
+            } else if (tool === TileEditorToolbar.Tools.palettePaint && args.isInBounds) {
+                if (event === TileEditor.Events.pixelMouseDown || event === TileEditor.Events.pixelMouseOver) {
+
+                    addUndoState();
+                    try {
+                        const result = PalettePaintTool.setTileBlockPaletteIndex({
+                            paletteIndex: instanceState.paletteSlot,
+                            tileMap: getTileMap(),
+                            tileSet: getTileSet(),
+                            row: args.tileBlock.row,
+                            column: args.tileBlock.col,
+                            tilesPerBlock: args.tilesPerBlock
+                        });
+                        if (result.updatedTileIds.length > 0) {
+                            updatedTileIds = result.updatedTileIds;
+                        } else {
+                            undoManager.removeLastUndo();
+                        }
+                    } catch (e) {
+                        undoManager.removeLastUndo();
+                        throw e;
+                    }
+
+                }
+            } else if (tool === TileEditorToolbar.Tools.tileLinkBreak && args.isInBounds) {
+                if (event === TileEditor.Events.pixelMouseUp) {
+
+                    addUndoState();
+                    try {
+                        const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
+                        actionTaken = TileLinkBreakTool.run(tileIndex, getTileMap(), getTileSet(), getProject());
+                        if (!actionTaken) undoManager.removeLastUndo();
+                    } catch (e) {
+                        undoManager.removeLastUndo();
+                        throw e;
+                    }
+
+                }
+            }
 
             if (actionTaken) {
-                state.setProject(getProject());
-                state.saveToLocalStorage();
-
                 tileEditor.setState({
                     tileGrid: getTileGrid(),
                     tileSet: getTileSet()
@@ -2158,6 +2191,116 @@ function takeToolAction(args) {
 
     }
 
+}
+
+/** 
+ * @param {ToolActionArgs} args 
+ * @returns {string[]?}
+ */
+function takeToolAction_tileStamp(args) {
+    if (!args.isInBounds) return;
+    const ts = getToolState();
+
+    // Define mode 
+    if (ts.mode === 'define') {
+
+        if (args.event === TileEditor.Events.pixelMouseDown) {
+
+            ts.selectedRegion = { rowIndex: args.tile.row, columnIndex: args.tile.col, width: 1, height: 1 };
+            ts.lastTile = { rowIndex: args.tile.row, columnIndex: args.tile.col };
+            tileEditor.setState({ selectedRegion: ts.selectedRegion });
+
+        } else if (args.event === TileEditor.Events.pixelMouseOver) {
+
+            if (!ts.selectedRegion) {
+                ts.selectedRegion = { rowIndex: args.tile.row, columnIndex: args.tile.col, width: 1, height: 1 };
+            }
+
+            /** @type {import("./models/tileGridProvider.js").TileGridRegion} */
+            const r = ts.selectedRegion;
+
+            const mCol = args.tile.col; // Mouse col
+            const mRow = args.tile.row; // Mouse row
+            let sRow = r.rowIndex;
+            let eRow = r.rowIndex + r.height;
+            let sCol = r.columnIndex;
+            let eCol = r.columnIndex + r.width;
+
+            const movingLeft = ts.lastTile.colIndex > mCol;
+            if (movingLeft) {       // Moving towards left side
+                if (mCol > sCol)    //  If mouse is on right of the start col
+                    eCol = mCol;    //      Reset the end col
+                else if (mCol < sCol)              //  Otherwise
+                    sCol = mCol;    //      Reset start col
+            } else {                // Moving towards right side
+                if (mCol < eCol)    //  If mouse col less than end col
+                    sCol = mCol;    //      Reset start col
+                else if (mCol > eCol)               //  Otherwise
+                    eCol = mCol;    //      Reset end col
+            }
+
+            const movingUp = ts.lastTile.rowIndex > mRow;
+            if (movingUp) {
+                if (mRow > sRow)
+                    eRow = mRow;
+                else if (mRow < sRow)
+                    sRow = mRow;
+            } else {
+                if (mRow < eRow)
+                    sRow = mRow;
+                else if (mRow > eRow)
+                    eRow = mRow;
+            }
+
+            r.rowIndex = sRow;
+            r.height = Math.max(eRow - sRow, 1);
+            r.columnIndex = sCol;
+            r.width = Math.max(eCol - sCol, 1);
+
+            ts.selectedRegion = r;
+            ts.lastTile = { rowIndex: mRow, columnIndex: mCol };
+            tileEditor.setState({ selectedRegion: ts.selectedRegion });
+        } else if (args.event === TileEditor.Events.pixelMouseUp) {
+            confirmTileStampRegion();
+        }
+
+    } else {
+
+        if (args.event === TileEditor.Events.pixelMouseDown || args.event === TileEditor.Events.pixelMouseOver) {
+            addUndoState();
+            try {
+                const stampTileMap = getToolState().tileMap;
+                let result = null;
+                if (stampTileMap) {
+                    result = TileStampTool.stampTileMap({
+                        stampTileMap: stampTileMap,
+                        tileMap: getTileMap(),
+                        tileSet: getTileSet(),
+                        tileRow: args.tile.row,
+                        tileCol: args.tile.col
+                    });
+                } else {
+                    result = TileStampTool.stampTile({
+                        tileId: getProjectUIState().tileId,
+                        tileMap: getTileMap(),
+                        tileSet: getTileSet(),
+                        tileRow: args.tile.row,
+                        tileCol: args.tile.col
+                    });
+                }
+                if (result.updatedTileIds.length > 0) {
+                    return result.updatedTileIds;
+                } else {
+                    undoManager.removeLastUndo();
+                }
+            } catch (e) {
+                undoManager.removeLastUndo();
+                throw e;
+            }
+        }
+
+    }
+    return null;
 }
 
 /** @param {import("./ui/tileEditor.js").TileEditorEventArgs} args */
@@ -2569,6 +2712,60 @@ function setTileAttributes(tileAttributes) {
     }
 
 
+}
+
+function setTileStampDefineMode() {
+    getToolState().mode = 'define';
+    tileEditor.setState({
+        selectedRegion: getToolState().selectedRegion,
+        tileStampPreview: null
+    });
+    tileContextToolbar.setState({ selectedCommands: [ TileContextToolbar.Commands.tileStampDefine ] });
+}
+
+function confirmTileStampRegion() {
+    if (!isTileMap()) return;
+    getToolState().mode = 'tile';
+    /** @type {import("./models/tileGridProvider.js").TileGridRegion} */
+    let region = getToolState().selectedRegion;
+    /** @type {TileMapTile[]} */
+    let tiles = [];
+    for (let r = 0; r < region.height; r++) {
+        const row = region.rowIndex + r;
+        for (let c = 0; c < region.width; c++) {
+            const col = region.columnIndex + c;
+            const tile = getTileMap().getTileByCoordinate(row, col);
+            tiles.push(TileMapTileFactory.create({
+                tileId: tile.tileId,
+                horizontalFlip: tile.horizontalFlip,
+                verticalFlip: tile.verticalFlip,
+                palette: tile.palette,
+                priority: tile.priority
+            }));
+        }
+    }
+    const stampTileMap = TileMapFactory.create({
+        tiles: tiles,
+        rows: region.height,
+        columns: region.width
+    });
+    getToolState().tileMap = stampTileMap;
+    tileEditor.setState({
+        selectedRegion: getToolState().selectedRegion,
+        tileStampPreview: stampTileMap
+    });
+    tileContextToolbar.setState({ selectedCommands: [ ] });
+}
+
+function clearTileStampRegion() {
+    getToolState().mode = 'tile';
+    getToolState().selectedRegion = null;
+    getToolState().tileMap = null;
+    tileEditor.setState({
+        selectedRegion: null
+    });
+    tileContextToolbar.setState({ selectedCommands: [ ] });
+    selectTileSetTile(getProjectUIState().tileId);
 }
 
 /**
@@ -3560,12 +3757,15 @@ function selectTool(tool) {
         // Set the stamp preview in the canvas
         if (tool === TileEditorToolbar.Tools.tileStamp) {
             if (!getProjectUIState().tileId && getTileSet() && getTileSet().length > 0 || !getTileSet().getTileById(getProjectUIState().tileId)) {
-                getProjectUIState().tileId = getTileSet().getTile(0);
                 selectTileSetTile(getTileSet().getTile(0).tileId);
             }
             tileEditor.setState({ tileStampPreview: getProjectUIState().tileId });
         } else {
             tileEditor.setState({ tileStampPreview: null });
+        }
+
+        if (tool !== TileEditorToolbar.Tools.tileStamp && getProject() !== null) {
+            clearTileStampRegion();
         }
 
         instanceState.clampToTile = instanceState.userClampToTile;

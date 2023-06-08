@@ -246,6 +246,8 @@ export default class CanvasManager {
     #tilesPerBlock = 2;
     /** @type {number} */
     #selectedTileIndex = -1;
+    /** @type {import("../models/tileGridProvider.js").TileGridRegion?} */
+    #selectedRegion = null;
     #cursorSize = 1;
     #transparencyIndex = 15;
     #drawTileGrid = false;
@@ -334,6 +336,29 @@ export default class CanvasManager {
             tileMap = tileOrTileIdOrTileMap;
         }
         this.#tilePreviewMap = tileMap;
+    }
+
+    /**
+     * Sets the selected region in the tile grid.
+     * @param {number} rowIndex - Row index that the selection begins.
+     * @param {number} columnIndex - Column index that the selection begins.
+     * @param {number} width - Width of the selection.
+     * @param {number} height - Height of the selection.
+     */
+    setSelectedTileRegion(rowIndex, columnIndex, width, height) {
+        this.#selectedRegion = {
+            rowIndex: rowIndex,
+            columnIndex: columnIndex,
+            width: width,
+            height: height
+        };
+    }
+
+    /**
+     * Clears the selected region in the tile grid.
+     */
+    clearSelectedTileRegion() {
+        this.#selectedRegion = null;
     }
 
 
@@ -1000,7 +1025,7 @@ export default class CanvasManager {
         }
 
         // Show the preview image
-        if (this.#tilePreviewMap && coords.tile) {
+        if (this.#tilePreviewMap && coords.tile && isInBounds(this.tileGrid, coords.tile.row, coords.tile.col)) {
             let redraw = false;
             if (!this.#tilePreviewCanvas) {
                 this.#tilePreviewCanvas = document.createElement('canvas');
@@ -1011,13 +1036,15 @@ export default class CanvasManager {
                 const tsRow = coords.tile.row + r;
                 for (let c = 0; c < this.#tilePreviewMap.columnCount; c++) {
                     const tsCol = coords.tile.col + r;
-                    const tsTile = this.tileGrid.getTileInfoByRowAndColumn(tsRow, tsCol);
-                    const pTile = this.#tilePreviewMap.getTileByCoordinate(r, c);
-                    if (tsTile && (pTile.paletteIndex !== tsTile.paletteIndex || pTile.horizontalFlip !== tsTile.horizontalFlip || pTile.verticalFlip !== tsTile.verticalFlip)) {
-                        pTile.palette = tsTile.paletteIndex;
-                        pTile.horizontalFlip = tsTile.horizontalFlip;
-                        pTile.verticalFlip = tsTile.verticalFlip;
-                        redraw = true;
+                    if (isInBounds(this.tileGrid, tsRow, tsCol)) {
+                        const tsTile = this.tileGrid.getTileInfoByRowAndColumn(tsRow, tsCol);
+                        const pTile = this.#tilePreviewMap.getTileByCoordinate(r, c);
+                        if (tsTile && (pTile.paletteIndex !== tsTile.paletteIndex || pTile.horizontalFlip !== tsTile.horizontalFlip || pTile.verticalFlip !== tsTile.verticalFlip)) {
+                            pTile.palette = tsTile.paletteIndex;
+                            pTile.horizontalFlip = tsTile.horizontalFlip;
+                            pTile.verticalFlip = tsTile.verticalFlip;
+                            redraw = true;
+                        }
                     }
                 }
             }
@@ -1029,6 +1056,25 @@ export default class CanvasManager {
             const tileX = 8 * coords.tile.col * coords.pxSize;
             const tileY = 8 * coords.tile.row * coords.pxSize;
             context.drawImage(this.#tilePreviewCanvas, tileX + drawX, tileY + drawY, this.#tilePreviewCanvas.width, this.#tilePreviewCanvas.height);
+        }
+
+        // Highlight the selected tile region
+        if (this.#selectedRegion) {
+            // if (coords.x >= 0 && coords.x < coords.gridColumns * 8 && coords.y >= 0 && coords.y < coords.gridRows * 8) {
+            const r = this.#selectedRegion;
+            const originX = drawX + (coords.pxSize * r.columnIndex * 8);
+            const originY = drawY + (coords.pxSize * r.rowIndex * 8);
+            const width = coords.pxSize * r.width * 8;
+            const height = coords.pxSize * r.height * 8;
+            context.setLineDash([1, 1]);
+            context.strokeStyle = 'white';
+            context.strokeRect(originX - 1, originY - 1, width + 2, height + 2);
+            context.strokeStyle = 'black';
+            context.strokeRect(originX, originY, width, height);
+            context.strokeStyle = 'white';
+            context.strokeRect(originX + 1, originY + 1, width - 2, height - 2);
+            context.setLineDash([]);
+            // }
         }
     }
 
@@ -1188,4 +1234,16 @@ function drawTile(tileGrid, tileSet, paletteList, context, tileindex, transparen
             }
         }
     }
+}
+
+/**
+ * @param {TileGridProvider} tileGrid 
+ * @param {number} row 
+ * @param {number} column 
+ * @returns {boolean}
+ */
+function isInBounds(tileGrid, row, column) {
+    if (row < 0 || row >= tileGrid.rowCount) return false;
+    if (column < 0 || column >= tileGrid.columnCount) return false;
+    return true;
 }

@@ -21,7 +21,9 @@ const commands = {
     rowColumnMode: 'rowColumnMode',
     rowColumnFillMode: 'rowColumnFillMode',
     paletteSlot: 'paletteSlot',
-    tileAttributes: 'tileAttributes'
+    tileAttributes: 'tileAttributes',
+    tileStampDefine: 'tileStampDefine',
+    tileStampClear: 'tileStampClear'
 }
 const toolstrips = {
     select: 'select',
@@ -112,6 +114,16 @@ export default class TileContextToolbar extends ComponentBase {
                         elm.setAttribute('disabled', 'disabled');
                     });
                 }
+            });
+        }
+        if (state?.selectedCommands && Array.isArray(state.selectedCommands)) {
+            this.#element.querySelectorAll('[data-command]').forEach((button) => {
+                const command = button.getAttribute('data-command');
+                button.classList.remove('active');
+                if (state.selectedCommands.includes(command)) {
+                    button.classList.add('active');
+                }
+
             });
         }
         if (typeof state?.systemType === 'string') {
@@ -391,6 +403,7 @@ function isToggled(element) {
  * @property {boolean?} enabled - Is the toolbar enabled?
  * @property {string[]?} visibleToolstrips - An array of strings containing visible toolstrips.
  * @property {string[]?} disabledCommands - An array of strings containing disabled buttons.
+ * @property {string[]?} selectedCommands - An array of strings containing selected commands to set to active display status.
  * @property {string?} [systemType] - Type of system, which will affect fields with 'data-system-type' attribute .
  * @property {number?} [brushSize] - Selected brush size, 1 to 5.
  * @property {boolean?} [clampToTile] - Clamp to tile?

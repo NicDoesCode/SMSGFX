@@ -134,6 +134,7 @@ export default class TileEditor extends ComponentBase {
      */
     setState(state) {
         let dirty = false;
+        let refresh = false;
         // Change palette list?
         const paletteList = state?.paletteList;
         if (paletteList && typeof paletteList.getPaletteById === 'function') {
@@ -264,25 +265,37 @@ export default class TileEditor extends ComponentBase {
         if (typeof state?.tileStampPreview !== 'undefined') {
             this.#canvasManager.setTilePreview(state.tileStampPreview);
         }
+        // Selected region 
+        if (typeof state?.selectedRegion !== 'undefined') {
+            if (state.selectedRegion !== null) {
+                const r = state.selectedRegion;
+                this.#canvasManager.setSelectedTileRegion(r.rowIndex, r.columnIndex, r.width, r.height);
+            } else {
+                this.#canvasManager.clearSelectedTileRegion();
+            }
+            refresh = true;
+        }
         // Force refresh?
         if (typeof state.forceRefresh === 'boolean' && state.forceRefresh === true) {
             dirty = true;
         }
         // Refresh image?
-        if (dirty && this.#tileGrid && this.#tileSet && this.#paletteList && this.#paletteList.length > 0) {
-            let paletteList = !this.#displayNative ? this.#paletteList : this.#nativePaletteList;
-            if (this.#canvasManager.paletteList !== paletteList) {
-                this.#canvasManager.paletteList = paletteList;
-            }
-            this.#canvasManager.tileSet = this.#tileSet;
-            this.#canvasManager.tileGrid = this.#tileGrid;
-            if (this.#canvasManager.scale !== this.#scale) {
-                this.#canvasManager.scale = this.#scale;
+        if ((dirty || refresh) && this.#tileGrid && this.#tileSet && this.#paletteList && this.#paletteList.length > 0) {
+            if (dirty) {
+                let paletteList = !this.#displayNative ? this.#paletteList : this.#nativePaletteList;
+                if (this.#canvasManager.paletteList !== paletteList) {
+                    this.#canvasManager.paletteList = paletteList;
+                }
+                this.#canvasManager.tileSet = this.#tileSet;
+                this.#canvasManager.tileGrid = this.#tileGrid;
+                if (this.#canvasManager.scale !== this.#scale) {
+                    this.#canvasManager.scale = this.#scale;
+                }
             }
             if (this.#lastCoords) {
                 this.#canvasManager.drawUI(this.#tbCanvas, this.#lastCoords.x, this.#lastCoords.y);
             } else {
-                this.#canvasManager.drawUI(this.#tbCanvas, 0, 0);
+                this.#canvasManager.drawUI(this.#tbCanvas);
             }
         }
 
@@ -609,6 +622,7 @@ export default class TileEditor extends ComponentBase {
  * @property {string?} theme - Name of the theme being used.
  * @property {string?} [canvasHighlightMode] - The highlight mode that the canvas should use.
  * @property {string|Tile|TileGridProvider|null} [tileStampPreview] - Either a tile ID, individual tile object or tile grid object with the tile stamp preview.
+ * @property {import("../models/tileGridProvider.js").TileGridRegion} [selectedRegion] - Selected region to highlight.
  * @property {boolean?} [forceRefresh] - When true the tile grid image will be refreshed.
  * @exports 
  */

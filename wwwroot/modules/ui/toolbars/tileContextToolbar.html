@@ -281,7 +281,17 @@
             </div>
         </div>
         <div data-toolstrip="tileStamp" class="col-auto sms-toolstrip m-0 me-2 p-0">
-            <p class="p-0 m-0"><small>Select a tile from the tile palette and then paint it onto the tile map.</small></p>
+            <div class="input-group input-group-sm p-0 m-0">
+                <span class="input-group-text"><strong>Pattern</strong></span>
+                <button class="btn btn-sm btn-outline-secondary btn-ui" title="Allows you to define an area to use as a tile stamp."
+                    data-command="tileStampDefine" data-field="priority" data-auto-event="click">
+                    <i class="bi bi-bounding-box"></i> Define
+                </button>
+                <button class="btn btn-sm btn-outline-secondary btn-ui" title="Clears the area for the tile stamp."
+                    data-command="tileStampClear" data-field="priority" data-auto-event="click">
+                    <i class="bi bi-eraser"></i> Clear
+                </button>
+            </div>
         </div>
         <!-- End: Tile stamp toolstrip -->
         <!-- Tile break link toolstrip -->
