@@ -2692,7 +2692,7 @@ function deletePalette(paletteIndex) {
             } else {
                 paletteIndex = Math.max(0, Math.min(paletteIndex, getPaletteList().length - 1));
             }
-     
+
             state.setProject(getProject());
             state.saveToLocalStorage();
 
@@ -3375,26 +3375,29 @@ function deleteTileMap(tileMapId) {
     if (!tileMap) throw new Error('No tile map matched the given ID.');
 
     addUndoState();
+    try {
+        let tileMapIndex = getTileMapList().getTileMaps().indexOf(tileMap);
 
-    const tileMapIndex = getTileMapList().getTileMaps().indexOf(tileMap);
+        // Delete the tile map
+        getTileMapList().removeAt(tileMapIndex);
 
-    // Delete the tile map
-    getTileMapList().removeAt(tileMapIndex);
+        // Select the next available tile map
+        if (getTileMapList().length === 0) {
+            tileMapId = null;
+        } else {
+            tileMapIndex = Math.max(0, Math.min(tileMapIndex, getTileMapList().length - 1));
+            tileMapId = getTileMapList().getTileMap(tileMapIndex).tileMapId ?? null;
+        }
 
-    // Select the next available tile map
-    if (getTileMapList().getTileMaps().length === 0) {
-        getProjectUIState().tileMapId = null;
-    } else {
-        const newSelectedTileMapIndex = Math.min(tileMapIndex, getTileMapList().getTileMaps().length - 1);
-        getProjectUIState().tileMapId = getTileMapList().getTileMap(newSelectedTileMapIndex).tileMapId;
+        state.setProject(getProject());
+        state.saveToLocalStorage();
+
+        selectTileSetOrMap(tileMapId);
+
+    } catch (e) {
+        undoManager.removeLastUndo();
+        throw e;
     }
-
-    instanceState.tileIndex = -1;
-
-    state.setProject(getProject());
-    state.saveToLocalStorage();
-
-    selectTileSetOrMap(tileMap.tileMapId);
 }
 
 /**
