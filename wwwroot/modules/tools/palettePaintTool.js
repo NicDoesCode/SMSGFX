@@ -4,14 +4,31 @@ import TileSet from "../models/tileSet.js";
 export default class PalettePaintTool {
 
     /**
+     * Sets the palette index on a tile by tile index.
+     * @param {PalettePaintByIndexArgs} args - Arguments for the function.
+     * @returns {PalettePaintResult}
+     */
+    static setPaletteIndexByTileIndex(args) {
+        const col = Math.floor((args.tileIndex % args.tileMap.columnCount) / args.tilesPerBlock);
+        const row = Math.floor(Math.floor(args.tileIndex / args.tileMap.columnCount) / args.tilesPerBlock);
+        return this.setTileBlockPaletteIndex({
+            paletteIndex: args.paletteIndex,
+            row: row,
+            column: col,
+            tileMap: args.tileMap,
+            tilesPerBlock: args.tilesPerBlock
+        });
+    }
+
+    /**
      * Sets the palette index on tiles witin a given tile block.
      * @param {PalettePaintByBlockArgs} args - Arguments for the function.
      * @returns {PalettePaintResult}
      */
     static setTileBlockPaletteIndex(args) {
         const updatedTileIds = [];
-        const mapRow = args.tileBlockRow * args.tilesPerBlock;
-        const mapCol = args.tileBlockCol * args.tilesPerBlock;
+        const mapRow = args.row * args.tilesPerBlock;
+        const mapCol = args.column * args.tilesPerBlock;
         for (let r = 0; r < args.tilesPerBlock; r++) {
             const row = mapRow + r;
             for (let c = 0; c < args.tilesPerBlock; c++) {
@@ -27,14 +44,21 @@ export default class PalettePaintTool {
     }
 
 }
-
+/** 
+ * Arguments for the palette paint by block tool.
+ * @typedef {object} PalettePaintByIndexArgs
+ * @property {TileMap} tileMap - Tile map that contains the tiles to set.
+ * @property {number} tilesPerBlock - Amount of tiles that comprise each tile block.
+ * @property {number} paletteIndex - Index of the palette slot to set.
+ * @property {number} tileIndex - Tile or tile block row.
+ * @exports
+ */
 /** 
  * Arguments for the palette paint by block tool.
  * @typedef {object} PalettePaintByBlockArgs
  * @property {TileMap} tileMap - Tile map that contains the tiles to set.
- * @property {TileSet} tileSet - Tile set that contains the tiles for the project.
- * @property {number} tileBlockRow - Row in tile block grid.
- * @property {number} tileBlockCol - Column in the tile block grid.
+ * @property {number} row - Tile or tile block row.
+ * @property {number} column - Tile or tile block column.
  * @property {number} tilesPerBlock - Amount of tiles that comprise each tile block.
  * @property {number} paletteIndex - Index of the palette slot to set.
  * @exports

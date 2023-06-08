@@ -513,27 +513,27 @@ function createEventListeners() {
             } else if (keyEvent.code === 'ArrowLeft') {
                 // Move selection tile left
                 if (instanceState.tileIndex > 0 && instanceState.tileIndex < getTileSet().length) {
-                    selectTile(instanceState.tileIndex - 1);
+                    toggleTileIndexSelectedState(instanceState.tileIndex - 1);
                     handled = true;
                 }
             } else if (keyEvent.code === 'ArrowRight') {
                 // Move selection tile right
                 if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length - 1) {
-                    selectTile(instanceState.tileIndex + 1);
+                    toggleTileIndexSelectedState(instanceState.tileIndex + 1);
                     handled = true;
                 }
             } else if (keyEvent.code === 'ArrowUp') {
                 // Move selection tile up
                 const proposedIndex = instanceState.tileIndex - getTileSet().tileWidth;
                 if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
-                    selectTile(proposedIndex);
+                    toggleTileIndexSelectedState(proposedIndex);
                     handled = true;
                 }
             } else if (keyEvent.code === 'ArrowDown') {
                 // Move selection tile down
                 const proposedIndex = instanceState.tileIndex + getTileSet().tileWidth;
                 if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
-                    selectTile(proposedIndex);
+                    toggleTileIndexSelectedState(proposedIndex);
                     handled = true;
                 }
             } else if (keyEvent.code === 'NumpadAdd') {
@@ -1059,7 +1059,7 @@ function handleTileEditorOnCommand(args) {
             break;
 
         case TileEditor.Commands.selectTile:
-            selectTile(args.tileIndex);
+            toggleTileIndexSelectedState(args.tileIndex);
             break;
 
         case TileEditor.Commands.zoomIn:
@@ -1622,6 +1622,15 @@ function getNumberOfPaletteSlots() {
     }
 }
 
+function getTilesPerBlock() {
+    switch (getProject().systemType) {
+        case 'smsgg': return 1;
+        case 'nes': return 2;
+        case 'gb': return 1;
+        default: return 1;
+    }
+}
+
 function isTileSet() {
     return !getTileMap();
 }
@@ -1722,12 +1731,6 @@ function formatForProject() {
     const palette = getPalette();
     const tileSet = getTileSet();
     const colour = palette.getColour(instanceState.colourIndex);
-    let tilesPerBlock = 1;
-    switch (getProject().systemType) {
-        case 'smsgg': tilesPerBlock = 1; break;
-        case 'nes': tilesPerBlock = 2; break;
-        case 'gb': tilesPerBlock = 1; break;
-    }
     const visibleTabs = [];
     switch (getPalette().system) {
         case 'ms': case 'gg': visibleTabs.push('rgb', 'sms'); break;
@@ -1781,7 +1784,7 @@ function formatForProject() {
         tileGrid: getTileGrid(),
         tileSet: tileSet,
         scale: getUIState().scale,
-        tilesPerBlock: tilesPerBlock,
+        tilesPerBlock: getTilesPerBlock(),
         displayNative: getUIState().displayNativeColour,
         cursorSize: instanceState.pencilSize,
         showTileGrid: getUIState().showTileGrid,
@@ -1918,7 +1921,7 @@ function takeToolAction(args) {
         if (tool === TileEditorToolbar.Tools.select) {
 
             const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
-            selectTile(tileIndex);
+            toggleTileIndexSelectedState(tileIndex);
 
             instanceState.lastTileMapPx.x = -1;
             instanceState.lastTileMapPx.y = -1;
@@ -2038,7 +2041,7 @@ function takeToolAction(args) {
             if (tool === TileEditorToolbar.Tools.tileAttributes && args.isInBounds) {
 
                 const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
-                selectTile(tileIndex);
+                toggleTileIndexSelectedState(tileIndex);
 
                 instanceState.lastTileMapPx.x = -1;
                 instanceState.lastTileMapPx.y = -1;
@@ -2099,8 +2102,8 @@ function takeToolAction(args) {
                         paletteIndex: instanceState.paletteSlot,
                         tileMap: getTileMap(),
                         tileSet: getTileSet(),
-                        tileBlockRow: args.tileBlock.row,
-                        tileBlockCol: args.tileBlock.col,
+                        row: args.tileBlock.row,
+                        column: args.tileBlock.col,
                         tilesPerBlock: args.tilesPerBlock
                     });
                     if (result.updatedTileIds.length > 0) {
@@ -2508,28 +2511,57 @@ function setTileAttributes(tileAttributes) {
     if (!tileMapTile) return;
 
     addUndoState();
+    try {
 
-    if (typeof tileAttributes.horizontalFlip === 'boolean') {
-        tileMapTile.horizontalFlip = tileAttributes.horizontalFlip;
-    }
-    if (typeof tileAttributes.verticalFlip === 'boolean') {
-        tileMapTile.verticalFlip = tileAttributes.verticalFlip;
-    }
-    if (typeof tileAttributes.priority === 'boolean') {
-        tileMapTile.priority = tileAttributes.priority;
-    }
-    if (typeof tileAttributes.palette === 'number') {
-        tileMapTile.palette = tileAttributes.palette;
+        const updatedTileIds = [];
+
+        if (typeof tileAttributes.horizontalFlip === 'boolean') {
+            tileMapTile.horizontalFlip = tileAttributes.horizontalFlip;
+            updatedTileIds.push(tileMapTile.tileId);
+        }
+        if (typeof tileAttributes.verticalFlip === 'boolean') {
+            tileMapTile.verticalFlip = tileAttributes.verticalFlip;
+            updatedTileIds.push(tileMapTile.tileId);
+        }
+        if (typeof tileAttributes.priority === 'boolean') {
+            tileMapTile.priority = tileAttributes.priority;
+            updatedTileIds.push(tileMapTile.tileId);
+        }
+        if (typeof tileAttributes.palette === 'number') {
+            const result = PalettePaintTool.setPaletteIndexByTileIndex({
+                tileMap: getTileMap(),
+                paletteIndex: tileAttributes.palette,
+                tilesPerBlock: getTilesPerBlock(),
+                tileIndex: tileIndex
+            });
+            updatedTileIds.concat(result.updatedTileIds);
+        }
+
+        if (updatedTileIds.length > 0) {
+
+            state.setProject(getProject());
+            state.saveToLocalStorage();
+
+            tileEditor.setState({
+                updatedTileIds: updatedTileIds
+            });
+            tileManager.setState({
+                updatedTileIds: updatedTileIds
+            });
+
+            selectTileIndexIfNotSelected(tileIndex);
+
+        } else {
+            // Nothing changed, no reason to keep the undo in memory
+            undoManager.removeLastUndo();
+        }
+
+    } catch (e) {
+        undoManager.removeLastUndo();
+        throw e;
     }
 
-    state.setProject(getProject());
-    state.saveToLocalStorage();
 
-    tileEditor.setState({
-        tileGrid: getTileGrid(),
-        tileSet: getTileSet()
-    });
-    selectTile(tileIndex);
 }
 
 /**
@@ -2560,27 +2592,38 @@ function setTileSetTileIfTileMapTileSelected(tileId) {
         tileGrid: getTileGrid(),
         tileSet: getTileSet()
     });
-    selectTile(tileIndex);
+    toggleTileIndexSelectedState(tileIndex);
 }
 
 /**
- * Selects a tile at a given index.
- * @param {number} index - Tile index to insert.
+ * Toggles the selected state of a tile by tile grid index.
+ * @param {number} tileIndex - Tile index within the tile grid provider.
  */
-function selectTile(index) {
-    if (index < 0 || index > getTileGrid().tileCount) return;
-
-    if (index !== instanceState.tileIndex) {
-        instanceState.tileIndex = index;
+function toggleTileIndexSelectedState(tileIndex) {
+    if (tileIndex !== instanceState.tileIndex) {
+        selectTileIndexIfNotSelected(tileIndex);
     } else {
-        instanceState.tileIndex = -1;
+        selectTileIndexIfNotSelected(-1);
     }
-    tileEditor.setState({
-        selectedTileIndex: instanceState.tileIndex
-    });
+}
+
+/**
+ * Selects a tile grid index if not already selected.
+ * @param {number} tileIndex - Tile index within the tile grid provider.
+ */
+function selectTileIndexIfNotSelected(tileIndex) {
+    if (tileIndex < 0 || tileIndex > getTileGrid().tileCount) return;
+
+    if (tileIndex !== instanceState.tileIndex) {
+        instanceState.tileIndex = tileIndex;
+
+        tileEditor.setState({
+            selectedTileIndex: instanceState.tileIndex
+        });
+    }
 
     if (isTileMap() && instanceState.tool === TileEditorToolbar.Tools.tileAttributes) {
-        const tileSetTile = getTileMap().getTileByIndex(index);
+        const tileSetTile = getTileMap().getTileByIndex(tileIndex);
         tileContextToolbar.setState({
             tileAttributes: {
                 horizontalFlip: tileSetTile.horizontalFlip,

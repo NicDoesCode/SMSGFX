@@ -410,7 +410,7 @@ function isToggled(element) {
  * @property {boolean} horizontalFlip - Flip the tile horizontally?
  * @property {boolean} verticalFlip - Flip the tile vertically?
  * @property {boolean} priority - Does the tile have render priority?
- * @property {boolean} palette - Which palette slot is the tile using?
+ * @property {number} palette - Which palette slot is the tile using?
  * @exports
  */
 
