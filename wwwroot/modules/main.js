@@ -99,6 +99,8 @@ const instanceState = {
     /** @type {number} */
     paletteSlot: 0,
     /** @type {string?} */
+    lastProjectId: null,
+    /** @type {string?} */
     selectedTileMapId: null,
     ctrlIsDown: false,
     shiftIsDown: false,
@@ -1630,7 +1632,7 @@ function getProjectUIState() {
             };
         }
         return getUIState().projectStates[projectId];
-    } 
+    }
     return null;
 }
 
@@ -1760,9 +1762,14 @@ function refreshProjectUI() {
 
 function formatForProject() {
 
-    instanceState.colourIndex = 0;
-    if (instanceState.paletteSlot < 0) instanceState.paletteSlot = 0;
-    if (instanceState.paletteSlot >= getNumberOfPaletteSlots()) instanceState.paletteSlot = getNumberOfPaletteSlots() - 1;
+    const project = getProject();
+    const projectChanged = project.id !== instanceState.lastProjectId;
+
+    if (projectChanged) {
+        instanceState.colourIndex = 0;
+        if (instanceState.paletteSlot < 0) instanceState.paletteSlot = 0;
+        if (instanceState.paletteSlot >= getNumberOfPaletteSlots()) instanceState.paletteSlot = getNumberOfPaletteSlots() - 1;
+    }
 
     const palette = getPalette();
     const tileSet = getTileSet();
@@ -1841,6 +1848,8 @@ function formatForProject() {
     });
 
     refreshProjectUI();
+
+    instanceState.lastProjectId = getProject().id;
 }
 
 function formatForNoProject() {
@@ -2040,7 +2049,7 @@ function takeToolAction(args) {
 
             }
         } else if (tool === TileEditorToolbar.Tools.bucket && args.isInBounds) {
-            if (event === TileEditor.Events.pixelMouseUp) {
+            if (event === TileEditor.Events.pixelMouseDown) {
 
                 addUndoState();
                 PaintTool.fillColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, colourIndex, instanceState.clampToTile);
@@ -2058,7 +2067,7 @@ function takeToolAction(args) {
 
             }
         } else if (tool === TileEditorToolbar.Tools.eyedropper) {
-            if (event === TileEditor.Events.pixelMouseUp) {
+            if (event === TileEditor.Events.pixelMouseDown) {
 
                 const colourIndex = EyedropperTool.getPixelColour(getTileGrid(), getTileSet(), imageX, imageY);
                 if (colourIndex !== null) {
@@ -2070,7 +2079,7 @@ function takeToolAction(args) {
 
             }
         } else if (tool === TileEditorToolbar.Tools.tileEyedropper) {
-            if (event === TileEditor.Events.pixelMouseUp) {
+            if (event === TileEditor.Events.pixelMouseDown) {
 
                 if (args.tile.row > 0 && args.tile.row < getTileGrid().rowCount && args.tile.col > 0 && args.tile.col < getTileGrid().columnCount) {
                     const tileInfo = getTileGrid().getTileInfoByRowAndColumn(args.tile.row, args.tile.col);
@@ -2084,11 +2093,11 @@ function takeToolAction(args) {
 
         if (isTileMap()) {
             let actionTaken = false;
-            /** @type {string[]} */ 
+            /** @type {string[]} */
             let updatedTileIds = [];
 
             if (tool === TileEditorToolbar.Tools.tileAttributes && args.isInBounds) {
-                if (event === TileEditor.Events.pixelMouseUp) {
+                if (event === TileEditor.Events.pixelMouseDown) {
 
                     const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
                     toggleTileIndexSelectedState(tileIndex);
@@ -2098,7 +2107,7 @@ function takeToolAction(args) {
 
                 }
             } else if (tool === TileEditorToolbar.Tools.rowColumn) {
-                if (event === TileEditor.Events.pixelMouseUp) {
+                if (event === TileEditor.Events.pixelMouseDown) {
 
                     addUndoState();
                     try {
@@ -2129,7 +2138,7 @@ function takeToolAction(args) {
             } else if (tool === TileEditorToolbar.Tools.tileStamp) {
 
                 const stampUpdatedTileIds = takeToolAction_tileStamp(args);
-                if (Array.isArray(stampUpdatedTileIds)) { 
+                if (Array.isArray(stampUpdatedTileIds)) {
                     updatedTileIds = updatedTileIds.concat(stampUpdatedTileIds);
                 }
 
@@ -2158,13 +2167,20 @@ function takeToolAction(args) {
 
                 }
             } else if (tool === TileEditorToolbar.Tools.tileLinkBreak && args.isInBounds) {
-                if (event === TileEditor.Events.pixelMouseUp) {
+                if (event === TileEditor.Events.pixelMouseDown) {
 
                     addUndoState();
                     try {
                         const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
-                        actionTaken = TileLinkBreakTool.run(tileIndex, getTileMap(), getTileSet(), getProject());
-                        if (!actionTaken) undoManager.removeLastUndo();
+                        const result = TileLinkBreakTool.createAndLinkNewTileIfUsedElsewhere(tileIndex, getTileMap(), getTileSet(), getProject());
+                        if (Array.isArray(result.updatedTileIds) && result.updatedTileIds.length > 0) {
+
+                            tileEditor.setState({ tileGrid: getTileGrid(), tileSet: getTileSet() });
+                            tileManager.setState({ tileSet: getTileSet() });
+
+                        } else {
+                            undoManager.removeLastUndo();
+                        }
                     } catch (e) {
                         undoManager.removeLastUndo();
                         throw e;
@@ -2720,7 +2736,7 @@ function setTileStampDefineMode() {
         selectedRegion: getToolState().selectedRegion,
         tileStampPreview: null
     });
-    tileContextToolbar.setState({ selectedCommands: [ TileContextToolbar.Commands.tileStampDefine ] });
+    tileContextToolbar.setState({ selectedCommands: [TileContextToolbar.Commands.tileStampDefine] });
 }
 
 function confirmTileStampRegion() {
@@ -2754,7 +2770,7 @@ function confirmTileStampRegion() {
         selectedRegion: getToolState().selectedRegion,
         tileStampPreview: stampTileMap
     });
-    tileContextToolbar.setState({ selectedCommands: [ ] });
+    tileContextToolbar.setState({ selectedCommands: [] });
 }
 
 function clearTileStampRegion() {
@@ -2764,7 +2780,7 @@ function clearTileStampRegion() {
     tileEditor.setState({
         selectedRegion: null
     });
-    tileContextToolbar.setState({ selectedCommands: [ ] });
+    tileContextToolbar.setState({ selectedCommands: [] });
     selectTileSetTile(getProjectUIState().tileId);
 }
 

@@ -11,15 +11,17 @@ export default class TileLinkBreakTool {
      * @param {TileMap} tileMap - Tile map that contains the tile.
      * @param {TileSet} tileSet - Tile set that containes the tiles for the tile map.
      * @param {Project?} [project] - Project object, used to search tile maps for references to the tile.
-     * @returns {boolean}
+     * @returns {TileBreakLinkResult}
      */
-    static run(tileIndex, tileMap, tileSet, project) {
+    static createAndLinkNewTileIfUsedElsewhere(tileIndex, tileMap, tileSet, project) {
         if (tileIndex < 0 || tileIndex >= tileMap.tileCount) throw new Error('Invalid tile index.')
         if (!tileMap instanceof TileMap) throw new Error('Invalid tile map.');
         if (!tileSet instanceof TileSet) throw new Error('Invalid tile set.');
 
         const tileMapTile = tileMap.getTileByIndex(tileIndex);
-        
+        /** @type {TileBreakLinkResult} */
+        const result = { changesMade: false, updatedTileIds: [] };
+
         let instanceCount = countOfTileIdInTileMap(tileMapTile.tileId, tileMap);
         if (instanceCount === 1) {
             instanceCount = totalCountOfTileIdInProjectTileMaps(tileMapTile.tileId, project);
@@ -34,11 +36,12 @@ export default class TileLinkBreakTool {
 
                 tileMapTile.tileId = duplicateTile.tileId;
 
-                return true;
+                result.updatedTileIds.push(duplicateTile.tileId);
+                result.changesMade = true;
             }
         }
 
-        return false;
+        return result;
     }
 
 }
@@ -68,3 +71,11 @@ function countOfTileIdInTileMap(tileId, tileMap) {
     const instancesInTileMap = tileMap.getTiles().filter((tile) => tile.tileId === tileId);
     return instancesInTileMap.length;
 }
+
+/** 
+ * Result for the tile break link tool.
+ * @typedef {object} TileBreakLinkResult
+ * @property {boolean} changesMade - True if changes were made, otherwise false.
+ * @property {string[]} updatedTileIds - Unique IDs of tiles affected by the operation.
+ * @exports
+ */
