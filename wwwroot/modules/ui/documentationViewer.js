@@ -61,8 +61,10 @@ export default class DocumentationViewer extends ComponentBase {
         if (typeof state?.visible === 'boolean') {
             if (state.visible) {
                 this.#element.classList.remove('visually-hidden');
+                document.body.setAttribute('data-smsgfx-documentation', 'true');
             } else {
                 this.#element.classList.add('visually-hidden');
+                document.body.removeAttribute('data-smsgfx-documentation');
             }
         }
     }
