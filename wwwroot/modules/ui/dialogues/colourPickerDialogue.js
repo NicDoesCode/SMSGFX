@@ -3,7 +3,7 @@ import Palette from "../../models/palette.js";
 import ColourUtil from "../../util/colourUtil.js";
 import ModalDialogue from "./../modalDialogue.js";
 import TemplateUtil from "../../util/templateUtil.js";
-import ColourPaletteList from "../components/colourPaletteList.js";
+import ColourPaletteListing from "../components/colourPaletteListing.js";
 
 const EVENT_OnChange = 'EVENT_OnChange';
 
@@ -46,11 +46,11 @@ export default class ColourPickerDialogue extends ModalDialogue {
     #tbPreviewSelected;
     /** @type {HTMLDivElement} */
     #tbPreviewNative;
-    /** @type {ColourPaletteList} */
+    /** @type {ColourPaletteListing} */
     #smsColourPaletteList = null;
-    /** @type {ColourPaletteList} */
+    /** @type {ColourPaletteListing} */
     #gbColourPaletteList = null;
-    /** @type {ColourPaletteList} */
+    /** @type {ColourPaletteListing} */
     #nesColourPaletteList = null;
 
 
@@ -173,7 +173,7 @@ export default class ColourPickerDialogue extends ModalDialogue {
     }
 
     /**
-     * @param {ColourPaletteList} colourPaletteListControl 
+     * @param {ColourPaletteListing} colourPaletteListControl 
      * @param {string} componentId 
      */
     async #loadPaletteListIfNotLoaded(colourPaletteListControl, componentId) {
@@ -181,10 +181,10 @@ export default class ColourPickerDialogue extends ModalDialogue {
         if (!colourPaletteListControl) {
             const containerElement = this.#element.querySelector(`[data-smsgfx-component-id=${componentId}]`);
             if (containerElement) {
-                result = await ColourPaletteList.loadIntoAsync(containerElement);
+                result = await ColourPaletteListing.loadIntoAsync(containerElement);
                 result.addHandlerOnCommand((args) => {
                     switch (args.command) {
-                        case ColourPaletteList.Commands.colourSelect:
+                        case ColourPaletteListing.Commands.colourSelect:
                             const hex = ColourUtil.toHex(args.r, args.g, args.b);
                             this.#setFromHex(hex);
                             break;

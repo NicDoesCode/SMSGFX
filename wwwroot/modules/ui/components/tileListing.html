@@ -1,0 +1,30 @@
+<div data-smsgfx-component="components/tileListing" class="sms-tile-listing">
+    <script data-smsgfx-template-id="item-template" type="text/x-handlebars-template">
+        {{#each this}}
+            <button data-command="tileSelect" data-tile-id="{{tileId}}" class="btn btn-secondary"></button>
+        {{/each}}
+    </script>
+    <style data-css-scope="global">
+        .sms-tile-listing button {
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+            margin-right: 1px;
+            margin-bottom: 1px;
+        }
+
+        .sms-tile-listing button.selected {
+            border-color: white;
+        }
+
+        .sms-tile-listing button canvas {
+            width: 100%;
+            height: auto;
+            opacity: 0.4;
+        }
+
+        .sms-tile-listing button.selected canvas {
+            opacity: 1.0;
+        }
+    </style>
+</div>

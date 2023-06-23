@@ -6,6 +6,27 @@ export default class ColourUtil {
 
 
     /**
+     * Gets the amount of colours per palette for a system.
+     * @param {string} system - System to get the palette colour count for.
+     * @returns {number}
+     */
+    static getColoursPerPalette(system) {
+        switch (system) {
+            case 'smsgg':
+            case 'sms':
+            case 'gg':
+                return 16;
+            case 'gb':
+                return 4;
+            case 'nes':
+                return 4;
+            default:
+                return 0;
+        }
+    }
+
+
+    /**
      * Converts an RGB value to a hexadecimal colour code.
      * @param {number} r - Red value.
      * @param {number} g - Green value.

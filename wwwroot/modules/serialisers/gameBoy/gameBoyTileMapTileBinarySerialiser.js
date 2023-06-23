@@ -10,7 +10,7 @@ export default class GameBoyTileMapTileBinarySerialiser extends TileMapTileBinar
      * @returns {number}
      */
     static serialise(tileMapTile) {
-        let result = tileMapTile.tileNumber;
+        let result = tileMapTile.tileIndex;
         if (result < 0) result = 0;
         if (result > 255) result = 255;
         return result;

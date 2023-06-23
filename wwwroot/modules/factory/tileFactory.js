@@ -6,19 +6,35 @@ export default class TileFactory {
 
     /**
      * Creates a new instance of a tile object.
-     * @argument {number?} defaultColourIndex - Colour index to set as the initial colour of the tile, default is 15.
+     * @argument {TileCreateArgs} [args] - Colour index to set as the initial colour of the tile, default is 15.
      * @returns {Tile}
      */
-    static create(defaultColourIndex) {
-        if (typeof defaultColourIndex !== 'number') defaultColourIndex = 15;
+    static create(args) {
+        const tileId = (args && args.tileId !== null) ? args.tileId : null;
+
+        const defaultColourIndex = (args && typeof args.defaultColourIndex === 'number') ? args.defaultColourIndex : 15;
+        if (defaultColourIndex < 0 || defaultColourIndex > 15) throw new Error('Default colour index out of range.');
+
         const tileDataArray = new Uint8ClampedArray(64);
-        tileDataArray.fill(defaultColourIndex, 0, tileDataArray.length);
-        return TileFactory.fromArray(tileDataArray);
+        if (args && args.data instanceof Uint8ClampedArray) {
+            for (let i = 0; i < tileDataArray.length && i < args.data.length; i++) {
+                tileDataArray[i] = args.data[i];
+            }
+        } else if (args && typeof args.data === 'string') {
+            const data = TileUtil.fromHex(args.data);
+            for (let i = 0; i < tileDataArray.length && i < data.length; i++) {
+                tileDataArray[i] = data[i];
+            }
+        } else {
+            tileDataArray.fill(defaultColourIndex, 0, tileDataArray.length);
+        }
+
+        return new Tile(tileId, tileDataArray);
     }
 
     /**
      * Converts a hexadecimal string to a tile object.
-     * @param {string} hexString String of hexadecimal data.
+     * @param {string} hexString - String of hexadecimal data.
      * @returns {Tile}
      */
     static fromHex(hexString) {
@@ -48,7 +64,7 @@ export default class TileFactory {
         if (!sourceLength) sourceLength = 64;
         if (sourceLength < 0 || sourceLength > 64) throw new Error('Length must be between 0 and 64.');
 
-        const tile = new Tile();
+        const tile = TileFactory.create();
         const sourceStopIndex = sourceIndex + sourceLength;
         let dataIndex = 0;
         for (let i = sourceIndex; i < sourceArray.length && i < sourceStopIndex; i++) {
@@ -70,3 +86,11 @@ export default class TileFactory {
 
 
 }
+
+/**
+ * @typedef {object} TileCreateArgs
+ * @property {string?} [tileId] - Unique ID for the tile.
+ * @property {number?} [defaultColourIndex] - Colour index to set as the initial colour of the tile, defaults to 15 when not supplied.
+ * @property {Uint8ClampedArray|string} [data] - Data for the new tile as either an array or encoded string.
+ * @exports
+ */

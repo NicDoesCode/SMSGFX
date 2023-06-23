@@ -3,6 +3,7 @@ import Project from '../models/project.js';
 import TileSetJsonSerialiser from './tileSetJsonSerialiser.js';
 import PaletteListJsonSerialiser from './paletteListJsonSerialiser.js';
 import GeneralUtil from '../util/generalUtil.js';
+import TileMapListJsonSerialiser from './tileMapListJsonSerialiser.js';
 
 export default class ProjectJsonSerialiser {
 
@@ -41,12 +42,13 @@ export default class ProjectJsonSerialiser {
      */
     static toSerialisable(project) {
         return {
-            id: project.id, 
-            version: 1, 
+            id: project.id,
+            version: 1,
             title: project.title,
             systemType: project.systemType,
-            paletteList: PaletteListJsonSerialiser.toSerialisable(project.paletteList),
-            tileSet: TileSetJsonSerialiser.toSerialisable(project.tileSet)
+            tileSet: TileSetJsonSerialiser.toSerialisable(project.tileSet),
+            tileMapList: TileMapListJsonSerialiser.toSerialisable(project.tileMapList),
+            paletteList: PaletteListJsonSerialiser.toSerialisable(project.paletteList)
         };
     }
 
@@ -58,10 +60,11 @@ export default class ProjectJsonSerialiser {
     static fromSerialisable(projectSerialisable) {
         return ProjectFactory.create({
             id: projectSerialisable.id,
-            title: projectSerialisable.title, 
-            systemType: projectSerialisable.systemType, 
+            title: projectSerialisable.title,
+            systemType: projectSerialisable.systemType,
             tileSet: TileSetJsonSerialiser.fromSerialisable(projectSerialisable.tileSet),
-            paletteList: PaletteListJsonSerialiser.fromSerialisable(projectSerialisable.paletteList)
+            tileMapList: TileMapListJsonSerialiser.fromSerialisable(projectSerialisable.tileMapList ?? []),
+            paletteList: PaletteListJsonSerialiser.fromSerialisable(projectSerialisable.paletteList ?? [])
         });
     }
 
@@ -76,6 +79,23 @@ export default class ProjectJsonSerialiser {
  * @property {string} title
  * @property {string} systemType
  * @property {import('./tileSetJsonSerialiser').TileSetSerialisable} tileSet
+ * @property {import('./tileMapJsonSerialiser.js').TileMapSerialisable} tileMapList
  * @property {import('./paletteJsonSerialiser').PaletteSerialisable} paletteList
  * @exports
  */
+
+
+/**
+ * Converts a project serialisable across versions.
+ * @param {ProjectSerialisable} projectSerialisable - Serialisable project to convert.
+ * @returns {ProjectSerialisable}
+ */
+function convertProjectVersion(projectSerialisable) {
+    if (projectSerialisable.version === 1) {
+        projectSerialisable.version = 2;
+
+        if (typeof projectSerialisable.tileSet['tileWidth'] === 'number' && !projectSerialisable.tileSet.columnCount) {
+            projectSerialisable.tileSet.columnCount = projectSerialisable.tileSet['tileWidth'];
+        }
+    }
+}

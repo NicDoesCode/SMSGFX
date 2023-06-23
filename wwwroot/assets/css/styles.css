@@ -1,3 +1,139 @@
+body {
+    background-blend-mode: normal;
+}
+
+[data-bs-theme=dark] body {
+    background-image: url(./../image/background-02.png);
+    background-blend-mode: multiply;
+}
+
+.sms-hidden-system {
+    display: none;
+}
+
+.sms-toolstrip {
+    background-color: var(--bs-white);
+}
+
+[data-bs-theme=dark] .sms-toolstrip {
+    background-color: var(--bs-dark-bg-subtle);
+}
+
+/* Toolstrip button colours */
+.sms-toolstrip button.btn-ui:not([disabled]):not(.btn-link):not(.active),
+.sms-toolstrip input[type=text]:not([disabled]),
+.sms-toolstrip input[type=number]:not([disabled]),
+.sms-toolstrip select:not([disabled]) {
+    background-color: var(--bs-white);
+}
+
+[data-bs-theme=dark] .sms-toolstrip button.btn-ui:not([disabled]):not(.active),
+[data-bs-theme=dark] .sms-toolstrip input[type=text]:not([disabled]),
+[data-bs-theme=dark] .sms-toolstrip input[type=number]:not([disabled]),
+[data-bs-theme=dark] .sms-toolstrip select:not([disabled]) {
+    background-color: var(--bs-dark-bg-subtle);
+}
+
+.sms-toolstrip button.btn-ui:not([disabled]):not(.btn-link):not(.active):hover {
+    background-color: var(--bs-secondary-text-emphasis);
+}
+
+.sms-toolstrip input[type=text]:not([disabled]):hover,
+.sms-toolstrip input[type=number]:not([disabled]):hover,
+.sms-toolstrip select:not([disabled]):hover {
+    color: var(--bs-secondary-text-emphasis);
+}
+
+/* Toolbox button colours */
+
+.sms-toolbox button.btn-ui:not([disabled]):not(.btn-link),
+.sms-toolbox input[type=text]:not([disabled]),
+.sms-toolbox input[type=number]:not([disabled]),
+.sms-toolbox textarea:not([disabled]),
+.sms-toolbox select:not([disabled]) {
+    color: var(--bs-btn-color);
+    background-color: var(--bs-white);
+}
+
+.sms-toolbox button.btn-ui:not([disabled]):not(.btn-link):hover,
+.sms-toolbox input[type=text]:not([disabled]):hover,
+.sms-toolbox input[type=number]:not([disabled]):hover,
+.sms-toolbox textarea:not([disabled]):hover,
+.sms-toolbox select:not([disabled]):hover {
+    color: var(--bs-white);
+    background-color: var(--bs-btn-color);
+}
+
+[data-bs-theme=dark] .sms-toolbox button.btn-ui:not([disabled]):not(.btn-link),
+[data-bs-theme=dark] .sms-toolbox input[type=text]:not([disabled]),
+[data-bs-theme=dark] .sms-toolbox input[type=number]:not([disabled]),
+[data-bs-theme=dark] .sms-toolbox textarea:not([disabled]),
+[data-bs-theme=dark] .sms-toolbox select:not([disabled]) {
+    color: var(--bs-btn-color);
+    background-color: var(--bs-dark-bg-subtle);
+}
+
+[data-bs-theme=dark] .sms-toolbox button.btn-ui:not([disabled]):not(.btn-link):hover,
+[data-bs-theme=dark] .sms-toolbox input[type=text]:not([disabled]):hover,
+[data-bs-theme=dark] .sms-toolbox input[type=number]:not([disabled]):hover,
+[data-bs-theme=dark] .sms-toolbox textarea:not([disabled]):hover,
+[data-bs-theme=dark] .sms-toolbox select:not([disabled]):hover {
+    color: var(--bs-white);
+    background-color: var(--bs-black);
+    border-color: var(--bs-white);
+}
+
+/* Dialogue button colours */
+
+.sms-dialogue button.btn-ui:not([disabled]),
+.sms-dialogue input[type=text]:not([disabled]),
+.sms-dialogue input[type=number]:not([disabled]),
+.sms-dialogue textarea:not([disabled]),
+.sms-dialogue select:not([disabled]) {
+    color: var(--bs-btn-color);
+    background-color: var(--bs-white);
+}
+
+.sms-dialogue button.btn-ui:not([disabled]):hover,
+.sms-dialogue input[type=text]:not([disabled]):hover,
+.sms-dialogue input[type=number]:not([disabled]):hover,
+.sms-dialogue textarea:not([disabled]):hover,
+.sms-dialogue select:not([disabled]):hover {
+    color: var(--bs-white);
+    background-color: var(--bs-btn-color);
+}
+
+[data-bs-theme=dark] .sms-dialogue button.btn-ui:not([disabled]),
+[data-bs-theme=dark] .sms-dialogue input[type=text]:not([disabled]),
+[data-bs-theme=dark] .sms-dialogue input[type=number]:not([disabled]),
+[data-bs-theme=dark] .sms-dialogue textarea:not([disabled]),
+[data-bs-theme=dark] .sms-dialogue select:not([disabled]) {
+    color: var(--bs-btn-color);
+    background-color: var(--bs-dark-bg-subtle);
+}
+
+[data-bs-theme=dark] .sms-dialogue button.btn-ui:not([disabled]):hover,
+[data-bs-theme=dark] .sms-dialogue input[type=text]:not([disabled]):hover,
+[data-bs-theme=dark] .sms-dialogue input[type=number]:not([disabled]):hover,
+[data-bs-theme=dark] .sms-dialogue textarea:not([disabled]):hover,
+[data-bs-theme=dark] .sms-dialogue select:not([disabled]):hover {
+    color: var(--bs-white);
+    background-color: var(--bs-black);
+    border-color: var(--bs-white);
+}
+
+/* Card toolbar (top of palette and tile map sidebars) */
+.sms-card-toolbar button {
+    min-width: 31px;
+    padding: .25rem .5rem;
+    border-radius: 0;
+    font-size: .875rem !important;
+}
+
+.sms-card-toolbar button:last-of-type {
+    border-top-right-radius: var(--bs-border-radius);
+}
+
 /* Utility classes */
 
 button:disabled img {
@@ -12,10 +148,97 @@ button:disabled img {
     opacity: 0.5;
 }
 
+.sms-layout {
+    font-size: 14px;
+}
+
+.sms-layout input,
+.sms-layout select,
+.sms-layout button,
+.sms-layout label {
+    font-size: 12px;
+}
+
+.sms-layout .sms-layout-header .navbar-brand img {
+    width: 75px;
+    height: auto;
+    box-shadow: 1px 1px 5px 1px rgba(0, 0, 0, 0.25);
+}
+
+.sms-layout .sms-layout-header .navbar-brand label {
+    font-size: 22px;
+    text-shadow: 1px 1px 5px #000000;
+}
+
+.sms-layout .sms-layout-header .sms-project-toolbar {
+    width: 400px;
+}
+
+.sms-layout .sms-layout-content .sms-layout-content-left {
+    width: 250px;
+}
+
+.sms-layout .sms-layout-content .sms-layout-content-right {
+    width: 250px;
+}
+
+.btn.btn-outline-secondary i.bi img[src$=".svg"] {
+    opacity: 0.5;
+}
+
+/* Accordion list (palette and tile set selectors) */
+
+.sms-accordion-list button.sms-accordion-item {
+    background-color: var(--bs-light-bg);
+}
+
+[data-bs-theme=dark] .sms-accordion-list button.sms-accordion-item {
+    background-color: var(--bs-dark-bg-subtle);
+}
+
+.sms-accordion-list button.sms-accordion-item.active {
+    color: var(--bs-dark-text);
+    background-color: var(--bs-secondary-bg);
+    border-bottom: none !important;
+    text-shadow: 0 0 3px #FFFFFF;
+}
+
+[data-bs-theme=dark] .sms-accordion-list button.sms-accordion-item.active {
+    color: var(--bs-light-text-emphasis);
+    text-shadow: 0 0 3px #000000;
+}
+
+.sms-accordion-list button.sms-accordion-item .icon-expand {
+    display: block;
+}
+
+.sms-accordion-list button.sms-accordion-item .icon-expanded {
+    display: none;
+}
+
+.sms-accordion-list button.sms-accordion-item.active .icon-expand {
+    display: none;
+}
+
+.sms-accordion-list button.sms-accordion-item.active .icon-expanded {
+    display: block;
+}
+
+.sms-accordion-list.sms-accordion-list-bottom button.sms-accordion-item {
+    border-top: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color) !important;
+    border-bottom: none !important;
+}
+
+.sms-accordion-list.sms-accordion-list-bottom button.sms-accordion-item:last-of-type {
+    border-bottom-left-radius: var(--bs-card-border-radius);
+    border-bottom-right-radius: var(--bs-card-border-radius);
+}
+
+
 
 /* Main layout */
 
-.sms-container .sms-smaller-font,
+/* .sms-container .sms-smaller-font,
 .sms-container .sms-smaller-font.input-group-text,
 .sms-container .sms-smaller-font input,
 .sms-container .sms-smaller-font select {
@@ -29,14 +252,14 @@ button:disabled img {
 .sms-container .sms-dropdown-menu li i.bi {
     font-size: 1.25em;
     margin-right: 4px;
-}
-
+} */
+/* 
 .sms-container {
     height: 100vh;
     display: flex;
     flex-direction: column;
-}
-
+} */
+/* 
 .sms-container .sms-header-bar {
     min-height: 50px;
     z-index: 20;
@@ -79,7 +302,7 @@ button:disabled img {
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: flex-start;
-    z-index: 10;
+    z-index: 2;
     width: 100%;
     flex-grow: 1;
 }
@@ -116,3 +339,8 @@ button:disabled img {
 .sms-container .sms-content .sms-rows .sms-row.sms-grow {
     flex-grow: 1;
 }
+
+
+.sms-bottom-links {
+
+} */

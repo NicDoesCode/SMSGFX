@@ -1,70 +1,139 @@
 <div data-smsgfx-component="toolbars/tileEditorToolbar" class="row align-items-center p-0 m-0">
-    <div data-toolstrip="tileAdd" class="col-auto ms-0 ps-0">
-        <div class="input-group input-group-sm">
-            <span class="input-group-text">Tile</span>
-            <button data-command="tileAdd" class="btn btn-outline-secondary"
-                title="Add a new tile to the end of the set.">
-                <i class="bi bi-plus-lg"></i>
-            </button>
-            <button data-command="tileImageImport" class="btn btn-outline-secondary"
-                title="Import an image as a tile map.">
-                <i class="bi bi-image"></i>
-            </button>
-            <button data-command="tileCodeImport" class="btn btn-outline-secondary"
-                title="Import tiles from your code.">
-                <i class="bi bi-code"></i>
-            </button>
-        </div>
-    </div>
-    <div data-toolstrip="undo" class="col-auto ps-0">
+    <div data-toolstrip="undo" class="col-auto sms-toolstrip m-0 me-2 p-0">
         <div class="input-group input-group-sm">
             <span class="input-group-text">Undo</span>
-            <button data-command="undo" class="btn btn-outline-secondary" title="Undo.">
+            <button data-command="undo" data-auto-event="click" class="btn btn-outline-secondary btn-ui" title="Undo.">
                 <i class="bi bi-arrow-counterclockwise"></i>
             </button>
-            <button data-command="redo" class="btn btn-outline-secondary" title="Redo.">
+            <button data-command="redo" data-auto-event="click" class="btn btn-outline-secondary btn-ui" title="Redo.">
                 <i class="bi bi-arrow-clockwise"></i>
             </button>
         </div>
     </div>
-    <div data-toolstrip="tools" class="col-auto ps-0">
-        <div data-smsgfx-component-id="tools" class="input-group input-group-sm">
-            <span class="input-group-text">Tools</span>
-            <button data-command="toolChange" class="btn btn-outline-secondary" data-tool="select" title="Tile tool.">
+    <div data-toolstrip="tileAdd" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text">Tile</span>
+            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
+                data-tool="select" title="Select tool: Select a tile, cut, copy, paste, move, mirror, insert.">
                 <i class="bi bi-cursor"></i>
             </button>
-            <button data-command="toolChange" class="btn btn-outline-secondary" data-tool="pencil" title="Pencil tool.">
+            <button data-command="tileAdd" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
+                title="Add a new tile to the end of the set.">
+                <i class="bi bi-plus-lg"></i>
+            </button>
+            <button data-command="tileImageImport" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
+                title="Import an image to the existing tile set or as a new project.">
+                <i class="bi bi-image"></i>
+            </button>
+            <button data-command="tileCodeImport" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
+                title="Import tiles from code.">
+                <i class="bi bi-code"></i>
+            </button>
+        </div>
+    </div>
+    <div data-toolstrip="tileTools" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-smsgfx-component-id="tools" class="input-group input-group-sm">
+            <span class="input-group-text">Draw</span>
+            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
+                data-tool="pencil" title="Pencil tool: Draw on tiles.">
                 <i class="bi bi-pencil-fill"></i>
             </button>
-            <button data-command="toolChange" class="btn btn-outline-secondary" data-tool="colourReplace" title="Colour replace tool.">
+            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
+                data-tool="colourReplace" title="Colour replace tool: Replaces one palette colour with another.">
                 <i class="bi bi-palette"></i>
             </button>
-            <button data-command="toolChange" class="btn btn-outline-secondary" data-tool="bucket" title="Fill tool.">
+            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
+                data-tool="bucket" title="Fill tool: Change the colour of a contigious block to another colour.">
                 <i class="bi bi-paint-bucket"></i>
             </button>
-            <button data-command="toolChange" class="btn btn-outline-secondary" data-tool="eyedropper"
-                title="Colour select tool.">
+            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
+                data-tool="eyedropper" title="Colour select tool: Selects the corresponding palette colour.">
                 <i class="bi bi-eyedropper"></i>
             </button>
-            <button data-command="toolChange" class="btn btn-outline-secondary" data-tool="referenceImage"
-                title="Reference image.">
+            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
+                data-tool="referenceImage"
+                title="Reference image tool: Place a reference image on the screen to assist with drawing.">
                 <i class="bi bi-pip"></i>
             </button>
         </div>
     </div>
-    <div data-toolstrip="tileWidth" class="col-auto ps-0">
-        <div class="input-group input-group-sm">
-            <span class="input-group-text">Tile width</span>
-            <input data-command="tileWidth" type="text" class="form-control" style="width: 40px">
+    <div data-toolstrip="tileMapTools" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-smsgfx-component-id="tileMapTools" class="input-group input-group-sm">
+            <span class="input-group-text">Tile</span>
+            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
+                data-tool="tileAttributes" title="Tile attributes: Attributes such as mirroring, and priority.">
+                <i class="bi bi-cursor"></i>
+            </button>
+            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
+                data-tool="rowColumn" title="Row / column mode: Allows you to add or remove rows and columns.">
+                <i class="bi bi-plus-slash-minus"></i>
+            </button>
+            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
+                data-tool="tileLinkBreak"
+                title="Break link tool: If the corresponding tile set tile is mapped to any other tile in any other tile map, the tile set tile will be cloned and the selected tile map tile will be updated to use the newly cloned tile.">
+                <i class="bi">
+                    <img src="assets/image/icon-link-break.svg" alt="Link break tool."
+                        data-smsgfx-theme-dark="sms-invert" />
+                </i>
+            </button>
+            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
+                data-tool="tileStamp" title="Tile stamp tool: Stamps the selected tile onto the tile map.">
+                <i class="bi bi-postage-fill"></i>
+            </button>
+            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
+                data-tool="palettePaint" title="Palette paint tool: Sets the palette slot for tiles in the tile map.">
+                <i class="bi bi-palette2"></i>
+            </button>
+            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
+                data-tool="tileEyedropper" title="Tile select tool: Selects the tile that is under the cursor.">
+                <i class="bi bi-eyedropper"></i>
+            </button>
         </div>
     </div>
-    <div data-toolstrip="scale" class="col-auto ps-0">
+    <div data-toolstrip="tileMapTools" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-smsgfx-component-id="tileMapTools" class="input-group input-group-sm">
+            <span class="input-group-text">Draw</span>
+            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
+                data-tool="pencil" title="Pencil tool: Draw on tiles.">
+                <i class="bi bi-pencil-fill"></i>
+            </button>
+            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
+                data-tool="colourReplace" title="Colour replace tool: Replaces one palette colour with another.">
+                <i class="bi bi-palette"></i>
+            </button>
+            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
+                data-tool="bucket" title="Fill tool: Change the colour of a contigious block to another colour.">
+                <i class="bi bi-paint-bucket"></i>
+            </button>
+            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
+                data-tool="eyedropper" title="Colour select tool: Selects the corresponding palette colour.">
+                <i class="bi bi-eyedropper"></i>
+            </button>
+            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
+                data-tool="referenceImage"
+                title="Reference image tool: Place a reference image on the screen to assist with drawing.">
+                <i class="bi bi-pip"></i>
+            </button>
+        </div>
+    </div>
+    <div data-toolstrip="tileWidth" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text">Tile width</span>
+            <input data-command="tileWidth" data-auto-event="change" type="text" class="form-control"
+                style="width: 40px"
+                title="Tile width: Number of tiles to display per row before another row is created.">
+        </div>
+    </div>
+    <div data-toolstrip="scale" class="col-auto sms-toolstrip m-0 me-2 p-0">
         <div class="input-group input-group-sm">
             <span class="input-group-text">Zoom</span>
-            <select data-command="scale" class="form-select">
+            <select data-command="scale" data-auto-event="change" class="form-select sms-toolstrip"
+                title="Zoom: Changes the size of the image in the viewport.">
                 <options>
                     <option value="1">1:1</option>
                     <option value="2">2:1</option>
+                    <option value="3">3:1</option>
+                    <option value="4">4:1</option>
                     <option value="5">5:1</option>
                     <option value="10" selected>10:1</option>
                     <option value="15">15:1</option>
@@ -74,20 +143,22 @@
             </select>
         </div>
     </div>
-    <div data-toolstrip="showTileGrid" class="col-auto pe-2 p-0 m-0">
+    <div data-toolstrip="showTileGrid" class="col-auto sms-toolstrip m-0 me-2 p-0">
         <div class="input-group input-group-sm">
             <div class="input-group-text">
-                <input data-command="showTileGrid" data-labelled-by="showTileGrid" class="form-check-input mt-0"
-                    type="checkbox" value="" aria-label="Checkbox for following text input">
+                <input data-command="showTileGrid" data-auto-event="change" data-labelled-by="showTileGrid"
+                    class="form-check-input mt-0" type="checkbox" value="" aria-label="Show tile grid."
+                    title="Show tile grid: When checked the boundary of each tile will be displayed on the viewport image.">
                 <label for="showTileGrid" class="ps-1">Tile grid</label>
             </div>
         </div>
     </div>
-    <div data-toolstrip="showPixelGrid" class="col-auto pe-2 p-0 m-0">
+    <div data-toolstrip="showPixelGrid" class="col-auto sms-toolstrip m-0 me-2 p-0">
         <div class="input-group input-group-sm">
             <div class="input-group-text">
-                <input data-command="showPixelGrid" data-labelled-by="showPixelGrid" class="form-check-input mt-0"
-                    type="checkbox" value="" aria-label="Checkbox for following text input">
+                <input data-command="showPixelGrid" data-auto-event="change" data-labelled-by="showPixelGrid"
+                    class="form-check-input mt-0" type="checkbox" value="" aria-label="Show pixel grid."
+                    title="Show pixel grid: When checked the boundary of each pixel will be displayed on the viewport image.">
                 <label for="showPixelGrid" class="ps-1">Pixel grid</label>
             </div>
         </div>

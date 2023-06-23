@@ -1,10 +1,93 @@
-import TileFactory from './../factory/tileFactory.js';
+import TileGridProvider from './tileGridProvider.js';
 import Tile from './tile.js';
 
 /**
  * Set of tiles.
  */
-export default class TileSet {
+export default class TileSet extends TileGridProvider {
+
+
+    // BEGIN: TileGridProvider implementation
+    
+    get isTileSet() {
+        return true;
+    }
+
+    get isTileMap() {
+        return false;
+    }
+
+    /**
+     * Gets the total amount of tiles.
+     * @returns {number}
+     */
+    get tileCount() {
+        return this.length;
+    }
+
+    /**
+     * Gets the amount of tiles per row.
+     * @returns {number}
+     */
+    get columnCount() {
+        return this.tileWidth;
+    }
+
+    /**
+     * Gets the amount of rows in the grid.
+     * @returns {number}
+     */
+    get rowCount() {
+        return Math.ceil(this.length / this.#tileWidth);
+    }
+
+
+    /**
+     * Gets information about a tile by the tile index.
+     * @param {number} tileIndex - Index of the tile.
+     * @returns {import('./tileGridProvider.js').TileProviderTileInfo}
+     */
+    getTileInfoByIndex(tileIndex) {
+        const tile = this.getTile(tileIndex);
+        return createTileInfo(tile, tileIndex);
+    }
+
+    /**
+     * Gets information about a tile by a row and column coordinate.
+     * @param {number} rowIndex - Row within the tile grid.
+     * @param {number} columnIndex - Column of the tile within the tile grid.
+     * @returns {import('./tileGridProvider.js').TileProviderTileInfo}
+     */
+    getTileInfoByRowAndColumn(rowIndex, columnIndex) {
+        if (rowIndex < 0 || rowIndex >= this.rowCount) throw new Error('Row index must be greater then zero and less then the row count.');
+        if (columnIndex < 0 || columnIndex >= this.columnCount) throw new Error('Column index must be greater then zero and less then the column count.');
+        const index = (row * this.tileWidth) + column;
+        return this.getTileInfoByIndex(index);
+    }
+
+    /**
+     * Gets information about a tile by the X and Y coordinate within the image.
+     * @param {number} x - X pixel within the tile image.
+     * @param {number} y - Y pixel within the tile image.
+     * @returns {import('./tileGridProvider.js').TileProviderTileInfo?}
+     */
+    getTileInfoByPixel(x, y) {
+        const index = this.getTileIndexByCoordinate(x, y);
+        if (index !== null) {
+            return this.getTileInfoByIndex(index);
+        } else return null;
+    }
+
+    /**
+     * Gets all indexes where a given tile ID occurs.
+     * @param {string} tileId - Unique ID of the tile.
+     * @returns {number[]}
+     */
+    getTileIdIndexes(tileId) {
+        return [this.#getTilesByIdCache()[tileId].index];
+    }
+
+    // END: TileGridProvider implementation
 
 
     /**
@@ -43,6 +126,8 @@ export default class TileSet {
 
     /** @type {Tile[]} */
     #tiles = [];
+    /** @type {Object.<string, {tile: Tile, index: number}>} */
+    #tilesByIdCache = null;
     #tileWidth = 1;
     #pxPerRow = 8;
     #totalRows = 0;
@@ -56,53 +141,9 @@ export default class TileSet {
 
     /** Initialises a new instance of the tile set class. */
     constructor() {
+        super();
     }
 
-
-    #calculateTotalRows() {
-        if (this.length > 0) {
-            this.#totalRows = Math.ceil(this.tileWidth / this.length);
-            this.#heightPx = this.#totalRows * 8;
-            this.#totalPx = this.#pxPerRow * this.#totalRows;
-        } else {
-            this.#totalRows = 0;
-            this.#heightPx = 0;
-            this.#totalPx = 0;
-        }
-        this.#pxPerRow = this.length * 8;
-    }
-
-    /**
-     * Adds a tile to the tile map.
-     * @param {Tile} tile The tile to add.
-     */
-    addTile(tile) {
-        if (!tile) throw new Error('Tile can not be null.');
-        this.#tiles.push(tile);
-        this.#calculateTotalRows();
-    }
-
-    /**
-     * Inserts a tile at the given index.
-     * @param {Tile} tile The tile to insert.
-     * @param {number} index Index in the tile map where the tile should reside.
-     */
-    insertTileAt(tile, index) {
-        if (!tile) throw new Error('Tile can not be null.');
-        if (index < 0 || index > this.#tiles.length) throw new Error('Index must be between 0 and tile map count.');
-        this.#tiles.splice(index, 0, tile);
-        this.#calculateTotalRows();
-    }
-
-    /**
-     * Removes a tile from the tile map.
-     * @param {number} index Index in the tile map where the tile should be removed.
-     */
-    removeTile(index) {
-        if (index < 0 || index > this.#tiles.length) throw new Error('Index must be between 0 and tile map count.');
-        this.#tiles.splice(index, 1);
-        this.#calculateTotalRows();
-    }
 
     /**
      * Gets a tile from the tile map.
@@ -123,9 +164,97 @@ export default class TileSet {
     }
 
     /**
+     * Gets an item by ID.
+     * @param {string} tileId - Unique tile ID.
+     * @returns {Tile|null}
+     */
+    getTileById(tileId) {
+        if (this.containsTileById(tileId)) {
+            return this.#getTilesByIdCache()[tileId].tile;
+        } else {
+            return null;
+        }
+    }
+
+
+    /**
+     * Gets whether this list has a tile by a given ID.
+     * @param {string} tileId - Unique tile ID.
+     * @returns {boolean}
+     */
+    containsTileById(tileId) {
+        return (tileId && this.#getTilesByIdCache()[tileId]);
+    }
+
+
+    /**
+     * Adds a tile to the tile map.
+     * @param {Tile} tile - The tile to add.
+     */
+    addTile(tile) {
+        if (!tile) throw new Error('Tile can not be null.');
+        this.#tiles.push(tile);
+        this.#calculateTotalRows();
+        this.#resetTilesByIdCache();
+    }
+
+    /**
+     * Inserts a tile at the given index.
+     * @param {Tile} tile - The tile to insert.
+     * @param {number} index - Index in the tile map where the tile should reside.
+     */
+    insertTileAt(tile, index) {
+        if (!tile) throw new Error('Tile can not be null.');
+        if (index < 0 || index > this.#tiles.length) throw new Error('Index must be between 0 and tile map count.');
+        this.#tiles.splice(index, 0, tile);
+        this.#calculateTotalRows();
+        this.#resetTilesByIdCache();
+    }
+
+
+    /**
+     * Removes a tile from the tile map.
+     * @param {number} index - Index in the tile map where the tile should be removed.
+     */
+    removeTile(index) {
+        if (index < 0 || index > this.#tiles.length) throw new Error('Index must be between 0 and tile map count.');
+        this.#tiles.splice(index, 1);
+        this.#calculateTotalRows();
+        this.#resetTilesByIdCache();
+    }
+
+
+    /**
+     * Removes a tile by ID.
+     * @param {string} tileId - Unique tile ID.
+     */
+    removeById(tileId) {
+        if (tileId) {
+            this.#tiles = this.#tiles.filter((t) => t.tileId !== tileId);
+            this.#calculateTotalRows();
+            this.#resetTilesByIdCache();
+        } else throw new Error('Please supply a tile ID.');
+    }
+
+
+    #calculateTotalRows() {
+        if (this.length > 0) {
+            this.#totalRows = Math.ceil(this.tileWidth / this.length);
+            this.#heightPx = this.#totalRows * 8;
+            this.#totalPx = this.#pxPerRow * this.#totalRows;
+        } else {
+            this.#totalRows = 0;
+            this.#heightPx = 0;
+            this.#totalPx = 0;
+        }
+        this.#pxPerRow = this.length * 8;
+    }
+
+
+    /**
      * Sets the coordinate to read from.
-     * @param {number} x X coordinate in the tile set.
-     * @param {number} y Y coordinate in the tile set.
+     * @param {number} x - X coordinate in the tile set.
+     * @param {number} y - Y coordinate in the tile set.
      */
     setReadCoordinate(x, y) {
         if (!(x >= 1 && x <= this.#pxPerRow)) throw new Error(`X coordinate must be between 1 and ${this.#pxPerRow}.`);
@@ -136,7 +265,7 @@ export default class TileSet {
 
     /**
      * Sets the next pixel index to read in the overall tile map.
-     * @param {number} index Pixel index.
+     * @param {number} index - Pixel index.
      */
     setReadIndex(index) {
         if (index < 0 || index >= this.#totalRows * 64) throw new Error(`Index was out of range, between 0 and ${(this.#totalRows * 64)}.`);
@@ -243,7 +372,7 @@ export default class TileSet {
 
     /**
      * Returns the tile associated with a given pixel index from top left.
-     * @param {number} index Pixel from top left.
+     * @param {number} index - Pixel from top left.
      * @returns {Tile}
      */
     getTileByPixelIndex(index) {
@@ -254,7 +383,7 @@ export default class TileSet {
 
     /**
      * Gets the tile index or null if not in the list.
-     * @param {Tile} tile Tile to return the index of.
+     * @param {Tile} tile - Tile to return the index of.
      * @returns {number|null}
      */
     getTileIndex(tile) {
@@ -266,8 +395,8 @@ export default class TileSet {
 
     /**
      * Gets the pixel value at the given coordinate.
-     * @param {number} x X coordinate in the tile set.
-     * @param {number} y Y coordinate in the tile set.
+     * @param {number} x - X coordinate in the tile set.
+     * @param {number} y - Y coordinate in the tile set.
      * @returns {number|null}
      */
     getPixelAt(x, y) {
@@ -291,8 +420,8 @@ export default class TileSet {
 
     /**
      * Sets the palette slot of a pixel at a given coordinate on the tile set.
-     * @param {number} x X coordinate.
-     * @param {number} y Y coordinate.
+     * @param {number} x - X coordinate.
+     * @param {number} y - Y coordinate.
      * @param {number} paletteIndex Palette index of the colour, 0 to 15.
      * @returns {boolean} true if the value was updated, otherwise false.
      */
@@ -321,6 +450,7 @@ export default class TileSet {
     clear() {
         this.#tiles = [];
         this.#calculateTotalRows();
+        this.#resetTilesByIdCache();
     }
 
 
@@ -347,4 +477,32 @@ export default class TileSet {
     }
 
 
+    #getTilesByIdCache() {
+        if (!this.#tilesByIdCache) {
+            this.#tilesByIdCache = {};
+            this.#tiles.forEach((tile, index) => this.#tilesByIdCache[tile.tileId] = { tile: tile, index: index });
+        }
+        return this.#tilesByIdCache;
+    }
+
+    #resetTilesByIdCache() {
+        this.#tilesByIdCache = null;
+    }
+
+
+}
+
+/**
+ * @param {Tile} tile - Tile to convert.
+ * @param {number} tileIndex
+ * @returns {import('./tileGridProvider.js').TileProviderTileInfo}
+ */
+function createTileInfo(tile, tileIndex) {
+    return {
+        tileId: tile.tileId,
+        paletteIndex: 0,
+        horizontalFlip: false,
+        verticalFlip: false,
+        tileIndex: tileIndex
+    };
 }

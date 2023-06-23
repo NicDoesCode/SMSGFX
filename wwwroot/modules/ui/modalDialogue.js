@@ -1,3 +1,4 @@
+import ComponentBase from "./componentBase.js";
 import EventDispatcher from "../components/eventDispatcher.js";
 
 const events = {
@@ -9,7 +10,7 @@ const events = {
     onCancel: 'onCancel'
 };
 
-export default class ModalDialogue {
+export default class ModalDialogue extends ComponentBase {
 
 
     get events() {
@@ -29,6 +30,7 @@ export default class ModalDialogue {
      * @param {HTMLDivElement} element The DIV that contains the modal.
      */
     constructor(element) {
+        super(element);
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
         this.#bootstrapModal = bootstrap.Modal.getOrCreateInstance(this.#element);

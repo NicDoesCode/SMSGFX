@@ -10,7 +10,7 @@ export default class NesTileMapTileBinarySerialiser extends TileMapTileBinarySer
      * @returns {number}
      */
     static serialise(tileMapTile) {
-        let result = tileMapTile.tileNumber;
+        let result = tileMapTile.tileIndex;
         if (result < 0) result = 0;
         if (result > 255) result = 255;
         return result;

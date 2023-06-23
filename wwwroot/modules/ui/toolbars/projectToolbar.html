@@ -1,8 +1,7 @@
-<div data-smsgfx-component="toolbars/projectToolbar">
-    <div class="input-group input-group-sm">
-        <button data-command="showDropdown"
-            class="btn btn-outline-secondary dropdown-toggle border-secondary" type="button"
-            data-smsgfx-theme-light="bg-light text-dark" data-smsgfx-theme-dark="bg-dark">
+<div data-smsgfx-component="toolbars/projectToolbar" class="sms-project-toolbar">
+    <div class="sms-toolstrip input-group input-group-sm">
+        <button data-command="showDropdown" title="Project menu: Click this button to display the project menu."
+            class="btn btn-outline-secondary dropdown-toggle border-secondary" type="button">
             <span class="fw-bold">Project</span>
         </button>
         <div class="dropdown-menu sms-smaller-font">
@@ -23,7 +22,7 @@
             </div>
         </div>
         <input data-command="title" type="text" class="form-control border-secondary" placeholder="Project title"
-            aria-label="Project title">
+            aria-label="Project title" title="Project title: Modify this field to change the project title.">
     </div>
     <style>
         [data-smsgfx-component=projectToolbar] .input-group {

@@ -1,10 +1,11 @@
-<div data-smsgfx-component="documentationViewer" class="col col-4 m-0 p-0">
+<div data-smsgfx-component="documentationViewer" class="sms-documentation-viewer">
     <div class="card m-0 p-0 rounded-0" style="height: 100vh; z-index: 1000;">
         <div class="card-header d-flex flex-row" style="min-height: 47px;">
             <h5 class="mb-0 flex-fill" style="margin-top: 4px">
                 Documentation
             </h5>
-            <button class="btn btn-sm border-0 btn-outline-secondary" data-command="popOut" title="Pop-out documentation into a new window.">
+            <button class="btn btn-sm border-0 btn-outline-secondary" data-command="popOut"
+                title="Pop-out documentation into a new window.">
                 <i class="bi bi-box-arrow-up-right"></i>
             </button>
             <button class="btn btn-sm border-0 btn-outline-secondary" data-command="close" title="Close documentation.">
@@ -15,4 +16,17 @@
             <iframe class="w-100" src="https://docs.smsgfx.qwerky.games/en/latest/inline-help.html"></iframe>
         </div>
     </div>
+    <style data-css-scope="global">
+        .sms-documentation-viewer {
+            width: 400px;
+        }
+
+        [data-smsgfx-documentation] .sms-layout {
+            width: calc(100% - 400px);
+        }
+
+        [data-smsgfx-documentation] .sms-layout-footer {
+            right: 400px!important;
+        }
+    </style>
 </div>

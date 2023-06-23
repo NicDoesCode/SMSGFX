@@ -1,3 +1,4 @@
+import ComponentBase from "./componentBase.js";
 import TemplateUtil from "../util/templateUtil.js";
 import EventDispatcher from "../components/eventDispatcher.js";
 
@@ -8,7 +9,7 @@ const commands = {
     popOut: 'popOut'
 }
 
-export default class DocumentationViewer {
+export default class DocumentationViewer extends ComponentBase {
 
 
     static get Commands() {
@@ -27,6 +28,7 @@ export default class DocumentationViewer {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
+        super(element);
         this.#element = element;
 
         this.#dispatcher = new EventDispatcher();
@@ -59,8 +61,10 @@ export default class DocumentationViewer {
         if (typeof state?.visible === 'boolean') {
             if (state.visible) {
                 this.#element.classList.remove('visually-hidden');
+                document.body.setAttribute('data-smsgfx-documentation', 'true');
             } else {
                 this.#element.classList.add('visually-hidden');
+                document.body.removeAttribute('data-smsgfx-documentation');
             }
         }
     }

@@ -10,7 +10,7 @@ export default class SmsggTileMapTileBinarySerialiser extends TileMapTileBinaryS
      * @returns {number}
      */
      static serialise(tileMapTile) {
-        let result = tileMapTile.tileNumber;
+        let result = tileMapTile.tileIndex;
         result &= 511;
         if (tileMapTile.horizontalFlip) result |= 512;
         if (tileMapTile.verticalFlip) result |= 1024;

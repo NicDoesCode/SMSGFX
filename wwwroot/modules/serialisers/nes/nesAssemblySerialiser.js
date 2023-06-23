@@ -4,8 +4,12 @@ import ColourUtil from "../../util/colourUtil.js";
 import Project from "../../models/project.js";
 import TileMapUtil from "../../util/tileMapUtil.js";
 import TileMap from "../../models/tileMap.js";
+import TileMapList from "../../models/tileMapList.js";
 import SerialisationUtil from "../../util/serialisationUtil.js";
 import ProjectAssemblySerialiser from "../projectAssemblySerialiser.js";
+import NesTileSetBinarySerialiser from "./nesTileSetBinarySerialiser.js";
+import NesTileMapTileBinarySerialiser from "./nesTileMapTileBinarySerialiser.js";
+import NesTileAttributeBinarySerialiser from "./nesTileAttributeBinarySerialiser.js";
 
 export default class NesAssemblySerialiser extends ProjectAssemblySerialiser {
 
@@ -16,24 +20,24 @@ export default class NesAssemblySerialiser extends ProjectAssemblySerialiser {
      * @param {import("../projectAssemblySerialiser.js").ProjectAssemblySerialisationOptions?} options - Serialisation options.
      */
     static serialise(project, options) {
-        const result = ['; NINTENDO ENTERTAINMENT SYSTEM ASSEMBLY FOR WLA-DX'];
-        result.push('');
 
         const paletteIndex = options?.paletteIndex ?? 0;
         const memOffset = options?.tileMapMemoryOffset ?? 0;
         const optimise = options?.optimiseTileMap ?? false;
-        const tileMap = TileMapUtil.tileSetToTileMap(project.tileSet, paletteIndex, memOffset, optimise);
 
-        result.push(NesAssemblySerialiser.#exportPalettes(project.paletteList));
+        const projectTileMap = TileMapUtil.tileSetToTileMap(project.tileSet, paletteIndex, memOffset, optimise);
+        const bundle = TileMapUtil.createOptimisedBundle(projectTileMap, project.tileSet, project.paletteList);
+
+        const result = ['; NINTENDO ENTERTAINMENT SYSTEM ASSEMBLY FOR WLA-DX'];
         result.push('');
 
-        result.push(NesAssemblySerialiser.#exportTileSet(tileMap.toTileSet(), project.systemType));
+        result.push(NesAssemblySerialiser.#exportPalettes(bundle.paletteList));
         result.push('');
 
-        result.push(NesAssemblySerialiser.#exportNameTable(tileMap, paletteIndex, memOffset, project.systemType));
+        result.push(NesAssemblySerialiser.#exportTileSet(bundle.tileSet));
         result.push('');
 
-        result.push(NesAssemblySerialiser.#exportBackgroundAttributeTable(tileMap, paletteIndex, memOffset, project.systemType));
+        result.push(NesAssemblySerialiser.#exportTileMapList(bundle.tileMaps));
         result.push('');
 
         return result.join('\r\n');
@@ -65,12 +69,11 @@ export default class NesAssemblySerialiser extends ProjectAssemblySerialiser {
     /**
      * Exports tile set as WLA-DX compatible assembly code.
      * @param {TileSet} tileSet - Tile set to export.
-     * @param {string} systemType - Target system type, either 'smsgg' or 'gb'.
      */
-    static #exportTileSet(tileSet, systemType) {
-        const tileSetBinarySerialiser = SerialisationUtil.getTileSetBinarySerialiser(systemType);
+    static #exportTileSet(tileSet) {
+        const serialiser = NesTileSetBinarySerialiser;
         const message = ['; TILES'];
-        const encoded = tileSetBinarySerialiser.serialise(tileSet);
+        const encoded = serialiser.serialise(tileSet);
         for (let i = 0; i < tileSet.length; i++) {
             message.push(`; Tile index $${i.toString(16).padStart(3, 0)}`);
             const tileMessage = ['.db'];
@@ -87,52 +90,45 @@ export default class NesAssemblySerialiser extends ProjectAssemblySerialiser {
     }
 
     /**
-     * Exports tile set as WLA-DX compatible assembly code.
-     * @param {TileMap} tileMap - Tile map to export.
-     * @param {number} paletteIndex - Palette index to use for the tiles.
-     * @param {number} memoryOffset - VRAM memory offset for the tile addresses in the tile map.
-     * @param {string} systemType - Target system type, either 'smsgg' or 'gb'.
+     * Exports tile map as WLA-DX compatible assembly code.
+     * @param {TileMapList} tileMapList - Tile map list to export.
      */
-    static #exportNameTable(tileMap, paletteIndex, memoryOffset, systemType) {
-        const serialiser = SerialisationUtil.getTileMapBinarySerialiser(systemType);
-        const message = ['; NAME TABLE'];
-        const encoded = serialiser.serialise(tileMap);
-        for (let i = 0; i < encoded.length; i += tileMap.tileWidth) {
-            message.push(`; Name table row ${(i / tileMap.tileWidth)}`);
-            const tileMessage = ['.db'];
-            const stopAt = Math.min(i + tileMap.tileWidth, encoded.length);
-            for (let t = i; t < stopAt; t++) {
-                tileMessage.push('$' + encoded[t].toString(16).padStart(2, '0').toUpperCase());
+    static #exportTileMapList(tileMapList) {
+        const message = [`; TILE MAPS`];
+
+        tileMapList.getTileMaps().forEach((tileMap, tileMapIdx) => {
+
+            message.push(`; Name table ${tileMapIdx.toString().padStart(2, '0')} - ${(tileMap.title ?? '(Not named)')}`);
+            for (let rowIdx = 0; rowIdx < tileMap.rowCount; rowIdx++) {
+                const row = tileMap.getTileMapRow(rowIdx);
+                const rowMessage = ['.db'];
+                for (let colIdx = 0; colIdx < row.length; colIdx++) {
+                    const tile = row[colIdx];
+                    const tileBinary = NesTileMapTileBinarySerialiser.serialise(tile);
+                    rowMessage.push('$' + tileBinary.toString(16).padStart(2, '0').toUpperCase());
+                }
+                message.push(rowMessage.join(' '));
             }
-            message.push(tileMessage.join(' '));
-        }
+
+            message.push(`; Attribute table ${tileMapIdx.toString().padStart(2, '0')} - ${(tileMap.title ?? '(Not named)')}`);
+            const encoded = NesTileAttributeBinarySerialiser.serialise(tileMap);
+            const attrWidth = (tileMap.columnCount + (tileMap.columnCount % 2)) / 2;
+            for (let i = 0; i < encoded.length; i += attrWidth) {
+                // message.push(`; Attribute table row ${(i / attrWidth)}`);
+                const attrMessage = ['.db'];
+                const stopAt = Math.min(i + attrWidth, encoded.length);
+                for (let t = i; t < stopAt; t++) {
+                    attrMessage.push('$' + encoded[t].toString(16).padStart(2, '0').toUpperCase());
+                }
+                message.push(attrMessage.join(' '));
+            }
+
+            message.push();
+        });
+
         return message.join('\r\n');
     }
 
-    /**
-     * Exports tile set as WLA-DX compatible assembly code.
-     * @param {TileMap} tileMap - Tile map to export.
-     * @param {number} paletteIndex - Palette index to use for the tiles.
-     * @param {number} memoryOffset - VRAM memory offset for the tile addresses in the tile map.
-     * @param {string} systemType - Target system type, either 'smsgg' or 'gb'.
-     */
-    static #exportBackgroundAttributeTable(tileMap, paletteIndex, memoryOffset, systemType) {
-        const serialiser = SerialisationUtil.getTileAttributeBinarySerialiser(systemType);
-        const message = [];
-        message.push('; BACKGROUND ATTRIBUTE TABLE');
-        const encoded = serialiser.serialise(tileMap);
-        const attrWidth = (tileMap.tileWidth + (tileMap.tileWidth % 2)) / 2;
-        for (let i = 0; i < encoded.length; i += attrWidth) {
-            message.push(`; Attribute table row ${(i / attrWidth)}`);
-            const tileMessage = ['.db'];
-            const stopAt = Math.min(i + attrWidth, encoded.length);
-            for (let t = i; t < stopAt; t++) {
-                tileMessage.push('$' + encoded[t].toString(16).padStart(2, '0').toUpperCase());
-            }
-            message.push(tileMessage.join(' '));
-        }
-        return message.join('\r\n');
-    }
-
+    
 }
 

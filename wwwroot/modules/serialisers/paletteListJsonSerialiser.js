@@ -49,13 +49,14 @@ export default class PaletteListJsonSerialiser {
         if (!paletteSerialisableArray || !Array.isArray(paletteSerialisableArray)) throw new Error('Please pass an array of serialisable palettes.');
 
         const result = new PaletteList();
-        paletteSerialisableArray.forEach(p => {
-            try {
-                result.addPalette(PaletteJsonSerialiser.fromSerialisable(p));
-            } catch (e) {
-                console.error('Unable to restore palette.', p);
-                console.error(e);
-            }
+        paletteSerialisableArray.forEach((p) => {
+            result.addPalette(PaletteJsonSerialiser.fromSerialisable(p));
+            // try {
+            //     result.addPalette(PaletteJsonSerialiser.fromSerialisable(p));
+            // } catch (e) {
+            //     console.error('Unable to restore palette.', p);
+            //     console.error(e);
+            // }
         });
         return result;
     }

@@ -1,4 +1,4 @@
-import GeneralUtil from "../../util/generalUtil.js";
+import ComponentBase from "../componentBase.js";
 import EventDispatcher from "../../components/eventDispatcher.js";
 import TemplateUtil from "../../util/templateUtil.js";
 
@@ -22,15 +22,27 @@ const tools = {
     colourReplace: 'colourReplace',
     bucket: 'bucket',
     eyedropper: 'eyedropper',
-    referenceImage: 'referenceImage'
+    referenceImage: 'referenceImage',
+    tileAttributes: 'tileAttributes',
+    palettePaint: 'palettePaint',
+    tileEyedropper: 'tileEyedropper',
+    tileStamp: 'tileStamp',
+    rowColumn: 'rowColumn',
+    tileLinkBreak: 'tileLinkBreak'
 };
-const scales = [1, 2, 5, 10, 15, 20, 50];
+const scales = [1, 2, 3, 4, 5, 10, 15, 20, 50];
 const toolstrips = {
-    tileAdd: 'tileAdd', scale: 'scale', tileWidth: 'tileWidth', tools: 'tools', undo: 'undo',
-    showTileGrid: 'showTileGrid', showPixelGrid: 'showPixelGrid'
+    tileAdd: 'tileAdd',
+    scale: 'scale',
+    tileWidth: 'tileWidth',
+    tileSetTools: 'tileTools',
+    tileMapTools: 'tileMapTools',
+    undo: 'undo',
+    showTileGrid: 'showTileGrid',
+    showPixelGrid: 'showPixelGrid'
 }
 
-export default class TileEditorToolbar {
+export default class TileEditorToolbar extends ComponentBase {
 
 
     static get Commands() {
@@ -62,32 +74,20 @@ export default class TileEditorToolbar {
      * @param {HTMLElement} element - Element that the tile editor is to be initialised from.
      */
     constructor(element) {
+        super(element);
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 
-        this.#element.querySelectorAll('button[data-command]').forEach(element => {
-            element.onclick = () => this.#handleToolbarButton(element);
-        });
-
-        this.#element.querySelectorAll(`[data-command=${commands.tileWidth}]`).forEach(element => {
-            element.onchange = () => this.#handleTileWidthChange(element);
-        });
-
-        this.#element.querySelectorAll(`select[data-command=${commands.scale}]`).forEach(element => {
-            element.onchange = () => this.#handleScaleChange(element);
-        });
-
-        this.#element.querySelectorAll(`input[type=checkbox][data-command]`).forEach(element => {
-            element.onchange = () => this.#handleCheckedChanged(element);
-        });
-
-        this.#element.querySelectorAll('[data-labelled-by]').forEach(element => {
-            const labelledBy = element.getAttribute('data-labelled-by');
-            const labelElm = this.#element.querySelector(`label[for=${labelledBy}]`)
-            if (labelElm) {
-                const id = `smsgfx${GeneralUtil.generateRandomString(16)}`;
-                labelElm.setAttribute('for', id);
-                element.id = id;
+        TemplateUtil.wireUpLabels(this.#element);
+        TemplateUtil.wireUpCommandAutoEvents(this.#element, (sender, ev, command) => {
+            if (sender.tagName === 'BUTTON') {
+                this.#handleToolbarButton(sender);
+            } else if (sender.tagName === 'INPUT' && sender.type === 'checkbox') {
+                this.#handleCheckedChanged(sender);
+            } else if (command === commands.tileWidth) {
+                this.#handleTileWidthChange(sender);
+            } else if (command === commands.scale) {
+                this.#handleScaleChange(sender);
             }
         });
     }
@@ -149,15 +149,27 @@ export default class TileEditorToolbar {
             if (elm) elm.checked = state?.showPixelGridChecked;
         }
         if (state?.visibleToolstrips && Array.isArray(state.visibleToolstrips)) {
-            this.#element.querySelectorAll('[data-toolstrip]').forEach(element => {
-                const toolstrip = element.getAttribute('data-toolstrip');
+            this.#element.querySelectorAll('[data-toolstrip]').forEach(tsElm => {
+                const toolstrip = tsElm.getAttribute('data-toolstrip');
                 if (state.visibleToolstrips.includes(toolstrip)) {
-                    while (element.classList.contains('visually-hidden')) {
-                        element.classList.remove('visually-hidden');
-                    }
+                    tsElm.classList.remove('visually-hidden');
                 } else {
-                    element.classList.add('visually-hidden');
+                    tsElm.classList.add('visually-hidden');
                 }
+            });
+        }
+        if (typeof state?.systemType === 'string') {
+            this.#element.querySelectorAll('[data-system-type]').forEach((element) => {
+                element.classList.remove('sms-hidden-system');
+                const systems = element.getAttribute('data-system-type')?.split(',') ?? [];
+                const containsSystem = systems.indexOf(state.systemType) >= 0;
+                if (!containsSystem) {
+                    element.classList.add('sms-hidden-system');
+                }
+            });
+        } else if (state?.systemType === null) {
+            this.#element.querySelectorAll('[data-system-type]').forEach((element) => {
+                element.classList.remove('sms-hidden-system');
             });
         }
 
@@ -233,15 +245,9 @@ export default class TileEditorToolbar {
         const buttons = this.#element.querySelectorAll('button[data-tool]');
         buttons.forEach(button => {
             if (button.getAttribute('data-tool') === toolName) {
-                button.classList.remove('btn-outline-secondary');
-                if (!button.classList.contains('btn-secondary')) {
-                    button.classList.add('btn-secondary');
-                }
+                button.classList.add('active');
             } else {
-                button.classList.remove('btn-secondary');
-                if (!button.classList.contains('btn-outline-secondary')) {
-                    button.classList.add('btn-outline-secondary');
-                }
+                button.classList.remove('active');
             }
         });
     }
@@ -273,6 +279,7 @@ export default class TileEditorToolbar {
  * @typedef {object} TileEditorToolbarState
  * @property {boolean?} enabled - Is the toolbar enabled?
  * @property {string[]?} visibleToolstrips - An array of strings containing visible toolstrips.
+ * @property {string?} [systemType] - Type of system, which will affect fields with 'data-system-type' attribute .
  * @property {number?} tileWidth - Tile width to display.
  * @property {string?} selectedTool - Currently selected tool.
  * @property {number?} scale - New scale level.

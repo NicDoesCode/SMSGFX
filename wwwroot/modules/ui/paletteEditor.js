@@ -1,3 +1,5 @@
+import ComponentBase from "./componentBase.js";
+import UiPaletteListing from "./components/paletteListing.js";
 import Palette from "../models/palette.js";
 import ColourUtil from "../util/colourUtil.js";
 import EventDispatcher from "../components/eventDispatcher.js";
@@ -22,7 +24,7 @@ const commands = {
     colourIndexReplace: 'colourIndexReplace'
 }
 
-export default class PaletteEditor {
+export default class PaletteEditor extends ComponentBase {
 
 
     static get Commands() {
@@ -32,6 +34,10 @@ export default class PaletteEditor {
 
     /** @type {HTMLDivElement} */
     #element;
+    /** @type {PaletteList?} */
+    #paletteList = null;
+    /** @type {string?} */
+    #selectedPaletteId = null;
     /** @type {HTMLButtonElement[]} */
     #paletteButtons = [];
     /** @type {HTMLTableCellElement[]} */
@@ -42,6 +48,8 @@ export default class PaletteEditor {
     #contextMenu;
     /** @type {EventDispatcher} */
     #dispatcher;
+    /** @type {UiPaletteListing?} */
+    #paletteListComponent = null;
     #enabled = true;
 
 
@@ -50,6 +58,7 @@ export default class PaletteEditor {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
+        super(element);
         this.#element = element;
 
         this.#dispatcher = new EventDispatcher();
@@ -99,9 +108,15 @@ export default class PaletteEditor {
         // this.#createPaletteColourIndexButtons();
 
         PaletteEditorContextMenu.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=palette-editor-context-menu]'))
-            .then((obj) => {
-                this.#contextMenu = obj
+            .then((component) => {
+                this.#contextMenu = component;
                 this.#contextMenu.addHandlerOnCommand((args) => this.#handlePaletteEditorContextMenuOnCommand(args));
+            });
+
+        UiPaletteListing.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=palette-list]'))
+            .then((component) => {
+                this.#paletteListComponent = component;
+                this.#paletteListComponent.addHandlerOnCommand((args) => this.#handlePaletteListOnCommand(args));
             });
     }
 
@@ -125,10 +140,12 @@ export default class PaletteEditor {
         /** @type {PaletteList} */
         let paletteList;
         let updateVirtualList = false;
+        let paletteListDirty = false;
         if (state?.paletteList && typeof state?.paletteList.getPalettes === 'function') {
-            paletteList = state.paletteList;
-            this.#refreshPaletteSelectList(state.paletteList);
+            this.#paletteList = state.paletteList;
+            this.#refreshPaletteSelectList(this.#paletteList);
             updateVirtualList = true;
+            paletteListDirty = true;
         }
         if (typeof state?.selectedPaletteIndex === 'number') {
             this.#element.querySelectorAll(`[data-command=${commands.paletteSelect}]`).forEach(element => {
@@ -136,15 +153,22 @@ export default class PaletteEditor {
                 updateVirtualList = true;
             });
         }
+        if (typeof state?.selectedPaletteId === 'string') {
+            this.#selectedPaletteId = state.selectedPaletteId;
+            paletteListDirty = true;
+        } else if (state && state.selectedPaletteId === null) {
+            this.#selectedPaletteId = null;
+            paletteListDirty = true;
+        }
         if (typeof state?.displayNative === 'boolean') {
             this.#element.querySelectorAll(`[data-command=${commands.displayNativeColours}]`).forEach(element => {
                 element.checked = state.displayNative;
             });
         }
-        if (paletteList) {
+        if (this.#paletteList) {
             const select = this.#element.querySelector(`[data-command=${commands.paletteSelect}]`);
             if (select) {
-                const selectedPalette = paletteList.getPalette(select.selectedIndex);
+                const selectedPalette = this.#paletteList.getPalette(select.selectedIndex);
                 this.#setPalette(selectedPalette);
             }
         }
@@ -154,6 +178,8 @@ export default class PaletteEditor {
         }
         if (typeof state?.highlightedColourIndex === 'number' && state?.highlightedColourIndex >= 0 && state?.highlightedColourIndex < 16) {
             this.#highlightPaletteColour(state.highlightedColourIndex);
+        } else if (state.highlightedColourIndex === null) {
+            this.#highlightPaletteColour(-1);
         }
         if (typeof state?.title === 'string') {
             this.#element.querySelectorAll(`[data-command=${commands.paletteTitle}]`).forEach(element => {
@@ -169,6 +195,15 @@ export default class PaletteEditor {
         // Refresh the virtual list if needed
         if (updateVirtualList) {
             this.#updatePaletteSelectVirtualList();
+        }
+
+        // Refresh the palette stack
+        if (paletteListDirty && this.#paletteList) {
+            this.#paletteListComponent.setState({
+                paletteList: this.#paletteList,
+                selectedPaletteId: this.#selectedPaletteId
+            });
+            this.#shufflePaletteList();
         }
 
         if (typeof state?.enabled === 'boolean') {
@@ -187,7 +222,6 @@ export default class PaletteEditor {
             });
         }
     }
-
 
     /**
      * Registers a handler for a command.
@@ -249,6 +283,17 @@ export default class PaletteEditor {
                 this.#contextMenu.setState({ visible: false });
                 break;
 
+        }
+    }
+
+    /**
+     * @param {import("./components/paletteListing.js").PaletteListCommandEventArgs} args - Arguments.
+     */
+    #handlePaletteListOnCommand(args) {
+        if (args.command === UiPaletteListing.Commands.paletteSelect) {
+            const thisArgs = this.#createEventArgs(commands.paletteSelect);
+            thisArgs.paletteId = args.paletteId;
+            this.#dispatcher.dispatch(EVENT_OnCommand, thisArgs);
         }
     }
 
@@ -355,66 +400,26 @@ export default class PaletteEditor {
         this.#updateSystemSelectVirtualList(palette.system);
     }
 
-    /**
-     * @param {Palette} palette - The palette to show on the buttons.
-     */
-    #createPaletteColourIndexButtons(palette) {
-
-        /** @type {HTMLTableElement} */
-        const table = this.#element.querySelector('#tbPalette');
-        /** @type {HTMLTableSectionElement} */
-        const tbody = table.querySelector('tbody');
-
-        while (tbody.firstChild) {
-            tbody.removeChild(tbody.firstChild);
-        }
-        this.#paletteCells = [];
-        this.#paletteButtons = [];
-
-        const totalColours = palette.getColours().length;
-
-        let tr, td;
-        for (let idx = 0; idx < totalColours; idx++) {
-
-            if (idx % 4 === 0) {
-                tr = document.createElement('tr');
-                tbody.appendChild(tr);
-            }
-
-            // Colour button
-            td = document.createElement('td');
-            td.setAttribute('data-colour-index', idx.toString());
-            td.classList.add('text-center');
-            tr.appendChild(td);
-
-            const btnColour = document.createElement('button');
-            btnColour.classList.add('sms-palette-button');
-            // btnColour.classList.add('btn', 'btn-sm', 'btn-outline-secondary', 'position-relative', 'sms-palette-button');
-            btnColour.setAttribute('data-colour-index', idx.toString());
-            btnColour.onclick = () => {
-                const colourCurrentlySelected = this.#currentColourIndex === idx;
-                const args = this.#createEventArgs(colourCurrentlySelected ? commands.colourIndexEdit : commands.colourIndexChange);
-                args.colourIndex = idx;
-                this.#dispatcher.dispatch(EVENT_OnCommand, args);
-            };
-            btnColour.oncontextmenu = (event) => {
-                this.#contextMenu.setState({
-                    colourIndex: idx, visible: true,
-                    position: { x: event.clientX, y: event.clientY }
+    #shufflePaletteList() {
+        if (this.#selectedPaletteId) {
+            const listTop = this.#element.querySelector('[data-smsgfx-id=palette-list-top] div.list-group');
+            const listBottom = this.#element.querySelector('[data-smsgfx-id=palette-list-bottom] div.list-group');
+            if (listTop && listBottom) {
+                listBottom.innerHTML = '';
+                let move = false;
+                this.#paletteList.getPalettes().forEach((palette, index) => {
+                    if (move) {
+                        const paletteButton = listTop.querySelector(`button[data-palette-id=${CSS.escape(palette.paletteId)}]`);
+                        if (paletteButton) {
+                            listBottom.appendChild(paletteButton);
+                        }
+                    }
+                    if (palette.paletteId === this.#selectedPaletteId) {
+                        move = true;
+                    }
                 });
-                return false;
-            };
-            td.appendChild(btnColour);
-
-            const lblContent = document.createElement('span');
-            // lblContent.classList.add('position-absolute', 'translate-middle', 'badge');
-            lblContent.innerHTML = `#${idx}`;
-            btnColour.appendChild(lblContent);
-
-            this.#paletteCells.push(td);
-            this.#paletteButtons.push(btnColour);
+            }
         }
-
     }
 
     /**
@@ -423,7 +428,7 @@ export default class PaletteEditor {
     #setUI(palette) {
         document.querySelectorAll('[data-smsgfx-id=system-select]').forEach(elm => {
             switch (palette.system) {
-                case 'sms' : case 'gg': elm.style.display = null; break;
+                case 'sms': case 'gg': elm.style.display = null; break;
                 case 'gb': elm.style.display = 'none'; break;
                 case 'nes': elm.style.display = 'none'; break;
             }
@@ -436,16 +441,61 @@ export default class PaletteEditor {
     }
 
     /**
+     * @param {Palette} palette
+     */
+    #createPaletteColourIndexButtons(palette) {
+
+        const data = palette.getColours().map((colour, index) => {
+            return {
+                colourIndex: index,
+                hex: ColourUtil.toHex(colour.r, colour.g, colour.b),
+                r: colour.r,
+                g: colour.g,
+                b: colour.b,
+            };
+        });
+
+        const element = this.#element.querySelector('[data-smsgfx-id=palette-colours]');
+        this.renderTemplateToElement(element, 'palette-colour-template', data);
+
+        element.querySelectorAll('button[data-colour-index]').forEach((/** @type {HTMLButtonElement} */ button) => {
+            const colourIndex = parseInt(button.getAttribute('data-colour-index'));
+            button.addEventListener('click', () => {
+                const isSelected = this.#currentColourIndex === colourIndex;
+                const args = this.#createEventArgs(isSelected ? commands.colourIndexEdit : commands.colourIndexChange);
+                args.colourIndex = colourIndex;
+                this.#dispatcher.dispatch(EVENT_OnCommand, args);
+            });
+            button.addEventListener('contextmenu', (event) => {
+                this.#contextMenu.setState({
+                    colourIndex: colourIndex,
+                    visible: true,
+                    position: {
+                        x: event.clientX,
+                        y: event.clientY
+                    }
+                });
+                event.stopImmediatePropagation();
+                event.preventDefault();
+                return false;
+            });
+            if (colourIndex === this.#currentColourIndex) {
+                button.classList.add('active');
+            }
+        });
+
+    }
+
+    /**
      * @param {number} colourIndex
      */
     #selectPaletteColour(colourIndex) {
-        this.#paletteCells.forEach((cell, index) => {
-            if (index !== null && index === colourIndex) {
-                if (!cell.classList.contains('table-dark')) {
-                    cell.classList.add('sms-selected');
-                }
-            } else {
-                cell.classList.remove('sms-selected');
+        const element = this.#element.querySelector('[data-smsgfx-id=palette-colours]');
+        element.querySelectorAll('button[data-colour-index]').forEach((/** @type {HTMLButtonElement} */ button) => {
+            const buttonColourIndex = parseInt(button.getAttribute('data-colour-index'));
+            button.classList.remove('active');
+            if (colourIndex === buttonColourIndex) {
+                button.classList.add('active');
             }
         });
     }
@@ -454,14 +504,12 @@ export default class PaletteEditor {
      * @param {number} colourIndex
      */
     #highlightPaletteColour(colourIndex) {
-        const paletteCells = this.#paletteCells;
-        paletteCells.forEach((cell, index) => {
-            if (index === colourIndex) {
-                if (!cell.classList.contains('table-secondary')) {
-                    cell.classList.add('sms-highlight');
-                }
-            } else {
-                cell.classList.remove('sms-highlight');
+        const element = this.#element.querySelector('[data-smsgfx-id=palette-colours]');
+        element.querySelectorAll('button[data-colour-index]').forEach((/** @type {HTMLButtonElement} */ button) => {
+            const buttonColourIndex = parseInt(button.getAttribute('data-colour-index'));
+            button.classList.remove('highlighted');
+            if (colourIndex === buttonColourIndex) {
+                button.classList.add('highlighted');
             }
         });
     }
@@ -477,6 +525,7 @@ export default class PaletteEditor {
  * @property {string?} title - Title of the palette.
  * @property {string?} selectedSystem - Sets the selected system, either 'ms', 'gg', 'gb' or 'nes'.
  * @property {number?} selectedPaletteIndex - Sets the selected palette index.
+ * @property {number?} selectedPaletteId - Sets the unique ID of the selected palette.
  * @property {number?} selectedColourIndex - Sets the selected colour index.
  * @property {number?} highlightedColourIndex - Sets the selected colour index.
  * @property {boolean?} displayNative - Should the palette editor display native colours?
@@ -493,6 +542,7 @@ export default class PaletteEditor {
  * @typedef {object} PaletteEditorCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {number?} paletteIndex - Index of the selected palette.
+ * @property {number?} paletteId - Unique ID of the selected palette.
  * @property {string?} paletteTitle - Title value for the selected palette.
  * @property {string?} paletteSystem - Selected system value for the selected palette, either 'ms', 'gg', 'gb' or 'nes'.
  * @property {number?} colourIndex - Index from 0 to 15 for the given colour.

@@ -1,0 +1,202 @@
+<div data-smsgfx-component="tileManager" class="sms-tile-manager d-flex flex-column h-100">
+    <select data-command="tileMapSelect" data-auto-event="change" class="form-select d-none">
+    </select>
+
+    <div class="sms-tile-map sms-toolbox card mb-2">
+        <div class="card-header sms-card-toolbar p-0 d-flex">
+            <span class="flex-fill p-1 ps-2">Tile map</span>
+            <button data-command="tileMapNew" data-auto-event="click"
+                class="btn btn-ui btn-outline-secondary border border-start border-0" title="Create a new tile map.">
+                <i class="bi bi-plus-lg"></i>
+            </button>
+            <button class="btn btn-outline-secondary dropdown-toggle btn-ui border border-0 border-start" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false" title="Select an existing tile map to edit."></button>
+            <ul data-smsgfx-id="tileMapSelectDropDown" class="dropdown-menu">
+            </ul>
+        </div>
+
+        <div data-smsgfx-id="tile-map-list-top" data-smsgfx-component-id="tile-map-listing"
+            class="sms-accordion-list sms-accordion-list-top card-body p-0">
+            <template>
+                <script data-smsgfx-template-id="item-template" type="text/x-handlebars-template">
+                    <div class="list-group rounded-0 border border-0">
+                        <button data-command="tileSetSelect"
+                            class="sms-accordion-item list-group-item border border-0 border-bottom text-start fw-bold">
+                            <span class="icon-expand float-end"><i class="bi bi-caret-down-fill"></i></span>
+                            <span>Tile set</span>
+                        </button>
+                        {{#each this}}
+                        <button data-command="tileMapSelect" data-tile-map-id="{{tileMapId}}" 
+                            class="sms-accordion-item list-group-item border border-0 border-bottom text-start fw-bold">
+                            <span class="icon-expand float-end"><i class="bi bi-caret-down-fill"></i></span>
+                            <span>{{title}}</span>
+                        </button>
+                        {{/each}}
+                    </div>
+                </script>
+            </template>
+        </div>
+
+        <div class="sms-tile-map-properties card-body p-2 pt-0 visually-hidden" data-smsgfx-id="tileSetProperties">
+            <div class="row mt-1 mb-0 ps-3 pe-3">
+                <div class="col p-1">
+                    <p class="m-0 mb-1">
+                        <small>The tile set is currently selected, these are the raw tiles that compose
+                            your tile maps.</small>
+                    </p>
+                    <p class="m-0 mb-1">
+                        <small>Changes made to tiles here will affect any tile set that uses them.</small>
+                    </p>
+                </div>
+            </div>
+            <div class="row mt-1 mb-0 ps-3 pe-3">
+                <div class="col p-1">
+                    <button data-command="tileSetToTileMap" data-auto-event="click"
+                        class="btn btn-sm btn-outline-secondary btn-ui m-0 w-100" type="button"
+                        title="Directly converts the displayed tile set into a tile map.">
+                        <i class="bi bi bi-plus-lg"></i> Convert to tile map
+                    </button>
+                </div>
+            </div>
+            <div class="row mt-1 mb-0 ps-3 pe-3">
+                <div class="col p-1">
+                    <button data-command="tileMapNew" data-auto-event="click"
+                        class="btn btn-sm btn-outline-secondary btn-ui m-0 w-100" type="button"
+                        title="Creates a blank tile map.">
+                        <i class="bi bi-plus-lg"></i> Create blank tile map
+                    </button>
+                </div>
+            </div>
+            <div class="row mt-1 mb-0 ps-3 pe-3">
+                <div class="col p-1">
+                    <label class="form-label">Display tile width</label>
+                    <input data-smsgfx-id="tileSetTileWidth" data-command="tileSetChange" data-field="tileWidth"
+                        data-auto-event="change" type="number" class="form-control form-control-sm"
+                        title="Tile width: Number of tiles to display per row before another row is created.">
+                </div>
+            </div>
+        </div>
+        <div class="sms-tile-map-properties card-body p-2 pt-0 visually-hidden" data-smsgfx-id="tileMapProperties">
+            <div class="row mb-2">
+                <div class="col">
+                    <input data-command="tileMapChange" data-auto-event="change" data-field="title" type="text"
+                        class="form-control" aria-label="Enter name" title="Change the title of the tile map.">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <p class="mb-1">Palette slots</p>
+                </div>
+            </div>
+            <div class="row">
+                <div data-smsgfx-id="palette-selectors" class="col">
+                </div>
+                <script data-smsgfx-template-id="palette-selector-template" type="text/x-handlebars-template">
+                    {{#each this}}
+                        <div data-smsgfx-id="palette-selector" class="sms-palette-selector d-flex flex-column border rounded mb-2">
+                            <div class="d-flex flex-row align-items-stretch p-0 m-0 border-bottom">
+                                <div class="col-2 p-0 m-0 text-center align-content-center border-end p-1">
+                                    {{slotNumber}}
+                                </div>
+                                <div class="col p-0 m-0">
+                                    <select data-command="tileMapChange" data-auto-event="change" data-field="paletteId" data-palette-slot="{{slotNumber}}" class="form-select border border-0" title="Change the palette used to colour tiles that are assigned to this slot.">
+                                    </select>
+                                </div>
+                            </div>
+                            <div data-smsgfx-id="palette-colours" data-palette-slot="{{slotNumber}}" class="sms-colours d-flex p-2">
+                            </div>
+                        </div>
+                    {{/each}}
+                </script>
+            </div>
+            <div data-smsgfx-id="tile-map-optimise" class="row">
+                <div class="col">
+                    <div class="form-check form-switch">
+                        <input id="tileSetOptimise" data-command="tileMapChange" data-auto-event="change"
+                            data-field="optimise" class="form-check-input" type="checkbox" role="switch" checked
+                            title="When checked the system will try and re-use tiles in the tile map, and apply flipping where possible.">
+                        <label class="form-check-label" for="tileSetOptimise"
+                            title="When checked the system will try and re-use tiles in the tile map, and apply flipping where possible.">
+                            Optimise on export
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-1 mb-0 ps-3 pe-3">
+                <div class="col p-1">
+                    <button data-command="tileMapClone" data-auto-event="click"
+                        class="btn btn-sm btn-outline-secondary btn-ui m-0 w-100" type="button"
+                        title="Creates a clone of this tile map.">
+                        <i class="bi bi-file-earmark-plus"></i> Clone
+                    </button>
+                </div>
+                <div class="col p-1">
+                    <button data-command="tileMapDelete" data-auto-event="click"
+                        class="btn btn-sm btn-outline-secondary btn-ui m-0 w-100" type="button"
+                        title="Removes the tile map from the project.">
+                        <i class="bi bi bi-trash-fill"></i> Remove
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div data-smsgfx-id="tile-map-list-bottom" class="sms-accordion-list sms-accordion-list-bottom card-body p-0">
+            <div class="list-group rounded-0 border border-0">
+            </div>
+        </div>
+
+    </div>
+
+    <div class="sms-toolbox card flex-fill">
+        <div class="card-header sms-card-toolbar p-0">
+            <p class="flex-fill p-1 ps-2 m-0">Tile palette</p>
+        </div>
+        <div class="card-body p-0">
+            <div data-smsgfx-component-id="tile-set-list"
+                class="sms-tile-manager-tiles position-absolute top-0 start-0 bottom-0 end-0 p-2 overflow-scroll">
+            </div>
+        </div>
+    </div>
+
+    <div data-toolstrip="tileAdd" class="col-auto m-0 mt-2 me-2 p-0 invisible">
+        <div class="input-group input-group-sm">
+            <span class="input-group-text border border-0">&nbsp;</span>
+        </div>
+    </div>
+
+    <style data-css-scope="global">
+
+        .sms-tile-manager .sms-tile-map .sms-tile-map-properties {
+            background: linear-gradient(180deg, var(--bs-secondary-bg) 0%, rgba(33,37,41,0) 40%);
+        }
+
+
+        .sms-tile-manager .sms-tile-manager-tiles {
+            margin-top: 30px;
+        }
+
+        .sms-tile-manager .sms-palette-display .sms-palette-display-colours {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        .sms-tile-manager .sms-palette-display .sms-palette-display-colours div {
+            width: 12.5%;
+            min-height: 10px;
+        }
+
+
+        .sms-tile-manager .sms-palette-selector .sms-colours {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        .sms-tile-manager .sms-palette-selector .sms-colours div {
+            width: 12.5%;
+            min-height: 10px;
+        }
+    </style>
+
+</div>

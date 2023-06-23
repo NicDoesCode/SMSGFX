@@ -41,5 +41,14 @@ export default class TileSetFactory {
         return result;
     }
 
+    /**
+     * Generates a tile set from only the tiles used in the tile map.
+     * @param {TileMapList} tileMapList - Tile map list to interrogate.
+     * @param {TileSet} tileSet - Source tile set to generate new one from.
+     */
+    static tileSetFromTileMapList(tileMapList, tileSet) {
+
+    }
+
 
 }

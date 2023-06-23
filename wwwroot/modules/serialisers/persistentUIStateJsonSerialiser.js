@@ -26,7 +26,8 @@ export default class PersistentUIStateJsonSerialiser {
             theme: appUI.theme,
             exportGenerateTileMap: appUI.exportOptimiseTileMap,
             exportTileMapPaletteIndex: appUI.exportTileMapPaletteIndex,
-            exportTileMapVramOffset: appUI.exportTileMapVramOffset
+            exportTileMapVramOffset: appUI.exportTileMapVramOffset,
+            projectStates: appUI.projectStates
         };
         return JSON.stringify(result);
     }
@@ -86,7 +87,12 @@ export default class PersistentUIStateJsonSerialiser {
             if (typeof deserialised.exportTileMapVramOffset === 'number') {
                 result.exportTileMapVramOffset = deserialised.exportTileMapVramOffset;
             } 
-        }
+            if (deserialised.projectStates) {
+                result.projectStates = deserialised.projectStates;
+            } else {
+                result.projectStates = {};
+            }
+      }
         return result;
     }
 
@@ -111,4 +117,5 @@ export default class PersistentUIStateJsonSerialiser {
  * @property {boolean} exportGenerateTileMap
  * @property {number} exportTileMapPaletteIndex
  * @property {number} exportTileMapVramOffset
+ * @property {Object.<string, object>} projectStates
  */

@@ -37,6 +37,7 @@ export default class PaletteJsonSerialiser {
      */
      static toSerialisable(palette) {
         return {
+            paletteId: palette.paletteId,
             title: palette.title,
             system: palette.system,
             colours: palette.getColours().map(c => { return { r: c.r, g: c.g, b: c.b } })
@@ -49,7 +50,7 @@ export default class PaletteJsonSerialiser {
      * @returns {Palette}
      */
     static fromSerialisable(paletteSerialisable) {
-        const palette = PaletteFactory.create(paletteSerialisable.title, paletteSerialisable.system);
+        const palette = PaletteFactory.create(paletteSerialisable.paletteId, paletteSerialisable.title, paletteSerialisable.system);
         paletteSerialisable.colours.forEach((jsonColour, index) => {
             palette.setColour(index, PaletteColourFactory.create(jsonColour.r, jsonColour.g, jsonColour.b));
         });
@@ -62,6 +63,7 @@ export default class PaletteJsonSerialiser {
 /**
  * @typedef PaletteSerialisable
  * @type {object}
+ * @property {string} paletteId
  * @property {string} title
  * @property {string} system
  * @property {PaletteColourSerialisable[]} colours

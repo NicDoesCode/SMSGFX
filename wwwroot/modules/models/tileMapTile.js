@@ -4,6 +4,19 @@
 export default class TileMapTile {
 
 
+    /**
+     * Gets or sets the unique ID of the tile associated with this item.
+     */
+    get tileId() {
+        return this.#tileId;
+    }
+    set tileId(value) {
+        this.#tileId = value;
+    }
+
+    /**
+     * Gets or sets the priority of the tile, the effect of this will vary on the system and the usage context.
+     */
     get priority() {
         return this.#priority;
     }
@@ -11,14 +24,21 @@ export default class TileMapTile {
         this.#priority = value;
     }
 
+    /**
+     * Gets or sets the palette index to use for the tile.
+     */
     get palette() {
         return this.#palette;
     }
     set palette(value) {
-        if (value < 0 || value > 100) throw new Error('PInvaliud palette index.');
-        this.#palette = value;
+        if (value !== null && typeof value === 'number' && value >= 0 && value <= 100) {
+            this.#palette = value;
+        } else throw new Error('Invalid palette index.');
     }
 
+    /**
+     * Gets or sets whether to flip the tile vertically?
+     */
     get verticalFlip() {
         return this.#verticalFlip;
     }
@@ -26,34 +46,23 @@ export default class TileMapTile {
         this.#verticalFlip = value;
     }
 
+    /**
+     * Gets or sets whether to flip the tile horizontally?
+     */
     get horizontalFlip() {
         return this.#horizontalFlip;
     }
-    set verticalFlip(value) {
+    set horizontalFlip(value) {
         this.#horizontalFlip = value;
     }
 
-    get tileNumber() {
-        return this.#tileNumber;
-    }
-    set tileNumber(value) {
-        this.#tileNumber = value;
-    }
 
-    get sourceTile() {
-        return this.#sourceTile;
-    }
-    set sourceTile(value) {
-        this.#sourceTile = value;
-    }
-
-
+    /** @type {string} */
+    #tileId = null;
     #priority = false;
     #palette = 0;
-    #verticalFlip = 0;
-    #horizontalFlip = 0;
-    #tileNumber = 0;
-    #sourceTile = null;
+    #verticalFlip = false;
+    #horizontalFlip = false;
 
 
     constructor() {

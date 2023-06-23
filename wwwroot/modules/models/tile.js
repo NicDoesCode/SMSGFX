@@ -1,16 +1,55 @@
+import GeneralUtil from './../util/generalUtil.js';
+
 /**
  * Single 8x8 tile.
  */
 export default class Tile {
 
 
-    /** The length of the tile data. */
+    /**
+     * Unique ID of the tile.
+     */
+    get tileId() {
+        return this.#tileId;
+    }
+    set tileId(value) {
+        if (!value || value.length === '') throw new Error('Please supply a valid ID value.');
+        this.#tileId = value;
+    }
+
+    /** 
+     * The length of the tile data. 
+     */
     get length() {
         return this.#data.length;
     }
 
 
-    #data = new Uint8ClampedArray(64);
+    /** @type {string} */
+    #tileId;
+    /** @type {Uint8ClampedArray} */
+    #data;
+
+
+    /**
+     * Creates a new instance of a tile object.
+     * @param {string?} [tileId] - Unique ID of the palette.
+     * @argument {Uint8ClampedArray?} [tileData] - Initial data to fill the tile data array with.
+     */
+    constructor(tileId, tileData) {
+        if (tileData && tileData instanceof Uint8ClampedArray && tileData.length !== 64) throw new Error('Initial tile data must be of length 64.');
+
+        if (typeof tileId !== 'undefined' && tileId !== null) {
+            this.tileId = tileId;
+        } else {
+            this.tileId = GeneralUtil.generateRandomString(12);
+        }
+        if (tileData && tileData instanceof Uint8ClampedArray) {
+            this.#data = tileData;
+        } else {
+            this.#data = new Uint8ClampedArray(64);
+        }
+    }
 
 
     /**
@@ -25,7 +64,7 @@ export default class Tile {
      * @returns {Uint8ClampedArray}
      */
     readAll() {
-        return this.#data.slice(0);
+        return this.#data.slice();
     }
 
     /**
@@ -56,14 +95,14 @@ export default class Tile {
      * Gets the palette index of a pixal at the given X and Y coordinate.
      * @param {number} x X coordinate to read from (0 to 7).
      * @param {number} y Y coordinate to read from (0 to 7).
-     * @returns {number} Palette index of the pixel at the given coordinate.
+     * @returns {number?} Palette index of the pixel at the given coordinate.
      */
     readAtCoord(x, y) {
-        if (x === null) throw new Error('X coordinate not specified.');
-        if (x < 0 || x > 8) throw new Error('X coordinate must be between 0 and 8.');
-        if (y === null) throw new Error('Y coordinate not specified.');
-        if (y < 0 || y > 8) throw new Error('Y coordinate must be between 0 and 8.');
-        return this.readAt(y * 8 + x);
+        if (x === null || y === null) return null;
+        if (x >= 0 && x < 8 && y >= 0 && y < 8) {
+            return this.readAt(y * 8 + x);
+        } 
+        return null;
     }
 
     /**
@@ -91,10 +130,7 @@ export default class Tile {
      * @returns {boolean} true if the value was updated, otherwise false.
      */
     setValueAtCoord(x, y, value) {
-        if (x === null) throw new Error('X coordinate not specified.');
-        if (x < 0 || x > 8) throw new Error('X coordinate must be between 0 and 8.');
-        if (y === null) throw new Error('Y coordinate not specified.');
-        if (y < 0 || y > 8) throw new Error('Y coordinate must be between 0 and 8.');
+        if (x === null || y === null || x < 0 || x >= 8 || y < 0 || y >= 8) return false;
         return this.setValueAt(y * 8 + x, value);
     }
 

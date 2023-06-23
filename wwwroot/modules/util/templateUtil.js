@@ -1,3 +1,5 @@
+import GeneralUtil from "./generalUtil.js";
+
 const componentRegex = /^[A-z\d_]+(\/[A-z\d_]+)*$/;
 const componentCache = document.createElement('div');
 let documentLoadAttempted = false;
@@ -19,7 +21,11 @@ export default class TemplateUtil {
         if (!componentName) throw new Error('Must supply a component name.');
         if (!componentRegex.test(componentName)) throw new Error(`Component name '${componentName}' was not valid.`);
 
-        let component = getComponent(componentName);
+        let component = getUserDefinedTemplateAsComponent(componentName, element);
+
+        if (!component) {
+            component = getComponent(componentName);
+        }
 
         if (!component) {
             ensureEmbeddedComponentsFromDocumentCached();
@@ -38,12 +44,22 @@ export default class TemplateUtil {
 
         if (component) {
             addComponentGlobalScopedCss(componentName, component);
-
-            const clonedComponent = component.cloneNode(true);
-            clonedComponent.removeAttribute('data-smsgfx-component');
-            element.after(clonedComponent);
+       
+            /** @type {HTMLElement?} */
+            let componentElement = component.cloneNode(true);
+            element.classList.forEach((className) => {
+                componentElement.classList.add(className);
+            })
+            element.removeAttribute('class');
+            element.getAttributeNames().forEach((attrName) => {
+                if (attrName !== 'data-smsgfx-component-id') {
+                    componentElement.setAttribute(attrName, element.getAttribute(attrName));
+                }
+            });
+            componentElement.removeAttribute('data-smsgfx-component');
+            element.after(componentElement);
             element.remove();
-            return clonedComponent;
+            return componentElement;
         } else {
             console.error(`Failed to load component '${componentName}'.`);
             return element;
@@ -51,6 +67,66 @@ export default class TemplateUtil {
     }
 
 
+    /**
+     * Wires up label elements to their form elements.
+     * @param {HTMLElement} rootElement - Element to scan.
+     */
+    static wireUpLabels(rootElement) {
+        rootElement.querySelectorAll('[data-labelled-by]').forEach(labelledElement => {
+            const labelledBy = labelledElement.getAttribute('data-labelled-by');
+            const labelElm = rootElement.querySelector(`label[for=${labelledBy}]`)
+            if (labelElm) {
+                const id = `smsgfx${GeneralUtil.generateRandomString(16)}`;
+                labelElm.setAttribute('for', id);
+                labelledElement.id = id;
+            }
+        });
+    }
+
+    /**
+     * Wires up label auto events on their elements.
+     * @param {HTMLElement} rootElement - Element to scan.
+     * @param {TemplateCommandAutoEventCallback} callback - Event callback.
+     */
+    static wireUpCommandAutoEvents(rootElement, callback) {
+        if (typeof callback !== 'function') return;
+
+        rootElement.querySelectorAll('[data-command][data-auto-event]').forEach((elm) => {
+            const command = elm.getAttribute('data-command');
+            const autoEvent = elm.getAttribute('data-auto-event');
+            if (autoEvent === 'click') elm.addEventListener('click', () => callback(elm, autoEvent, command));
+            if (autoEvent === 'change') elm.addEventListener('change', () => callback(elm, autoEvent, command));
+        });
+    }
+
+
+}
+
+
+/**
+ * Event callback.
+ * @callback TemplateCommandAutoEventCallback
+ * @argument {HTMLElement} sender - Element that initiated the event.
+ * @argument {string} eventType - Type of event that occurred.
+ * @argument {string} command - Associated command.
+ * @exports
+ */
+
+
+/** 
+ * @param {string} componentName
+ * @param {HTMLElement} element 
+ */
+function getUserDefinedTemplateAsComponent(componentName, element) {
+    const userDefinedTemplate = element.querySelector('template');
+    if (userDefinedTemplate) {
+        const componentInstanceId = `${componentName}/${GeneralUtil.generateRandomString(8)}`;
+        addComponentGlobalScopedCss(componentInstanceId, userDefinedTemplate);
+        const result = document.createElement(element.tagName);
+        result.innerHTML = userDefinedTemplate.innerHTML;
+        return result;
+    }
+    return null;
 }
 
 
@@ -124,19 +200,16 @@ function addComponentGlobalScopedCss(componentName, elementToScan) {
     const globalScopedCssNodes = elementToScan.querySelectorAll(`style[data-css-scope=global]`);;
     globalScopedCssNodes.forEach((/** @type {HTMLElement} */ cssNode) => {
         cssNode.remove();
-        // const alreadyLoadedCssNodes = document.head.querySelectorAll(`style${componentSelector(componentName)}`);
-        // if (alreadyLoadedCssNodes.length === 0) {
         cssNode.setAttribute('data-smsgfx-component', componentName);
         document.head.appendChild(cssNode);
-        // }
-        // elementToScan.removeChild(cssNode);
     });
 }
 
 function addComponentToCacheIfNotAlreadyThere(component) {
     const componentName = component.getAttribute('data-smsgfx-component');
     if (componentName) {
-        const foundComponent = componentCache.querySelector(componentSelector(componentName));
+        const selector = componentSelector(componentName);
+        const foundComponent = componentCache.querySelector(selector);
         if (!foundComponent) componentCache.appendChild(component);
     }
 }

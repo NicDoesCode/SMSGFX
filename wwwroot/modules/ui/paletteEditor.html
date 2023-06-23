@@ -1,38 +1,58 @@
-<div data-smsgfx-component="paletteEditor">
-    <!-- Palette editor : header -->
-    <div class="input-group input-group-sm">
-        <span class="input-group-text form-control">Palette</span>
-        <button data-command="paletteNew" class="btn btn-outline-secondary" title="Create a new palette.">
-            <i class="bi bi-plus-lg"></i>
-        </button>
-        <button data-command="paletteImport" class="btn btn-outline-secondary"
-            title="Import a palette from your assembly code.">
-            <i class="bi bi-code"></i>
-        </button>
-    </div>
-    <!-- End: Palette editor : header -->
-    <div class="sms-palette sms-smaller-font card mt-2">
-        <!-- Palette editor : palette select and title -->
-        <div class="card-header p-0">
-            <select data-command="paletteSelect" class="form-select d-none">
-            </select>
-            <div class="input-group input-group-sm">
-                <input data-command="paletteTitle" type="text" class="form-control border border-0" aria-label="Enter name"
-                    list="tbPaletteSelect">
-                <button class="btn btn-outline-secondary dropdown-toggle border border-0 border-start" type="button" data-bs-toggle="dropdown"
-                    aria-expanded="false"></button>
-                <ul data-linked-command="paletteSelect" class="sms-dropdown-menu dropdown-menu dropdown-menu-end">
-                </ul>
-            </div>
+<div data-smsgfx-component="paletteEditor" class="sms-palette-editor">
+
+    <select data-command="paletteSelect" class="form-select d-none">
+    </select>
+
+    <div class="sms-toolbox card m-0 mb-2">
+
+        <!-- Palette editor : header -->
+        <div class="card-header sms-card-toolbar p-0 d-flex">
+            <span class="flex-fill p-1 ps-2">Palette</span>
+            <button data-command="paletteNew" class="btn btn-ui btn-outline-secondary border border-start border-0"
+                title="Create a new palette.">
+                <i class="bi bi-plus-lg"></i>
+            </button>
+            <button data-command="paletteImport" class="btn btn-ui btn-outline-secondary border border-start border-0"
+                title="Import a palette from your assembly code.">
+                <i class="bi bi-code"></i>
+            </button>
+            <button class="btn btn-outline-secondary dropdown-toggle btn-ui border border-0 border-start" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false" title="Select an existing palette to edit."></button>
+            <ul data-linked-command="paletteSelect" class="sms-dropdown-menu dropdown-menu dropdown-menu-end">
+            </ul>
         </div>
-        <!-- End: Palette editor : palette select and title -->
-        <div class="card-body p-2">
+        <!-- End: Palette editor : header -->
+
+        <div data-smsgfx-id="palette-list-top" data-smsgfx-component-id="palette-list"
+            class="sms-accordion-list sms-accordion-list-top card-body p-0">
+            <template>
+                <script data-smsgfx-template-id="item-template" type="text/x-handlebars-template">
+                    <div class="list-group rounded-0 border border-0">
+                        {{#each this}}
+                        <button data-command="paletteSelect" data-palette-id="{{paletteId}}" 
+                            class="sms-accordion-item list-group-item border border-0 border-bottom text-start fw-bold">
+                            <span class="icon-expand float-end"><i class="bi bi-caret-down-fill"></i></span>
+                            <span>{{title}}</span>
+                        </button>
+                        {{/each}}
+                    </div>
+                </script>
+            </template>
+        </div>
+
+        <div class="sms-palette-properties card-body p-2 pt-0">
+            <div class="row mb-2">
+                <div class="col">
+                    <input data-command="paletteTitle" type="text" class="form-control" aria-label="Enter name"
+                        list="tbPaletteSelect" title="Change the title of the palette.">
+                </div>
+            </div>
             <select data-command="paletteSystem" class="form-select form-select-sm visually-hidden">
                 <option value="ms">Master System</option>
                 <option value="gg">Game Gear</option>
                 <option value="gb">Game Boy</option>
             </select>
-            <div data-smsgfx-id="system-select" class="row mb-2">
+            <div data-smsgfx-id="system-select" class="sms-system-select row mb-2">
                 <div class="col">
                     <ul class="nav nav-pills nav-fill">
                         <li class="nav-item">
@@ -61,11 +81,14 @@
             <!-- Palette editor : colours -->
             <div class="row">
                 <div class="col pt-0 pb-0">
-                    <div class="sms-palette-colours table-responsive table-borderless" id="tbPalette">
-                        <table class="table table-sm m-0">
-                            <tbody>
-                            </tbody>
-                        </table>
+                    <div data-smsgfx-id="palette-colours" class="sms-palette-colours d-flex flex-row flex-wrap p-0">
+                        <script data-smsgfx-template-id="palette-colour-template" type="text/x-handlebars-template">
+                            {{#each this}}
+                            <button data-colour-index="{{colourIndex}}" class="btn btn-outline-secondary text-center p-0 pb-4" style="background-color: {{hex}};">
+                                <label class="w-100 m-0 float-start">#{{colourIndex}}</label>
+                            </button>
+                            {{/each}}
+                        </script>
                     </div>
                 </div>
             </div>
@@ -74,26 +97,36 @@
                 <div class="col">
                     <div class="form-check form-switch ms-2 mt-2">
                         <input id="displayNativeColours" data-command="displayNativeColours" class="form-check-input"
-                            type="checkbox" role="switch" checked>
-                        <label class="form-check-label" for="displayNativeColours">
-                            <small>Emulate system colours</small>
+                            type="checkbox" role="switch" checked
+                            title="When enabled the tile set or tile map preview will be rendered in colours that approximate that of the target system.">
+                        <label class="form-check-label" for="displayNativeColours"
+                            title="When enabled the tile set or tile map preview will be rendered in colours that approximate that of the target system.">
+                            Emulate system colours
                         </label>
                     </div>
                 </div>
             </div>
             <div class="row mt-1 mb-0 ps-3 pe-3">
                 <div class="col p-1">
-                    <button data-command="paletteClone" class="btn btn-sm btn-outline-secondary m-0 w-100" type="button">
-                        <i class="bi bi-file-earmark-plus"></i> <small>Clone</small>
+                    <button data-command="paletteClone" class="btn btn-sm btn-outline-secondary btn-ui m-0 w-100"
+                        type="button" title="Clones / duplicates this palette.">
+                        <i class="bi bi-file-earmark-plus"></i> Clone
                     </button>
                 </div>
                 <div class="col p-1">
-                    <button data-command="paletteDelete" class="btn btn-sm btn-outline-secondary m-0 w-100" type="button">
-                        <i class="bi bi bi-trash-fill"></i> <small>Remove</small>
+                    <button data-command="paletteDelete" class="btn btn-sm btn-outline-secondary btn-ui m-0 w-100"
+                        type="button" title="Deletes this colour palette.">
+                        <i class="bi bi bi-trash-fill"></i> Remove
                     </button>
                 </div>
             </div>
         </div>
+
+        <div data-smsgfx-id="palette-list-bottom" class="sms-accordion-list sms-accordion-list-bottom card-body p-0">
+            <div class="list-group rounded-0 border border-0">
+            </div>
+        </div>
+
     </div>
 
     <!-- Palette editor context menu -->
@@ -102,54 +135,64 @@
     <!-- End: Palette editor context menu -->
 
     <style data-css-scope="global">
-        .sms-palette .sms-palette-colours td {
-            border: none;
+        .sms-palette-editor .sms-palette-properties {
+            background: linear-gradient(180deg, var(--bs-secondary-bg) 0%, rgba(33, 37, 41, 0) 40%);
         }
 
-        .sms-palette .sms-palette-colours button.sms-palette-button {
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            height: 45px;
-            border-radius: 5px;
-            border: 1px solid #6c757d;
-            padding: 0;
-            margin: 0;
-            box-sizing: border-box;
+        .sms-palette-editor .sms-system-select button:not(.active) {
+            background-color: transparent;
         }
 
-        .sms-palette .sms-palette-colours button.sms-palette-button span {
-            text-align: center;
-            background-color: rgba(0, 0, 0, 0.75);
-            color: #FFFFFF;
-            font-size: 0.75em;
-            font-weight: bold;
-            border: none;
-            box-sizing: border-box;
-            padding: 0;
-            width: 100%;
+        [data-bs-theme=dark] .sms-palette-editor .sms-system-select button:not(.active) {
+            background-color: transparent;
         }
 
-        .sms-palette .sms-palette-colours td.sms-selected button.sms-palette-button {
-            border-color: #0d6efd;
-            box-shadow: 0px 0px 0px 1px #0d6efd;
-        }
-
-        .sms-palette .sms-palette-colours td.sms-selected button.sms-palette-button span {
-            background-color: #0d6efd;
-        }
-
-        .sms-palette .sms-palette-colours td.sms-highlight button {
-            box-shadow: 0px 0px 0px 3px #AAAAAA;
-        }
-
-        [data-bs-theme=dark] .sms-palette .sms-palette-colours td.sms-highlight button {
-            box-shadow: 0px 0px 0px 3px #FFFFFF;
-        }
-
-        .sms-palette .sms-console-icon {
+        .sms-palette-editor .sms-console-icon {
             width: 60px;
             height: auto;
+        }
+
+        .sms-palette-editor .sms-palette-colours button {
+            margin: 2px;
+            width: calc(25% - 4px);
+            height: 44px;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .sms-palette-editor .sms-palette-colours button label {
+            background-color: rgba(255, 255, 255, 0.75);
+            color: #000000;
+            font-size: 0.85em;
+            padding: 1px;
+        }
+
+        [data-bs-theme=dark] .sms-palette-editor .sms-palette-colours button label {
+            background-color: rgba(0, 0, 0, 0.75);
+            color: #FFFFFF;
+        }
+
+        .sms-palette-editor .sms-palette-colours button.active {
+            border-color: var(--bs-primary);
+            border-width: 2px;
+        }
+
+        .sms-palette-editor .sms-palette-colours button.active label {
+            background-color: var(--bs-primary);
+            padding: 0;
+        }
+
+        .sms-palette-editor .sms-palette-colours button.highlighted {
+            border-color: var(--bs-dark);
+            border-width: 2px;
+        }
+
+        [data-bs-theme=dark] .sms-palette-editor .sms-palette-colours button.highlighted {
+            border-color: var(--bs-light);
+        }
+
+        .sms-palette-editor .sms-palette-colours button.highlighted label {
+            padding: 0;
         }
     </style>
 </div>

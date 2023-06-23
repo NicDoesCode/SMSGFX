@@ -1,3 +1,4 @@
+import ComponentBase from "../componentBase.js";
 import EventDispatcher from "../../components/eventDispatcher.js";
 import ColourUtil from "../../util/colourUtil.js";
 import TemplateUtil from "../../util/templateUtil.js";
@@ -8,7 +9,7 @@ const commands = {
     colourSelect: 'colourSelect'
 }
 
-export default class ColourPaletteList {
+export default class ColourPaletteListing extends ComponentBase {
 
 
     static get Commands() {
@@ -32,6 +33,7 @@ export default class ColourPaletteList {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
+        super(element);
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
     }
@@ -40,17 +42,17 @@ export default class ColourPaletteList {
     /**
      * Creates an instance of the object inside a container element.
      * @param {HTMLElement} element - Container element.
-     * @returns {Promise<ColourPaletteList>}
+     * @returns {Promise<ColourPaletteListing>}
      */
     static async loadIntoAsync(element) {
-        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('components/colourPaletteList', element);
-        return new ColourPaletteList(componentElement);
+        const componentElement = await TemplateUtil.replaceElementWithComponentAsync('components/colourPaletteListing', element);
+        return new ColourPaletteListing(componentElement);
     }
 
 
     /**
      * Sets the state of the colour picker toolbox.
-     * @param {ColourPaletteListState} state - State to set.
+     * @param {ColourPaletteListingState} state - State to set.
      */
     setState(state) {
         let dirty = false;
@@ -115,7 +117,7 @@ export default class ColourPaletteList {
 
     /**
      * Registers a handler for a command.
-     * @param {ColourPaletteListCommandCallback} callback - Callback that will receive the command.
+     * @param {ColourPaletteListingCommandCallback} callback - Callback that will receive the command.
      */
     addHandlerOnCommand(callback) {
         this.#dispatcher.on(EVENT_OnCommand, callback);
@@ -125,7 +127,7 @@ export default class ColourPaletteList {
     /**
      * @param {string} command
      * @param {import("../../util/colourUtil.js").ColourInformation} colour 
-     * @returns {ColourPaletteListCommandEventArgs}
+     * @returns {ColourPaletteListingCommandEventArgs}
      */
     #createEventArgs(command, colour) {
         return {
@@ -212,7 +214,7 @@ export default class ColourPaletteList {
 
 /**
  * Colour palette list state object.
- * @typedef {object} ColourPaletteListState
+ * @typedef {object} ColourPaletteListingState
  * @property {boolean?} enabled - Is the toolbox enabled?
  * @property {import("../../util/colourUtil.js").ColourInformation[]?} colours - Colours to display in the picker list.
  * @property {number?} coloursPerRow - Number of colours to display per row, between 1 and 256.
@@ -224,13 +226,13 @@ export default class ColourPaletteList {
 
 /**
  * Colour palette list command callback.
- * @callback ColourPaletteListCommandCallback
- * @param {ColourPaletteListCommandEventArgs} args - Arguments.
+ * @callback ColourPaletteListingCommandCallback
+ * @param {ColourPaletteListingCommandEventArgs} args - Arguments.
  * @exports
  */
 /**
  * Colour palette list on command event args.
- * @typedef {object} ColourPaletteListCommandEventArgs
+ * @typedef {object} ColourPaletteListingCommandEventArgs
  * @property {string} command - Command being issued.
  * @property {number} r - Red component.
  * @property {number} g - Green component.

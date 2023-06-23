@@ -29,15 +29,15 @@ export default class NesTileAttributeBinarySerialiser extends TileAttributeBinar
          * 
          */
 
-        const tileWidth = tileMap.tileWidth;
-        const attrWidth = tileMap.tileWidth + (tileMap.tileWidth % 2);
+        const tileWidth = tileMap.columnCount;
+        const attrWidth = tileMap.columnCount + (tileMap.columnCount % 2);
         const byteWidth = attrWidth / 2;
 
         const tileRows = Math.ceil(tileMap.tileCount / tileWidth);
         const attrRows = tileRows + (tileRows % 2);
         const byteRows = attrRows / 2;
 
-        const tiles = tileMap.getTileMapTiles();
+        const tiles = tileMap.getTiles();
 
         const attrTable = new Uint8ClampedArray(byteRows * byteWidth);
         // For each row in our virtual attribute table

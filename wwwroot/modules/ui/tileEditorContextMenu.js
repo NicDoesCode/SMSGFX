@@ -1,3 +1,4 @@
+import ComponentBase from "./componentBase.js";
 import EventDispatcher from "../components/eventDispatcher.js";
 import TemplateUtil from "../util/templateUtil.js";
 
@@ -10,7 +11,7 @@ const commands = {
     insertBefore: 'insertBefore', insertAfter: 'insertAfter'
 }
 
-export default class TileEditorContextMenu {
+export default class TileEditorContextMenu extends ComponentBase {
 
 
     static get Commands() {
@@ -27,6 +28,7 @@ export default class TileEditorContextMenu {
 
 
     constructor(element) {
+        super(element);
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 

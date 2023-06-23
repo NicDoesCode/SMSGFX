@@ -1,3 +1,4 @@
+import ComponentBase from "../componentBase.js";
 import EventDispatcher from "../../components/eventDispatcher.js";
 import TemplateUtil from "../../util/templateUtil.js";
 
@@ -8,7 +9,7 @@ const commands = {
     exportImage: 'exportImage'
 }
 
-export default class ExportToolbar {
+export default class ExportToolbar extends ComponentBase {
 
 
     static get Commands() {
@@ -28,6 +29,7 @@ export default class ExportToolbar {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
+        super(element);
         this.#element = element;
 
         this.#dispatcher = new EventDispatcher();
