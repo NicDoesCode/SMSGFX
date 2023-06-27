@@ -1,10 +1,11 @@
 body {
-    background-blend-mode: normal;
+    background-image: url(./../image/background-04-w.png);
+    /* background-blend-mode: normal; */
 }
 
 [data-bs-theme=dark] body {
-    background-image: url(./../image/background-02.png);
-    background-blend-mode: multiply;
+    background-image: url(./../image/background-04-b.png);
+    /* background-blend-mode: multiply; */
 }
 
 .sms-hidden-system {
