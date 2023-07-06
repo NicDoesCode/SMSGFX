@@ -29,6 +29,7 @@ import AboutModalDialogue from "./ui/dialogues/aboutModalDialogue.js";
 import ColourPickerDialogue from "./ui/dialogues/colourPickerDialogue.js";
 import ExportModalDialogue from "./ui/dialogues/exportModalDialogue.js";
 import ImportImageModalDialogue from "./ui/dialogues/importImageModalDialogue.js";
+import NewProjectDialogue from "./ui/dialogues/newProjectDialogue.js";
 import PaletteModalDialogue from "./ui/dialogues/paletteImportModalDialogue.js";
 import PrivacyModalDialogue from "./ui/dialogues/privacyModalDialogue.js";
 import ProjectDropdown from "./ui/dialogues/projectDropdown.js";
@@ -139,6 +140,7 @@ const themeManager = new ThemeManager();
 /** @type {ColourPickerToolbox} */ let colourPickerToolbox;
 /** @type {PaletteEditor} */ let paletteEditor;
 /** @type {TileManager} */ let tileManager;
+/** @type {NewProjectDialogue} */ let newProjectDialogue;
 /** @type {PaletteModalDialogue} */ let paletteImportDialogue;
 /** @type {TileEditor} */ let tileEditor;
 /** @type {TileEditorToolbar} */ let tileEditorToolbar;
@@ -163,6 +165,7 @@ async function initialiseComponents() {
     colourPickerToolbox = await ColourPickerToolbox.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=colour-picker-toolbox]'));
     paletteEditor = await PaletteEditor.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=palette-editor]'));
     tileManager = await TileManager.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-manager]'));
+    newProjectDialogue = await NewProjectDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=new-project-dialogue]'));
     paletteImportDialogue = await PaletteModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=palette-import-dialogue]'));
     tileEditor = await TileEditor.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-editor]'));
     tileEditorToolbar = await TileEditorToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-editor-toolbar]'));
@@ -229,6 +232,8 @@ function wireUpEventHandlers() {
     tileContextToolbar.addHandlerOnCommand(handleTileContextToolbarCommand);
 
     tileManager.addHandlerOnCommand(handleTileManagerOnCommand);
+
+    newProjectDialogue.addHandlerOnConfirm(handleNewProjectDialogueOnConfirm);
 
     paletteImportDialogue.addHandlerOnConfirm(handleImportPaletteModalDialogueOnConfirm);
 
@@ -1165,7 +1170,12 @@ function handleTileEditorOnEvent(args) {
 }
 
 
-/** @param {import('./ui/paletteImportModalDialogue').PaletteImportModalDialogueConfirmEventArgs} args */
+/** @param {import('./ui/dialogues/newProjectDialogue.js').NewProjectDialogueConfirmEventArgs} args */
+function handleNewProjectDialogueOnConfirm(args) {
+}
+
+
+/** @param {import('./ui/dialogues/paletteImportModalDialogue.js').PaletteImportModalDialogueConfirmEventArgs} args */
 function handleImportPaletteModalDialogueOnConfirm(args) {
     if (!['gg', 'ms', 'gb', 'nes'].includes(args.system)) throw new Error('System must be either "ms", "gg", "gb" or "nes".');
 
@@ -1441,9 +1451,12 @@ function welcomeScreenOnCommand(args) {
             break;
 
         case WelcomeScreen.Commands.projectNew:
-            newProject({
-                systemType: args.systemType ?? 'smsgg'
-            });
+            welcomeScreen.setState({ visible: false });
+            newProjectDialogue.show();
+
+            // newProject({
+            //     systemType: args.systemType ?? 'smsgg'
+            // });
             break;
 
         case WelcomeScreen.Commands.projectLoadById:
