@@ -33,9 +33,8 @@ export default class ProjectUtil {
      * @returns {Promise<Project>}
      */
     static async loadFromBlob(blob) {
-        const buf = await blob.arrayBuffer();
-        const data = String.fromCharCode.apply(null, new Uint8Array(buf));
-        return ProjectJsonSerialiser.deserialise(data);
+        const text = await blob.text();
+        return ProjectJsonSerialiser.deserialise(text);
     }
 
 
