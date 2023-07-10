@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Launch Chrome (HTTPS)",
+            "request": "launch",
+            "type": "chrome",
+            "url": "https://localhost:8443",
+            "webRoot": "${workspaceFolder}/wwwroot"
+        },
+        {
             "name": "Launch Firefox (HTTP)",
             "type": "firefox",
             "request": "launch",
