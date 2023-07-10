@@ -141,7 +141,7 @@ export default class TileEditor extends ComponentBase {
             this.#canvasManager.invalidateImage();
             this.#paletteList = paletteList;
             this.#nativePaletteList = PaletteListFactory.create(paletteList.getPalettes().map((p) => PaletteFactory.convertToNative(p)));
-            dirty = true;
+            dirty = true; 
         }
         // Changing tile grid
         const tileGrid = state?.tileGrid;
