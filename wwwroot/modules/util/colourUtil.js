@@ -307,10 +307,13 @@ function getNearestNESColour(r, g, b) {
 
         return {
             r: nesRGB.r, g: nesRGB.g, b: nesRGB.b,
-            diff0: rgbDiff[0].value, diff1: rgbDiff[1].value, diff2: rgbDiff[2].value
+            diff0: rgbDiff[0].value, diff1: rgbDiff[1].value, diff2: rgbDiff[2].value,
+            diff: (rgbDiff[0].value + rgbDiff[1].value + rgbDiff[2].value) / 3
         }
     }).sort((c1, c2) => {
-        return c1.diff0 > c2.diff0 || c1.diff1 > c2.diff1 || c1.diff2 > c2.diff2
+        if(c1.diff > c2.diff) return 1;
+        if(c1.diff < c2.diff) return -1;
+        return 0;
     });
 
     const closestRGB = rgbByCloseness[0];
