@@ -3990,6 +3990,9 @@ window.addEventListener('load', async () => {
 
     // Load initial projects
     const projects = state.getProjectsFromLocalStorage();
+    const project = projects.getProjectById(getUIState().lastProjectId);
+    state.setProject(project);
+
     projectToolbar.setState({
         projects: projects
     });
@@ -4026,8 +4029,6 @@ window.addEventListener('load', async () => {
     });
 
     selectTool(instanceState.tool);
-
-    displaySelectedProject();
 
     document.querySelectorAll('[data-smsgfx-command=openDocumentationViewer]').forEach((elm) => {
         elm.onclick = () => {
