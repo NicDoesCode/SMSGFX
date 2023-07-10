@@ -146,6 +146,7 @@ export default class TileEditor extends ComponentBase {
         // Changing tile grid
         const tileGrid = state?.tileGrid;
         if (tileGrid instanceof TileGridProvider || tileGrid === null) {
+            resizeCanvas(this.#tbCanvas);
             this.#canvasManager.invalidateImage();
             this.#tileGrid = tileGrid;
             dirty = true;
