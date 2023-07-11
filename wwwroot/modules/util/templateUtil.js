@@ -219,16 +219,21 @@ function componentSelector(componentName) {
     return `[data-smsgfx-component=${CSS.escape(componentName)}]`;
 }
 
+let cacheBuster;
+
 function getCacheBuster() {
-    const scriptTag = document.querySelector(`script[src*=${CSS.escape('/main.js?v=')}]`);
-    if (scriptTag) {
-        const query = scriptTag.getAttribute('src').split('?');
-        if (query.length > 1) {
-            const param = new URLSearchParams(query[1]);
-            if (param.has('v')) {
-                return `?v=${CSS.escape(param.get('v'))}`;
+    if (typeof cacheBuster === 'undefined') {
+        cacheBuster = null;
+        const scriptTag = document.querySelector(`script[src*=${CSS.escape('/main.js?v=')}]`);
+        if (scriptTag) {
+            const query = scriptTag.getAttribute('src').split('?');
+            if (query.length > 1) {
+                const param = new URLSearchParams(query[1]);
+                if (param.has('v')) {
+                    cacheBuster = `?v=${CSS.escape(param.get('v'))}`;
+                }
             }
         }
     }
-    return null;
+    return cacheBuster;
 }
