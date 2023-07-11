@@ -3,11 +3,13 @@ const CopyPlugin = require("copy-webpack-plugin");
 const path = require('path');
 const fs = require('fs');
 
+const cacheString = generateRandomString(32);
+
 module.exports = {
     mode: 'production',
     entry: './wwwroot/modules/main.js',
     output: {
-        filename: 'modules/main.js',
+        filename: `modules/main.js?v=${cacheString}`,
         path: path.resolve(__dirname, 'dist'),
         clean: true
     },
@@ -21,7 +23,7 @@ module.exports = {
                 test: /\.(png|jpg|gif|svg|ico)$/i,
                 type: 'asset',
                 generator: {
-                    filename: 'assets/[name]-[hash][ext]'
+                    filename: `assets/[name]-[hash][ext]`
                 },
                 parser: {
                     dataUrlCondition: {
@@ -60,6 +62,19 @@ module.exports = {
             ]
         })
     ]
+}
+
+/**
+ * Generates a random string.
+ * @param {number} length - Length of the string to generate.
+ */
+function generateRandomString(length) {
+    if (length < 0) throw new Error('Length must be greater than 0.');
+    const result = [];
+    for (let i = 0; i < length; i++) {
+        result.push(Math.round(Math.random() * 15).toString(16));
+    }
+    return result.join('');
 }
 
 /**
