@@ -3,11 +3,13 @@ const CopyPlugin = require("copy-webpack-plugin");
 const path = require('path');
 const fs = require('fs');
 
+const cacheString = generateRandomString(32);
+
 module.exports = {
     mode: 'production',
     entry: './wwwroot/modules/main.js',
     output: {
-        filename: `modules/main.js?v=${generateRandomString(32)}`,
+        filename: `modules/main.js?v=${cacheString}`,
         path: path.resolve(__dirname, 'dist'),
         clean: true
     },
@@ -21,7 +23,7 @@ module.exports = {
                 test: /\.(png|jpg|gif|svg|ico)$/i,
                 type: 'asset',
                 generator: {
-                    filename: 'assets/[name]-[hash][ext]'
+                    filename: `assets/[name]-[hash][ext]`
                 },
                 parser: {
                     dataUrlCondition: {

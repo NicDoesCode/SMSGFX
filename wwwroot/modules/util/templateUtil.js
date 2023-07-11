@@ -44,7 +44,7 @@ export default class TemplateUtil {
 
         if (component) {
             addComponentGlobalScopedCss(componentName, component);
-       
+
             /** @type {HTMLElement?} */
             let componentElement = component.cloneNode(true);
             element.classList.forEach((className) => {
@@ -153,7 +153,7 @@ async function ensureGlobalComponentsCachedAsync() {
         try {
 
             // Load the global file data
-            const url = `./modules/ui/ui.html`;
+            const url = `./modules/ui/ui.html${getCacheBuster() ?? ''}`;
             const resp = await fetch(url);
             if (resp.ok) {
                 const content = await resp.text();
@@ -176,7 +176,7 @@ async function ensureGlobalComponentsCachedAsync() {
 /** @param {string} componentName */
 async function attemptLoadComponentFromFileAsync(componentName) {
     try {
-        const url = `./modules/ui/${componentName}.html`;
+        const url = `./modules/ui/${componentName}.html${getCacheBuster() ?? ''}`;
         const resp = await fetch(url);
         const content = await resp.text();
 
@@ -217,4 +217,18 @@ function addComponentToCacheIfNotAlreadyThere(component) {
 /** @param {string} componentName */
 function componentSelector(componentName) {
     return `[data-smsgfx-component=${CSS.escape(componentName)}]`;
+}
+
+function getCacheBuster() {
+    const scriptTag = document.querySelector(`script[src*=${CSS.escape('/main.js?v=')}]`);
+    if (scriptTag) {
+        const query = scriptTag.getAttribute('src').split('?');
+        if (query.length > 1) {
+            const param = new URLSearchParams(query[1]);
+            if (param.has('v')) {
+                return `?v=${CSS.escape(param.get('v'))}`;
+            }
+        }
+    }
+    return null;
 }
