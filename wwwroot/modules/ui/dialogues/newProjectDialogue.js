@@ -1,7 +1,28 @@
 import ModalDialogue from "./../modalDialogue.js";
 import TemplateUtil from "../../util/templateUtil.js";
 
+
+const systems = {
+    'smsgg': 'smsgg',
+    'nes': 'nes',
+    'gb': 'gb'
+}
+
+const systemDescriptions = {
+    'smsgg': 'Sega Master System and Game Gear',
+    'nes': 'Nintendo Entertainment System',
+    'gb': 'Nintendo Game Boy'
+}
+
 const tilePresets = {
+    custom: 'custom',
+    '32x30': '32x30',
+    '32x28': '32x28',
+    '32x24': '32x24',
+    '20x18': '20x18'
+};
+
+const tilePresetDescriptions = {
     'custom': 'Custom',
     '32x30': '32x30 tiles - NES (PAL)',
     '32x28': '32x28 tiles - NES (NTSC)',
@@ -12,13 +33,17 @@ const tilePresets = {
 export default class NewProjectDialogue extends ModalDialogue {
 
 
+    static get Systems() {
+        return systems;
+    }
+
     static get TilePresets() {
         return tilePresets;
     }
 
 
     /** @type {HTMLSelectElement} */
-    #tbSystemSelect;
+    #tbSystemType;
     /** @type {HTMLInputElement} */
     #tbCreateTileMap;
     /** @type {HTMLSelectElement} */
@@ -42,7 +67,7 @@ export default class NewProjectDialogue extends ModalDialogue {
 
         TemplateUtil.wireUpLabels(this.#element);
 
-        this.#tbSystemSelect = this.#element.querySelector('[data-smsgfx-id=system-select]');
+        this.#tbSystemType = this.#element.querySelector('[data-smsgfx-id=system-type]');
         this.#tbCreateTileMap = this.#element.querySelector('[data-smsgfx-id=create-tile-map]');
         this.#tbTileMapPreset = this.#element.querySelector('[data-smsgfx-id=tile-map-preset]');
         this.#tbTileWidth = this.#element.querySelector('[data-smsgfx-id=tile-width]');
@@ -50,45 +75,28 @@ export default class NewProjectDialogue extends ModalDialogue {
 
         this.#tbCreateTileMap.checked = true;
 
+        this.#tbSystemType.querySelectorAll('option').forEach((o) => o.remove());
+        Object.keys(systems).forEach((id) => {
+            const option = document.createElement('option');
+            option.value = id;
+            option.text = systemDescriptions[id] ?? systems[id];
+            this.#tbSystemType.options.add(option);
+        });
+        this.#tbSystemType.selectedIndex = 0;
+
         this.#tbTileMapPreset.querySelectorAll('option').forEach((o) => o.remove());
         Object.keys(tilePresets).forEach((id) => {
             const option = document.createElement('option');
             option.value = id;
-            option.text = tilePresets[id];
+            option.text = tilePresetDescriptions[id] ?? tilePresets[id];
             this.#tbTileMapPreset.options.add(option);
         });
         this.#tbTileMapPreset.selectedIndex = 0;
 
-        this.#tbTileMapPreset.addEventListener('change', (ev) => {
-            const value = this.#tbTileMapPreset.value;
-            this.#tbTileWidth.disabled = value !== 'custom';
-            this.#tbTileHeight.disabled = value !== 'custom';
-            if (value !== 'custom') {
-                const dimensions = value.split('x').map((v) => parseInt(v));
-                this.#tbTileWidth.value = dimensions[0];
-                this.#tbTileHeight.value = dimensions[1];
-            }
-        });
+        this.#tbTileMapPreset.addEventListener('change', () => this.#updateTileMapPreset());
 
         this.#tbTileWidth.value = 8;
-        this.#tbTileWidth.addEventListener('change', () => {
-            const e = this.#tbTileWidth;
-            const value = this.#tbTileWidth.value;
-            if (value < parseInt())
-        });
-
         this.#tbTileHeight.value = 8;
-    }
-
-    errorCheck(elm) {
-        const value = parseInt(elm.value);
-        const inError = false;
-        if (typeof value !== 'number') inError = true;
-        if (!inError && value < parseInt(elm.getAttribute('min'))) inError = true;
-        if (!inError && value > parseInt(elm.getAttribute('max'))) inError = true;
-        if (inError) {
-            elm.classList.add('error');
-        }
     }
 
 
@@ -108,12 +116,24 @@ export default class NewProjectDialogue extends ModalDialogue {
      * @param {NewProjectDialogueState} state - State object.
      */
     setState(state) {
-        // if (typeof state?.tileSetData === 'string') {
-        //     this.#tbTileSetData.value = state.tileSetData;
-        // }
-        // if (typeof state?.replace === 'boolean' || typeof state?.replace === 'number') {
-        //     this.#tbReplaceTiles.checked = state.replace;
-        // }
+        if (typeof state?.systemType === 'string' && systems[state.systemType]) {
+            this.#tbSystemType.value = state.systemType;
+        }
+        if (typeof state?.createTileMap === 'boolean') {
+            this.#tbCreateTileMap.checked = state.createTileMap;
+        }
+        if (typeof state?.selectedtilePreset === 'string' && tilePresets[state.selectedtilePreset]) {
+            this.#tbTileMapPreset.value = state.selectedtilePreset;
+            this.#updateTileMapPreset();
+        }
+        if (typeof state?.tileWidth === 'number') {
+            this.#tbTileMapPreset.selectedIndex = 0;
+            this.#tbTileWidth.value = state.tileWidth;
+        }
+        if (typeof state?.tileHeight === 'number') {
+            this.#tbTileMapPreset.selectedIndex = 0;
+            this.#tbTileHeight.value = state.tileHeight;
+        }
     }
 
 
@@ -121,12 +141,30 @@ export default class NewProjectDialogue extends ModalDialogue {
      * @param {NewProjectDialogueConfirmCallback} callback - Callback to use.
      */
     addHandlerOnConfirm(callback) {
-        // super.addHandlerOnConfirm(() => {
-        //     callback({
-        //         tileSetData: this.#tbTileSetData.value,
-        //         replace: this.#tbReplaceTiles.checked
-        //     });
-        // });
+        super.addHandlerOnConfirm(() => {
+            const fm = this.#element.querySelector('form');
+            if (fm.checkValidity()) {
+                callback({
+                    systemType: this.#tbSystemType.value,
+                    createTileMap: this.#tbCreateTileMap.checked,
+                    tileWidth: parseInt(this.#tbTileWidth.value),
+                    tileHeight: parseInt(this.#tbTileHeight.value)
+                });
+            }
+            fm.classList.add('was-validated');
+        });
+    }
+
+
+    #updateTileMapPreset() {
+        const value = this.#tbTileMapPreset.value;
+        this.#tbTileWidth.disabled = value !== 'custom';
+        this.#tbTileHeight.disabled = value !== 'custom';
+        if (value !== 'custom' && value.includes('x')) {
+            const dimensions = value.split('x').map((v) => parseInt(v));
+            this.#tbTileWidth.value = dimensions[0];
+            this.#tbTileHeight.value = dimensions[1];
+        }
     }
 
 
@@ -136,7 +174,8 @@ export default class NewProjectDialogue extends ModalDialogue {
 /**
  * New project dialogue state object.
  * @typedef {object} NewProjectDialogueState
- * @property {string?} system - Selected system.
+ * @property {string?} title - Project title.
+ * @property {string?} systemType - Selected system.
  * @property {boolean?} createTileMap - Create a default tile map?
  * @property {string?} selectedtilePreset - The selected tile preset.
  * @property {number?} tileWidth - Number of tiles wide for tile map.
@@ -152,7 +191,10 @@ export default class NewProjectDialogue extends ModalDialogue {
 /**
  * New project dialogue confirm args.
  * @typedef {object} NewProjectDialogueConfirmEventArgs
- * @property {string} system - Selected system.
+ * @property {string} title - Project title.
+ * @property {string} systemType - Selected system.
  * @property {boolean} createTileMap - Create a default tile map?
+ * @property {number} tileWidth - Number of tiles wide for tile map.
+ * @property {number} tileHeight - Number of tiles high for tile map.
  * @exports
  */

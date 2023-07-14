@@ -1172,6 +1172,13 @@ function handleTileEditorOnEvent(args) {
 
 /** @param {import('./ui/dialogues/newProjectDialogue.js').NewProjectDialogueConfirmEventArgs} args */
 function handleNewProjectDialogueOnConfirm(args) {
+    newProject({
+        systemType: args.systemType ?? 'smsgg',
+        createTileMap: args.createTileMap,
+        tileWidth: args.tileWidth,
+        tileHeight: args.tileHeight
+    });
+    newProjectDialogue.hide();
 }
 
 
@@ -1452,11 +1459,20 @@ function welcomeScreenOnCommand(args) {
 
         case WelcomeScreen.Commands.projectNew:
             welcomeScreen.setState({ visible: false });
+            let preset = NewProjectDialogue.TilePresets.custom;
+            if (args.systemType === NewProjectDialogue.Systems.smsgg) {
+                preset = NewProjectDialogue.TilePresets["32x24"];
+            } else if (args.systemType === NewProjectDialogue.Systems.gb) {
+                preset = NewProjectDialogue.TilePresets["20x18"];
+            } else if (args.systemType === NewProjectDialogue.Systems.nes) {
+                preset = NewProjectDialogue.TilePresets["32x28"];
+            }
+            newProjectDialogue.setState({
+                systemType: args.systemType ?? NewProjectDialogue.Systems.smsgg,
+                createTileMap: true,
+                selectedtilePreset: preset
+            });
             newProjectDialogue.show();
-
-            // newProject({
-            //     systemType: args.systemType ?? 'smsgg'
-            // });
             break;
 
         case WelcomeScreen.Commands.projectLoadById:
@@ -1496,7 +1512,7 @@ function createDefaultProjectIfNoneExists() {
 
 /**
  * Creates a default project file.
- * @argument {{systemType: string?}} args
+ * @argument {{systemType: string?, createTileMap: boolean?, tileWidth: number?, tileHeight: number?}} args
  * @returns {Project}
  */
 function createEmptyProject(args) {
@@ -1508,7 +1524,8 @@ function createEmptyProject(args) {
     // Create a default tile set
     project.tileSet = TileSetFactory.create();
     project.tileSet.tileWidth = 8;
-    for (let i = 0; i < 64; i++) {
+    const numTiles = args.tileWidth * args.tileHeight;
+    for (let i = 0; i < numTiles; i++) {
         project.tileSet.addTile(TileFactory.create({ defaultColourIndex: defaultTileColourIndex }));
     }
 
@@ -1524,6 +1541,27 @@ function createEmptyProject(args) {
     } else if (project.systemType === 'nes') {
         // For Nintendo Entertainment System
         project.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('Default NES', 'nes'));
+    }
+
+    // Create the default tile map
+    if (args.createTileMap) {
+        const tileSet = project.tileSet;
+        const newTileMap = TileMapFactory.create({
+            title: 'Tile map',
+            columns: args.tileWidth,
+            rows: args.tileHeight,
+            tiles: tileSet.getTiles().map((tile) => {
+                return TileMapTileFactory.create({
+                    tileId: tile.tileId,
+                    palette: 0
+                })
+            })
+        });
+        const defaultPaletteId = project.paletteList.getPalettes()[0].paletteId;
+        for (let i = 0; i < 16; i++) {
+            newTileMap.setPalette(i, defaultPaletteId);
+        }
+        project.tileMapList.addTileMap(newTileMap);
     }
 
     return project;
@@ -3109,13 +3147,16 @@ function setProjectTitle(title) {
 
 /**
  * Imports the project from a JSON file.
- * @argument {{systemType: string?}} args
+ * @argument {{systemType: string?, createTileMap: boolean?, tileWidth: number?, tileHeight: number?}} args
  */
 function newProject(args) {
     addUndoState();
 
     const newProject = createEmptyProject({
-        systemType: args.systemType
+        systemType: args.systemType,
+        createTileMap: args.createTileMap,
+        tileWidth: args.tileWidth,
+        tileHeight: args.tileHeight
     });
     state.setProject(newProject);
     getProjectUIState().paletteIndex = 0;

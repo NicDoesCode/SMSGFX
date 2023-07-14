@@ -1,58 +1,69 @@
 <div data-smsgfx-component="dialogues/newProjectDialogue" data-smsgfx-id="modal" class="sms-dialogue modal fade"
     tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Create a new project</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
-                    title="Cancel this operation and dismisses the dialogue."></button>
-            </div>
-            <div class="modal-body p-4">
-                <p class="mb-4">Select the options that you want for creating a new project.</p>
-                <h5>System</h5>
-                <div class="mb-4">
-                    <select class="form-control" data-smsgfx-id="systemSelect">
-                        <option value="smsgg">Sega Master System and Sega Game Gear</option>
-                        <option value="gb">Nintendo Game Boy</option>
-                        <option value="nes">Nintendo Entertainment System</option>
-                    </select>
+    <form>
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create a new project</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                        title="Cancel this operation and dismisses the dialogue."></button>
                 </div>
+                <div class="modal-body p-4">
+                    <p class="mb-4">Select the options that you want for creating a new project.</p>
+                    <div class="mb-4">
+                        <label class="project-title">Title</label>
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" data-labelled-by="project-title"
+                                data-smsgfx-id="project-title" required>
+                        </div>
+                    </div>
+                    <h5>System</h5>
+                    <div class="mb-4">
+                        <select class="form-control" data-smsgfx-id="system-type">
+                        </select>
+                    </div>
 
-                <h5>Tiles</h5>
-                <div class="form-check">
-                    <input data-smsgfx-id="create-tile-map" class="form-check-input" type="checkbox"
-                        data-labelled-by="create-tile-map"
-                        title="When this option is checked the new project will be created with a blank tile map.">
-                    <label class="form-check-label" for="create-tile-map"
-                        title="When this option is checked the new project will be created with a blank tile map.">
-                        Create a default tile map
-                    </label>
-                </div>
-                <div class="mb-4">
-                    <label class="form-label">Tile map dimensions</label>
-                    <select class="form-control mb-2" data-smsgfx-id="tile-map-preset">
-                        <option value="custom">Custom</option>
-                        <option value="32x30">32x30 tiles - NES (PAL)</option>
-                        <option value="32x28">32x28 tiles - NES (NTSC)</option>
-                        <option value="32x24">32x24 tiles - Master System</option>
-                        <option value="20x18">20x18 tiles - Game Gear & Game Boy</option>
-                    </select>
-                    <div class="input-group mb-3">
-                        <label class="input-group-text" for="tile-width">Width</label>
-                        <input type="number" class="form-control" data-labelled-by="tile-width"
-                            data-smsgfx-id="tile-width" min="1" max="1000">
-                        <label class="input-group-text" for="tile-height">Height</label>
-                        <input type="number" class="form-control" data-labelled-by="tile-height"
-                            data-smsgfx-id="tile-height" min="1" max="1000">
+                    <h5>Tiles</h5>
+                    <div class="row mb-4">
+                        <div class="col col-4">
+                            <div class="form-check mb-4">
+                                <input data-smsgfx-id="create-tile-map" class="form-check-input" type="checkbox"
+                                    data-labelled-by="create-tile-map"
+                                    title="When this option is checked the new project will be created with a blank tile map.">
+                                <label class="form-check-label" for="create-tile-map"
+                                    title="When this option is checked the new project will be created with a blank tile map.">
+                                    Create a default tile map
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col col-8">
+                            <label class="form-label">Dimensions</label>
+                            <div class="input-group mb-3">
+                                <label class="input-group-text" for="tile-map-preset">Preset</label>
+                                <select class="form-control" data-smsgfx-id="tile-map-preset"
+                                    data-labelled-by="tile-map-preset">
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label for="tile-width">Width</label>
+                                <input type="number" class="form-control" data-labelled-by="tile-width"
+                                    data-smsgfx-id="tile-width" min="1" max="1000" required>
+                            </div>
+                            <div class="mb-4">
+                                <label for="tile-height">Height</label>
+                                <input type="number" class="form-control" data-labelled-by="tile-height"
+                                    data-smsgfx-id="tile-height" min="1" max="1000" required>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button data-button-type="confirm" type="button" class="btn btn-primary"
-                    title="Attempts to import the tiles and dismiss the dialogue.">Create project</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
-                    title="Cancel this operation and dismisses the dialogue.">Cancel</button>
+                <div class="modal-footer">
+                    <button data-button-type="confirm" type="button" class="btn btn-primary"
+                        title="Attempts to import the tiles and dismiss the dialogue.">Create project</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                        title="Cancel this operation and dismisses the dialogue.">Cancel</button>
+                </div>
             </div>
         </div>
-    </div>
+    </form>
 </div>
