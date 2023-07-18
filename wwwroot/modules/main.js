@@ -408,9 +408,13 @@ function createEventListeners() {
 
             if (keyEvent.code === 'KeyN') {
                 // Export
-                newProject({
-                    systemType: getProject()?.systemType ?? 'smsgg'
+                newProjectDialogue.setState({
+                    title: 'New project',
+                    systemType: getProject()?.systemType ?? NewProjectDialogue.Systems.smsgg,
+                    selectedtilePreset: NewProjectDialogue.TilePresets["8x8"],
+                    createTileMap: true
                 });
+                newProjectDialogue.show();
                 handled = true;
             } else if (keyEvent.code === 'KeyX') {
                 // Cut tile
@@ -629,7 +633,7 @@ function handleThemeManagerEvent(args) {
 }
 
 
-/** @param {import('./ui/projectToolbar').ProjectToolbarCommandEventArgs} args */
+/** @param {import('./ui/toolbars/projectToolbar').ProjectToolbarCommandEventArgs} args */
 function handleProjectToolbarOnCommand(args) {
 
     switch (args.command) {
@@ -639,9 +643,13 @@ function handleProjectToolbarOnCommand(args) {
             break;
 
         case ProjectToolbar.Commands.projectNew:
-            newProject({
-                systemType: getProject()?.systemType ?? 'smsgg'
+            newProjectDialogue.setState({
+                title: 'New project',
+                systemType: getProject()?.systemType ?? NewProjectDialogue.Systems.smsgg,
+                selectedtilePreset: NewProjectDialogue.TilePresets["8x8"],
+                createTileMap: true
             });
+            newProjectDialogue.show();
             break;
 
         case ProjectToolbar.Commands.projectLoadFromFile:
@@ -669,7 +677,7 @@ function handleProjectToolbarOnCommand(args) {
     }
 }
 
-/** @param {import('./ui/projectDropdown').ProjectDropdownCommandEventArgs} args */
+/** @param {import('./ui/dialogues/projectDropdown.js').ProjectDropdownCommandEventArgs} args */
 function handleProjectDropdownOnCommand(args) {
     const projects = state.getProjectsFromLocalStorage();
     switch (args.command) {
@@ -679,9 +687,13 @@ function handleProjectDropdownOnCommand(args) {
             break;
 
         case ProjectDropdown.Commands.projectNew:
-            newProject({
-                systemType: args.systemType ?? 'smsgg'
+            newProjectDialogue.setState({
+                title: 'New project',
+                systemType: args?.systemType ?? NewProjectDialogue.Systems.smsgg,
+                selectedtilePreset: NewProjectDialogue.TilePresets["8x8"],
+                createTileMap: true
             });
+            newProjectDialogue.show();
             projectDropdown.setState({ visible: false });
             break;
 
@@ -1460,23 +1472,11 @@ function welcomeScreenOnCommand(args) {
 
         case WelcomeScreen.Commands.projectNew:
             welcomeScreen.setState({ visible: false });
-            let systemText = '';
-            let preset = NewProjectDialogue.TilePresets.custom;
-            if (args.systemType === NewProjectDialogue.Systems.smsgg) {
-                systemText = '';
-                preset = NewProjectDialogue.TilePresets["32x24"];
-            } else if (args.systemType === NewProjectDialogue.Systems.gb) {
-                systemText = '';
-                preset = NewProjectDialogue.TilePresets["20x18"];
-            } else if (args.systemType === NewProjectDialogue.Systems.nes) {
-                systemText = '';
-                preset = NewProjectDialogue.TilePresets["32x28"];
-            }
             newProjectDialogue.setState({
-                title: `New ${systemText}project`,
-                systemType: args.systemType ?? NewProjectDialogue.Systems.smsgg,
-                createTileMap: true,
-                selectedtilePreset: preset
+                title: 'New project',
+                systemType: args?.systemType ?? NewProjectDialogue.Systems.smsgg,
+                selectedtilePreset: NewProjectDialogue.TilePresets["8x8"],
+                createTileMap: true
             });
             newProjectDialogue.show();
             break;
