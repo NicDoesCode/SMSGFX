@@ -1,6 +1,6 @@
 <div data-smsgfx-component="paletteEditor" class="sms-palette-editor">
 
-    <select data-command="paletteSelect" class="form-select d-none">
+    <select data-command="paletteSelect" class="form-select d-none" title="Select palette.">
     </select>
 
     <div class="sms-toolbox card m-0 mb-2">
@@ -47,7 +47,8 @@
                         list="tbPaletteSelect" title="Change the title of the palette.">
                 </div>
             </div>
-            <select data-command="paletteSystem" class="form-select form-select-sm visually-hidden">
+            <select data-command="paletteSystem" class="form-select form-select-sm visually-hidden"
+                title="Select a system that the palette applies to.">
                 <option value="ms">Master System</option>
                 <option value="gg">Game Gear</option>
                 <option value="gb">Game Boy</option>
@@ -84,7 +85,7 @@
                     <div data-smsgfx-id="palette-colours" class="sms-palette-colours d-flex flex-row flex-wrap p-0">
                         <script data-smsgfx-template-id="palette-colour-template" type="text/x-handlebars-template">
                             {{#each this}}
-                            <button data-colour-index="{{colourIndex}}" class="btn btn-outline-secondary text-center p-0 pb-4" style="background-color: {{hex}};">
+                            <button data-colour-index="{{colourIndex}}" class="btn btn-outline-secondary text-center p-0 pb-4" data-colour-hex="{{hex}}">
                                 <label class="w-100 m-0 float-start">#{{colourIndex}}</label>
                             </button>
                             {{/each}}

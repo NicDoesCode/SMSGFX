@@ -460,6 +460,7 @@ export default class PaletteEditor extends ComponentBase {
 
         element.querySelectorAll('button[data-colour-index]').forEach((/** @type {HTMLButtonElement} */ button) => {
             const colourIndex = parseInt(button.getAttribute('data-colour-index'));
+            button.style.backgroundColor = button.getAttribute('data-colour-hex');
             button.addEventListener('click', () => {
                 const isSelected = this.#currentColourIndex === colourIndex;
                 const args = this.#createEventArgs(isSelected ? commands.colourIndexEdit : commands.colourIndexChange);
