@@ -1531,7 +1531,7 @@ function createEmptyProject(args) {
     // Create a default tile set
     project.tileSet = TileSetFactory.create();
     project.tileSet.tileWidth = 8;
-    const numTiles = args.tileWidth * args.tileHeight;
+    const numTiles = args.createTileMap ? args.tileWidth * args.tileHeight : 64;
     for (let i = 0; i < numTiles; i++) {
         project.tileSet.addTile(TileFactory.create({ defaultColourIndex: defaultTileColourIndex }));
     }
