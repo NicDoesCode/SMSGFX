@@ -29,6 +29,7 @@ import AboutModalDialogue from "./ui/dialogues/aboutModalDialogue.js";
 import ColourPickerDialogue from "./ui/dialogues/colourPickerDialogue.js";
 import ExportModalDialogue from "./ui/dialogues/exportModalDialogue.js";
 import ImportImageModalDialogue from "./ui/dialogues/importImageModalDialogue.js";
+import NewProjectDialogue from "./ui/dialogues/newProjectDialogue.js";
 import PaletteModalDialogue from "./ui/dialogues/paletteImportModalDialogue.js";
 import PrivacyModalDialogue from "./ui/dialogues/privacyModalDialogue.js";
 import ProjectDropdown from "./ui/dialogues/projectDropdown.js";
@@ -139,6 +140,7 @@ const themeManager = new ThemeManager();
 /** @type {ColourPickerToolbox} */ let colourPickerToolbox;
 /** @type {PaletteEditor} */ let paletteEditor;
 /** @type {TileManager} */ let tileManager;
+/** @type {NewProjectDialogue} */ let newProjectDialogue;
 /** @type {PaletteModalDialogue} */ let paletteImportDialogue;
 /** @type {TileEditor} */ let tileEditor;
 /** @type {TileEditorToolbar} */ let tileEditorToolbar;
@@ -163,6 +165,7 @@ async function initialiseComponents() {
     colourPickerToolbox = await ColourPickerToolbox.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=colour-picker-toolbox]'));
     paletteEditor = await PaletteEditor.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=palette-editor]'));
     tileManager = await TileManager.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-manager]'));
+    newProjectDialogue = await NewProjectDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=new-project-dialogue]'));
     paletteImportDialogue = await PaletteModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=palette-import-dialogue]'));
     tileEditor = await TileEditor.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-editor]'));
     tileEditorToolbar = await TileEditorToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-editor-toolbar]'));
@@ -229,6 +232,8 @@ function wireUpEventHandlers() {
     tileContextToolbar.addHandlerOnCommand(handleTileContextToolbarCommand);
 
     tileManager.addHandlerOnCommand(handleTileManagerOnCommand);
+
+    newProjectDialogue.addHandlerOnConfirm(handleNewProjectDialogueOnConfirm);
 
     paletteImportDialogue.addHandlerOnConfirm(handleImportPaletteModalDialogueOnConfirm);
 
@@ -403,9 +408,13 @@ function createEventListeners() {
 
             if (keyEvent.code === 'KeyN') {
                 // Export
-                newProject({
-                    systemType: getProject()?.systemType ?? 'smsgg'
+                newProjectDialogue.setState({
+                    title: 'New project',
+                    systemType: getProject()?.systemType ?? NewProjectDialogue.Systems.smsgg,
+                    selectedtilePreset: NewProjectDialogue.TilePresets["8x8"],
+                    createTileMap: true
                 });
+                newProjectDialogue.show();
                 handled = true;
             } else if (keyEvent.code === 'KeyX') {
                 // Cut tile
@@ -624,7 +633,7 @@ function handleThemeManagerEvent(args) {
 }
 
 
-/** @param {import('./ui/projectToolbar').ProjectToolbarCommandEventArgs} args */
+/** @param {import('./ui/toolbars/projectToolbar').ProjectToolbarCommandEventArgs} args */
 function handleProjectToolbarOnCommand(args) {
 
     switch (args.command) {
@@ -634,9 +643,13 @@ function handleProjectToolbarOnCommand(args) {
             break;
 
         case ProjectToolbar.Commands.projectNew:
-            newProject({
-                systemType: getProject()?.systemType ?? 'smsgg'
+            newProjectDialogue.setState({
+                title: 'New project',
+                systemType: getProject()?.systemType ?? NewProjectDialogue.Systems.smsgg,
+                selectedtilePreset: NewProjectDialogue.TilePresets["8x8"],
+                createTileMap: true
             });
+            newProjectDialogue.show();
             break;
 
         case ProjectToolbar.Commands.projectLoadFromFile:
@@ -664,7 +677,7 @@ function handleProjectToolbarOnCommand(args) {
     }
 }
 
-/** @param {import('./ui/projectDropdown').ProjectDropdownCommandEventArgs} args */
+/** @param {import('./ui/dialogues/projectDropdown.js').ProjectDropdownCommandEventArgs} args */
 function handleProjectDropdownOnCommand(args) {
     const projects = state.getProjectsFromLocalStorage();
     switch (args.command) {
@@ -674,9 +687,13 @@ function handleProjectDropdownOnCommand(args) {
             break;
 
         case ProjectDropdown.Commands.projectNew:
-            newProject({
-                systemType: args.systemType ?? 'smsgg'
+            newProjectDialogue.setState({
+                title: 'New project',
+                systemType: args?.systemType ?? NewProjectDialogue.Systems.smsgg,
+                selectedtilePreset: NewProjectDialogue.TilePresets["8x8"],
+                createTileMap: true
             });
+            newProjectDialogue.show();
             projectDropdown.setState({ visible: false });
             break;
 
@@ -1165,7 +1182,20 @@ function handleTileEditorOnEvent(args) {
 }
 
 
-/** @param {import('./ui/paletteImportModalDialogue').PaletteImportModalDialogueConfirmEventArgs} args */
+/** @param {import('./ui/dialogues/newProjectDialogue.js').NewProjectDialogueConfirmEventArgs} args */
+function handleNewProjectDialogueOnConfirm(args) {
+    newProject({
+        title: args.title,
+        systemType: args.systemType ?? 'smsgg',
+        createTileMap: args.createTileMap,
+        tileWidth: args.tileWidth,
+        tileHeight: args.tileHeight
+    });
+    newProjectDialogue.hide();
+}
+
+
+/** @param {import('./ui/dialogues/paletteImportModalDialogue.js').PaletteImportModalDialogueConfirmEventArgs} args */
 function handleImportPaletteModalDialogueOnConfirm(args) {
     if (!['gg', 'ms', 'gb', 'nes'].includes(args.system)) throw new Error('System must be either "ms", "gg", "gb" or "nes".');
 
@@ -1441,9 +1471,14 @@ function welcomeScreenOnCommand(args) {
             break;
 
         case WelcomeScreen.Commands.projectNew:
-            newProject({
-                systemType: args.systemType ?? 'smsgg'
+            welcomeScreen.setState({ visible: false });
+            newProjectDialogue.setState({
+                title: 'New project',
+                systemType: args?.systemType ?? NewProjectDialogue.Systems.smsgg,
+                selectedtilePreset: NewProjectDialogue.TilePresets["8x8"],
+                createTileMap: true
             });
+            newProjectDialogue.show();
             break;
 
         case WelcomeScreen.Commands.projectLoadById:
@@ -1483,19 +1518,21 @@ function createDefaultProjectIfNoneExists() {
 
 /**
  * Creates a default project file.
- * @argument {{systemType: string?}} args
+ * @argument {{title: string?, systemType: string?, createTileMap: boolean?, tileWidth: number?, tileHeight: number?}} args
  * @returns {Project}
  */
 function createEmptyProject(args) {
 
+    const title = args?.title ?? 'New project';
     const systemType = args?.systemType ?? 'smsgg';
     const defaultTileColourIndex = systemType === 'smsgg' ? 15 : 3;
-    const project = ProjectFactory.create({ title: 'New project', systemType: systemType });
+    const project = ProjectFactory.create({ title: title, systemType: systemType });
 
     // Create a default tile set
     project.tileSet = TileSetFactory.create();
     project.tileSet.tileWidth = 8;
-    for (let i = 0; i < 64; i++) {
+    const numTiles = args.createTileMap ? args.tileWidth * args.tileHeight : 64;
+    for (let i = 0; i < numTiles; i++) {
         project.tileSet.addTile(TileFactory.create({ defaultColourIndex: defaultTileColourIndex }));
     }
 
@@ -1511,6 +1548,27 @@ function createEmptyProject(args) {
     } else if (project.systemType === 'nes') {
         // For Nintendo Entertainment System
         project.paletteList.addPalette(PaletteFactory.createNewStandardColourPalette('Default NES', 'nes'));
+    }
+
+    // Create the default tile map
+    if (args.createTileMap) {
+        const tileSet = project.tileSet;
+        const newTileMap = TileMapFactory.create({
+            title: 'Tile map',
+            columns: args.tileWidth,
+            rows: args.tileHeight,
+            tiles: tileSet.getTiles().map((tile) => {
+                return TileMapTileFactory.create({
+                    tileId: tile.tileId,
+                    palette: 0
+                })
+            })
+        });
+        const defaultPaletteId = project.paletteList.getPalettes()[0].paletteId;
+        for (let i = 0; i < 16; i++) {
+            newTileMap.setPalette(i, defaultPaletteId);
+        }
+        project.tileMapList.addTileMap(newTileMap);
     }
 
     return project;
@@ -3096,13 +3154,17 @@ function setProjectTitle(title) {
 
 /**
  * Imports the project from a JSON file.
- * @argument {{systemType: string?}} args
+ * @argument {{title: string?, systemType: string?, createTileMap: boolean?, tileWidth: number?, tileHeight: number?}} args
  */
 function newProject(args) {
     addUndoState();
 
     const newProject = createEmptyProject({
-        systemType: args.systemType
+        title: args.title,
+        systemType: args.systemType,
+        createTileMap: args.createTileMap,
+        tileWidth: args.tileWidth,
+        tileHeight: args.tileHeight
     });
     state.setProject(newProject);
     getProjectUIState().paletteIndex = 0;
