@@ -16,18 +16,30 @@ const systemDescriptions = {
 
 const tilePresets = {
     custom: 'custom',
-    '32x30': '32x30',
-    '32x28': '32x28',
+    '2x2': '2x2',
+    '4x4': '4x4',
+    '8x8': '8x8',
+    '8x16': '8x16',
+    '16x8': '16x8',
+    '16x16': '16x16',
+    '20x18': '20x18',
     '32x24': '32x24',
-    '20x18': '20x18'
+    '32x28': '32x28',
+    '32x30': '32x30'
 };
 
 const tilePresetDescriptions = {
     'custom': 'Custom',
-    '32x30': '32x30 tiles - NES (PAL)',
-    '32x28': '32x28 tiles - NES (NTSC)',
-    '32x24': '32x24 tiles - Master System',
-    '20x18': '20x18 tiles - Game Gear & Game Boy'
+    '2x2': '2x2 tiles',
+    '4x4': '4x4 tiles',
+    '8x8': '8x8 tiles',
+    '8x16': '8x16 tiles - tall',
+    '16x8': '16x8 tiles - wide',
+    '16x16': '16x16 tiles',
+    '20x18': '20x18 tiles - Game Gear & Game Boy screen size',
+    '32x24': '32x24 tiles - Master System screen size',
+    '32x28': '32x28 tiles - NES screen size (NTSC)',
+    '32x30': '32x30 tiles - NES screen size (PAL)'
 };
 
 export default class NewProjectDialogue extends ModalDialogue {
@@ -42,6 +54,8 @@ export default class NewProjectDialogue extends ModalDialogue {
     }
 
 
+    /** @type {HTMLSelectElement} */
+    #tbTitle;
     /** @type {HTMLSelectElement} */
     #tbSystemType;
     /** @type {HTMLInputElement} */
@@ -67,6 +81,7 @@ export default class NewProjectDialogue extends ModalDialogue {
 
         TemplateUtil.wireUpLabels(this.#element);
 
+        this.#tbTitle = this.#element.querySelector('[data-smsgfx-id=project-title]');
         this.#tbSystemType = this.#element.querySelector('[data-smsgfx-id=system-type]');
         this.#tbCreateTileMap = this.#element.querySelector('[data-smsgfx-id=create-tile-map]');
         this.#tbTileMapPreset = this.#element.querySelector('[data-smsgfx-id=tile-map-preset]');
@@ -116,6 +131,11 @@ export default class NewProjectDialogue extends ModalDialogue {
      * @param {NewProjectDialogueState} state - State object.
      */
     setState(state) {
+        if (typeof state?.title === 'string') {
+            this.#tbTitle.value = state?.title;
+        } else if (state?.title === null) {
+            this.#tbTitle.value = '';
+        }
         if (typeof state?.systemType === 'string' && systems[state.systemType]) {
             this.#tbSystemType.value = state.systemType;
         }
@@ -145,6 +165,7 @@ export default class NewProjectDialogue extends ModalDialogue {
             const fm = this.#element.querySelector('form');
             if (fm.checkValidity()) {
                 callback({
+                    title: this.#tbTitle.value,
                     systemType: this.#tbSystemType.value,
                     createTileMap: this.#tbCreateTileMap.checked,
                     tileWidth: parseInt(this.#tbTileWidth.value),

@@ -1173,6 +1173,7 @@ function handleTileEditorOnEvent(args) {
 /** @param {import('./ui/dialogues/newProjectDialogue.js').NewProjectDialogueConfirmEventArgs} args */
 function handleNewProjectDialogueOnConfirm(args) {
     newProject({
+        title: args.title,
         systemType: args.systemType ?? 'smsgg',
         createTileMap: args.createTileMap,
         tileWidth: args.tileWidth,
@@ -1459,15 +1460,20 @@ function welcomeScreenOnCommand(args) {
 
         case WelcomeScreen.Commands.projectNew:
             welcomeScreen.setState({ visible: false });
+            let systemText = '';
             let preset = NewProjectDialogue.TilePresets.custom;
             if (args.systemType === NewProjectDialogue.Systems.smsgg) {
+                systemText = '';
                 preset = NewProjectDialogue.TilePresets["32x24"];
             } else if (args.systemType === NewProjectDialogue.Systems.gb) {
+                systemText = '';
                 preset = NewProjectDialogue.TilePresets["20x18"];
             } else if (args.systemType === NewProjectDialogue.Systems.nes) {
+                systemText = '';
                 preset = NewProjectDialogue.TilePresets["32x28"];
             }
             newProjectDialogue.setState({
+                title: `New ${systemText}project`,
                 systemType: args.systemType ?? NewProjectDialogue.Systems.smsgg,
                 createTileMap: true,
                 selectedtilePreset: preset
@@ -1512,14 +1518,15 @@ function createDefaultProjectIfNoneExists() {
 
 /**
  * Creates a default project file.
- * @argument {{systemType: string?, createTileMap: boolean?, tileWidth: number?, tileHeight: number?}} args
+ * @argument {{title: string?, systemType: string?, createTileMap: boolean?, tileWidth: number?, tileHeight: number?}} args
  * @returns {Project}
  */
 function createEmptyProject(args) {
 
+    const title = args?.title ?? 'New project';
     const systemType = args?.systemType ?? 'smsgg';
     const defaultTileColourIndex = systemType === 'smsgg' ? 15 : 3;
-    const project = ProjectFactory.create({ title: 'New project', systemType: systemType });
+    const project = ProjectFactory.create({ title: title, systemType: systemType });
 
     // Create a default tile set
     project.tileSet = TileSetFactory.create();
@@ -3147,12 +3154,13 @@ function setProjectTitle(title) {
 
 /**
  * Imports the project from a JSON file.
- * @argument {{systemType: string?, createTileMap: boolean?, tileWidth: number?, tileHeight: number?}} args
+ * @argument {{title: string?, systemType: string?, createTileMap: boolean?, tileWidth: number?, tileHeight: number?}} args
  */
 function newProject(args) {
     addUndoState();
 
     const newProject = createEmptyProject({
+        title: args.title,
         systemType: args.systemType,
         createTileMap: args.createTileMap,
         tileWidth: args.tileWidth,
