@@ -4030,6 +4030,26 @@ function getTileEditorHighlightMode() {
     }
 }
 
+function observeAndAdjustUISizes() {
+
+    const elmPaletteEditor = document.querySelector('[data-smsgfx-id=palette-editor-palette-editor]');
+    const elmColourPickerToolbox = document.querySelector('[data-smsgfx-id=palette-editor-colour-picker-toolbox]');
+    const documentResizeObserver = new ResizeObserver(() => {
+        if (elmPaletteEditor && elmColourPickerToolbox) {
+            let containerRect = elmPaletteEditor.parentElement.getBoundingClientRect();
+            const pickerRect = elmColourPickerToolbox.getBoundingClientRect();
+            if (pickerRect.top + pickerRect.height > window.innerHeight) {
+                elmPaletteEditor.style.height = '100px';
+                containerRect = elmPaletteEditor.parentElement.getBoundingClientRect();
+                elmPaletteEditor.style.height = `${(containerRect.height - pickerRect.height - 40)}px`;
+            }
+        }
+    });
+    documentResizeObserver.observe(document.body);
+    documentResizeObserver.observe(elmColourPickerToolbox);
+
+}
+
 
 /* ****************************************************************************************************
    Initilisation
@@ -4124,6 +4144,8 @@ window.addEventListener('load', async () => {
         paletteIndex: getUIState().exportTileMapPaletteIndex,
         vramOffset: getUIState().exportTileMapVramOffset
     });
+
+    observeAndAdjustUISizes();
 
     setTimeout(() => themeManager.setTheme(getUIState().theme), 50);
 });

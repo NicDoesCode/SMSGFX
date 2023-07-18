@@ -1,38 +1,39 @@
-<div data-smsgfx-component="paletteEditor" class="sms-palette-editor">
+<div data-smsgfx-component="paletteEditor"
+    class="sms-palette-editor sms-toolbox card m-0 mb-2 d-flex flex-column">
 
-    <select data-command="paletteSelect" class="form-select d-none" title="Select palette.">
-    </select>
+    <!-- Palette editor : header -->
+    <div class="card-header sms-card-toolbar p-0 d-flex">
+        <select data-command="paletteSelect" class="form-select d-none" title="Select palette.">
+        </select>
+        <span class="flex-fill p-1 ps-2">Palette</span>
+        <button data-command="paletteNew" class="btn btn-ui btn-outline-secondary border border-start border-0"
+            title="Create a new palette.">
+            <i class="bi bi-plus-lg"></i>
+        </button>
+        <button data-command="paletteImport" class="btn btn-ui btn-outline-secondary border border-start border-0"
+            title="Import a palette from your assembly code.">
+            <i class="bi bi-code"></i>
+        </button>
+        <button class="btn btn-outline-secondary dropdown-toggle btn-ui border border-0 border-start" type="button"
+            data-bs-toggle="dropdown" aria-expanded="false" title="Select an existing palette to edit."></button>
+        <ul data-linked-command="paletteSelect" class="sms-dropdown-menu dropdown-menu dropdown-menu-end">
+        </ul>
+    </div>
+    <!-- End: Palette editor : header -->
 
-    <div class="sms-toolbox card m-0 mb-2">
-
-        <!-- Palette editor : header -->
-        <div class="card-header sms-card-toolbar p-0 d-flex">
-            <span class="flex-fill p-1 ps-2">Palette</span>
-            <button data-command="paletteNew" class="btn btn-ui btn-outline-secondary border border-start border-0"
-                title="Create a new palette.">
-                <i class="bi bi-plus-lg"></i>
-            </button>
-            <button data-command="paletteImport" class="btn btn-ui btn-outline-secondary border border-start border-0"
-                title="Import a palette from your assembly code.">
-                <i class="bi bi-code"></i>
-            </button>
-            <button class="btn btn-outline-secondary dropdown-toggle btn-ui border border-0 border-start" type="button"
-                data-bs-toggle="dropdown" aria-expanded="false" title="Select an existing palette to edit."></button>
-            <ul data-linked-command="paletteSelect" class="sms-dropdown-menu dropdown-menu dropdown-menu-end">
-            </ul>
-        </div>
-        <!-- End: Palette editor : header -->
+    <div class="overflow-hidden overflow-y-scroll">
 
         <div data-smsgfx-id="palette-list-top" data-smsgfx-component-id="palette-list"
-            class="sms-accordion-list sms-accordion-list-top card-body p-0">
+            class="sms-accordion-list sms-accordion-list-top sms-palette-select-list card-body p-0">
             <template>
                 <script data-smsgfx-template-id="item-template" type="text/x-handlebars-template">
                     <div class="list-group rounded-0 border border-0">
                         {{#each this}}
                         <button data-command="paletteSelect" data-palette-id="{{paletteId}}" 
-                            class="sms-accordion-item list-group-item border border-0 border-bottom text-start fw-bold">
+                            class="sms-accordion-item list-group-item border border-0 border-bottom text-start fw-bold"
+                            title="{{title}}">
                             <span class="icon-expand float-end"><i class="bi bi-caret-down-fill"></i></span>
-                            <span>{{title}}</span>
+                            <span class="sms-palette-title">{{title}}</span>
                         </button>
                         {{/each}}
                     </div>
@@ -123,7 +124,8 @@
             </div>
         </div>
 
-        <div data-smsgfx-id="palette-list-bottom" class="sms-accordion-list sms-accordion-list-bottom card-body p-0">
+        <div data-smsgfx-id="palette-list-bottom"
+            class="sms-accordion-list sms-accordion-list-bottom sms-palette-select-list card-body p-0">
             <div class="list-group rounded-0 border border-0">
             </div>
         </div>
@@ -136,6 +138,17 @@
     <!-- End: Palette editor context menu -->
 
     <style data-css-scope="global">
+        .sms-palette-editor .sms-palette-select-list button {
+            padding-bottom: 4px;
+        }
+
+        .sms-palette-editor .sms-palette-select-list button span.sms-palette-title {
+            display: inline-block;
+            white-space: nowrap;
+            inline-size: calc(100% - 20px);
+            overflow: hidden;
+        }
+
         .sms-palette-editor .sms-palette-properties {
             background: linear-gradient(180deg, var(--bs-secondary-bg) 0%, rgba(33, 37, 41, 0) 40%);
         }
