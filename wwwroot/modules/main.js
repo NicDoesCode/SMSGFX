@@ -1816,6 +1816,8 @@ function refreshProjectUI() {
         systemType: getProject().systemType
     });
 
+    resizeUI();
+
 }
 
 function formatForProject() {
@@ -4031,22 +4033,45 @@ function getTileEditorHighlightMode() {
 }
 
 function observeAndAdjustUISizes() {
-
-    const elmPaletteEditor = document.querySelector('[data-smsgfx-id=palette-editor-palette-editor]');
-    const elmColourPickerToolbox = document.querySelector('[data-smsgfx-id=palette-editor-colour-picker-toolbox]');
     const documentResizeObserver = new ResizeObserver(() => {
-        if (elmPaletteEditor && elmColourPickerToolbox) {
-            let containerRect = elmPaletteEditor.parentElement.getBoundingClientRect();
-            const pickerRect = elmColourPickerToolbox.getBoundingClientRect();
-            if (pickerRect.top + pickerRect.height > window.innerHeight) {
-                elmPaletteEditor.style.height = '100px';
-                containerRect = elmPaletteEditor.parentElement.getBoundingClientRect();
-                elmPaletteEditor.style.height = `${(containerRect.height - pickerRect.height - 40)}px`;
-            }
-        }
+        resizeUI();
     });
     documentResizeObserver.observe(document.body);
-    documentResizeObserver.observe(elmColourPickerToolbox);
+    document.querySelectorAll('[data-smsgfx-id=palette-editor-colour-picker-toolbox]').forEach((elm) => {
+        documentResizeObserver.observe(elm);
+    });
+}
+
+function resizeUI() {
+
+    const elmLeftToolbox = document.querySelector('[data-smsgfx-id=left-toolbox]');
+    if (elmLeftToolbox) {
+
+        const elmPaletteEditor = elmLeftToolbox.querySelector('[data-smsgfx-id=palette-editor-palette-editor]');
+        const elmColourPickerToolbox = elmLeftToolbox.querySelector('[data-smsgfx-id=palette-editor-colour-picker-toolbox]');
+        if (elmPaletteEditor && elmColourPickerToolbox) {
+
+            elmPaletteEditor.style.height = null;
+            window.requestAnimationFrame(() => {
+
+                const leftToolboxRect = elmLeftToolbox.getBoundingClientRect();
+                const bottomCoord = leftToolboxRect.top + leftToolboxRect.height;
+                const viewportHeight = window.innerHeight;
+
+                if (bottomCoord > viewportHeight) {
+                    // Left toolbar is taller than viewport
+                    const pickerRect = elmColourPickerToolbox.getBoundingClientRect();
+                    const newHeight = viewportHeight - leftToolboxRect.top - pickerRect.height - 35;
+                    elmPaletteEditor.style.height = `${newHeight}px`;
+                }
+
+
+            });
+
+        }
+
+
+    }
 
 }
 
