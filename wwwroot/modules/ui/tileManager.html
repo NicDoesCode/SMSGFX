@@ -18,20 +18,20 @@
         <div class="overflow-hidden overflow-y-scroll">
 
             <div data-smsgfx-id="tile-map-list-top" data-smsgfx-component-id="tile-map-listing"
-                class="sms-accordion-list sms-accordion-list-top card-body p-0">
+                class="sms-accordion-list sms-accordion-list-top sms-tile-map-select-list card-body p-0">
                 <template>
                     <script data-smsgfx-template-id="item-template" type="text/x-handlebars-template">
                     <div class="list-group rounded-0 border border-0">
                         <button data-command="tileSetSelect"
                             class="sms-accordion-item list-group-item border border-0 border-bottom text-start fw-bold">
                             <span class="icon-expand float-end"><i class="bi bi-caret-down-fill"></i></span>
-                            <span>Tile set</span>
+                            <span class="sms-tile-map-title">Tile set</span>
                         </button>
                         {{#each this}}
                         <button data-command="tileMapSelect" data-tile-map-id="{{tileMapId}}" 
                             class="sms-accordion-item list-group-item border border-0 border-bottom text-start fw-bold">
                             <span class="icon-expand float-end"><i class="bi bi-caret-down-fill"></i></span>
-                            <span>{{title}}</span>
+                            <span class="sms-tile-map-title">{{title}}</span>
                         </button>
                         {{/each}}
                     </div>
@@ -144,7 +144,8 @@
 
         </div>
 
-        <div data-smsgfx-id="tile-map-list-bottom" class="sms-accordion-list sms-accordion-list-bottom card-body p-0">
+        <div data-smsgfx-id="tile-map-list-bottom" 
+            class="sms-accordion-list sms-accordion-list-bottom sms-tile-map-select-list card-body p-0">
             <div class="list-group rounded-0 border border-0">
             </div>
         </div>
@@ -169,6 +170,17 @@
     </div>
 
     <style data-css-scope="global">
+        .sms-tile-manager .sms-tile-map-select-list button {
+            padding-bottom: 4px;
+        }
+
+        .sms-tile-manager .sms-tile-map-select-list button span.sms-tile-map-title {
+            display: inline-block;
+            white-space: nowrap;
+            inline-size: calc(100% - 20px);
+            overflow: hidden;
+        }
+
         .sms-tile-manager .sms-tile-map .sms-tile-map-properties {
             background: linear-gradient(180deg, var(--bs-secondary-bg) 0%, rgba(33, 37, 41, 0) 40%);
         }
