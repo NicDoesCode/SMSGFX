@@ -4043,33 +4043,65 @@ function observeAndAdjustUISizes() {
 }
 
 function resizeUI() {
+    resizeLeftToolbox();
+    resizeRightToolbox();
+}
 
-    const elmLeftToolbox = document.querySelector('[data-smsgfx-id=left-toolbox]');
-    if (elmLeftToolbox) {
+function resizeLeftToolbox() {
+    const elmToolbox = document.querySelector('[data-smsgfx-id=left-toolbox]');
+    if (elmToolbox) {
 
-        const elmPaletteEditor = elmLeftToolbox.querySelector('[data-smsgfx-id=palette-editor-palette-editor]');
-        const elmColourPickerToolbox = elmLeftToolbox.querySelector('[data-smsgfx-id=palette-editor-colour-picker-toolbox]');
+        const elmPaletteEditor = elmToolbox.querySelector('[data-smsgfx-id=palette-editor-palette-editor]');
+        const elmColourPickerToolbox = elmToolbox.querySelector('[data-smsgfx-id=palette-editor-colour-picker-toolbox]');
         if (elmPaletteEditor && elmColourPickerToolbox) {
 
             elmPaletteEditor.style.height = null;
             window.requestAnimationFrame(() => {
 
-                const leftToolboxRect = elmLeftToolbox.getBoundingClientRect();
-                const bottomCoord = leftToolboxRect.top + leftToolboxRect.height;
+                const toolboxRect = elmToolbox.getBoundingClientRect();
+                const bottomCoord = toolboxRect.top + toolboxRect.height;
                 const viewportHeight = window.innerHeight;
 
                 if (bottomCoord > viewportHeight) {
                     // Left toolbar is taller than viewport
                     const pickerRect = elmColourPickerToolbox.getBoundingClientRect();
-                    const newHeight = viewportHeight - leftToolboxRect.top - pickerRect.height - 35;
+                    const newHeight = viewportHeight - toolboxRect.top - pickerRect.height - 60;
                     elmPaletteEditor.style.height = `${newHeight}px`;
                 }
-
 
             });
 
         }
 
+    }
+}
+
+function resizeRightToolbox() {
+
+    const elmToolbox = document.querySelector('[data-smsgfx-id=right-toolbox]');
+    if (elmToolbox) {
+
+        const elmTileMapList = elmToolbox.querySelector('[data-smsgfx-id=tile-map-list]');
+        const elmTilePicker = elmToolbox.querySelector('[data-smsgfx-id=tile-palette]');
+        if (elmTileMapList && elmTilePicker) {
+
+            elmTileMapList.style.height = null;
+            window.requestAnimationFrame(() => {
+
+                const toolboxRect = elmToolbox.getBoundingClientRect();
+                const bottomCoord = toolboxRect.top + toolboxRect.height;
+                const viewportHeight = window.innerHeight;
+ 
+                if (bottomCoord > viewportHeight) {
+                    // Right toolbar is taller than viewport
+                    const pickerRect = elmTilePicker.getBoundingClientRect();
+                    const newHeight = viewportHeight - toolboxRect.top - pickerRect.height - 60;
+                    elmTileMapList.style.height = `${newHeight}px`;
+                }
+
+            });
+
+        }
 
     }
 
