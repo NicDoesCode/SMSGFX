@@ -4043,65 +4043,48 @@ function observeAndAdjustUISizes() {
 }
 
 function resizeUI() {
-    resizeLeftToolbox();
-    resizeRightToolbox();
-}
 
-function resizeLeftToolbox() {
-    const elmToolbox = document.querySelector('[data-smsgfx-id=left-toolbox]');
-    if (elmToolbox) {
-
-        const elmPaletteEditor = elmToolbox.querySelector('[data-smsgfx-id=palette-editor-palette-editor]');
-        const elmColourPickerToolbox = elmToolbox.querySelector('[data-smsgfx-id=palette-editor-colour-picker-toolbox]');
-        if (elmPaletteEditor && elmColourPickerToolbox) {
-
-            elmPaletteEditor.style.height = null;
-            window.requestAnimationFrame(() => {
-
-                const toolboxRect = elmToolbox.getBoundingClientRect();
-                const bottomCoord = toolboxRect.top + toolboxRect.height;
-                const viewportHeight = window.innerHeight;
-
-                if (bottomCoord > viewportHeight) {
-                    // Left toolbar is taller than viewport
-                    const pickerRect = elmColourPickerToolbox.getBoundingClientRect();
-                    const newHeight = viewportHeight - toolboxRect.top - pickerRect.height - 60;
-                    elmPaletteEditor.style.height = `${newHeight}px`;
-                }
-
-            });
-
-        }
-
+    const leftToolbox = document.querySelector('[data-smsgfx-id=left-toolbox]');
+    if (leftToolbox) {
+        resizeToolbox(leftToolbox, leftToolbox.querySelector('[data-smsgfx-id=palette-editor-palette-editor]'), leftToolbox.querySelector('[data-smsgfx-id=palette-editor-colour-picker-toolbox]'));
     }
+
+    const rightToolbox = document.querySelector('[data-smsgfx-id=right-toolbox]');
+    if (leftToolbox) {
+        resizeToolbox(rightToolbox, rightToolbox.querySelector('[data-smsgfx-id=tile-map-list]'), rightToolbox.querySelector('[data-smsgfx-id=tile-palette]'));
+    }
+
 }
 
-function resizeRightToolbox() {
+/**
+ * @param {HTMLElement} containerElement - Container element that has the toolstrips in it.
+ * @param {HTMLElement} listElement - The element that contains the list selectors (palette editor or tile set editor).
+ * @param {HTMLElement|HTMLElement[]?} [otherElements] - Any other elements within the container element that should be factored into resize.
+ */
+function resizeToolbox(containerElement, listElement, otherElements) {
+    if (typeof otherElements === 'undefined') otherElements = [];
+    if (otherElements != null && !Array.isArray(otherElements)) otherElements = [otherElements];
 
-    const elmToolbox = document.querySelector('[data-smsgfx-id=right-toolbox]');
-    if (elmToolbox) {
+    if (containerElement && listElement) {
 
-        const elmTileMapList = elmToolbox.querySelector('[data-smsgfx-id=tile-map-list]');
-        const elmTilePicker = elmToolbox.querySelector('[data-smsgfx-id=tile-palette]');
-        if (elmTileMapList && elmTilePicker) {
+        listElement.style.height = null;
+        window.requestAnimationFrame(() => {
 
-            elmTileMapList.style.height = null;
-            window.requestAnimationFrame(() => {
+            const containerRect = containerElement.getBoundingClientRect();
+            const containerBottomYPos = containerRect.top + containerRect.height;
+            const viewportHeight = window.innerHeight;
 
-                const toolboxRect = elmToolbox.getBoundingClientRect();
-                const bottomCoord = toolboxRect.top + toolboxRect.height;
-                const viewportHeight = window.innerHeight;
- 
-                if (bottomCoord > viewportHeight) {
-                    // Right toolbar is taller than viewport
-                    const pickerRect = elmTilePicker.getBoundingClientRect();
-                    const newHeight = viewportHeight - toolboxRect.top - pickerRect.height - 60;
-                    elmTileMapList.style.height = `${newHeight}px`;
-                }
+            // Container ends outside the viewport
+            if (containerBottomYPos > viewportHeight) {
+                let newHeight = viewportHeight - containerRect.top - 60;
+                otherElements.filter((elm) => elm.getBoundingClientRect).forEach((elm) => {
+                    const rect = elm.getBoundingClientRect();
+                    newHeight -= rect.height;
+                });
+                listElement.style.height = `${newHeight}px`;
+            }
 
-            });
-
-        }
+        });
 
     }
 
