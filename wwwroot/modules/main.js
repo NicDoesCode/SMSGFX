@@ -1816,7 +1816,7 @@ function refreshProjectUI() {
         systemType: getProject().systemType
     });
 
-    resizeUI();
+    resizeToolboxes();
 
 }
 
@@ -4032,62 +4032,57 @@ function getTileEditorHighlightMode() {
     }
 }
 
-function observeAndAdjustUISizes() {
-    const documentResizeObserver = new ResizeObserver(() => {
-        resizeUI();
+function observeResizeEvents() {
+    const documentResizeObserver = new ResizeObserver((entries) => {
+        entries.forEach((entry) => {
+            resizeToolboxes(entry.target);
+        });
     });
     documentResizeObserver.observe(document.body);
-    document.querySelectorAll('[data-smsgfx-id=palette-editor-colour-picker-toolbox]').forEach((elm) => {
+    document.querySelectorAll('[data-smsgfx-toolbox][data-smsgfx-toolbox-vertical]').forEach((elm) => {
         documentResizeObserver.observe(elm);
     });
 }
 
-function resizeUI() {
-
-    const leftToolbox = document.querySelector('[data-smsgfx-id=left-toolbox]');
-    if (leftToolbox) {
-        resizeToolbox(leftToolbox, leftToolbox.querySelector('[data-smsgfx-id=palette-editor-palette-editor]'), leftToolbox.querySelector('[data-smsgfx-id=palette-editor-colour-picker-toolbox]'));
-    }
-
-    const rightToolbox = document.querySelector('[data-smsgfx-id=right-toolbox]');
-    if (leftToolbox) {
-        resizeToolbox(rightToolbox, rightToolbox.querySelector('[data-smsgfx-id=tile-map-list]'), rightToolbox.querySelector('[data-smsgfx-id=tile-palette]'));
-    }
-
+/**
+ * Resizes all toolboxes on the page so that content doesn't overflow the page.
+ */
+function resizeToolboxes() {
+    document.querySelectorAll('[data-smsgfx-toolbox][data-smsgfx-toolbox-vertical]').forEach((toolboxElement) => {
+        resizeToolbox(toolboxElement);
+    });
 }
 
 /**
- * @param {HTMLElement} containerElement - Container element that has the toolstrips in it.
- * @param {HTMLElement} listElement - The element that contains the list selectors (palette editor or tile set editor).
- * @param {HTMLElement|HTMLElement[]?} [otherElements] - Any other elements within the container element that should be factored into resize.
+ * Resizes an individual toolbox element so that content doesn't overflow the page.
+ * @param {HTMLElement} toolboxElement - Toolbox element that has the toolstrips in it.
  */
-function resizeToolbox(containerElement, listElement, otherElements) {
-    if (typeof otherElements === 'undefined') otherElements = [];
-    if (otherElements != null && !Array.isArray(otherElements)) otherElements = [otherElements];
+function resizeToolbox(toolboxElement) {
+    if (toolboxElement) {
 
-    if (containerElement && listElement) {
+        const growElement = toolboxElement.querySelector('[data-smsgfx-toolbox-item][data-smsgfx-toolbox-grow]');
+        if (growElement) {
+            growElement.style.height = null;
+            window.requestAnimationFrame(() => {
 
-        listElement.style.height = null;
-        window.requestAnimationFrame(() => {
+                const toolboxRect = toolboxElement.getBoundingClientRect();
+                const toolboxBottomYCoord = toolboxRect.top + toolboxRect.height;
+                const viewportHeight = window.innerHeight;
 
-            const containerRect = containerElement.getBoundingClientRect();
-            const containerBottomYPos = containerRect.top + containerRect.height;
-            const viewportHeight = window.innerHeight;
+                // Toolbox ends outside the viewport
+                if (toolboxBottomYCoord > viewportHeight) {
+                    let newHeight = viewportHeight - toolboxRect.top - 60;
+                    toolboxElement.querySelectorAll('[data-smsgfx-toolbox-item]:not([data-smsgfx-toolbox-grow])').forEach((elm) => {
+                        const rect = elm.getBoundingClientRect();
+                        newHeight -= rect.height;
+                    });
+                    growElement.style.height = `${newHeight}px`;
+                }
 
-            // Container ends outside the viewport
-            if (containerBottomYPos > viewportHeight) {
-                let newHeight = viewportHeight - containerRect.top - 60;
-                otherElements.filter((elm) => elm.getBoundingClientRect).forEach((elm) => {
-                    const rect = elm.getBoundingClientRect();
-                    newHeight -= rect.height;
-                });
-                listElement.style.height = `${newHeight}px`;
-            }
-
-        });
+            });
+        }
 
     }
-
 }
 
 
@@ -4185,7 +4180,7 @@ window.addEventListener('load', async () => {
         vramOffset: getUIState().exportTileMapVramOffset
     });
 
-    observeAndAdjustUISizes();
+    observeResizeEvents();
 
     setTimeout(() => themeManager.setTheme(getUIState().theme), 50);
 });
