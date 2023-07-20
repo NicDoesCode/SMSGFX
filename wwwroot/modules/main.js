@@ -4063,23 +4063,20 @@ function resizeToolbox(toolboxElement) {
         const growElement = toolboxElement.querySelector('[data-smsgfx-toolbox-item][data-smsgfx-toolbox-grow]');
         if (growElement) {
             growElement.style.height = null;
-            window.requestAnimationFrame(() => {
 
-                const toolboxRect = toolboxElement.getBoundingClientRect();
-                const toolboxBottomYCoord = toolboxRect.top + toolboxRect.height;
-                const viewportHeight = window.innerHeight;
+            const toolboxRect = toolboxElement.getBoundingClientRect();
+            const toolboxBottomYCoord = toolboxRect.top + toolboxRect.height;
+            const viewportHeight = window.innerHeight;
 
-                // Toolbox ends outside the viewport
-                if (toolboxBottomYCoord > viewportHeight) {
-                    let newHeight = viewportHeight - toolboxRect.top - 60;
-                    toolboxElement.querySelectorAll('[data-smsgfx-toolbox-item]:not([data-smsgfx-toolbox-grow])').forEach((elm) => {
-                        const rect = elm.getBoundingClientRect();
-                        newHeight -= rect.height;
-                    });
-                    growElement.style.height = `${newHeight}px`;
-                }
-
-            });
+            // Toolbox ends outside the viewport
+            if (toolboxBottomYCoord > viewportHeight) {
+                let newHeight = viewportHeight - toolboxRect.top - 60;
+                toolboxElement.querySelectorAll('[data-smsgfx-toolbox-item]:not([data-smsgfx-toolbox-grow])').forEach((elm) => {
+                    const rect = elm.getBoundingClientRect();
+                    newHeight -= rect.height;
+                });
+                growElement.style.height = `${newHeight}px`;
+            }
         }
 
     }
