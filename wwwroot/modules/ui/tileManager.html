@@ -25,13 +25,13 @@
                         <button data-command="tileSetSelect"
                             class="sms-accordion-item list-group-item border border-0 border-bottom text-start fw-bold">
                             <span class="icon-expand float-end"><i class="bi bi-caret-down-fill"></i></span>
-                            <span class="sms-tile-map-title">Tile set</span>
+                            <span class="item-label">Tile set</span>
                         </button>
                         {{#each this}}
                         <button data-command="tileMapSelect" data-tile-map-id="{{tileMapId}}" 
                             class="sms-accordion-item list-group-item border border-0 border-bottom text-start fw-bold">
                             <span class="icon-expand float-end"><i class="bi bi-caret-down-fill"></i></span>
-                            <span class="sms-tile-map-title">{{title}}</span>
+                            <span class="item-label">{{title}}</span>
                         </button>
                         {{/each}}
                     </div>
@@ -40,7 +40,7 @@
             </div>
 
             <div class="sms-tile-map-properties card-body p-2 pt-0 visually-hidden" data-smsgfx-id="tileSetProperties">
-                <div class="row mt-1 mb-0 ps-3 pe-3">
+                <div class="row mb-0 ps-3 pe-3">
                     <div class="col p-1">
                         <p class="m-0 mb-1">
                             <small>The tile set is currently selected, these are the raw tiles that compose
@@ -65,7 +65,7 @@
                         <button data-command="tileMapNew" data-auto-event="click"
                             class="btn btn-sm btn-outline-secondary btn-ui m-0 w-100" type="button"
                             title="Creates a blank tile map.">
-                            <i class="bi bi-plus-lg"></i> Create blank tile map
+                            <i class="bi bi-plus-lg"></i> New tile map
                         </button>
                     </div>
                 </div>
@@ -142,12 +142,12 @@
                 </div>
             </div>
 
-        </div>
-
-        <div data-smsgfx-id="tile-map-list-bottom" 
-            class="sms-accordion-list sms-accordion-list-bottom sms-tile-map-select-list card-body p-0">
-            <div class="list-group rounded-0 border border-0">
+            <div data-smsgfx-id="tile-map-list-bottom"
+                class="sms-accordion-list sms-accordion-list-bottom sms-tile-map-select-list card-body p-0">
+                <div class="list-group rounded-0 border border-0">
+                </div>
             </div>
+
         </div>
 
     </div>
@@ -172,13 +172,6 @@
     <style data-css-scope="global">
         .sms-tile-manager .sms-tile-map-select-list button {
             padding-bottom: 4px;
-        }
-
-        .sms-tile-manager .sms-tile-map-select-list button span.sms-tile-map-title {
-            display: inline-block;
-            white-space: nowrap;
-            inline-size: calc(100% - 20px);
-            overflow: hidden;
         }
 
         .sms-tile-manager .sms-tile-map .sms-tile-map-properties {

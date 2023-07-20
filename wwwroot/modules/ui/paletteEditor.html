@@ -33,7 +33,7 @@
                             class="sms-accordion-item list-group-item border border-0 border-bottom text-start fw-bold"
                             title="{{title}}">
                             <span class="icon-expand float-end"><i class="bi bi-caret-down-fill"></i></span>
-                            <span class="sms-palette-title">{{title}}</span>
+                            <span class="item-label">{{title}}</span>
                         </button>
                         {{/each}}
                     </div>
@@ -138,17 +138,6 @@
     <!-- End: Palette editor context menu -->
 
     <style data-css-scope="global">
-        .sms-palette-editor .sms-palette-select-list button {
-            padding-bottom: 4px;
-        }
-
-        .sms-palette-editor .sms-palette-select-list button span.sms-palette-title {
-            display: inline-block;
-            white-space: nowrap;
-            inline-size: calc(100% - 20px);
-            overflow: hidden;
-        }
-
         .sms-palette-editor .sms-palette-properties {
             background: linear-gradient(180deg, var(--bs-secondary-bg) 0%, rgba(33, 37, 41, 0) 40%);
         }
