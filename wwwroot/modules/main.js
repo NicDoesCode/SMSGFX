@@ -1816,6 +1816,8 @@ function refreshProjectUI() {
         systemType: getProject().systemType
     });
 
+    resizeToolboxes();
+
 }
 
 function formatForProject() {
@@ -4030,6 +4032,56 @@ function getTileEditorHighlightMode() {
     }
 }
 
+function observeResizeEvents() {
+    const documentResizeObserver = new ResizeObserver((entries) => {
+        entries.forEach((entry) => {
+            resizeToolboxes(entry.target);
+        });
+    });
+    documentResizeObserver.observe(document.body);
+    document.querySelectorAll('[data-smsgfx-toolbox][data-smsgfx-toolbox-vertical]').forEach((elm) => {
+        documentResizeObserver.observe(elm);
+    });
+}
+
+/**
+ * Resizes all toolboxes on the page so that content doesn't overflow the page.
+ */
+function resizeToolboxes() {
+    document.querySelectorAll('[data-smsgfx-toolbox][data-smsgfx-toolbox-vertical]').forEach((toolboxElement) => {
+        resizeToolbox(toolboxElement);
+    });
+}
+
+/**
+ * Resizes an individual toolbox element so that content doesn't overflow the page.
+ * @param {HTMLElement} toolboxElement - Toolbox element that has the toolstrips in it.
+ */
+function resizeToolbox(toolboxElement) {
+    if (toolboxElement) {
+
+        const growElement = toolboxElement.querySelector('[data-smsgfx-toolbox-item][data-smsgfx-toolbox-grow]');
+        if (growElement) {
+            growElement.style.height = null;
+
+            const toolboxRect = toolboxElement.getBoundingClientRect();
+            const toolboxBottomYCoord = toolboxRect.top + toolboxRect.height;
+            const viewportHeight = window.innerHeight;
+
+            // Toolbox ends outside the viewport
+            if (toolboxBottomYCoord > viewportHeight) {
+                let newHeight = viewportHeight - toolboxRect.top - 60;
+                toolboxElement.querySelectorAll('[data-smsgfx-toolbox-item]:not([data-smsgfx-toolbox-grow])').forEach((elm) => {
+                    const rect = elm.getBoundingClientRect();
+                    newHeight -= rect.height;
+                });
+                growElement.style.height = `${newHeight}px`;
+            }
+        }
+
+    }
+}
+
 
 /* ****************************************************************************************************
    Initilisation
@@ -4124,6 +4176,8 @@ window.addEventListener('load', async () => {
         paletteIndex: getUIState().exportTileMapPaletteIndex,
         vramOffset: getUIState().exportTileMapVramOffset
     });
+
+    observeResizeEvents();
 
     setTimeout(() => themeManager.setTheme(getUIState().theme), 50);
 });

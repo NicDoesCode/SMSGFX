@@ -191,6 +191,7 @@ button:disabled img {
 
 .sms-accordion-list button.sms-accordion-item {
     background-color: var(--bs-light-bg);
+    padding-bottom: 4px;
 }
 
 [data-bs-theme=dark] .sms-accordion-list button.sms-accordion-item {
@@ -207,6 +208,17 @@ button:disabled img {
 [data-bs-theme=dark] .sms-accordion-list button.sms-accordion-item.active {
     color: var(--bs-light-text-emphasis);
     text-shadow: 0 0 3px #000000;
+}
+
+.sms-accordion-list button.sms-accordion-item .item-label {
+    display: inline-block;
+    white-space: nowrap;
+    inline-size: calc(100% - 20px);
+    overflow: hidden;
+}
+
+.sms-accordion-list button.sms-accordion-item.active .item-label {
+    inline-size: 100%;
 }
 
 .sms-accordion-list button.sms-accordion-item .icon-expand {
