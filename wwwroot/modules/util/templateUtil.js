@@ -99,6 +99,84 @@ export default class TemplateUtil {
         });
     }
 
+    /**
+     * Wires up tab pages.
+     * @param {HTMLElement} rootElement - Element to scan.
+     */
+    static wireUpTabPanels(rootElement) {
+        rootElement.querySelectorAll('[data-tab-panel]').forEach((panelElement) => {
+            const tabsElement = panelElement.querySelector('[data-tab-panel-tabs]');
+            const tabs = tabsElement?.querySelectorAll('[data-tab-page]') ?? null;
+            const pagesElement = panelElement.querySelector(`[data-tab-panel-pages]`);
+            const pages = pagesElement?.querySelectorAll('[data-tab-page]');
+
+            // Wire up button events
+            tabs?.forEach((tabElement) => {
+                /** @type {HTMLElement?} */
+                let pageElement = null;
+                const pageId = tabElement.getAttribute('data-tab-page');
+                if (pageId && pageId.length > 0) {
+                    pageElement = pagesElement?.querySelector(`[data-tab-page=${CSS.escape(pageId)}]`);
+                }
+                tabElement.addEventListener('click', () => {
+                    // Set tab buttons
+                    tabs?.forEach((thisButton) => thisButton.classList.remove('active'));
+                    tabElement.classList.add('active');
+                    // Set tab pages
+                    pages?.forEach((thisPage) => thisPage.classList.remove('show', 'active'));
+                    pageElement?.classList.add('show', 'active');
+                    // Update value
+                    if (tabElement.hasAttribute('data-value')) {
+                        panelElement.setAttribute('data-value', tabElement.getAttribute('data-value'));
+                    } else {
+                        panelElement.removeAttribute('data-value');
+                    }
+                });
+            });
+
+            // Select the default option
+            tabsElement?.querySelectorAll('[data-tab-page][selected]').forEach((tabElement) => {
+                tabElement.click();
+            });
+        });
+    }
+
+    /**
+     * Gets the value from a tab panel.
+     * @param {HTMLElement} panelElement - Element to scan.
+     */
+    static getTabPanelValue(panelElement) {
+        if (!panelElement || !panelElement.hasAttribute) return null;
+        if (panelElement.hasAttribute('data-value')) {
+            return panelElement.getAttribute('data-value');
+        }
+        return null;
+    }
+
+    /**
+     * Sets the value on a tab panel.
+     * @param {HTMLElement} panelElement - HTML element that contains both the tab list and .
+     * @param {string?} value - Value to set.
+     */
+    static setTabPanelValue(panelElement, value) {
+        if (!panelElement || !panelElement.hasAttribute) return;
+
+        let found = false;
+
+        const tabsElement = panelElement.querySelector('[data-tab-panel-tabs]');
+        tabsElement?.querySelectorAll(`[data-tab-page][data-value=${CSS.escape(value)}]`).forEach((tabElement) => {
+            tabElement.click();
+            found = true;
+        });
+
+        if (!found) {
+            tabsElement?.querySelectorAll(`[data-tab-page`).forEach((thisTabElement) => thisTabElement.classList.remove('active'));
+            const pagesElement = panelElement.querySelector(`[data-tab-panel-pages]`);
+            pagesElement?.querySelectorAll(`[data-tab-page]`)?.forEach((thisPageElement) => thisPageElement.classList.remove('show', 'active'));
+            panelElement.removeAttribute('data-value');
+        }
+    }
+
 
 }
 

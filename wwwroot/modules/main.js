@@ -30,6 +30,7 @@ import ColourPickerDialogue from "./ui/dialogues/colourPickerDialogue.js";
 import ExportModalDialogue from "./ui/dialogues/exportModalDialogue.js";
 import ImportImageModalDialogue from "./ui/dialogues/importImageModalDialogue.js";
 import NewProjectDialogue from "./ui/dialogues/newProjectDialogue.js";
+import NewTileMapDialogue from "./ui/dialogues/newTileMapDialogue.js";
 import PaletteModalDialogue from "./ui/dialogues/paletteImportModalDialogue.js";
 import PrivacyModalDialogue from "./ui/dialogues/privacyModalDialogue.js";
 import ProjectDropdown from "./ui/dialogues/projectDropdown.js";
@@ -56,6 +57,7 @@ import EyedropperTool from "./tools/eyedropperTool.js";
 import PaintTool from "./tools/paintTool.js";
 import PalettePaintTool from "./tools/palettePaintTool.js";
 import TileStampTool from "./tools/tileStampTool.js";
+import Tile from "./models/tile.js";
 
 
 /* ****************************************************************************************************
@@ -141,6 +143,7 @@ const themeManager = new ThemeManager();
 /** @type {PaletteEditor} */ let paletteEditor;
 /** @type {TileManager} */ let tileManager;
 /** @type {NewProjectDialogue} */ let newProjectDialogue;
+/** @type {NewTileMapDialogue} */ let newTileMapDialogue;
 /** @type {PaletteModalDialogue} */ let paletteImportDialogue;
 /** @type {TileEditor} */ let tileEditor;
 /** @type {TileEditorToolbar} */ let tileEditorToolbar;
@@ -166,6 +169,7 @@ async function initialiseComponents() {
     paletteEditor = await PaletteEditor.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=palette-editor]'));
     tileManager = await TileManager.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-manager]'));
     newProjectDialogue = await NewProjectDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=new-project-dialogue]'));
+    newTileMapDialogue = await NewTileMapDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=new-tile-map-dialogue]'));
     paletteImportDialogue = await PaletteModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=palette-import-dialogue]'));
     tileEditor = await TileEditor.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-editor]'));
     tileEditorToolbar = await TileEditorToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-editor-toolbar]'));
@@ -234,6 +238,7 @@ function wireUpEventHandlers() {
     tileManager.addHandlerOnCommand(handleTileManagerOnCommand);
 
     newProjectDialogue.addHandlerOnConfirm(handleNewProjectDialogueOnConfirm);
+    newTileMapDialogue.addHandlerOnConfirm(handleNewTileMapDialogueOnConfirm);
 
     paletteImportDialogue.addHandlerOnConfirm(handleImportPaletteModalDialogueOnConfirm);
 
@@ -1192,6 +1197,147 @@ function handleNewProjectDialogueOnConfirm(args) {
         tileHeight: args.tileHeight
     });
     newProjectDialogue.hide();
+}
+
+
+/** @param {import('./ui/dialogues/newTileMapDialogue.js').NewTileMapDialogueConfirmEventArgs} args */
+function handleNewTileMapDialogueOnConfirm(args) {
+    try {
+        addUndoState();
+
+        /** @type {TileMap} */
+        let newTileMap;
+
+        const tileSet = getTileSet();
+
+        if (args.createMode === NewTileMapDialogue.CreateModes.new) {
+            // Creating a new tile map
+
+            const totalTiles = args.tileMapWidth * args.tileMapHeight;
+
+            newTileMap = TileMapFactory.create({
+                title: args.title ?? 'New tile map',
+                columns: args.tileMapWidth,
+                rows: args.tileMapHeight
+            });
+    
+            const palette = getPalette();
+            newTileMap.getPalettes().forEach((value, index) => {
+                newTileMap.setPalette(index, palette.paletteId);
+            });
+
+            if (args.createOption === NewTileMapDialogue.TileOptions.createNew) {
+                // New tile map with new tiles
+
+                for (let i = 0; i < totalTiles; i++) {
+                    const tile = TileFactory.create({ defaultColourIndex: instanceState.colourIndex });
+                    tileSet.addTile(tile);
+                    newTileMap.setTileByIndex(i, TileMapTileFactory.create({ tileId: tile.tileId }));
+                }
+
+            } else if (args.createOption === NewTileMapDialogue.TileOptions.repeatNew) {
+                // New tile map where we create one tile and repeat it
+
+                const tile = TileFactory.create({ defaultColourIndex: instanceState.colourIndex });
+                tileSet.addTile(tile);
+                for (let i = 0; i < totalTiles; i++) {
+                    newTileMap.setTileByIndex(i, TileMapTileFactory.create({ tileId: tile.tileId }));
+                }
+
+            } else if (args.createOption === NewTileMapDialogue.TileOptions.useSelected) {
+                // New tile map where we use the currently selected tile
+
+                const tile = tileSet.getTileById(getProjectUIState().tileId);
+                for (let i = 0; i < totalTiles; i++) {
+                    newTileMap.setTileByIndex(i, TileMapTileFactory.create({ tileId: tile.tileId }));
+                }
+
+            } else if (args.createOption === NewTileMapDialogue.TileOptions.useTileSet) {
+                // New tile map where we sequentially use the tiles in the tile set
+
+                for (let i = 0; i < totalTiles; i++) {
+                    if (i < tileSet.length) {
+                        const tile = tileSet.getTile(i);
+                        newTileMap.setTileByIndex(i, TileMapTileFactory.create({ tileId: tile.tileId }));
+                    } else {
+                        const tile = TileFactory.create({ defaultColourIndex: instanceState.colourIndex });
+                        tileSet.addTile(tile);
+                        newTileMap.setTileByIndex(i, TileMapTileFactory.create({ tileId: tile.tileId }));
+                    }
+                }
+
+
+            } else {
+                throw new Error('Unknown creation option argument.');
+            }
+
+        } else if (args.createMode === NewTileMapDialogue.CreateModes.clone) {
+            // Cloning existing tile map
+
+            // Get the source tile map to clone
+            if (!args.cloneTileMapId) throw new Error('The tile map ID was invalid.');
+            const sourceTileMap = getTileMapList().getTileMapById(args.cloneTileMapId);
+            if (!sourceTileMap) throw new Error('No tile map matched the given ID.');
+
+            const totalTiles = sourceTileMap.columnCount * sourceTileMap.rowCount;
+
+            newTileMap = TileMapFactory.create({
+                title: args.title ?? `${sourceTileMap.title} (copy)`,
+                columns: sourceTileMap.columnCount,
+                rows: sourceTileMap.rowCount,
+                optimise: sourceTileMap.optimise,
+                vramOffset: sourceTileMap.vramOffset
+            });
+
+            sourceTileMap.getPalettes().forEach((value, index) => {
+                newTileMap.setPalette(index, value);
+            });
+
+            /** @type {Object<string, string>} */
+            const idMapping = {};
+            for (let i = 0; i < totalTiles; i++) {
+                /** @type {Tile} */ let tileSetTile;
+                const existingTileMapTile = sourceTileMap.getTileByIndex(i);
+                if (args.cloneTiles) {
+                    // When cloning tiles, we have to rememeber that some tiles in the tile map
+                    // may reference the same tile set tile multiple times, in these cases we only
+                    // want to create a single cloned tile, and use it whenever that same tile is referenced
+                    tileSetTile = tileSet.getTileById(idMapping[existingTileMapTile.tileId] ?? null);
+                    if (!tileSetTile) {
+                        tileSetTile = TileFactory.clone(tileSet.getTile(i));
+                        tileSet.addTile(tileSetTile);
+                        idMapping[existingTileMapTile.tileId] = tileSetTile.tileId;
+                    }
+                } else {
+                    // Not cloning tiles
+                    tileSetTile = tileSet.getTile(i);
+                }
+
+                newTileMap.setTileByIndex(i, TileMapTileFactory.create({
+                    tileId: tileSetTile.tileId,
+                    horizontalFlip: existingTileMapTile.horizontalFlip,
+                    verticalFlip: existingTileMapTile.verticalFlip,
+                    palette: existingTileMapTile.palette,
+                    priority: existingTileMapTile.priority
+                }));
+            }
+
+        } else {
+            throw new Error('Unknown creation mode.');
+        }
+
+        getTileMapList().addTileMap(newTileMap);
+
+        state.setProject(getProject());
+        state.saveToLocalStorage();
+
+        selectTileSetOrMap(newTileMap.tileMapId);
+
+        newTileMapDialogue.hide();
+
+    } catch {
+        undoManager.removeLastUndo();
+    }
 }
 
 
@@ -3458,21 +3604,15 @@ function pasteTileAt(index) {
  * Creates a new tile map.
  */
 function createNewTileMap() {
-    addUndoState();
-
-    const firstTile = getTileSet().getTiles()[0];
-    const newTileMap = TileMapFactory.create({
+    newTileMapDialogue.setState({
         title: 'New tile map',
-        columns: 4,
-        rows: 4,
-        defaultTileId: firstTile.tileId
+        createMode: NewTileMapDialogue.CreateModes.new,
+        createOption: NewTileMapDialogue.TileOptions.createNew,
+        selectedSizePreset: NewTileMapDialogue.TilePresets.size8x8,
+        tileMapList: getTileMapList(),
+        cloneTiles: false
     });
-    getTileMapList().addTileMap(newTileMap);
-
-    state.setProject(getProject());
-    state.saveToLocalStorage();
-
-    selectTileSetOrMap(newTileMap.tileMapId);
+    newTileMapDialogue.show();
 }
 
 /**
