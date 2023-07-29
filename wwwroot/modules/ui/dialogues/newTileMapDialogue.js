@@ -227,7 +227,7 @@ export default class NewTileMapDialogue extends ModalDialogue {
      */
     #updateTileMapList(tileMapList) {
         const existing = this.#tbTileMapId.value;
-        this.#tbTileMapId.childNodes.forEach((node) => node.remove());
+        this.#tbTileMapId.querySelectorAll('option').forEach((node) => node.remove());
         tileMapList.getTileMaps().forEach((tileMap) => {
             const option = document.createElement('option');
             option.value = tileMap.tileMapId;
