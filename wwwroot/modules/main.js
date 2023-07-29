@@ -1279,8 +1279,6 @@ function handleNewTileMapDialogueOnConfirm(args) {
             const sourceTileMap = getTileMapList().getTileMapById(args.cloneTileMapId);
             if (!sourceTileMap) throw new Error('No tile map matched the given ID.');
 
-            const totalTiles = sourceTileMap.columnCount * sourceTileMap.rowCount;
-
             newTileMap = TileMapFactory.create({
                 title: args.title ?? `${sourceTileMap.title} (copy)`,
                 columns: sourceTileMap.columnCount,
@@ -1295,22 +1293,24 @@ function handleNewTileMapDialogueOnConfirm(args) {
 
             /** @type {Object<string, string>} */
             const idMapping = {};
+            const totalTiles = sourceTileMap.columnCount * sourceTileMap.rowCount;
             for (let i = 0; i < totalTiles; i++) {
                 /** @type {Tile} */ let tileSetTile;
                 const existingTileMapTile = sourceTileMap.getTileByIndex(i);
+                const existingTileId = existingTileMapTile.tileId;
                 if (args.cloneTiles) {
                     // When cloning tiles, we have to rememeber that some tiles in the tile map
                     // may reference the same tile set tile multiple times, in these cases we only
                     // want to create a single cloned tile, and use it whenever that same tile is referenced
-                    tileSetTile = tileSet.getTileById(idMapping[existingTileMapTile.tileId] ?? null);
+                    tileSetTile = tileSet.getTileById(idMapping[existingTileId] ?? null);
                     if (!tileSetTile) {
-                        tileSetTile = TileFactory.clone(tileSet.getTile(i));
+                        tileSetTile = TileFactory.clone(tileSet.getTileById(existingTileId));
                         tileSet.addTile(tileSetTile);
-                        idMapping[existingTileMapTile.tileId] = tileSetTile.tileId;
+                        idMapping[existingTileId] = tileSetTile.tileId;
                     }
                 } else {
                     // Not cloning tiles
-                    tileSetTile = tileSet.getTile(i);
+                    tileSetTile = tileSet.getTileById(existingTileId);
                 }
 
                 newTileMap.setTileByIndex(i, TileMapTileFactory.create({
