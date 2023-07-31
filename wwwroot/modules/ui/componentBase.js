@@ -1,3 +1,5 @@
+import TemplateUtil from "../util/templateUtil.js";
+
 const RX_NAME = /^[\w+-_@#]+$/i;
 
 export default class ComponentBase {
@@ -13,6 +15,7 @@ export default class ComponentBase {
      */
     constructor(element) {
         ComponentBase.#extractTemplates(element, this);
+        TemplateUtil.wireUpTabPanels(element);
     }
 
 

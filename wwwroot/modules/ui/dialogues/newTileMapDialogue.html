@@ -1,0 +1,150 @@
+<div data-smsgfx-component="dialogues/newTileMapDialogue" data-smsgfx-id="modal" class="sms-dialogue modal fade"
+    tabindex="-1">
+    <form>
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create a new tile map</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                        title="Cancel this operation and dismisses the dialogue."></button>
+                </div>
+                <div class="modal-body p-5">
+
+                    <div class="row mb-3">
+                        <div class="col col-1 p-2">
+                            <label for="project-title">Title</label>
+                        </div>
+                        <div class="col">
+                            <input type="text" class="form-control" data-labelled-by="project-title"
+                                data-smsgfx-id="project-title" title="Enter the title for this project." required>
+                            <div class="invalid-feedback">
+                                Please enter a project title.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3 mb-3">
+                        <div class="col" data-smsgfx-id="create-mode" data-tab-panel="create-mode">
+                            <ul class="nav nav-tabs" data-tab-panel-tabs>
+                                <li class="nav-item">
+                                    <button class="nav-link" type="button" title="Create a new tile map."
+                                        data-tab-page="new" data-value="new" selected>
+                                        Create new
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link" type="button" title="Clone an existing tile map."
+                                        data-tab-page="clone" data-value="clone">
+                                        Clone existing
+                                    </button>
+                                </li>
+                            </ul>
+                            <div class="tab-content" data-tab-panel-pages>
+                                <div class="tab-pane fade ps-3 pe-3" data-tab-page="new">
+
+                                    <!-- Create new -->
+                                    <div class="row mt-3 mb-3">
+                                        <div class="col col-2 p-2">
+                                            <label for="create-option">Tile option</label>
+                                        </div>
+                                        <div class="col">
+                                            <select class="form-control" data-smsgfx-id="create-option"
+                                                data-labelled-by="tile-option" title="How will the tiles be populated?">
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mt-3 mb-3">
+                                        <div class="col col-2 p-2">
+                                            <label for="tile-map-preset">Size preset</label>
+                                        </div>
+                                        <div class="col">
+                                            <select class="form-control" data-smsgfx-id="tile-map-preset"
+                                                data-labelled-by="tile-map-preset"
+                                                title="Select preset dimensions for the tile map.">
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div data-smsgfx-id="dimensions-panel" class="row mt-3 mb-3">
+                                        <div class="col col-2 p-2">
+                                            <label>Dimensions</label>
+                                        </div>
+                                        <div class="col">
+                                            <div class="row">
+                                                <div class="col col-auto p-2">
+                                                    <label for="tile-width">Width</label>
+                                                </div>
+                                                <div class="col col-3">
+                                                    <input type="number" class="form-control"
+                                                        data-labelled-by="tile-width" data-smsgfx-id="tile-width"
+                                                        min="2" max="1000" title="Width of the tile map." required>
+                                                    <div class="invalid-feedback">
+                                                        Enter a number between 2 and 1000.
+                                                    </div>
+                                                </div>
+                                                <div class="col col-auto p-2">
+                                                    <label for="tile-height">Height</label>
+                                                </div>
+                                                <div class="col col-3">
+                                                    <input type="number" class="form-control"
+                                                        data-labelled-by="tile-height" data-smsgfx-id="tile-height"
+                                                        min="2" max="1000" title="Height of the tile map." required>
+                                                    <div class="invalid-feedback">
+                                                        Enter a number between 2 and 1000.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- END: Create new -->
+
+                                </div>
+                                <div class="tab-pane fade ps-3 pe-3" data-tab-page="clone">
+
+                                    <!-- Clone existing -->
+                                    <div class="row mt-3 mb-3">
+                                        <div class="col col-2 p-2">
+                                            <label for="tile-map-to-clone">Tile map</label>
+                                        </div>
+                                        <div class="col">
+                                            <select class="form-control" data-smsgfx-id="tile-map-to-clone"
+                                                data-labelled-by="tile-map-to-clone"
+                                                title="How will the tiles be populated?">
+                                            </select>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="row mt-3 mb-3">
+                                        <div class="col col-2">
+                                            &nbsp;
+                                        </div>
+                                        <div class="col">
+                                            <input data-smsgfx-id="clone-tile-map-tiles" class="form-check-input"
+                                                type="checkbox" data-labelled-by="clone-tile-map-tiles"
+                                                title="When this option is checked all tiles will also be cloned.">
+                                            <label class="form-check-label" for="clone-tile-map-tiles"
+                                                title="When this option is checked all tiles will also be cloned.">
+                                                Also clone tiles?
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <!-- END: Clone existing -->
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button data-button-type="confirm" type="button" class="btn btn-primary"
+                        title="Click this button to create the new tile map.">Create tile map</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                        title="Cancel this operation and dismisses the dialogue.">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
