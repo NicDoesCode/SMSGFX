@@ -210,21 +210,6 @@ button:disabled img {
     text-shadow: 0 0 3px #000000;
 }
 
-.sms-accordion-list button.sms-accordion-item .item-label {
-    display: inline-block;
-    white-space: nowrap;
-    inline-size: calc(100% - 20px);
-    overflow: hidden;
-}
-
-.sms-accordion-list button.sms-accordion-item.active .item-label {
-    inline-size: 100%;
-}
-
-.sms-accordion-list button.sms-accordion-item .icon-expand {
-    display: block;
-}
-
 .sms-accordion-list button.sms-accordion-item .icon-expanded {
     display: none;
 }
@@ -233,8 +218,9 @@ button:disabled img {
     display: none;
 }
 
-.sms-accordion-list button.sms-accordion-item.active .icon-expanded {
-    display: block;
+.sms-accordion-list button.sms-accordion-item.active.hidden-when-active,
+.sms-accordion-list button.sms-accordion-item.active .hidden-when-active {
+    display: none!important;
 }
 
 .sms-accordion-list.sms-accordion-list-bottom button.sms-accordion-item {

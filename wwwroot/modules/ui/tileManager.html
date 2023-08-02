@@ -24,9 +24,9 @@
                     <div class="list-group rounded-0 border border-0">
                         {{#each this}}
                         <button data-command="tileMapSelect" data-tile-map-id="{{tileMapId}}" 
-                            class="sms-accordion-item list-group-item border border-0 border-bottom text-start fw-bold">
-                            <span class="icon-expand float-end"><i class="bi bi-caret-down-fill"></i></span>
-                            <span class="item-label">{{title}}</span>
+                            class="sms-accordion-item list-group-item hidden-when-active border border-0 border-bottom text-start fw-bold d-flex flex-row w-100 p-0 m-0">
+                            <label class="p-2 fw-bold text-body-emphasis text-start overflow-hidden text-nowrap flex-shrink w-100">{{title}}</label>
+                            <span class="icon-expand p-2"><i class="bi bi-caret-down-fill"></i></span>
                         </button>
                         {{/each}}
                     </div>
@@ -37,8 +37,12 @@
             <div class="sms-tile-map-properties card-body p-2 pt-0 visually-hidden" data-smsgfx-id="tileMapProperties">
                 <div class="row mb-2">
                     <div class="col">
+                        <button data-smsgfx-id="editTileMapTitle" class="btn border border-0 p-0 m-0 d-flex flex-row w-100">
+                            <label class="p-2 ps-0 fw-bold text-body-emphasis text-start overflow-hidden text-nowrap flex-shrink w-100">Title</label>
+                            <span class="p-2"><i class="bi bi-pencil-fill"></i></span>
+                        </button>
                         <input data-command="tileMapChange" data-auto-event="change" data-field="title" type="text"
-                            class="form-control" aria-label="Enter name" title="Change the title of the tile map.">
+                            class="form-control visually-hidden mt-2" aria-label="Enter name" title="Change the title of the tile map.">
                     </div>
                 </div>
                 <div class="row">
