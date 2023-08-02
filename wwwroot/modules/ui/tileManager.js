@@ -53,6 +53,8 @@ export default class TileManager extends ComponentBase {
     #uiTileMapTitle;
     /** @type {HTMLInputElement} */
     #uiTileSetOptimise;
+    /** @type {HTMLInputElement} */
+    #btnTileSetSelect;
     /** @type {TileListing} */
     #tileListing;
     /** @type {TileMapListing} */
@@ -83,6 +85,9 @@ export default class TileManager extends ComponentBase {
         this.#uiTileSetTileWidth = this.#element.querySelector('[data-command=tileSetChange][data-field=tileWidth]');
         this.#uiTileMapTitle = this.#element.querySelector('[data-command=tileMapChange][data-field=title]');
         this.#uiTileSetOptimise = this.#element.querySelector('[data-command=tileMapChange][data-field=optimise]');
+
+        this.#btnTileSetSelect = this.#element.querySelector('[data-command=tileSetSelect]');
+        this.#btnTileSetSelect.addEventListener('click', () => this.#handleTileMapListingOnCommand({ command: commands.tileSetSelect }));
 
         this.#wireAutoEvents(this.#element);
 
@@ -427,10 +432,6 @@ export default class TileManager extends ComponentBase {
         if (listTop && listBottom) {
             listBottom.innerHTML = '';
             let move = false;
-            if (!this.#selectedTileMapId) {
-                const tileSetButton = listTop.querySelector(`button[data-command=${CSS.escape(commands.tileSetSelect)}]`);
-                tileSetButton.classList.add('active');
-            }
             this.#tileMapList.getTileMaps().forEach((tileMap) => {
                 if (move || !this.#selectedTileMapId) {
                     const tileMapButton = listTop.querySelector(`button[data-tile-map-id=${CSS.escape(tileMap.tileMapId)}]`);

@@ -22,11 +22,6 @@
                 <template>
                     <script data-smsgfx-template-id="item-template" type="text/x-handlebars-template">
                     <div class="list-group rounded-0 border border-0">
-                        <button data-command="tileSetSelect"
-                            class="sms-accordion-item list-group-item border border-0 border-bottom text-start fw-bold">
-                            <span class="icon-expand float-end"><i class="bi bi-caret-down-fill"></i></span>
-                            <span class="item-label">Tile set</span>
-                        </button>
                         {{#each this}}
                         <button data-command="tileMapSelect" data-tile-map-id="{{tileMapId}}" 
                             class="sms-accordion-item list-group-item border border-0 border-bottom text-start fw-bold">
@@ -39,45 +34,6 @@
                 </template>
             </div>
 
-            <div class="sms-tile-map-properties card-body p-2 pt-0 visually-hidden" data-smsgfx-id="tileSetProperties">
-                <div class="row mb-0 ps-3 pe-3">
-                    <div class="col p-1">
-                        <p class="m-0 mb-1">
-                            <small>The tile set is currently selected, these are the raw tiles that compose
-                                your tile maps.</small>
-                        </p>
-                        <p class="m-0 mb-1">
-                            <small>Changes made to tiles here will affect any tile set that uses them.</small>
-                        </p>
-                    </div>
-                </div>
-                <div class="row mt-1 mb-0 ps-3 pe-3">
-                    <div class="col p-1">
-                        <button data-command="tileSetToTileMap" data-auto-event="click"
-                            class="btn btn-sm btn-outline-secondary btn-ui m-0 w-100" type="button"
-                            title="Directly converts the displayed tile set into a tile map.">
-                            <i class="bi bi bi-plus-lg"></i> Convert to tile map
-                        </button>
-                    </div>
-                </div>
-                <div class="row mt-1 mb-0 ps-3 pe-3">
-                    <div class="col p-1">
-                        <button data-command="tileMapNew" data-auto-event="click"
-                            class="btn btn-sm btn-outline-secondary btn-ui m-0 w-100" type="button"
-                            title="Creates a blank tile map.">
-                            <i class="bi bi-plus-lg"></i> New tile map
-                        </button>
-                    </div>
-                </div>
-                <div class="row mt-1 mb-0 ps-3 pe-3">
-                    <div class="col p-1">
-                        <label class="form-label">Display tile width</label>
-                        <input data-smsgfx-id="tileSetTileWidth" data-command="tileSetChange" data-field="tileWidth"
-                            data-auto-event="change" type="number" class="form-control form-control-sm"
-                            title="Tile width: Number of tiles to display per row before another row is created.">
-                    </div>
-                </div>
-            </div>
             <div class="sms-tile-map-properties card-body p-2 pt-0 visually-hidden" data-smsgfx-id="tileMapProperties">
                 <div class="row mb-2">
                     <div class="col">
@@ -152,9 +108,54 @@
 
     </div>
 
-    <div class="sms-toolbox sms-tile-palette card flex-fill" data-smsgfx-toolbox-item>
+    <div class="sms-tile-set sms-toolbox card mb-2" data-smsgfx-toolbox-item>
         <div class="card-header sms-card-toolbar p-0">
-            <p class="flex-fill p-1 ps-2 m-0">Tile palette</p>
+            <button data-command="tileSetSelect" class="border border-0 p-0 bg-transparent text-secondary-emphasis w-100 text-start">
+                <p class="flex-fill p-1 ps-2 m-0">Tile set</p>
+            </button>
+        </div>
+        <div class="card-body p-0">
+            <div class="sms-tile-map-properties card-body p-2 pt-0 visually-hidden" data-smsgfx-id="tileSetProperties">
+                <div class="row mb-0 ps-3 pe-3">
+                    <div class="col p-1">
+                        <p class="m-0 mb-1">
+                            <small>Displaying all tiles in the project.</small>
+                        </p>
+                    </div>
+                </div>
+                <div class="row mt-1 mb-0 ps-3 pe-3">
+                    <div class="col p-1">
+                        <button data-command="tileSetToTileMap" data-auto-event="click"
+                            class="btn btn-sm btn-outline-secondary btn-ui m-0 w-100" type="button"
+                            title="Directly converts the displayed tile set into a tile map.">
+                            <i class="bi bi bi-plus-lg"></i> Convert to tile map
+                        </button>
+                    </div>
+                </div>
+                <div class="row mt-1 mb-0 ps-3 pe-3">
+                    <div class="col p-1">
+                        <button data-command="tileMapNew" data-auto-event="click"
+                            class="btn btn-sm btn-outline-secondary btn-ui m-0 w-100" type="button"
+                            title="Creates a blank tile map.">
+                            <i class="bi bi-plus-lg"></i> New tile map
+                        </button>
+                    </div>
+                </div>
+                <div class="row mt-1 mb-0 ps-3 pe-3">
+                    <div class="col p-1">
+                        <label class="form-label">Display tile width</label>
+                        <input data-smsgfx-id="tileSetTileWidth" data-command="tileSetChange" data-field="tileWidth"
+                            data-auto-event="change" type="number" class="form-control form-control-sm"
+                            title="Tile width: Number of tiles to display per row before another row is created.">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sms-tile-palette sms-toolbox card flex-fill" data-smsgfx-toolbox-item>
+        <div class="card-header sms-card-toolbar p-0">
+            <p class="flex-fill p-1 ps-2 m-0">Tiles</p>
         </div>
         <div class="card-body p-0">
             <div data-smsgfx-component-id="tile-set-list"
