@@ -53,8 +53,10 @@ export default class TileManager extends ComponentBase {
     #uiTileMapTitle;
     /** @type {HTMLInputElement} */
     #uiTileSetOptimise;
-    /** @type {HTMLInputElement} */
+    /** @type {HTMLButtonElement} */
     #btnTileSetSelect;
+    /** @type {HTMLButtonElement} */
+    #btnTileMapTitle;
     /** @type {TileListing} */
     #tileListing;
     /** @type {TileMapListing} */
@@ -83,11 +85,16 @@ export default class TileManager extends ComponentBase {
         this.#paletteSelectorElement = this.#element.querySelector('[data-smsgfx-id=palette-selectors]');
 
         this.#uiTileSetTileWidth = this.#element.querySelector('[data-command=tileSetChange][data-field=tileWidth]');
-        this.#uiTileMapTitle = this.#element.querySelector('[data-command=tileMapChange][data-field=title]');
         this.#uiTileSetOptimise = this.#element.querySelector('[data-command=tileMapChange][data-field=optimise]');
+
+        this.#uiTileMapTitle = this.#element.querySelector('[data-command=tileMapChange][data-field=title]');
+        this.#uiTileMapTitle.addEventListener('blur', () => this.#handleTileMapTitleEditBlur());
 
         this.#btnTileSetSelect = this.#element.querySelector('[data-command=tileSetSelect]');
         this.#btnTileSetSelect.addEventListener('click', () => this.#handleTileMapListingOnCommand({ command: commands.tileSetSelect }));
+
+        this.#btnTileMapTitle = this.#element.querySelector('[data-smsgfx-id=editTileMapTitle]');
+        this.#btnTileMapTitle.addEventListener('click', () => this.#handleTileMapTitleEditClick());
 
         this.#wireAutoEvents(this.#element);
 
@@ -300,14 +307,29 @@ export default class TileManager extends ComponentBase {
         }
     }
 
+    #handleTileMapTitleEditClick() {
+        this.#uiTileMapTitle.classList.remove('visually-hidden');
+        this.#btnTileMapTitle.classList.add('visually-hidden');
+        this.#uiTileMapTitle.focus();
+    }
+
+    #handleTileMapTitleEditBlur() {
+        this.#uiTileMapTitle.classList.add('visually-hidden');
+        this.#btnTileMapTitle.classList.remove('visually-hidden');
+    }
+
 
     #populateTileMapDetails() {
         const tileMap = this.#tileMapList?.getTileMapById(this.#selectedTileMapId) ?? null;
+        this.#uiTileMapTitle.classList.add('visually-hidden');
+        this.#btnTileMapTitle.classList.remove('visually-hidden');
+        this.#btnTileMapTitle.querySelector('label').innerText = '';
         if (tileMap) {
             this.#element.querySelector('[data-smsgfx-id=tileSetProperties]').classList.add('visually-hidden');
             this.#element.querySelector('[data-smsgfx-id=tileMapProperties]').classList.remove('visually-hidden');
             this.#uiTileMapTitle.disabled = false;
             this.#uiTileMapTitle.value = tileMap.title;
+            this.#btnTileMapTitle.querySelector('label').innerText = tileMap.title;
         } else {
             this.#element.querySelector('[data-smsgfx-id=tileSetProperties]').classList.remove('visually-hidden');
             this.#element.querySelector('[data-smsgfx-id=tileMapProperties]').classList.add('visually-hidden');

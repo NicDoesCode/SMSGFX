@@ -1,5 +1,4 @@
-<div data-smsgfx-component="paletteEditor"
-    class="sms-palette-editor sms-toolbox card m-0 mb-2 d-flex flex-column">
+<div data-smsgfx-component="paletteEditor" class="sms-palette-editor sms-toolbox card m-0 mb-2 d-flex flex-column">
 
     <!-- Palette editor : header -->
     <div class="card-header sms-card-toolbar p-0 d-flex">
@@ -30,10 +29,10 @@
                     <div class="list-group rounded-0 border border-0">
                         {{#each this}}
                         <button data-command="paletteSelect" data-palette-id="{{paletteId}}" 
-                            class="sms-accordion-item list-group-item border border-0 border-bottom text-start fw-bold"
+                            class="sms-accordion-item list-group-item hidden-when-active border border-0 border-bottom text-start fw-bold d-flex flex-row w-100 p-0 m-0"
                             title="{{title}}">
-                            <span class="icon-expand float-end"><i class="bi bi-caret-down-fill"></i></span>
-                            <span class="item-label">{{title}}</span>
+                            <label class="p-2 fw-bold text-body-emphasis text-start overflow-hidden text-nowrap flex-shrink w-100">{{title}}</label>
+                            <span class="icon-expand p-2"><i class="bi bi-caret-down-fill"></i></span>
                         </button>
                         {{/each}}
                     </div>
@@ -44,8 +43,14 @@
         <div class="sms-palette-properties card-body p-2 pt-0">
             <div class="row mb-2">
                 <div class="col">
-                    <input data-command="paletteTitle" type="text" class="form-control" aria-label="Enter name"
-                        list="tbPaletteSelect" title="Change the title of the palette.">
+                    <button data-smsgfx-id="editPaletteTitle" class="btn border border-0 p-0 m-0 d-flex flex-row w-100">
+                        <label
+                            class="p-2 ps-0 fw-bold text-body-emphasis text-start overflow-hidden text-nowrap flex-shrink w-100">Title</label>
+                        <span class="p-2"><i class="bi bi-pencil-fill"></i></span>
+                    </button>
+                    <input data-smsgfx-id="paletteTitle" data-command="paletteTitle" data-auto-event="change" data-field="title" type="text"
+                        class="form-control visually-hidden mt-2" aria-label="Enter name" list="tbPaletteSelect"
+                        title="Change the title of the palette.">
                 </div>
             </div>
             <select data-command="paletteSystem" class="form-select form-select-sm visually-hidden"

@@ -42,6 +42,10 @@ export default class PaletteEditor extends ComponentBase {
     #paletteButtons = [];
     /** @type {HTMLTableCellElement[]} */
     #paletteCells = [];
+    /** @type {HTMLInputElement} */
+    #uiPaletteTitle;
+    /** @type {HTMLButtonElement} */
+    #btnPaletteTitle;
     /** @type {number} */
     #currentColourIndex = 0;
     /** @type {PaletteEditorContextMenu} */
@@ -62,6 +66,12 @@ export default class PaletteEditor extends ComponentBase {
         this.#element = element;
 
         this.#dispatcher = new EventDispatcher();
+
+        this.#btnPaletteTitle = this.#element.querySelector('[data-smsgfx-id=editPaletteTitle]');
+        this.#btnPaletteTitle.addEventListener('click', () => this.#handlePaletteTitleEditClick());
+
+        this.#uiPaletteTitle = this.#element.querySelector('[data-smsgfx-id=paletteTitle]');
+        this.#uiPaletteTitle.addEventListener('blur', () => this.#handlePaletteTitleEditBlur());
 
         this.#element.querySelectorAll('button[data-command]').forEach(element => {
             element.onclick = () => {
@@ -258,6 +268,17 @@ export default class PaletteEditor extends ComponentBase {
     }
 
 
+    #handlePaletteTitleEditClick() {
+        this.#uiPaletteTitle.classList.remove('visually-hidden');
+        this.#btnPaletteTitle.classList.add('visually-hidden');
+        this.#uiPaletteTitle.focus();
+    }
+
+    #handlePaletteTitleEditBlur() {
+        this.#uiPaletteTitle.classList.add('visually-hidden');
+        this.#btnPaletteTitle.classList.remove('visually-hidden');
+    }
+
     /**
      * When a command is received from the context menu.
      * @param {import("./paletteEditorContextMenu.js").PaletteEditorContextMenuCommandEventArgs} args - Arguments.
@@ -391,6 +412,7 @@ export default class PaletteEditor extends ComponentBase {
                 paletteButtons[i].style.backgroundColor = null;
             }
         }
+        this.#btnPaletteTitle.querySelector('label').innerText = palette.title;
         this.#getElements(commands.paletteTitle).forEach((element) => {
             element.value = palette.title
         });
