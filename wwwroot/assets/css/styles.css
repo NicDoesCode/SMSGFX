@@ -45,6 +45,14 @@ body {
     color: var(--bs-secondary-text-emphasis);
 }
 
+.sms-toolstrip .sms-toolstrip-button {
+    min-width: 30px;
+}
+
+.sms-toolstrip .sms-toolstrip-number-spinner {
+    width: 60px;
+}
+
 /* Toolbox button colours */
 
 .sms-toolbox button.btn-ui:not([disabled]):not(.btn-link),
@@ -220,7 +228,7 @@ button:disabled img {
 
 .sms-accordion-list button.sms-accordion-item.active.hidden-when-active,
 .sms-accordion-list button.sms-accordion-item.active .hidden-when-active {
-    display: none!important;
+    display: none !important;
 }
 
 .sms-accordion-list.sms-accordion-list-bottom button.sms-accordion-item {
