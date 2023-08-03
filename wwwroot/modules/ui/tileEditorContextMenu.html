@@ -1,20 +1,19 @@
-<div data-smsgfx-component="tileEditorContextMenu" class="dropdown" style="position: absolute">
+<div data-smsgfx-component="tileEditorContextMenu" class="dropdown position-absolute">
     <button class="btn btn-secondary dropdown-toggle visually-hidden"
-        style="position: absolute; z-index: 100; width: 250px" type="button" data-bs-toggle="dropdown"
-        aria-expanded="false">
+        type="button" data-bs-toggle="dropdown" aria-expanded="false">
         Dropdown button
     </button>
-    <ul class="sms-toolbox dropdown-menu" style="font-size: 0.75em;">
+    <ul class="sms-toolbox dropdown-menu">
         <li class="pb-2">
             <div class="btn-toolbar justify-content-between ps-3 pe-3 m-0" role="toolbar">
                 <div class="input-group">
                     <label class="form-label mt-2">Mirror tile</label>
                 </div>
                 <div class="btn-group btn-group-sm" role="group">
-                    <button class="btn btn-outline-secondary btn-ui" data-command="mirrorHorizontal"><i
-                            class="bi bi-vr"></i></button>
-                    <button class="btn btn-outline-secondary btn-ui" data-command="mirrorVertical"><i
-                            class="bi bi-hr"></i></button>
+                    <button class="btn btn-outline-secondary btn-ui" data-command="mirrorHorizontal"
+                        title="Mirror tile horizontally."><i class="bi bi-vr"></i></button>
+                    <button class="btn btn-outline-secondary btn-ui" data-command="mirrorVertical"
+                        title="Mirror tile vertically."><i class="bi bi-hr"></i></button>
                 </div>
             </div>
         </li>
@@ -25,10 +24,10 @@
                     <label class="form-label mt-2">Insert tile</label>
                 </div>
                 <div class="btn-group btn-group-sm" role="group">
-                    <button class="btn btn-outline-secondary btn-ui" data-command="insertBefore"><i
-                            class="bi bi-arrow-bar-left"></i></button>
-                    <button class="btn btn-outline-secondary btn-ui" data-command="insertAfter"><i
-                            class="bi bi-arrow-bar-right"></i></button>
+                    <button class="btn btn-outline-secondary btn-ui" data-command="insertBefore"
+                        title="Insert a tile to the left."><i class="bi bi-arrow-bar-left"></i></button>
+                    <button class="btn btn-outline-secondary btn-ui" data-command="insertAfter"
+                        title="Insert a title to the right."><i class="bi bi-arrow-bar-right"></i></button>
                 </div>
             </div>
         </li>
@@ -39,10 +38,10 @@
                     <label class="form-label mt-2">Move tile</label>
                 </div>
                 <div class="btn-group btn-group-sm" role="group">
-                    <button class="btn btn-outline-secondary btn-ui" data-command="moveLeft"><i
-                            class="bi bi-arrow-left"></i></button>
-                    <button class="btn btn-outline-secondary btn-ui" data-command="moveRight"><i
-                            class="bi bi-arrow-right"></i></button>
+                    <button class="btn btn-outline-secondary btn-ui" data-command="moveLeft"
+                        title="Move the tile one space to the left."><i class="bi bi-arrow-left"></i></button>
+                    <button class="btn btn-outline-secondary btn-ui" data-command="moveRight"
+                        title="Move the tile one space to the right."><i class="bi bi-arrow-right"></i></button>
                 </div>
             </div>
         </li>
@@ -54,4 +53,16 @@
                 tile</button>
         </li>
     </ul>
+
+    <style data-css-scope="global">
+        [data-smsgfx-component=tileEditorContextMenu] button.sms-dropdown-button {
+            z-index: 100;
+            width: 250px;
+        }
+
+        [data-smsgfx-component=tileEditorContextMenu] .dropdown-menu {
+            font-size: 0.75em;
+        }
+    </style>
+
 </div>
