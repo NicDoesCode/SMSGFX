@@ -2,10 +2,12 @@
     <div data-toolstrip="undo" class="col-auto sms-toolstrip m-0 me-2 p-0">
         <div class="input-group input-group-sm">
             <span class="input-group-text">Undo</span>
-            <button data-command="undo" data-auto-event="click" class="btn btn-outline-secondary btn-ui" title="Undo.">
+            <button data-command="undo" data-auto-event="click"
+                class="sms-toolstrip-button btn btn-outline-secondary btn-ui" title="Undo.">
                 <i class="bi bi-arrow-counterclockwise"></i>
             </button>
-            <button data-command="redo" data-auto-event="click" class="btn btn-outline-secondary btn-ui" title="Redo.">
+            <button data-command="redo" data-auto-event="click"
+                class="sms-toolstrip-button btn btn-outline-secondary btn-ui" title="Redo.">
                 <i class="bi bi-arrow-clockwise"></i>
             </button>
         </div>
@@ -13,20 +15,23 @@
     <div data-toolstrip="tileAdd" class="col-auto sms-toolstrip m-0 me-2 p-0">
         <div class="input-group input-group-sm">
             <span class="input-group-text">Tile</span>
-            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
-                data-tool="select" title="Select tool: Select a tile, cut, copy, paste, move, mirror, insert.">
+            <button data-command="toolChange" data-auto-event="click"
+                class="sms-toolstrip-button btn btn-outline-secondary btn-ui" data-tool="select"
+                title="Select tool: Select a tile, cut, copy, paste, move, mirror, insert.">
                 <i class="bi bi-cursor"></i>
             </button>
-            <button data-command="tileAdd" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
+            <button data-command="tileAdd" data-auto-event="click"
+                class="sms-toolstrip-button btn btn-outline-secondary btn-ui"
                 title="Add a new tile to the end of the set.">
                 <i class="bi bi-plus-lg"></i>
             </button>
-            <button data-command="tileImageImport" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
+            <button data-command="tileImageImport" data-auto-event="click"
+                class="sms-toolstrip-button btn btn-outline-secondary btn-ui"
                 title="Import an image to the existing tile set or as a new project.">
                 <i class="bi bi-image"></i>
             </button>
-            <button data-command="tileCodeImport" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
-                title="Import tiles from code.">
+            <button data-command="tileCodeImport" data-auto-event="click"
+                class="sms-toolstrip-button btn btn-outline-secondary btn-ui" title="Import tiles from code.">
                 <i class="bi bi-code"></i>
             </button>
         </div>
@@ -34,24 +39,28 @@
     <div data-toolstrip="tileTools" class="col-auto sms-toolstrip m-0 me-2 p-0">
         <div data-smsgfx-component-id="tools" class="input-group input-group-sm">
             <span class="input-group-text">Draw</span>
-            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
-                data-tool="pencil" title="Pencil tool: Draw on tiles.">
+            <button data-command="toolChange" data-auto-event="click"
+                class="sms-toolstrip-button btn btn-outline-secondary btn-ui" data-tool="pencil"
+                title="Pencil tool: Draw on tiles.">
                 <i class="bi bi-pencil-fill"></i>
             </button>
-            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
-                data-tool="colourReplace" title="Colour replace tool: Replaces one palette colour with another.">
+            <button data-command="toolChange" data-auto-event="click"
+                class="sms-toolstrip-button btn btn-outline-secondary btn-ui" data-tool="colourReplace"
+                title="Colour replace tool: Replaces one palette colour with another.">
                 <i class="bi bi-palette"></i>
             </button>
-            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
-                data-tool="bucket" title="Fill tool: Change the colour of a contigious block to another colour.">
+            <button data-command="toolChange" data-auto-event="click"
+                class="sms-toolstrip-button btn btn-outline-secondary btn-ui" data-tool="bucket"
+                title="Fill tool: Change the colour of a contigious block to another colour.">
                 <i class="bi bi-paint-bucket"></i>
             </button>
-            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
-                data-tool="eyedropper" title="Colour select tool: Selects the corresponding palette colour.">
+            <button data-command="toolChange" data-auto-event="click"
+                class="sms-toolstrip-button btn btn-outline-secondary btn-ui" data-tool="eyedropper"
+                title="Colour select tool: Selects the corresponding palette colour.">
                 <i class="bi bi-eyedropper"></i>
             </button>
-            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
-                data-tool="referenceImage"
+            <button data-command="toolChange" data-auto-event="click"
+                class="sms-toolstrip-button btn btn-outline-secondary btn-ui" data-tool="referenceImage"
                 title="Reference image tool: Place a reference image on the screen to assist with drawing.">
                 <i class="bi bi-pip"></i>
             </button>
@@ -60,32 +69,37 @@
     <div data-toolstrip="tileMapTools" class="col-auto sms-toolstrip m-0 me-2 p-0">
         <div data-smsgfx-component-id="tileMapTools" class="input-group input-group-sm">
             <span class="input-group-text">Tile</span>
-            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
-                data-tool="tileAttributes" title="Tile attributes: Attributes such as mirroring, and priority.">
+            <button data-command="toolChange" data-auto-event="click"
+                class="sms-toolstrip-button btn btn-outline-secondary btn-ui" data-tool="tileAttributes"
+                title="Tile attributes: Attributes such as mirroring, and priority.">
                 <i class="bi bi-cursor"></i>
             </button>
-            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
-                data-tool="rowColumn" title="Row / column mode: Allows you to add or remove rows and columns.">
+            <button data-command="toolChange" data-auto-event="click"
+                class="sms-toolstrip-button btn btn-outline-secondary btn-ui" data-tool="rowColumn"
+                title="Row / column mode: Allows you to add or remove rows and columns.">
                 <i class="bi bi-plus-slash-minus"></i>
             </button>
-            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
-                data-tool="tileLinkBreak"
+            <button data-command="toolChange" data-auto-event="click"
+                class="sms-toolstrip-button btn btn-outline-secondary btn-ui" data-tool="tileLinkBreak"
                 title="Break link tool: If the corresponding tile set tile is mapped to any other tile in any other tile map, the tile set tile will be cloned and the selected tile map tile will be updated to use the newly cloned tile.">
                 <i class="bi">
                     <img src="assets/image/icon-link-break.svg" alt="Link break tool."
                         data-smsgfx-theme-dark="sms-invert" />
                 </i>
             </button>
-            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
-                data-tool="tileStamp" title="Tile stamp tool: Stamps the selected tile onto the tile map.">
+            <button data-command="toolChange" data-auto-event="click"
+                class="sms-toolstrip-button btn btn-outline-secondary btn-ui" data-tool="tileStamp"
+                title="Tile stamp tool: Stamps the selected tile onto the tile map.">
                 <i class="bi bi-postage-fill"></i>
             </button>
-            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
-                data-tool="palettePaint" title="Palette paint tool: Sets the palette slot for tiles in the tile map.">
+            <button data-command="toolChange" data-auto-event="click"
+                class="sms-toolstrip-button btn btn-outline-secondary btn-ui" data-tool="palettePaint"
+                title="Palette paint tool: Sets the palette slot for tiles in the tile map.">
                 <i class="bi bi-palette2"></i>
             </button>
-            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
-                data-tool="tileEyedropper" title="Tile select tool: Selects the tile that is under the cursor.">
+            <button data-command="toolChange" data-auto-event="click"
+                class="sms-toolstrip-button btn btn-outline-secondary btn-ui" data-tool="tileEyedropper"
+                title="Tile select tool: Selects the tile that is under the cursor.">
                 <i class="bi bi-eyedropper"></i>
             </button>
         </div>
@@ -93,24 +107,28 @@
     <div data-toolstrip="tileMapTools" class="col-auto sms-toolstrip m-0 me-2 p-0">
         <div data-smsgfx-component-id="tileMapTools" class="input-group input-group-sm">
             <span class="input-group-text">Draw</span>
-            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
-                data-tool="pencil" title="Pencil tool: Draw on tiles.">
+            <button data-command="toolChange" data-auto-event="click"
+                class="sms-toolstrip-button btn btn-outline-secondary btn-ui" data-tool="pencil"
+                title="Pencil tool: Draw on tiles.">
                 <i class="bi bi-pencil-fill"></i>
             </button>
-            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
-                data-tool="colourReplace" title="Colour replace tool: Replaces one palette colour with another.">
+            <button data-command="toolChange" data-auto-event="click"
+                class="sms-toolstrip-button btn btn-outline-secondary btn-ui" data-tool="colourReplace"
+                title="Colour replace tool: Replaces one palette colour with another.">
                 <i class="bi bi-palette"></i>
             </button>
-            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
-                data-tool="bucket" title="Fill tool: Change the colour of a contigious block to another colour.">
+            <button data-command="toolChange" data-auto-event="click"
+                class="sms-toolstrip-button btn btn-outline-secondary btn-ui" data-tool="bucket"
+                title="Fill tool: Change the colour of a contigious block to another colour.">
                 <i class="bi bi-paint-bucket"></i>
             </button>
-            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
-                data-tool="eyedropper" title="Colour select tool: Selects the corresponding palette colour.">
+            <button data-command="toolChange" data-auto-event="click"
+                class="sms-toolstrip-button btn btn-outline-secondary btn-ui" data-tool="eyedropper"
+                title="Colour select tool: Selects the corresponding palette colour.">
                 <i class="bi bi-eyedropper"></i>
             </button>
-            <button data-command="toolChange" data-auto-event="click" class="btn btn-outline-secondary btn-ui"
-                data-tool="referenceImage"
+            <button data-command="toolChange" data-auto-event="click"
+                class="sms-toolstrip-button btn btn-outline-secondary btn-ui" data-tool="referenceImage"
                 title="Reference image tool: Place a reference image on the screen to assist with drawing.">
                 <i class="bi bi-pip"></i>
             </button>
@@ -119,8 +137,7 @@
     <div data-toolstrip="tileWidth" class="col-auto sms-toolstrip m-0 me-2 p-0">
         <div class="input-group input-group-sm">
             <span class="input-group-text">Tile width</span>
-            <input data-command="tileWidth" data-auto-event="change" type="text" class="form-control"
-                style="width: 40px"
+            <input data-command="tileWidth" data-auto-event="change" type="text" class="sms-toolstrip-number-spinner form-control"
                 title="Tile width: Number of tiles to display per row before another row is created.">
         </div>
     </div>

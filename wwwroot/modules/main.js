@@ -59,6 +59,7 @@ import PalettePaintTool from "./tools/palettePaintTool.js";
 import TileStampTool from "./tools/tileStampTool.js";
 import Tile from "./models/tile.js";
 import TileMapTool from "./tools/tileMapTool.js";
+import TileSet from "./models/tileSet.js";
 
 
 /* ****************************************************************************************************
@@ -96,6 +97,8 @@ const instanceState = {
     userClampToTile: false,
     /** @type {boolean} */
     clampToTile: false,
+    /** @type {boolean} */
+    breakTileLinks: false,
     /** @type {string?} */
     rowColumnMode: 'addRow',
     /** @type {string?} */
@@ -966,6 +969,9 @@ function handleTileContextToolbarCommand(args) {
     if (args.command === TileContextToolbar.Commands.tileClamp) {
         setTileClamp(args.tileClamp);
     }
+    if (args.command === TileContextToolbar.Commands.tileLinkBreak) {
+        setTileLinkBreak(args.tileBreakLinks);
+    }
     if (args.command === TileContextToolbar.Commands.rowColumnMode || args.command === TileContextToolbar.Commands.rowColumnFillMode) {
         setRowColumnMode(args.rowColumnMode, args.rowColumnFillMode);
     }
@@ -1237,7 +1243,7 @@ function handleNewTileMapDialogueOnConfirm(args) {
                 });
             } else if (args.createOption === NewTileMapDialogue.TileOptions.useTileSet) {
                 newTileMap = TileMapTool.createTileMapWithTileSet({
-                    ...baseArgs, 
+                    ...baseArgs,
                     startTileIndex: 0
                 });
             } else {
@@ -1246,7 +1252,7 @@ function handleNewTileMapDialogueOnConfirm(args) {
 
         } else if (args.createMode === NewTileMapDialogue.CreateModes.clone) {
             // Cloning existing tile map
-         
+
             if (!args.cloneTileMapId) throw new Error('The tile map ID was invalid.');
             const tileMapToClone = getTileMapList().getTileMapById(args.cloneTileMapId);
             if (!tileMapToClone) throw new Error('No tile map matched the given ID.');
@@ -1811,10 +1817,10 @@ function getTilesPerBlock() {
 }
 
 function isTileSet() {
-    return !getTileMap();
+    return getTileMap() === null;
 }
 function isTileMap() {
-    return getTileMap();
+    return getTileMap() !== null;
 }
 
 function refreshProjectUI() {
@@ -1867,15 +1873,6 @@ function refreshProjectUI() {
         selectedTileId: getProjectUIState().tileId
     });
 
-    const disabledCommands = [];
-    if (isTileMap() && instanceState.tool === TileEditorToolbar.Tools.bucket) {
-        instanceState.clampToTile = true;
-        disabledCommands.push(TileContextToolbar.Commands.tileClamp);
-    }
-    if (isTileMap() && getProject().systemType === 'gb') {
-        disabledCommands.push(TileContextToolbar.Commands.tileAttributes);
-    }
-
     const toolStrips = TileEditorToolbar.ToolStrips;
     if (isTileSet()) {
         tileEditorToolbar.setState({
@@ -1892,10 +1889,22 @@ function refreshProjectUI() {
         visibleToolstrips: [toolStrips.scale, toolStrips.showTileGrid, toolStrips.showPixelGrid],
         systemType: getProject().systemType
     });
+    tileContextToolbar.setState({
+        visibleToolstrips: getTileMapContextToolbarVisibleToolstrips(instanceState.tool)
+    });
 
+    const disabledCommands = [];
+    if (isTileMap() && instanceState.tool === TileEditorToolbar.Tools.bucket) {
+        instanceState.clampToTile = true;
+        disabledCommands.push(TileContextToolbar.Commands.tileClamp);
+    }
+    if (isTileMap() && getProject().systemType === 'gb') {
+        disabledCommands.push(TileContextToolbar.Commands.tileAttributes);
+    }
     tileContextToolbar.setState({
         disabledCommands: disabledCommands,
         clampToTile: instanceState.clampToTile,
+        tileBreakLinks: instanceState.tileBreakLinks,
         systemType: getProject().systemType
     });
 
@@ -2049,6 +2058,55 @@ function formatForNoProject() {
     });
 }
 
+/**
+ * Gets what toolstrips should be visible on the tile context toolbar.
+ * @param {string} tool - Currently selected tool.
+ * @returns {string[]}
+ */
+function getTileMapContextToolbarVisibleToolstrips(tool) {
+    let visibleStrips = [];
+    if (tool && typeof tool === 'string') {
+        const tools = TileEditorToolbar.Tools;
+        switch (tool) {
+            case tools.pencil:
+            case tools.colourReplace:
+                visibleStrips.push(TileContextToolbar.Toolstrips.pencil);
+                if (isTileMap()) {
+                    visibleStrips.push(TileContextToolbar.Toolstrips.tileMapPencil);
+                }
+            case tools.bucket:
+            case tools.eyedropper:
+                visibleStrips.push(TileContextToolbar.Toolstrips.pencil);
+                break;
+            case tools.select:
+                visibleStrips.push(TileContextToolbar.Toolstrips.select);
+                break;
+            case tools.referenceImage:
+                visibleStrips.push(TileContextToolbar.Toolstrips.referenceImage);
+                break;
+            case tools.tileAttributes:
+                visibleStrips.push(TileContextToolbar.Toolstrips.tileAttributes);
+                break;
+            case tools.rowColumn:
+                visibleStrips.push(TileContextToolbar.Toolstrips.rowColumn);
+                break;
+            case tools.tileLinkBreak:
+                visibleStrips.push(TileContextToolbar.Toolstrips.tileLinkBreak);
+                break;
+            case tools.palettePaint:
+                visibleStrips.push(TileContextToolbar.Toolstrips.palettePaint);
+                break;
+            case tools.tileStamp:
+                visibleStrips.push(TileContextToolbar.Toolstrips.tileStamp);
+                break;
+            case tools.tileEyedropper:
+                visibleStrips.push(TileContextToolbar.Toolstrips.tileEyedropper);
+                break;
+        }
+    }
+    return visibleStrips;
+}
+
 function displaySelectedProject() {
     if (getProject()) {
         getUIState().lastProjectId = getProject().id;
@@ -2134,16 +2192,24 @@ function takeToolAction(args) {
                         instanceState.lastTileMapPx.x = imageX;
                         instanceState.lastTileMapPx.y = imageY;
 
+                        const breakLinks = isTileMap() && instanceState.breakTileLinks;
+                        const originalTileSet = breakLinks ? TileSetFactory.clone(getTileSet()) : null;
                         const size = instanceState.pencilSize;
-                        const updatedTiles = PaintTool.paintColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, colourIndex, size, clamp);
 
+                        const updatedTiles = PaintTool.paintColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, colourIndex, size, clamp);
                         if (updatedTiles.affectedTileIndexes.length > 0) {
+
+                            if (breakLinks) {
+                                takeToolAction_breakLinks(updatedTiles.affectedTileIndexes, originalTileSet);
+                            }
+
                             tileEditor.setState({
                                 updatedTileIds: updatedTiles.affectedTileIds
                             });
                             tileManager.setState({
                                 updatedTileIds: updatedTiles.affectedTileIds
                             });
+
                         }
 
                     }
@@ -2172,12 +2238,19 @@ function takeToolAction(args) {
                         instanceState.lastTileMapPx.x = imageX;
                         instanceState.lastTileMapPx.y = imageY;
 
+                        const breakLinks = isTileMap() && instanceState.breakTileLinks;
+                        const originalTileSet = breakLinks ? TileSetFactory.clone(getTileSet()) : null;
                         const sourceColourindex = instanceState.startingColourIndex;
                         const replacementColourIndex = colourIndex;
                         const size = instanceState.pencilSize;
                         const updatedTiles = PaintTool.replaceColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, sourceColourindex, replacementColourIndex, size, clamp);
 
                         if (updatedTiles.affectedTileIndexes.length > 0) {
+
+                            if (breakLinks) {
+                                takeToolAction_breakLinks(updatedTiles.affectedTileIndexes, originalTileSet);
+                            }
+
                             tileEditor.setState({
                                 updatedTileIds: updatedTiles.affectedTileIds
                             });
@@ -2185,6 +2258,7 @@ function takeToolAction(args) {
                                 tileSet: getTileSet(),
                                 updatedTileIds: updatedTiles.affectedTileIds
                             });
+
                         }
 
                     }
@@ -2350,6 +2424,34 @@ function takeToolAction(args) {
 
     }
 
+}
+
+/**
+ * Breaks links on modified tiles when the break links option is enabled. 
+ * @param {number[]} tileIndexes - Indexes of the tiles witin the tile grid.
+ * @param {TileSet} originalTileSet - Tile set that contains the original tiles. 
+ */
+function takeToolAction_breakLinks(tileIndexes, originalTileSet) {
+    let changesMade = false;
+    tileIndexes.forEach((tileIndex) => {
+        const originalTileId = getTileGrid().getTileInfoByIndex(tileIndex).tileId;
+        const breakResult = TileLinkBreakTool.createAndLinkNewTileIfUsedElsewhere(tileIndex, getTileMap(), getTileSet(), getProject());
+        if (breakResult.changesMade) {
+            const originalTile = originalTileSet.getTileById(originalTileId);
+            const originalTileData = originalTile.readAll();
+            getTileSet().getTileById(originalTileId).setData(originalTileData);
+            changesMade = true;
+        }
+    });
+    if (changesMade) {
+        tileEditor.setState({
+            tileGrid: getTileGrid(),
+            tileSet: getTileSet()
+        });
+        tileManager.setState({
+            tileSet: getTileSet()
+        });
+    }
 }
 
 /** 
@@ -2759,6 +2861,17 @@ function setTileClamp(value) {
     }
     tileContextToolbar.setState({
         clampToTile: instanceState.clampToTile
+    });
+}
+
+/**
+ * Sets the tile link break value.
+ * @param {boolean} value - Tile link break value.
+ */
+function setTileLinkBreak(value) {
+    instanceState.breakTileLinks = value;
+    tileContextToolbar.setState({
+        tileBreakLinks: instanceState.breakTileLinks
     });
 }
 
@@ -3901,7 +4014,6 @@ function swapTilesAt(tileAIndex, tileBIndex) {
  */
 function selectTool(tool) {
     if (TileEditorToolbar.Tools[tool]) {
-        const tools = TileEditorToolbar.Tools;
         instanceState.tool = tool;
         instanceState.swapTool = null;
         if (tool !== TileEditorToolbar.Tools.select) {
@@ -3927,42 +4039,11 @@ function selectTool(tool) {
 
         instanceState.clampToTile = instanceState.userClampToTile;
 
-        let editorMode = TileEditor.CanvasHighlightModes.pixel;
-        let visibleStrips = [];
-        if ([tools.pencil, tools.eyedropper, tools.bucket, tools.colourReplace].includes(tool)) {
-            visibleStrips.push(TileContextToolbar.Toolstrips.pencil);
-        }
-        if ([tools.select].includes(tool)) {
-            editorMode = TileEditor.CanvasHighlightModes.tile;
-            visibleStrips.push(TileContextToolbar.Toolstrips.select);
-        }
-        if ([tools.referenceImage].includes(tool)) {
-            visibleStrips.push(TileContextToolbar.Toolstrips.referenceImage);
-        }
-        if ([tools.tileAttributes].includes(tool)) {
-            visibleStrips.push(TileContextToolbar.Toolstrips.tileAttributes);
-        }
-        if ([tools.rowColumn].includes(tool)) {
-            visibleStrips.push(TileContextToolbar.Toolstrips.rowColumn);
-        }
-        if ([tools.tileLinkBreak].includes(tool)) {
-            visibleStrips.push(TileContextToolbar.Toolstrips.tileLinkBreak);
-        }
-        if ([tools.palettePaint].includes(tool)) {
-            visibleStrips.push(TileContextToolbar.Toolstrips.palettePaint);
-        }
-        if ([tools.tileStamp].includes(tool)) {
-            visibleStrips.push(TileContextToolbar.Toolstrips.tileStamp);
-        }
-        if ([tools.tileEyedropper].includes(tool)) {
-            visibleStrips.push(TileContextToolbar.Toolstrips.tileEyedropper);
-        }
-
         let cursor = 'arrow';
         let cursorSize = 1;
-        if ([tools.eyedropper, tools.bucket].includes(tool)) {
+        if ([TileEditorToolbar.Tools.eyedropper, TileEditorToolbar.Tools.bucket].includes(tool)) {
             cursor = 'crosshair';
-        } else if (tool === tools.pencil || tool === tools.colourReplace) {
+        } else if (tool === TileEditorToolbar.Tools.pencil || tool === TileEditorToolbar.Tools.colourReplace) {
             cursor = 'crosshair';
             cursorSize = instanceState.pencilSize;
         }
@@ -3980,7 +4061,7 @@ function selectTool(tool) {
             visible: true,
             brushSize: instanceState.pencilSize,
             rowColumnFillMode: instanceState.rowColumnFillMode ?? TileMapRowColumnTool.TileFillMode.useSelected,
-            visibleToolstrips: visibleStrips,
+            visibleToolstrips: getTileMapContextToolbarVisibleToolstrips(tool),
             clampToTile: instanceState.clampToTile,
             disabledCommands: disabledCommands
         });

@@ -13,6 +13,7 @@ const commands = {
     insertBefore: 'insertBefore', insertAfter: 'insertAfter',
     brushSize: 'brushSize',
     tileClamp: 'tileClamp',
+    tileLinkBreak: 'tileLinkBreak',
     referenceImageLockAspect: 'referenceImageLockAspect',
     referenceImageSelect: 'referenceImageSelect',
     referenceImageClear: 'referenceImageClear',
@@ -28,6 +29,7 @@ const commands = {
 const toolstrips = {
     select: 'select',
     pencil: 'pencil',
+    tileMapPencil: 'tileMapPencil',
     referenceImage: 'referenceImage',
     rowColumn: 'rowColumn',
     palettePaint: 'palettePaint',
@@ -153,6 +155,11 @@ export default class TileContextToolbar extends ComponentBase {
             /** @type {HTMLInputElement?} */
             const check = this.#element.querySelector(`[data-command=${TileContextToolbar.Commands.tileClamp}]`);
             if (check) check.checked = state.clampToTile;
+        }
+        if (typeof state?.tileBreakLinks === 'boolean') {
+            /** @type {HTMLInputElement?} */
+            const check = this.#element.querySelector(`[data-command=${TileContextToolbar.Commands.tileBreakLinks}]`);
+            if (check) check.checked = state.tileBreakLinks;
         }
         if (typeof state?.rowColumnMode !== 'undefined') {
             this.#element.querySelectorAll(`button[data-command=${TileContextToolbar.Commands.rowColumnMode}][data-mode]`)
@@ -351,6 +358,10 @@ export default class TileContextToolbar extends ComponentBase {
             result.tileClamp = element.nodeName === 'INPUT' && element.type === 'checkbox' && element.checked;
         }
 
+        if (command === coms.tileLinkBreak) {
+            result.tileBreakLinks = element.nodeName === 'INPUT' && element.type === 'checkbox' && element.checked;
+        }
+
         if (command === coms.paletteSlot) {
             result.paletteSlot = parseInt(element.getAttribute('data-slot-number'));
         }
@@ -407,6 +418,7 @@ function isToggled(element) {
  * @property {string?} [systemType] - Type of system, which will affect fields with 'data-system-type' attribute .
  * @property {number?} [brushSize] - Selected brush size, 1 to 5.
  * @property {boolean?} [clampToTile] - Clamp to tile?
+ * @property {boolean?} [tileBreakLinks] - Break tile links on edit?
  * @property {string?} [rowColumnMode] - Mode for add / remove row / column.
  * @property {string?} [rowColumnFillMode] - Fill mode for the row / column tool.
  * @property {number?} [paletteSlot] - Palette slot.
@@ -438,6 +450,7 @@ function isToggled(element) {
  * @property {string} command - Command being invoked.
  * @property {number?} [brushSize] - Brush size, 1 to 5.
  * @property {boolean?} [tileClamp] - Clamp to tile?
+ * @property {boolean?} [tileBreakLinks] - Break tile links on edit?
  * @property {string?} [rowColumnMode] - Mode for add / remove row / column.
  * @property {string?} [rowColumnFillMode] - Tile fill mode for add / remove row / column.
  * @property {number?} [paletteSlot] - Palette slot.

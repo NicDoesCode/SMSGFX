@@ -5,10 +5,14 @@ import TemplateUtil from "../util/templateUtil.js";
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
 const commands = {
-    clone: 'clone', remove: 'remove',
-    moveLeft: 'moveLeft', moveRight: 'moveRight',
-    mirrorHorizontal: 'mirrorHorizontal', mirrorVertical: 'mirrorVertical',
-    insertBefore: 'insertBefore', insertAfter: 'insertAfter'
+    clone: 'clone', 
+    remove: 'remove',
+    moveLeft: 'moveLeft', 
+    moveRight: 'moveRight',
+    mirrorHorizontal: 'mirrorHorizontal', 
+    mirrorVertical: 'mirrorVertical',
+    insertBefore: 'insertBefore', 
+    insertAfter: 'insertAfter'
 }
 
 export default class TileEditorContextMenu extends ComponentBase {

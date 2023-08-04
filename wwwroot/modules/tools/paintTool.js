@@ -12,9 +12,10 @@ export default class PaintTool {
      * @param {number} colourIndex - Colour index to be replaced.
      * @param {number} pencilSize - Size of the brush.
      * @param {boolean} clampToTile - Will neigbouring tiles be affected?
+     * @param {boolean} breakTileLinks - Break links on affected tiles?
      * @returns {import("../util/paintUtil").DrawResult}
      */
-    static paintColourOnTileGrid(tileGrid, tileSet, x, y, colourIndex, pencilSize, clampToTile) {
+    static paintColourOnTileGrid(tileGrid, tileSet, x, y, colourIndex, pencilSize, clampToTile, breakTileLinks) {
         return PaintUtil.drawOnTileGrid(tileGrid, tileSet, x, y, colourIndex, { brushSize: pencilSize, affectAdjacentTiles: !clampToTile });
     }
 
@@ -28,9 +29,10 @@ export default class PaintTool {
      * @param {number} replacementColourIndex - Colour index to replace with.
      * @param {number} pencilSize - Size of the brush.
      * @param {boolean} clampToTile - Will neigbouring tiles be affected?
+     * @param {boolean} breakTileLinks - Break links on affected tiles?
      * @returns {import("../util/paintUtil").DrawResult}
      */
-    static replaceColourOnTileGrid(tileGrid, tileSet, x, y, sourceColourIndex, replacementColourIndex, pencilSize, clampToTile) {
+    static replaceColourOnTileGrid(tileGrid, tileSet, x, y, sourceColourIndex, replacementColourIndex, pencilSize, clampToTile, breakTileLinks) {
         return PaintUtil.replaceColourOnTileGrid(tileGrid, tileSet, x, y, sourceColourIndex, replacementColourIndex, { brushSize: pencilSize, affectAdjacentTiles: !clampToTile });
     }
 
@@ -42,9 +44,10 @@ export default class PaintTool {
      * @param {number} y - Y coordinate.
      * @param {number} colourIndex - Colour index to be filled.
      * @param {boolean} clampToTile - Will neigbouring tiles be affected?
+     * @param {boolean} breakTileLinks - Break links on affected tiles?
      * @returns {boolean}
      */
-    static fillColourOnTileGrid(tileGrid, tileSet, x, y, colourIndex, clampToTile) {
+    static fillColourOnTileGrid(tileGrid, tileSet, x, y, colourIndex, clampToTile, breakTileLinks) {
         PaintUtil.fillOnTileGrid(tileGrid, tileSet, x, y, colourIndex, { affectAdjacentTiles: !clampToTile });
     }
 
