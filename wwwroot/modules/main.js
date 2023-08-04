@@ -969,7 +969,7 @@ function handleTileContextToolbarCommand(args) {
         setTileClamp(args.tileClamp);
     }
     if (args.command === TileContextToolbar.Commands.tileLinkBreak) {
-        setTileLinkBreak(args.tileLinkBreak);
+        setTileLinkBreak(args.tileBreakLinks);
     }
     if (args.command === TileContextToolbar.Commands.rowColumnMode || args.command === TileContextToolbar.Commands.rowColumnFillMode) {
         setRowColumnMode(args.rowColumnMode, args.rowColumnFillMode);
@@ -1816,10 +1816,10 @@ function getTilesPerBlock() {
 }
 
 function isTileSet() {
-    return !getTileMap();
+    return getTileMap() === null;
 }
 function isTileMap() {
-    return getTileMap();
+    return getTileMap() !== null;
 }
 
 function refreshProjectUI() {
@@ -2192,15 +2192,42 @@ function takeToolAction(args) {
 
                         const breakLinks = isTileMap() && instanceState.breakTileLinks;
                         const size = instanceState.pencilSize;
-                        const updatedTiles = PaintTool.paintColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, colourIndex, size, clamp);
+                        const originalTileSet = breakLinks ? TileSetFactory.clone(getTileSet()) : null;
 
+                        const updatedTiles = PaintTool.paintColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, colourIndex, size, clamp);
                         if (updatedTiles.affectedTileIndexes.length > 0) {
-                            tileEditor.setState({
-                                updatedTileIds: updatedTiles.affectedTileIds
-                            });
-                            tileManager.setState({
-                                updatedTileIds: updatedTiles.affectedTileIds
-                            });
+
+                            let linkUpdated = false;
+                            if (breakLinks) {
+                                updatedTiles.affectedTileIndexes.forEach((tileIndex) => {
+                                    const originalTileId = getTileGrid().getTileInfoByIndex(tileIndex).tileId;
+                                    const breakResult = TileLinkBreakTool.createAndLinkNewTileIfUsedElsewhere(tileIndex, getTileMap(), getTileSet(), getProject());
+                                    if (breakResult.changesMade) {
+                                        const originalTile = originalTileSet.getTileById(originalTileId);
+                                        const originalTileData = originalTile.readAll();
+                                        getTileSet().getTileById(originalTileId).setData(originalTileData);
+                                        linkUpdated = true;
+                                    }
+                                });
+                            }
+
+                            if (linkUpdated) {
+                                tileEditor.setState({
+                                    tileGrid: getTileGrid(),
+                                    tileSet: getTileSet()
+                                });
+                                tileManager.setState({
+                                    tileSet: getTileSet()
+                                });
+                            } else {
+                                tileEditor.setState({
+                                    updatedTileIds: updatedTiles.affectedTileIds
+                                });
+                                tileManager.setState({
+                                    updatedTileIds: updatedTiles.affectedTileIds
+                                });
+                            }
+
                         }
 
                     }
@@ -2824,9 +2851,9 @@ function setTileClamp(value) {
  * @param {boolean} value - Tile link break value.
  */
 function setTileLinkBreak(value) {
-    instanceState.tileLinkBreak = value;
+    instanceState.breakTileLinks = value;
     tileContextToolbar.setState({
-        tileBreakLinks: instanceState.tileLinkBreak
+        tileBreakLinks: instanceState.breakTileLinks
     });
 }
 

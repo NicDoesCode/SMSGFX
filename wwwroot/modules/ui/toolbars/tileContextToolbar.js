@@ -13,7 +13,7 @@ const commands = {
     insertBefore: 'insertBefore', insertAfter: 'insertAfter',
     brushSize: 'brushSize',
     tileClamp: 'tileClamp',
-    tileBreakLinks: 'tileBreakLinks',
+    tileLinkBreak: 'tileLinkBreak',
     referenceImageLockAspect: 'referenceImageLockAspect',
     referenceImageSelect: 'referenceImageSelect',
     referenceImageClear: 'referenceImageClear',
@@ -358,7 +358,7 @@ export default class TileContextToolbar extends ComponentBase {
             result.tileClamp = element.nodeName === 'INPUT' && element.type === 'checkbox' && element.checked;
         }
 
-        if (command === coms.tileBreakLinks) {
+        if (command === coms.tileLinkBreak) {
             result.tileBreakLinks = element.nodeName === 'INPUT' && element.type === 'checkbox' && element.checked;
         }
 

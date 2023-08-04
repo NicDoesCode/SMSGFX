@@ -101,7 +101,7 @@ export default class Tile {
         if (x === null || y === null) return null;
         if (x >= 0 && x < 8 && y >= 0 && y < 8) {
             return this.readAt(y * 8 + x);
-        } 
+        }
         return null;
     }
 
@@ -132,6 +132,16 @@ export default class Tile {
     setValueAtCoord(x, y, value) {
         if (x === null || y === null || x < 0 || x >= 8 || y < 0 || y >= 8) return false;
         return this.setValueAt(y * 8 + x, value);
+    }
+
+    /**
+     * Sets the tile data.
+     * @param {Uint8ClampedArray} data - Data to set.
+     */
+    setData(data) {
+        if (!data instanceof Uint8ClampedArray) throw new Error('Data must be an array.')
+        if (data.length < 64) throw new Error('Data must be of length 64 or more.');
+        this.#data = data;
     }
 
 
