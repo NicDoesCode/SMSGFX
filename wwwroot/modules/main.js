@@ -2069,13 +2069,14 @@ function getTileMapContextToolbarVisibleToolstrips(tool) {
         const tools = TileEditorToolbar.Tools;
         switch (tool) {
             case tools.pencil:
-            case tools.eyedropper:
-            case tools.bucket:
             case tools.colourReplace:
                 visibleStrips.push(TileContextToolbar.Toolstrips.pencil);
                 if (isTileMap()) {
                     visibleStrips.push(TileContextToolbar.Toolstrips.tileMapPencil);
                 }
+            case tools.bucket:
+            case tools.eyedropper:
+                visibleStrips.push(TileContextToolbar.Toolstrips.pencil);
                 break;
             case tools.select:
                 visibleStrips.push(TileContextToolbar.Toolstrips.select);
