@@ -59,6 +59,7 @@ import PalettePaintTool from "./tools/palettePaintTool.js";
 import TileStampTool from "./tools/tileStampTool.js";
 import Tile from "./models/tile.js";
 import TileMapTool from "./tools/tileMapTool.js";
+import TileSet from "./models/tileSet.js";
 
 
 /* ****************************************************************************************************
@@ -2191,8 +2192,8 @@ function takeToolAction(args) {
                         instanceState.lastTileMapPx.y = imageY;
 
                         const breakLinks = isTileMap() && instanceState.breakTileLinks;
-                        const size = instanceState.pencilSize;
                         const originalTileSet = breakLinks ? TileSetFactory.clone(getTileSet()) : null;
+                        const size = instanceState.pencilSize;
 
                         const updatedTiles = PaintTool.paintColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, colourIndex, size, clamp);
                         if (updatedTiles.affectedTileIndexes.length > 0) {
@@ -2236,12 +2237,19 @@ function takeToolAction(args) {
                         instanceState.lastTileMapPx.x = imageX;
                         instanceState.lastTileMapPx.y = imageY;
 
+                        const breakLinks = isTileMap() && instanceState.breakTileLinks;
+                        const originalTileSet = breakLinks ? TileSetFactory.clone(getTileSet()) : null;
                         const sourceColourindex = instanceState.startingColourIndex;
                         const replacementColourIndex = colourIndex;
                         const size = instanceState.pencilSize;
                         const updatedTiles = PaintTool.replaceColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, sourceColourindex, replacementColourIndex, size, clamp);
 
                         if (updatedTiles.affectedTileIndexes.length > 0) {
+
+                            if (breakLinks) {
+                                takeToolAction_breakLinks(updatedTiles.affectedTileIndexes, originalTileSet);
+                            }
+
                             tileEditor.setState({
                                 updatedTileIds: updatedTiles.affectedTileIds
                             });
@@ -2249,6 +2257,7 @@ function takeToolAction(args) {
                                 tileSet: getTileSet(),
                                 updatedTileIds: updatedTiles.affectedTileIds
                             });
+
                         }
 
                     }
@@ -2416,6 +2425,11 @@ function takeToolAction(args) {
 
 }
 
+/**
+ * Breaks links on modified tiles when the break links option is enabled. 
+ * @param {number[]} tileIndexes - Indexes of the tiles witin the tile grid.
+ * @param {TileSet} originalTileSet - Tile set that contains the original tiles. 
+ */
 function takeToolAction_breakLinks(tileIndexes, originalTileSet) {
     let changesMade = false;
     tileIndexes.forEach((tileIndex) => {
