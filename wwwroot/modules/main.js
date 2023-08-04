@@ -2197,36 +2197,16 @@ function takeToolAction(args) {
                         const updatedTiles = PaintTool.paintColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, colourIndex, size, clamp);
                         if (updatedTiles.affectedTileIndexes.length > 0) {
 
-                            let linkUpdated = false;
                             if (breakLinks) {
-                                updatedTiles.affectedTileIndexes.forEach((tileIndex) => {
-                                    const originalTileId = getTileGrid().getTileInfoByIndex(tileIndex).tileId;
-                                    const breakResult = TileLinkBreakTool.createAndLinkNewTileIfUsedElsewhere(tileIndex, getTileMap(), getTileSet(), getProject());
-                                    if (breakResult.changesMade) {
-                                        const originalTile = originalTileSet.getTileById(originalTileId);
-                                        const originalTileData = originalTile.readAll();
-                                        getTileSet().getTileById(originalTileId).setData(originalTileData);
-                                        linkUpdated = true;
-                                    }
-                                });
+                                takeToolAction_breakLinks(updatedTiles.affectedTileIndexes, originalTileSet);
                             }
 
-                            if (linkUpdated) {
-                                tileEditor.setState({
-                                    tileGrid: getTileGrid(),
-                                    tileSet: getTileSet()
-                                });
-                                tileManager.setState({
-                                    tileSet: getTileSet()
-                                });
-                            } else {
-                                tileEditor.setState({
-                                    updatedTileIds: updatedTiles.affectedTileIds
-                                });
-                                tileManager.setState({
-                                    updatedTileIds: updatedTiles.affectedTileIds
-                                });
-                            }
+                            tileEditor.setState({
+                                updatedTileIds: updatedTiles.affectedTileIds
+                            });
+                            tileManager.setState({
+                                updatedTileIds: updatedTiles.affectedTileIds
+                            });
 
                         }
 
@@ -2434,6 +2414,29 @@ function takeToolAction(args) {
 
     }
 
+}
+
+function takeToolAction_breakLinks(tileIndexes, originalTileSet) {
+    let changesMade = false;
+    tileIndexes.forEach((tileIndex) => {
+        const originalTileId = getTileGrid().getTileInfoByIndex(tileIndex).tileId;
+        const breakResult = TileLinkBreakTool.createAndLinkNewTileIfUsedElsewhere(tileIndex, getTileMap(), getTileSet(), getProject());
+        if (breakResult.changesMade) {
+            const originalTile = originalTileSet.getTileById(originalTileId);
+            const originalTileData = originalTile.readAll();
+            getTileSet().getTileById(originalTileId).setData(originalTileData);
+            changesMade = true;
+        }
+    });
+    if (changesMade) {
+        tileEditor.setState({
+            tileGrid: getTileGrid(),
+            tileSet: getTileSet()
+        });
+        tileManager.setState({
+            tileSet: getTileSet()
+        });
+    }
 }
 
 /** 
