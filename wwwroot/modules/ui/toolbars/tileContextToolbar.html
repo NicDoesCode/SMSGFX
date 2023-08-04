@@ -38,12 +38,28 @@
                         class="form-check-input mt-0" type="checkbox" value="" aria-label="Clamp to tile"
                         title="Clamp to tile: Limits the actions of the pencil, colour replace and paint bucket tools to the current tile.">
                     <label for="tileClamp" class="ps-1"
-                        title="Clamp to tile: Limits the actions of the pencil, colour replace and paint bucket tools to the current tile.">Clamp
-                        to tile</label>
+                        title="Clamp to tile: Limits the actions of the pencil, colour replace and paint bucket tools to the current tile.">
+                        Clamp to tile
+                    </label>
                 </div>
             </div>
         </div>
         <!-- End: Pencil toolstrip -->
+        <!-- Tile map pencil toolstrip -->
+        <div data-toolstrip="tileMapPencil" class="col-auto sms-toolstrip m-0 me-2 p-0">
+            <div class="input-group input-group-sm">
+                <div class="input-group-text">
+                    <input data-command="tileLinkBreakOnEdit" data-auto-event="change" data-labelled-by="tileLinkBreakOnEdit"
+                        class="form-check-input mt-0" type="checkbox" value="" aria-label="Break tile links."
+                        title="Break links: If a tile is used elsewhere the link will be broken and the tile will be cloned.">
+                    <label for="tileLinkBreakOnEdit" class="ps-1"
+                        title="Break links: If a tile is used elsewhere the link will be broken and the tile will be cloned.">
+                        Break links
+                    </label>
+                </div>
+            </div>
+        </div>
+        <!-- End: Tile map pencil toolstrip -->
         <!-- Select toolstrip -->
         <div data-toolstrip="select" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">

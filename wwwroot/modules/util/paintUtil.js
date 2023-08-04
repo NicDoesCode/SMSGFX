@@ -356,6 +356,7 @@ function translateCoordinate(tileInfo, x, y) {
  * @type {object}
  * @property {number} brushSize - Size of the brush in pixels, between 1 and 100.
  * @property {boolean} affectAdjacentTiles - Default: true. Will neigbouring tiles also be drawn onto?
+ * @property {boolean} breakTileLinks - Break links on affected tiles?
  * @exports
  */
 
@@ -363,6 +364,7 @@ function translateCoordinate(tileInfo, x, y) {
  * @typedef FillOptions
  * @type {object}
  * @property {boolean} affectAdjacentTiles - Default: true. Will neigbouring tiles also be affected?
+ * @property {boolean} breakTileLinks - Break links on affected tiles?
  * @exports
  */
 
@@ -371,4 +373,5 @@ function translateCoordinate(tileInfo, x, y) {
  * @type {object}
  * @property {number[]} affectedTileIndexes - The tiles that were affected by the draw operation.
  * @property {string[]} affectedTileIds - The unique tile IDs that were affected by the draw operation.
- */
+ * @exports
+*/
