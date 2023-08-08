@@ -147,8 +147,6 @@ export default class PaletteEditor extends ComponentBase {
      * @param {PaletteEditorState} state - State to set.
      */
     setState(state) {
-        /** @type {PaletteList} */
-        let paletteList;
         let updateVirtualList = false;
         let paletteListDirty = false;
         if (state?.paletteList && typeof state?.paletteList.getPalettes === 'function') {
@@ -450,7 +448,7 @@ export default class PaletteEditor extends ComponentBase {
     #setUI(palette) {
         document.querySelectorAll('[data-smsgfx-id=system-select]').forEach(elm => {
             switch (palette.system) {
-                case 'sms': case 'gg': elm.style.display = null; break;
+                case 'ms': case 'gg': elm.style.display = null; break;
                 case 'gb': elm.style.display = 'none'; break;
                 case 'nes': elm.style.display = 'none'; break;
             }
@@ -569,7 +567,7 @@ export default class PaletteEditor extends ComponentBase {
  * @property {string?} paletteTitle - Title value for the selected palette.
  * @property {string?} paletteSystem - Selected system value for the selected palette, either 'ms', 'gg', 'gb' or 'nes'.
  * @property {number?} colourIndex - Index from 0 to 15 for the given colour.
- * @property {number?} targetColourIndex - Target palette colour index from 0 to 15 for 'sms' and 'gg', 0 to 3 for 'gb' or 'nes'.
+ * @property {number?} targetColourIndex - Target palette colour index from 0 to 15 for 'ms' and 'gg', 0 to 3 for 'gb' or 'nes'.
  * @property {boolean?} displayNative - Display native colours for system?
  * @exports
  */

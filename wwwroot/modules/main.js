@@ -1791,7 +1791,7 @@ function getToolState() {
 
 function getDefaultPaletteSystemType() {
     switch (getProject().systemType) {
-        case 'smsgg': return 'sms';
+        case 'smsgg': return 'ms';
         case 'nes': return 'nes';
         case 'gb': return 'gg';
         default: throw new Error('Unknown system type.');
@@ -1928,7 +1928,7 @@ function formatForProject() {
     const colour = palette.getColour(instanceState.colourIndex);
     const visibleTabs = [];
     switch (getPalette().system) {
-        case 'ms': case 'gg': visibleTabs.push('rgb', 'sms'); break;
+        case 'ms': case 'gg': visibleTabs.push('rgb', 'ms'); break;
         case 'nes': visibleTabs.push('nes'); break;
         case 'gb': visibleTabs.push('gb'); break;
     }
@@ -3364,39 +3364,15 @@ function newProject(args) {
         tileWidth: args.tileWidth,
         tileHeight: args.tileHeight
     });
-    state.setProject(newProject);
+
     getProjectUIState().paletteIndex = 0;
-    state.saveToLocalStorage();
 
     instanceState.tileIndex = -1;
     instanceState.colourIndex = 0;
-
-    projectToolbar.setState({
-        projectTitle: getProject().title
-    });
-    projectDropdown.setState({
-        projectTitle: getProject().title,
-        visible: false
-    });
-    paletteEditor.setState({
-        paletteList: getPaletteList(),
-        selectedColourIndex: instanceState.colourIndex,
-        selectedPaletteIndex: getProjectUIState().paletteIndex
-    });
-    setCommonTileToolbarStates({
-        tileWidth: getTileSet().tileWidth
-    });
-    tileEditor.setState({
-        paletteList: getTileEditorPaletteList(),
-        tileGrid: getTileGrid(),
-        tileSet: getTileSet(),
-        selectedTileIndex: instanceState.tileIndex
-    });
-    tileEditor.setState({
-        paletteList: getPaletteList(),
-        tileSet: getTileSet(),
-        tileGrid: getTileGrid()
-    });
+    
+    state.setProject(newProject);
+    state.saveToLocalStorage();
+    
     welcomeScreen.setState({
         visible: false
     });
