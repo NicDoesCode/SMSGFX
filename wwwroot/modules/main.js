@@ -1767,9 +1767,15 @@ function getPalette() {
 function getUIState() {
     return state.persistentUIState;
 }
-function getProjectUIState() {
-    if (getProject()) {
-        const projectId = getProject().id;
+/**
+ * Gets the UI state of a project from local storage, if one doesn't exist it will be created.
+ * @param {Project} [project] - Optional. Project to get UI state for. When omitted it will be the currently loaded project.
+ * @returns {import("./models/persistentUIState.js").ProjectState?}
+ */
+function getProjectUIState(project) {
+    const targetProject = project ?? getProject();
+    if (targetProject) {
+        const projectId = targetProject.id;
         if (!getUIState().projectStates[projectId]) {
             getUIState().projectStates[projectId] = {
                 projectId: projectId,
@@ -3365,17 +3371,14 @@ function newProject(args) {
         tileHeight: args.tileHeight
     });
 
-    getProjectUIState().paletteIndex = 0;
+    getProjectUIState(newProject).paletteIndex = 0;
+    getProjectUIState(newProject).tileMapId = args.createTileMap ? newProject.tileMapList.getTileMap(0).tileMapId : null;
 
     instanceState.tileIndex = -1;
     instanceState.colourIndex = 0;
-    
+
     state.setProject(newProject);
     state.saveToLocalStorage();
-    
-    welcomeScreen.setState({
-        visible: false
-    });
 }
 
 /**
