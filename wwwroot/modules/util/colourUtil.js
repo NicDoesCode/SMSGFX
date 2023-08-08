@@ -13,7 +13,7 @@ export default class ColourUtil {
     static getColoursPerPalette(system) {
         switch (system) {
             case 'smsgg':
-            case 'sms':
+            case 'ms':
             case 'gg':
                 return 16;
             case 'gb':

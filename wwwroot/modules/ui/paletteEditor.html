@@ -55,9 +55,10 @@
             </div>
             <select data-command="paletteSystem" class="form-select form-select-sm visually-hidden"
                 title="Select a system that the palette applies to.">
-                <option value="ms">Master System</option>
-                <option value="gg">Game Gear</option>
-                <option value="gb">Game Boy</option>
+                <option value="ms">Sega Master System</option>
+                <option value="gg">Sega Game Gear</option>
+                <option value="gb">Nintendo Game Boy</option>
+                <option value="nes">Nintendo Entertainment System</option>
             </select>
             <div data-smsgfx-id="system-select" class="sms-system-select row mb-2">
                 <div class="col">
@@ -80,6 +81,12 @@
                             <button data-linked-command="paletteSystem" data-value="gb" class="nav-link visually-hidden"
                                 title="This palette is for Nintendo Game Boy.">
                                 GB
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button data-linked-command="paletteSystem" data-value="nes" class="nav-link visually-hidden"
+                                title="This palette is for Nintendo Entertainment System.">
+                                NES
                             </button>
                         </li>
                     </ul>

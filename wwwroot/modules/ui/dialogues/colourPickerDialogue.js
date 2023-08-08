@@ -205,9 +205,9 @@ export default class ColourPickerDialogue extends ModalDialogue {
             case 'gg':
             case 'ms':
                 this.#element.querySelector(`[data-colour-tab='rgb']`).classList.remove('visually-hidden');
-                this.#element.querySelector(`[data-colour-tab='sms']`).classList.remove('visually-hidden');
+                this.#element.querySelector(`[data-colour-tab='ms']`).classList.remove('visually-hidden');
                 this.#element.querySelector(`[data-colour-tab-page='rgb']`).classList.remove('visually-hidden');
-                this.#element.querySelector(`[data-colour-tab-page='sms']`).classList.remove('visually-hidden');
+                this.#element.querySelector(`[data-colour-tab-page='ms']`).classList.remove('visually-hidden');
                 this.#selectTab('rgb');
                 break;
             case 'gb':

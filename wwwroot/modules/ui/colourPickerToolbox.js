@@ -47,7 +47,7 @@ export default class ColourPickerToolbox extends ComponentBase {
     #dispatcher;
     #enabled = true;
     /** @type {ColourPaletteListing} */
-    #smsColourPaletteList = null;
+    #msColourPaletteList = null;
     /** @type {ColourPaletteListing} */
     #gbColourPaletteList = null;
     /** @type {ColourPaletteListing} */
@@ -96,10 +96,10 @@ export default class ColourPickerToolbox extends ComponentBase {
             }
         });
 
-        this.#loadPaletteListIfNotLoaded(this.#smsColourPaletteList, 'colour-palette-list-sms').then((control) => {
+        this.#loadPaletteListIfNotLoaded(this.#msColourPaletteList, 'colour-palette-list-ms').then((control) => {
             if (control) {
-                this.#smsColourPaletteList = control;
-                this.#smsColourPaletteList.setState({
+                this.#msColourPaletteList = control;
+                this.#msColourPaletteList.setState({
                     colours: ColourUtil.getFullMasterSystemPalette(),
                     direction: 'row',
                     coloursPerRow: 8
@@ -169,7 +169,7 @@ export default class ColourPickerToolbox extends ComponentBase {
             this.#element.querySelectorAll('input').forEach(element => {
                 element.disabled = !this.#enabled;
             });
-            this.#smsColourPaletteList.setState({ enabled: this.#enabled });
+            this.#msColourPaletteList.setState({ enabled: this.#enabled });
             this.#gbColourPaletteList.setState({ enabled: this.#enabled });
             this.#nesColourPaletteList.setState({ enabled: this.#enabled });
         }
@@ -180,7 +180,7 @@ export default class ColourPickerToolbox extends ComponentBase {
             });
         }
         if (typeof state?.showTab === 'string') {
-            this.#currentTab = (['sms', 'rgb', 'gb', 'nes'].includes(state.showTab)) ? state.showTab : 'rgb';
+            this.#currentTab = (['ms', 'rgb', 'gb', 'nes'].includes(state.showTab)) ? state.showTab : 'rgb';
             this.#showCurrentTab();
         }
     }
@@ -322,8 +322,8 @@ export default class ColourPickerToolbox extends ComponentBase {
 /**
  * @typedef {object} ColourPickerToolboxState
  * @property {boolean?} enabled - Is the toolbox enabled?
- * @property {string?} showTab - Either 'rgb', 'sms' or 'gb', which content tab to show.
- * @property {string[]?} visibleTabs - Comma separated list of tabs to show, of 'rgb', 'sms' or 'gb'.
+ * @property {string?} showTab - Either 'rgb', 'ms' or 'gb', which content tab to show.
+ * @property {string[]?} visibleTabs - Comma separated list of tabs to show, of 'rgb', 'ms' or 'gb'.
  * @property {number?} r - Red component.
  * @property {number?} g - Green component.
  * @property {number?} b - Blue component.
