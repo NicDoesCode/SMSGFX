@@ -28,13 +28,13 @@ import TileManager from "./ui/tileManager.js";
 import AboutModalDialogue from "./ui/dialogues/aboutModalDialogue.js";
 import ColourPickerDialogue from "./ui/dialogues/colourPickerDialogue.js";
 import AssemblyExportModalDialogue from "./ui/dialogues/assemblyExportModalDialogue.js";
+import AssemblyImportTilesModalDialogue from "./ui/dialogues/assemblyImportTilesModalDialogue.js";
 import ImportImageModalDialogue from "./ui/dialogues/importImageModalDialogue.js";
 import NewProjectDialogue from "./ui/dialogues/newProjectDialogue.js";
 import NewTileMapDialogue from "./ui/dialogues/newTileMapDialogue.js";
 import PaletteModalDialogue from "./ui/dialogues/paletteImportModalDialogue.js";
 import PrivacyModalDialogue from "./ui/dialogues/privacyModalDialogue.js";
 import ProjectDropdown from "./ui/dialogues/projectDropdown.js";
-import TileSetImportModalDialogue from "./ui/dialogues/tileSetImportModalDialogue.js";
 import WelcomeScreen from "./ui/dialogues/welcomeScreen.js";
 
 import ExportToolbar from "./ui/toolbars/exportToolbar.js";
@@ -143,6 +143,7 @@ const themeManager = new ThemeManager();
 /** @type {ExportToolbar} */ let exportToolbar;
 /** @type {OptionsToolbar} */ let optionsToolbar;
 /** @type {AssemblyExportModalDialogue} */ let assemblyExportDialogue;
+/** @type {AssemblyImportTilesModalDialogue} */ let assemblyImportTilesModalDialogue;
 /** @type {ColourPickerDialogue} */ let colourPickerDialogue;
 /** @type {ColourPickerToolbox} */ let colourPickerToolbox;
 /** @type {PaletteEditor} */ let paletteEditor;
@@ -154,7 +155,6 @@ const themeManager = new ThemeManager();
 /** @type {TileEditorToolbar} */ let tileEditorToolbar;
 /** @type {TileEditorToolbar} */ let tileEditorBottomToolbar;
 /** @type {TileContextToolbar} */ let tileContextToolbar;
-/** @type {TileSetImportModalDialogue} */ let tileImportDialogue;
 /** @type {ImportImageModalDialogue} */ let importImageModalDialogue;
 /** @type {AboutModalDialogue} */ let aboutDialogue;
 /** @type {PrivacyModalDialogue} */ let privacyModalDialogue;
@@ -170,6 +170,7 @@ async function initialiseComponents() {
     exportToolbar = await ExportToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=export-toolbar]'));
     optionsToolbar = await OptionsToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=options-toolbar]'));
     assemblyExportDialogue = await AssemblyExportModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=assembly-export-dialogue]'));
+    assemblyImportTilesModalDialogue = await AssemblyImportTilesModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-import-dialogue]'));
     colourPickerDialogue = await ColourPickerDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=colour-picker-dialogue]'));
     colourPickerToolbox = await ColourPickerToolbox.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=colour-picker-toolbox]'));
     paletteEditor = await PaletteEditor.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=palette-editor]'));
@@ -181,7 +182,6 @@ async function initialiseComponents() {
     tileEditorToolbar = await TileEditorToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-editor-toolbar]'));
     tileEditorBottomToolbar = await TileEditorToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-editor-bottom-toolbar]'));
     tileContextToolbar = await TileContextToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-context-toolbar]'));
-    tileImportDialogue = await TileSetImportModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-import-dialogue]'));
     importImageModalDialogue = await ImportImageModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=import-image-modal]'));
     aboutDialogue = await AboutModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=about-modal]'));
     privacyModalDialogue = await PrivacyModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=privacy-modal]'));
@@ -232,6 +232,7 @@ function wireUpEventHandlers() {
     optionsToolbar.addHandlerOnCommand(handleOptionsToolbarOnCommand);
 
     assemblyExportDialogue.addHandlerOnCommand(handleAssemblyExportDialogueOnCommand);
+    assemblyImportTilesModalDialogue.addHandlerOnConfirm(handleImportTileSet);
 
     paletteEditor.addHandlerOnCommand(handlePaletteEditorOnCommand);
 
@@ -254,8 +255,6 @@ function wireUpEventHandlers() {
     colourPickerDialogue.addHandlerOnCancel(handleColourPickerCancel);
 
     colourPickerToolbox.addHandlerOnCommand(handleColourPickerToolboxOnCommand);
-
-    tileImportDialogue.addHandlerOnConfirm(handleImportTileSet);
 
     importImageModalDialogue.addHandlerOnConfirm(handleImageImportModalOnConfirm);
 
@@ -793,13 +792,13 @@ function handleAssemblyExportDialogueOnCommand(args) {
     const command = args.command;
     const commands = AssemblyExportModalDialogue.Commands;
     if (command === commands.update || command === commands.clipboard || command === commands.download) {
-        
+
         const code = getExportAssemblyCode(args.selectedTileMapIds, args.optimiseMode, args.vramOffset, {
             tileMaps: args.exportTileMaps,
             tileSet: args.exportTileSet,
             palettes: args.exportPalettes
         });
-        
+
         // Save state
         getProjectAssemblyExportState().tileMapIds = args.selectedTileMapIds;
         getProjectAssemblyExportState().optimiseMode = args.selectedTileoptimiseModeMapIds;
@@ -808,7 +807,7 @@ function handleAssemblyExportDialogueOnCommand(args) {
         getProjectAssemblyExportState().exportTileSet = args.exportTileSet;
         getProjectAssemblyExportState().exportPalettes = args.exportPalettes;
         state.saveUIStateToLocalStorage();
-        
+
         if (command === commands.update) {
             assemblyExportDialogue.setState({ content: code });
         } else if (command === commands.clipboard) {
@@ -1457,7 +1456,7 @@ function changeColourIndex(paletteIndex, colourIndex, colour) {
 
 /**
  * Import tile set from assembly dialogue is confirmed.
- * @param {import('./ui/tileSetImportModalDialogue.js').TileSetImportModalDialogueConfirmEventArgs} args - Arguments.
+ * @param {import('./ui/dialogues/assemblyImportTilesModalDialogue.js').AssemblyImportTilesModalDialogueConfirmEventArgs} args - Arguments.
  */
 function handleImportTileSet(args) {
     addUndoState();
@@ -1467,16 +1466,11 @@ function handleImportTileSet(args) {
     const tileSetBinarySerialiser = SerialisationUtil.getTileSetBinarySerialiser(getProject().systemType);
     const importedTileSet = tileSetBinarySerialiser.deserialise(tileSetDataArray);
 
-    if (args.replace) {
-        getProject().tileSet = importedTileSet;
-    } else {
-        importedTileSet.getTiles().forEach(importedTile => {
-            getTileSet().addTile(importedTile);
-        });
-    }
+    importedTileSet.getTiles().forEach(importedTile => {
+        getTileSet().addTile(importedTile);
+    });
 
     getUIState().importTileAssemblyCode = args.tileSetData;
-    getUIState().importTileReplace = args.replace;
     state.saveToLocalStorage();
 
     setCommonTileToolbarStates({
@@ -1490,7 +1484,8 @@ function handleImportTileSet(args) {
         welcomeScreen.setState({ visible: false });
     }
 
-    tileImportDialogue.hide();
+    assemblyImportTilesModalDialogue.hide();
+    toast.show('Tile data imported.');
 }
 
 
@@ -3371,11 +3366,11 @@ function tileImportImage(file) {
 }
 
 function tileImportCode() {
-    tileImportDialogue.setState({
+    assemblyImportTilesModalDialogue.setState({
         tileSetData: getUIState().importTileAssemblyCode,
         replace: getUIState().importTileReplace
     });
-    tileImportDialogue.show();
+    assemblyImportTilesModalDialogue.show();
 }
 
 /**
