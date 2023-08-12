@@ -7,6 +7,8 @@ import ProjectAssemblySerialiser from "../projectAssemblySerialiser.js";
 import SmsggTileSetBinarySerialiser from "./smsggTileSetBinarySerialiser.js";
 import SmsggTileMapTileBinarySerialiser from "./smsggTileMapTileBinarySerialiser.js";
 import TileMapList from "../../models/tileMapList.js";
+import TileMapListFactory from "../../factory/tileMapListFactory.js";
+import TileMapFactory from "../../factory/tileMapFactory.js";
 
 export default class SmsggAssemblySerialiser extends ProjectAssemblySerialiser {
 
@@ -18,24 +20,41 @@ export default class SmsggAssemblySerialiser extends ProjectAssemblySerialiser {
      */
     static serialise(project, options) {
 
-        const paletteIndex = options?.paletteIndex ?? 0;
-        const memOffset = options?.tileMapMemoryOffset ?? 0;
-        const optimise = options?.optimiseTileMap ?? false;
+        const tileMapList = TileMapListFactory.create();
+        if (options.tileMapIds !== null && Array.isArray(options.tileMapIds)) {
+            options.tileMapIds.forEach((tileMapId) => {
+                const tileMap = project.tileMapList.getTileMapById(tileMapId);
+                if (tileMap) {
+                    const tileMapClone = TileMapFactory.clone(tileMap);
+                    if (options.optimiseMode === 'always')
+                        tileMapClone.optimise = true;
+                    else if (options.optimiseMode === 'never')
+                        tileMapClone.optimise = false;
+                    tileMapClone.vramOffset = options.vramOffset;
+                    tileMapList.addTileMap(tileMapClone);
+                }
+            });
+        }
 
-        const projectTileMap = TileMapUtil.tileSetToTileMap(project.tileSet, paletteIndex, memOffset, optimise);
-        const bundle = TileMapUtil.createOptimisedBundle(projectTileMap, project.tileSet, project.paletteList);
+        const bundle = TileMapUtil.createOptimisedBundle(tileMapList, project.tileSet, project.paletteList);
 
         const result = ['; SEGA MASTER SYSTEM AND SEGA GAME GEAR ASSEMBLY FOR WLA-DX'];
         result.push('');
 
-        result.push(SmsggAssemblySerialiser.#exportPalettes(bundle.paletteList));
-        result.push('');
+        if (options.exportPalettes) {
+            result.push(SmsggAssemblySerialiser.#exportPalettes(bundle.paletteList));
+            result.push('');
+        }
 
-        result.push(SmsggAssemblySerialiser.#exportTileSet(bundle.tileSet));
-        result.push('');
+        if (options.exportTileSet) {
+            result.push(SmsggAssemblySerialiser.#exportTileSet(bundle.tileSet));
+            result.push('');
+        }
 
-        result.push(SmsggAssemblySerialiser.#exportTileMapList(bundle.tileMaps));
-        result.push('');
+        if (options.exportTileMaps) {
+            result.push(SmsggAssemblySerialiser.#exportTileMapList(bundle.tileMaps));
+            result.push('');
+        }
 
         return result.join('\r\n');
     }

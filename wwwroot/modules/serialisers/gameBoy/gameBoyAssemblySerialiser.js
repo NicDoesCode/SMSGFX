@@ -3,11 +3,11 @@ import PaletteList from "../../models/paletteList.js";
 import ColourUtil from "../../util/colourUtil.js";
 import Project from "../../models/project.js";
 import TileMapUtil from "../../util/tileMapUtil.js";
-import TileMap from "../../models/tileMap.js";
-import SerialisationUtil from "../../util/serialisationUtil.js";
 import ProjectAssemblySerialiser from "../projectAssemblySerialiser.js";
 import GameBoyTileSetBinarySerialiser from "./gameBoyTileSetBinarySerialiser.js";
 import GameBoyTileMapTileBinarySerialiser from "./gameBoyTileMapTileBinarySerialiser.js";
+import TileMapListFactory from "../../factory/tileMapListFactory.js";
+import TileMapFactory from "../../factory/tileMapFactory.js";
 
 export default class GameBoyAssemblySerialiser extends ProjectAssemblySerialiser {
 
@@ -19,24 +19,41 @@ export default class GameBoyAssemblySerialiser extends ProjectAssemblySerialiser
      */
     static serialise(project, options) {
 
-        const paletteIndex = options?.paletteIndex ?? 0;
-        const memOffset = options?.tileMapMemoryOffset ?? 0;
-        const optimise = options?.optimiseTileMap ?? false;
+        const tileMapList = TileMapListFactory.create();
+        if (options.tileMapIds !== null && Array.isArray(options.tileMapIds)) {
+            options.tileMapIds.forEach((tileMapId) => {
+                const tileMap = project.tileMapList.getTileMapById(tileMapId);
+                if (tileMap) {
+                    const tileMapClone = TileMapFactory.clone(tileMap);
+                    if (options.optimiseMode === 'always')
+                        tileMapClone.optimise = true;
+                    else if (options.optimiseMode === 'never')
+                        tileMapClone.optimise = false;
+                    tileMapClone.vramOffset = options.vramOffset;
+                    tileMapList.addTileMap(tileMapClone);
+                }
+            });
+        }
 
-        const projectTileMap = TileMapUtil.tileSetToTileMap(project.tileSet, paletteIndex, memOffset, optimise);
-        const bundle = TileMapUtil.createOptimisedBundle(projectTileMap, project.tileSet, project.paletteList);
+        const bundle = TileMapUtil.createOptimisedBundle(tileMapList, project.tileSet, project.paletteList);
 
         const result = ['; NINTENDO GAME BOY ASSEMBLY FOR WLA-DX'];
         result.push('');
 
-        result.push(GameBoyAssemblySerialiser.#exportPalettes(bundle.paletteList));
-        result.push('');
+        if (options.exportPalettes) {
+            result.push(GameBoyAssemblySerialiser.#exportPalettes(bundle.paletteList));
+            result.push('');
+        }
 
-        result.push(GameBoyAssemblySerialiser.#exportTileSet(bundle.tileSet));
-        result.push('');
+        if (options.exportTileSet) {
+            result.push(GameBoyAssemblySerialiser.#exportTileSet(bundle.tileSet));
+            result.push('');
+        }
 
-        result.push(GameBoyAssemblySerialiser.#exportTileMapList(bundle.tileMaps));
-        result.push('');
+        if (options.exportTileMaps) {
+            result.push(GameBoyAssemblySerialiser.#exportTileMapList(bundle.tileMaps));
+            result.push('');
+        }
 
         return result.join('\r\n');
     }

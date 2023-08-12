@@ -94,8 +94,8 @@ export default class TemplateUtil {
         rootElement.querySelectorAll('[data-command][data-auto-event]').forEach((elm) => {
             const command = elm.getAttribute('data-command');
             const autoEvent = elm.getAttribute('data-auto-event');
-            if (autoEvent === 'click') elm.addEventListener('click', () => callback(elm, autoEvent, command));
-            if (autoEvent === 'change') elm.addEventListener('change', () => callback(elm, autoEvent, command));
+            if (autoEvent === 'click') elm.addEventListener('click', (event) => callback(elm, autoEvent, command, event));
+            if (autoEvent === 'change') elm.addEventListener('change', (event) => callback(elm, autoEvent, command, event));
         });
     }
 

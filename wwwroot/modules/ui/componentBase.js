@@ -5,16 +5,17 @@ const RX_NAME = /^[\w+-_@#]+$/i;
 export default class ComponentBase {
 
 
-    /** @type {Object.<string, object>} */
+    /** @type {Object.<string, { template: object, componentBase: ComponentBase }>} */
     #templates = {};
 
 
     /**
      * Initialises a new instance of this class.
      * @param {HTMLElement} element - Element that contains the DOM.
+     * @param {ComponentBase} [componentBase] - Top level hierachy component base element.
      */
-    constructor(element) {
-        ComponentBase.#extractTemplates(element, this);
+    constructor(element, componentBase) {
+        ComponentBase.#extractTemplates(element, componentBase ?? this);
         TemplateUtil.wireUpTabPanels(element);
     }
 
@@ -29,7 +30,10 @@ export default class ComponentBase {
             const id = scriptElm.getAttribute('data-smsgfx-template-id');
             if (id && id.length > 0 && RX_NAME.test(id)) {
                 const source = scriptElm.innerHTML;
-                componentBase.#templates[id] = Handlebars.compile(source);
+                componentBase.#templates[id] = {
+                    template: Handlebars.compile(source),
+                    componentBase: componentBase
+                }
                 scriptElm.remove();
             }
         });
@@ -43,7 +47,7 @@ export default class ComponentBase {
      */
     renderTemplate(id, data) {
         if (id && id.length > 0 && RX_NAME.test(id) && this.#templates[id]) {
-            return this.#templates[id](data);
+            return this.#templates[id].template(data);
         }
         return null;
     }
@@ -61,6 +65,16 @@ export default class ComponentBase {
                 element.innerHTML = html;
             }
         }
+    }
+
+    /**
+     * Override to handle auto events.
+     * @param {HTMLElement} element - Element that generated the event.
+     * @param {string} event - Name of the event that occurred.
+     * @param {string} command - Name of the command that was invoked.
+     * @param {Event} domEvent - The DOM event that occurred.
+     */
+    handleAutoEvent(element, event, command, domEvent) {
     }
 
 
