@@ -3,13 +3,13 @@ import PaletteList from "../../models/paletteList.js";
 import ColourUtil from "../../util/colourUtil.js";
 import Project from "../../models/project.js";
 import TileMapUtil from "../../util/tileMapUtil.js";
-import TileMap from "../../models/tileMap.js";
 import TileMapList from "../../models/tileMapList.js";
-import SerialisationUtil from "../../util/serialisationUtil.js";
 import ProjectAssemblySerialiser from "../projectAssemblySerialiser.js";
 import NesTileSetBinarySerialiser from "./nesTileSetBinarySerialiser.js";
 import NesTileMapTileBinarySerialiser from "./nesTileMapTileBinarySerialiser.js";
 import NesTileAttributeBinarySerialiser from "./nesTileAttributeBinarySerialiser.js";
+import TileMapListFactory from "../../factory/tileMapListFactory.js";
+import TileMapFactory from "../../factory/tileMapFactory.js";
 
 export default class NesAssemblySerialiser extends ProjectAssemblySerialiser {
 
@@ -21,24 +21,41 @@ export default class NesAssemblySerialiser extends ProjectAssemblySerialiser {
      */
     static serialise(project, options) {
 
-        const paletteIndex = options?.paletteIndex ?? 0;
-        const memOffset = options?.tileMapMemoryOffset ?? 0;
-        const optimise = options?.optimiseTileMap ?? false;
+        const tileMapList = TileMapListFactory.create();
+        if (options.tileMapIds !== null && Array.isArray(options.tileMapIds)) {
+            options.tileMapIds.forEach((tileMapId) => {
+                const tileMap = project.tileMapList.getTileMapById(tileMapId);
+                if (tileMap) {
+                    const tileMapClone = TileMapFactory.clone(tileMap);
+                    if (options.optimiseMode === 'always')
+                        tileMapClone.optimise = true;
+                    else if (options.optimiseMode === 'never')
+                        tileMapClone.optimise = false;
+                    tileMapClone.vramOffset = options.tileMapMemoryOffset;
+                    tileMapList.addTileMap(tileMapClone);
+                }
+            });
+        }
 
-        const projectTileMap = TileMapUtil.tileSetToTileMap(project.tileSet, paletteIndex, memOffset, optimise);
-        const bundle = TileMapUtil.createOptimisedBundle(projectTileMap, project.tileSet, project.paletteList);
+        const bundle = TileMapUtil.createOptimisedBundle(tileMapList, project.tileSet, project.paletteList);
 
         const result = ['; NINTENDO ENTERTAINMENT SYSTEM ASSEMBLY FOR WLA-DX'];
         result.push('');
 
-        result.push(NesAssemblySerialiser.#exportPalettes(bundle.paletteList));
-        result.push('');
+        if (options.exportPalettes) {
+            result.push(NesAssemblySerialiser.#exportPalettes(bundle.paletteList));
+            result.push('');
+        }
 
-        result.push(NesAssemblySerialiser.#exportTileSet(bundle.tileSet));
-        result.push('');
+        if (options.exportTileSet) {
+            result.push(NesAssemblySerialiser.#exportTileSet(bundle.tileSet));
+            result.push('');
+        }
 
-        result.push(NesAssemblySerialiser.#exportTileMapList(bundle.tileMaps));
-        result.push('');
+        if (options.exportTileMaps) {
+            result.push(NesAssemblySerialiser.#exportTileMapList(bundle.tileMaps));
+            result.push('');
+        }
 
         return result.join('\r\n');
     }
@@ -129,6 +146,6 @@ export default class NesAssemblySerialiser extends ProjectAssemblySerialiser {
         return message.join('\r\n');
     }
 
-    
+
 }
 

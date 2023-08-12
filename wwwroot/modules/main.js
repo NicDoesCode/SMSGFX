@@ -806,7 +806,13 @@ function handleExportDialogueOnCommand(args) {
 
 /** @param {import('./ui/dialogues/assemblyExportModalDialogue.js').AssemblyExportDialogueCommandEventArgs} args */
 function handleAssemblyExportDialogueOnCommand(args) {
-    console.log('handleAssemblyExportDialogueOnCommand', args);
+    if (args.command === AssemblyExportModalDialogue.Commands.update) {
+        refreshProjectAssemblyExportDialogue(args.selectedTileMapIds, args.optimiseMode, args.vramOffset, {
+            tileMaps: args.exportTileMaps,
+            tileSet: args.exportTileSet,
+            palettes: args.exportPalettes
+        });
+    }
 }
 
 /** @param {import('./ui/paletteEditor').PaletteEditorCommandEventArgs} args */
@@ -3428,13 +3434,6 @@ function exportProjectToJson() {
  * Shows the export to assembly dialogue.
  */
 function exportProjectToAssembly() {
-    // const serialiser = SerialisationUtil.getProjectAssemblySerialiser(getProject().systemType);
-    // const code = serialiser.serialise(getProject(), {
-    //     optimiseTileMap: getUIState().exportOptimiseTileMap,
-    //     paletteIndex: getUIState().exportTileMapPaletteIndex,
-    //     tileMapMemoryOffset: getUIState().exportTileMapVramOffset
-    // });
-    // exportDialogue.show(code);
     assemblyExportDialogue.setState({
         tileMapList: getTileMapList(),
         selectAllTileMaps: true,
@@ -3444,7 +3443,35 @@ function exportProjectToAssembly() {
         exportPalettes: true,
         tileMapMemoryOffset: getUIState().exportTileMapVramOffset
     });
+    refreshProjectAssemblyExportDialogue(
+        getTileMapList().getTileMaps().map((tileMap) => tileMap.tileMapId),
+        AssemblyExportModalDialogue.OptimiseModes.default, 
+        getUIState().exportTileMapVramOffset,
+        { tileMaps: true, tileSet: true, palettes: true }
+    );
     assemblyExportDialogue.show();
+}
+
+/**
+ * Updates the content in the tile map export dialogue.
+ * @param {string[]} tileMapIds 
+ * @param {string} optimiseMode 
+ * @param {number} vramOffset 
+ * @param {{tileMaps: boolean, tileSet: boolean, palettes: boolean}} exportWhat 
+ */
+function refreshProjectAssemblyExportDialogue(tileMapIds, optimiseMode, vramOffset, exportWhat) {
+    const serialiser = SerialisationUtil.getProjectAssemblySerialiser(getProject().systemType);
+    const code = serialiser.serialise(getProject(), {
+        tileMapIds: tileMapIds,
+        optimiseMode: optimiseMode,
+        tileMapMemoryOffset: vramOffset,
+        exportTileMaps: exportWhat.tileMaps,
+        exportTileSet: exportWhat.tileSet,
+        exportPalettes: exportWhat.palettes
+    });
+    assemblyExportDialogue.setState({
+        content: code
+    });
 }
 
 /**
