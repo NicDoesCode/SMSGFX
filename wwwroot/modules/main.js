@@ -28,6 +28,7 @@ import TileManager from "./ui/tileManager.js";
 import AboutModalDialogue from "./ui/dialogues/aboutModalDialogue.js";
 import ColourPickerDialogue from "./ui/dialogues/colourPickerDialogue.js";
 import ExportModalDialogue from "./ui/dialogues/exportModalDialogue.js";
+import AssemblyExportModalDialogue from "./ui/dialogues/assemblyExportModalDialogue.js";
 import ImportImageModalDialogue from "./ui/dialogues/importImageModalDialogue.js";
 import NewProjectDialogue from "./ui/dialogues/newProjectDialogue.js";
 import NewTileMapDialogue from "./ui/dialogues/newTileMapDialogue.js";
@@ -142,6 +143,7 @@ const themeManager = new ThemeManager();
 /** @type {ExportToolbar} */ let exportToolbar;
 /** @type {OptionsToolbar} */ let optionsToolbar;
 /** @type {ExportModalDialogue} */ let exportDialogue;
+/** @type {AssemblyExportModalDialogue} */ let assemblyExportDialogue;
 /** @type {ColourPickerDialogue} */ let colourPickerDialogue;
 /** @type {ColourPickerToolbox} */ let colourPickerToolbox;
 /** @type {PaletteEditor} */ let paletteEditor;
@@ -168,6 +170,7 @@ async function initialiseComponents() {
     exportToolbar = await ExportToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=export-toolbar]'));
     optionsToolbar = await OptionsToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=options-toolbar]'));
     exportDialogue = await ExportModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=export-dialogue]'));
+    assemblyExportDialogue = await AssemblyExportModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=assembly-export-dialogue]'));
     colourPickerDialogue = await ColourPickerDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=colour-picker-dialogue]'));
     colourPickerToolbox = await ColourPickerToolbox.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=colour-picker-toolbox]'));
     paletteEditor = await PaletteEditor.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=palette-editor]'));
@@ -229,6 +232,7 @@ function wireUpEventHandlers() {
     optionsToolbar.addHandlerOnCommand(handleOptionsToolbarOnCommand);
 
     exportDialogue.addHandlerOnCommand(handleExportDialogueOnCommand);
+    assemblyExportDialogue.addHandlerOnCommand(handleAssemblyExportDialogueOnCommand);
 
     paletteEditor.addHandlerOnCommand(handlePaletteEditorOnCommand);
 
@@ -783,7 +787,7 @@ function handleOptionsToolbarOnCommand(args) {
     }
 }
 
-/** @param {import('./ui/exportModalDialogue').ExportDialogueCommandEventArgs} args */
+/** @param {import('./ui/dialogues/exportModalDialogue').ExportDialogueCommandEventArgs} args */
 function handleExportDialogueOnCommand(args) {
 
     switch (args.command) {
@@ -797,6 +801,11 @@ function handleExportDialogueOnCommand(args) {
             break;
 
     }
+}
+
+/** @param {import('./ui/dialogues/assemblyExportModalDialogue.js').AssemblyExportDialogueCommandEventArgs} args */
+function handleAssemblyExportDialogueOnCommand(args) {
+    console.log('handleAssemblyExportDialogueOnCommand', args);
 }
 
 /** @param {import('./ui/paletteEditor').PaletteEditorCommandEventArgs} args */
@@ -3418,13 +3427,23 @@ function exportProjectToJson() {
  * Shows the export to assembly dialogue.
  */
 function exportProjectToAssembly() {
-    const serialiser = SerialisationUtil.getProjectAssemblySerialiser(getProject().systemType);
-    const code = serialiser.serialise(getProject(), {
-        optimiseTileMap: getUIState().exportOptimiseTileMap,
-        paletteIndex: getUIState().exportTileMapPaletteIndex,
+    // const serialiser = SerialisationUtil.getProjectAssemblySerialiser(getProject().systemType);
+    // const code = serialiser.serialise(getProject(), {
+    //     optimiseTileMap: getUIState().exportOptimiseTileMap,
+    //     paletteIndex: getUIState().exportTileMapPaletteIndex,
+    //     tileMapMemoryOffset: getUIState().exportTileMapVramOffset
+    // });
+    // exportDialogue.show(code);
+    assemblyExportDialogue.setState({
+        tileMapList: getTileMapList(),
+        selectAllTileMaps: true,
+        optimiseMode: AssemblyExportModalDialogue.OptimiseModes.default,
+        exportTileMaps: true,
+        exportTileSet: true,
+        exportPalettes: true,
         tileMapMemoryOffset: getUIState().exportTileMapVramOffset
     });
-    exportDialogue.show(code);
+    assemblyExportDialogue.show();
 }
 
 /**

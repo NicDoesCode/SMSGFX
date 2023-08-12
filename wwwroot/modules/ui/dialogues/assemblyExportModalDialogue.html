@@ -1,0 +1,93 @@
+<div data-smsgfx-component="dialogues/assemblyExportModalDialogue" data-smsgfx-id="modal" class="modal fade"
+    tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Export to assembly code</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+
+                <div class="row">
+
+                    <div class="col col-6">
+
+                        <div class="mb-3">
+                            <label class="form-label">Tile maps to export</label>
+                            <div data-smsgfx-id="tile-maps" data-smsgfx-component-id="tile-map-listing">
+                                <template>
+                                    <script data-smsgfx-template-id="item-template" type="text/x-handlebars-template">
+                                        {{#each this}}
+                                        <div class="form-check">
+                                            <input id="sms-exptm-{{tileMapId}}" type="checkbox" class="form-check-input" data-tile-map-id="{{tileMapId}}" />
+                                            <label for="sms-exptm-{{tileMapId}}" class="form-check-label">{{title}}</label>
+                                        </div>
+                                        {{/each}}
+                                    </script>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="optimise-mode" class="form-label">Optimise</label>
+                            <select class="form-select" data-smsgfx-id="optimise-mode" data-labelled-by="optimise-mode">
+                                <option value="default">Use tile map setting</option>
+                                <option value="always">Always optimise</option>
+                                <option value="never">Don't optimise</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="memory-offset" class="form-label">VRAM offset (bytes)</label>
+                            <input type="number" min="0" max="255" class="form-control"
+                                placeholder="Enter number of bytes" aria-label="Enter number of bytes." value="0"
+                                data-smsgfx-id="memory-offset" data-command="valueChanged"
+                                data-labelled-by="memory-offset">
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <label class="form-label">What to export</label>
+                            <div>
+                                <input data-smsgfx-id="export-tile-maps" data-labelled-by="export-tile-maps"
+                                    type="checkbox" class="form-check-input" />
+                                <label for="export-tile-maps" class="form-check-label">Tile maps</label>
+                            </div>
+                            <div>
+                                <input data-smsgfx-id="export-tile-set" data-labelled-by="export-tile-set"
+                                    type="checkbox" class="form-check-input" />
+                                <label for="export-tile-set" class="form-check-label">Tile set</label>
+                            </div>
+                            <div>
+                                <input data-smsgfx-id="export-palettes" data-labelled-by="export-palettes"
+                                    type="checkbox" class="form-check-input" />
+                                <label for="export-palettes" class="form-check-label">Palettes</label>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="col col-6">
+                        <p>Copy and paste the following to use it in your WLA-DX project.</p>
+                        <textarea data-smsgfx-id="export-text" class="form-control text-monospace"
+                            style="font-family:monospace; font-size: 0.8em" rows="16"></textarea>
+                        <div class="row mt-1">
+                            <div class="col text-start">
+                                <button type="button" data-command="clipboard" data-auto-event="click"
+                                    class="btn btn-sm btn-secondary">Copy to clipboard</button>
+                            </div>
+                            <div class="col text-end">
+                                <button type="button" data-command="download" data-auto-event="click"
+                                    class="btn btn-sm btn-secondary">Download</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
