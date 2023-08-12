@@ -627,6 +627,9 @@ function handleStateEvent(args) {
         case State.Events.projectListChanged:
             displayProjectList();
             watcher.sendProjectListChanged();
+            if (args.context === State.Contexts.deleted) {
+                toast.show('Project deleted.');
+            }
             break;
 
     }
@@ -1302,7 +1305,10 @@ function handleNewTileMapDialogueOnConfirm(args) {
 
         newTileMapDialogue.hide();
 
+        toast.show('Tile map created.');
+
     } catch (e) {
+        toast.show('Error creating tile map.');
         undoManager.removeLastUndo();
         console.error(e);
     }
@@ -1349,6 +1355,7 @@ function handleImportPaletteModalDialogueOnConfirm(args) {
     });
 
     paletteImportDialogue.hide();
+    toast.show('Palette imported.');
 }
 
 /**
@@ -2853,6 +2860,7 @@ function clearReferenceImage() {
         referenceImage: instanceState.referenceImage
     });
 
+    toast.show('Reference image cleared.');
 }
 
 /**
@@ -3174,6 +3182,7 @@ function newPalette() {
     state.saveToLocalStorage();
 
     changePalette(newPalette.paletteId);
+    toast.show('Palette created.');
 }
 
 function clonePalette(paletteIndex) {
@@ -3181,6 +3190,7 @@ function clonePalette(paletteIndex) {
 
         addUndoState();
         try {
+
             const newPalette = PaletteFactory.clone(getPalette());
             newPalette.title += ' (copy)';
             getPaletteList().insertAt(paletteIndex, newPalette);
@@ -3189,8 +3199,12 @@ function clonePalette(paletteIndex) {
             state.saveToLocalStorage();
 
             changePalette(newPalette.paletteId);
+
+            toast.show('Palette cloned.');
+
         } catch (e) {
             undoManager.removeLastUndo();
+            toast.show('Error creating palette.');
             throw e;
         }
     }
@@ -3216,8 +3230,11 @@ function deletePalette(paletteIndex) {
             const palette = getPaletteList().getPalette(paletteIndex);
             changePalette(palette.paletteId);
 
+            toast.show('Palette removed.');
+
         } catch (e) {
             undoManager.removeLastUndo();
+            toast.show('Error removing palette.');
             throw e;
         }
     }
@@ -3423,6 +3440,8 @@ function newProject(args) {
 
     state.setProject(newProject);
     state.saveToLocalStorage();
+
+    toast.show('New project created.');
 }
 
 /**
@@ -3537,6 +3556,8 @@ function exportImage() {
     a.download = fullFileName;
     a.click();
     a.remove();
+
+    toast.show('Tiles exported as image.');
 }
 
 /**
@@ -3769,6 +3790,8 @@ function createNewTileMapFromTileSet() {
     state.saveToLocalStorage();
 
     selectTileSetOrMap(newTileMap.tileMapId);
+
+    toast.show('Tile map created from tile set.');
 }
 
 /**
@@ -3908,6 +3931,8 @@ function cloneTileMap(tileMapId) {
     getTileMapList().addTileMap(clonedTileMap);
 
     selectTileSetOrMap(clonedTileMap.tileMapId);
+
+    toast.show('Tile map cloned.');
 }
 
 /**
@@ -3923,6 +3948,7 @@ function deleteTileMap(tileMapId) {
 
     addUndoState();
     try {
+
         let tileMapIndex = getTileMapList().getTileMaps().indexOf(tileMap);
 
         // Delete the tile map
@@ -3941,8 +3967,11 @@ function deleteTileMap(tileMapId) {
 
         selectTileSetOrMap(tileMapId);
 
+        toast.show('Tile map removed.')
+
     } catch (e) {
         undoManager.removeLastUndo();
+        toast.show('Error removing tile map.')
         throw e;
     }
 }

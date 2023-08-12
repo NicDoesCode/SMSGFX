@@ -19,6 +19,10 @@ const events = {
     projectSaved: 'projectSaved'
 };
 
+const contexts = {
+    deleted: 'deleted'
+};
+
 const rxProjectId = /^[A-z0-9]+$/;
 
 export default class State {
@@ -27,6 +31,11 @@ export default class State {
     static get Events() {
         return events;
     }
+
+    static get Contexts() {
+        return contexts;
+    }
+
 
     /**
      * Gets the presistent state for UI elements.
@@ -169,7 +178,7 @@ export default class State {
         if (projectId && rxProjectId.test(projectId)) {
             const storageId = `${LOCAL_STORAGE_PROJECTS}${projectId}`;
             localStorage.removeItem(storageId);
-            this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectListChanged));
+            this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectListChanged, projectId, contexts.deleted));
 
             if (this.project?.id === projectId) {
                 this.setProject(null);
@@ -194,11 +203,13 @@ function ensureProjectHasId(project) {
 /**
  * @param {string} event 
  * @param {string|null} projectId 
+ * @param {string|null} context 
  * @returns {StateEventArgs}
  */
-function createArgs(event, projectId) {
+function createArgs(event, projectId, context) {
     return {
         event: event,
+        context: context ?? null,
         projectId: projectId ?? null
     };
 }
@@ -213,6 +224,7 @@ function createArgs(event, projectId) {
 /**
  * @typedef {object} StateEventArgs
  * @property {string} event - The event that occurred.
+ * @property {string} context - Context about the event that occurred.
  * @property {string} projectId - Associated project ID.
  * @exports
  */
