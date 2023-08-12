@@ -19,7 +19,8 @@ const commands = {
     tileSelect: 'tileSelect',
     tileMapChange: 'tileMapChange',
     tileSetChange: 'tileSetChange',
-    tileSetToTileMap: 'tileSetToTileMap'
+    tileSetToTileMap: 'tileSetToTileMap',
+    assemblyImport: 'assemblyImport'
 }
 
 const fields = {

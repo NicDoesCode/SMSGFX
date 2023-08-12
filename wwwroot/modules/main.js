@@ -47,7 +47,6 @@ import ColourPickerToolbox from "./ui/colourPickerToolbox.js";
 import DocumentationViewer from "./ui/documentationViewer.js";
 import Toast from "./ui/toast.js";
 import TileMap from "./models/tileMap.js";
-import TileMapUtil from "./util/tileMapUtil.js";
 import TileMapFactory from "./factory/tileMapFactory.js";
 import TileGridProvider from "./models/tileGridProvider.js";
 import PaletteList from "./models/paletteList.js";
@@ -272,7 +271,7 @@ function createEventListeners() {
             const targetTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/gif', 'image/svg+xml'];
             const file = clipboardEvent.clipboardData.files[0];
             if (targetTypes.includes(file.type)) {
-                tileImportImage(file);
+                importTilesFromImage(file);
             }
         } else {
             /** @type {string} */
@@ -891,10 +890,10 @@ function handleTileEditorToolbarOnCommand(args) {
             tileNew();
             break;
         case TileEditorToolbar.Commands.tileImageImport:
-            tileImportImage();
+            importTilesFromImage();
             break;
         case TileEditorToolbar.Commands.tileCodeImport:
-            tileImportCode();
+            importTilesFromAssembly();
             break;
         case TileEditorToolbar.Commands.undo:
             undoOrRedo('u');
@@ -1030,6 +1029,7 @@ function handleTileContextToolbarCommand(args) {
 
 /** @param {import("./ui/tileManager.js").TileManagerCommandEventArgs} args */
 function handleTileManagerOnCommand(args) {
+    console.log(args); // TMP 
     switch (args.command) {
 
         case TileManager.Commands.tileMapNew:
@@ -1067,6 +1067,10 @@ function handleTileManagerOnCommand(args) {
 
         case TileManager.Commands.tileSetChange:
             updateTileSet(args);
+            break;
+
+        case TileManager.Commands.assemblyImport:
+            importTilesFromAssembly();
             break;
 
     }
@@ -1604,7 +1608,7 @@ function welcomeScreenOnCommand(args) {
             break;
 
         case WelcomeScreen.Commands.tileImageImport:
-            tileImportImage();
+            importTilesFromImage();
             break;
 
         case WelcomeScreen.Commands.showDocumentation:
@@ -3357,7 +3361,7 @@ function tileNew() {
 /**
  * @param {File|null} file 
  */
-function tileImportImage(file) {
+function importTilesFromImage(file) {
     importImageModalDialogue.setState({
         paletteList: getPaletteList(),
         file: file ?? null
@@ -3365,7 +3369,7 @@ function tileImportImage(file) {
     importImageModalDialogue.show();
 }
 
-function tileImportCode() {
+function importTilesFromAssembly() {
     assemblyImportTilesModalDialogue.setState({
         tileSetData: getUIState().importTileAssemblyCode,
         replace: getUIState().importTileReplace
