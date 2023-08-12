@@ -12,56 +12,56 @@
 
                     <div class="col col-6">
 
+                        <div data-smsgfx-id="tile-maps" data-smsgfx-component-id="tile-map-listing mb-3">
+                            <template>
+                                <script data-smsgfx-template-id="item-template" type="text/x-handlebars-template">
+                                    <label class="form-label">Tile maps to export</label>
+                                    {{#each this}}
+                                    <div class="form-check">
+                                        <input id="sms-exptm-{{tileMapId}}" type="checkbox" class="form-check-input" 
+                                            data-tile-map-id="{{tileMapId}}" title="" />
+                                        <label for="sms-exptm-{{tileMapId}}" class="form-check-label">{{title}}</label>
+                                    </div>
+                                    {{/each}}
+                                </script>
+                            </template>
+                        </div>
+
                         <div class="mb-3">
-                            <label class="form-label">Tile maps to export</label>
-                            <div data-smsgfx-id="tile-maps" data-smsgfx-component-id="tile-map-listing">
-                                <template>
-                                    <script data-smsgfx-template-id="item-template" type="text/x-handlebars-template">
-                                        {{#each this}}
-                                        <div class="form-check">
-                                            <input id="sms-exptm-{{tileMapId}}" type="checkbox" class="form-check-input" data-tile-map-id="{{tileMapId}}" />
-                                            <label for="sms-exptm-{{tileMapId}}" class="form-check-label">{{title}}</label>
-                                        </div>
-                                        {{/each}}
-                                    </script>
-                                </template>
+                            <label class="form-label">What to export</label>
+                            <div class="form-check">
+                                <input data-smsgfx-id="export-tile-maps" data-labelled-by="export-tile-maps"
+                                    type="checkbox" class="form-check-input" title="Export tile maps?" />
+                                <label for="export-tile-maps" class="form-check-label">Tile maps</label>
+                            </div>
+                            <div class="form-check">
+                                <input data-smsgfx-id="export-tile-set" data-labelled-by="export-tile-set"
+                                    type="checkbox" class="form-check-input" title="Export a tile set?" />
+                                <label for="export-tile-set" class="form-check-label">Tile set</label>
+                            </div>
+                            <div class="form-check">
+                                <input data-smsgfx-id="export-palettes" data-labelled-by="export-palettes"
+                                    type="checkbox" class="form-check-input" title="Export colour palettes?" />
+                                <label for="export-palettes" class="form-check-label">Palettes</label>
                             </div>
                         </div>
 
                         <div class="mb-3">
                             <label for="optimise-mode" class="form-label">Optimise</label>
-                            <select class="form-select" data-smsgfx-id="optimise-mode" data-labelled-by="optimise-mode">
-                                <option value="default">Use tile map setting</option>
+                            <select class="form-select" data-smsgfx-id="optimise-mode" data-labelled-by="optimise-mode"
+                                title="Change the optimisation mode.">
+                                <option value="default">Use setting as per each tile map</option>
                                 <option value="always">Always optimise</option>
                                 <option value="never">Don't optimise</option>
                             </select>
                         </div>
 
                         <div class="mb-3">
-                            <label for="memory-offset" class="form-label">VRAM offset (bytes)</label>
+                            <label for="memory-offset" class="form-label">VRAM offset (in bytes)</label>
                             <input type="number" min="0" max="255" class="form-control"
                                 placeholder="Enter number of bytes" aria-label="Enter number of bytes." value="0"
                                 data-smsgfx-id="memory-offset" data-command="valueChanged"
                                 data-labelled-by="memory-offset">
-                        </div>
-
-                        <div class="form-check mb-3">
-                            <label class="form-label">What to export</label>
-                            <div>
-                                <input data-smsgfx-id="export-tile-maps" data-labelled-by="export-tile-maps"
-                                    type="checkbox" class="form-check-input" />
-                                <label for="export-tile-maps" class="form-check-label">Tile maps</label>
-                            </div>
-                            <div>
-                                <input data-smsgfx-id="export-tile-set" data-labelled-by="export-tile-set"
-                                    type="checkbox" class="form-check-input" />
-                                <label for="export-tile-set" class="form-check-label">Tile set</label>
-                            </div>
-                            <div>
-                                <input data-smsgfx-id="export-palettes" data-labelled-by="export-palettes"
-                                    type="checkbox" class="form-check-input" />
-                                <label for="export-palettes" class="form-check-label">Palettes</label>
-                            </div>
                         </div>
 
                     </div>
