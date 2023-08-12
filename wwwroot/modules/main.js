@@ -2524,59 +2524,50 @@ function takeToolAction_tileStamp(args) {
 
         if (args.event === TileEditor.Events.pixelMouseDown) {
 
-            ts.selectedRegion = { rowIndex: args.tile.row, columnIndex: args.tile.col, width: 1, height: 1 };
-            ts.lastTile = { rowIndex: args.tile.row, columnIndex: args.tile.col };
+            ts.selectedRegion = {
+                rowIndex: args.tile.row,
+                columnIndex: args.tile.col,
+                width: 1,
+                height: 1
+            };
+            ts.originTile = { rowIndex: args.tile.row, columnIndex: args.tile.col };
             tileEditor.setState({ selectedRegion: ts.selectedRegion });
 
         } else if (args.event === TileEditor.Events.pixelMouseOver) {
 
             if (!ts.selectedRegion) {
-                ts.selectedRegion = { rowIndex: args.tile.row, columnIndex: args.tile.col, width: 1, height: 1 };
+                ts.selectedRegion = {
+                    rowIndex: args.tile.row,
+                    columnIndex: args.tile.col,
+                    width: 1,
+                    height: 1
+                };
+            }
+            if (!ts.originTile) {
+                ts.originTile = {
+                    rowIndex: ts.selectedRegion.rowIndex,
+                    columnIndex: ts.selectedRegion.columnIndex
+                };
             }
 
             /** @type {import("./models/tileGridProvider.js").TileGridRegion} */
             const r = ts.selectedRegion;
 
-            const mCol = args.tile.col; // Mouse col
-            const mRow = args.tile.row; // Mouse row
-            let sRow = r.rowIndex;
-            let eRow = r.rowIndex + r.height;
-            let sCol = r.columnIndex;
-            let eCol = r.columnIndex + r.width;
+            const startCol = Math.max(0, Math.min(args.tile.col, ts.originTile.columnIndex));
+            const endCol = Math.min(getTileGrid().columnCount, Math.max(args.tile.col, ts.originTile.columnIndex));
+            const width = (endCol - startCol) + 1;
 
-            const movingLeft = ts.lastTile.colIndex > mCol;
-            if (movingLeft) {       // Moving towards left side
-                if (mCol > sCol)    //  If mouse is on right of the start col
-                    eCol = mCol;    //      Reset the end col
-                else if (mCol < sCol)              //  Otherwise
-                    sCol = mCol;    //      Reset start col
-            } else {                // Moving towards right side
-                if (mCol < eCol)    //  If mouse col less than end col
-                    sCol = mCol;    //      Reset start col
-                else if (mCol > eCol)               //  Otherwise
-                    eCol = mCol;    //      Reset end col
-            }
+            r.columnIndex = startCol;
+            r.width = width;
 
-            const movingUp = ts.lastTile.rowIndex > mRow;
-            if (movingUp) {
-                if (mRow > sRow)
-                    eRow = mRow;
-                else if (mRow < sRow)
-                    sRow = mRow;
-            } else {
-                if (mRow < eRow)
-                    sRow = mRow;
-                else if (mRow > eRow)
-                    eRow = mRow;
-            }
+            const startRow = Math.max(0, Math.min(args.tile.row, ts.originTile.rowIndex));
+            const endRow = Math.min(getTileGrid().rowCount, Math.max(args.tile.row, ts.originTile.rowIndex));
+            const height = (endRow - startRow) + 1;
 
-            r.rowIndex = sRow;
-            r.height = Math.max(eRow - sRow, 1);
-            r.columnIndex = sCol;
-            r.width = Math.max(eCol - sCol, 1);
+            r.rowIndex = startRow;
+            r.height = height;
 
             ts.selectedRegion = r;
-            ts.lastTile = { rowIndex: mRow, columnIndex: mCol };
             tileEditor.setState({ selectedRegion: ts.selectedRegion });
         } else if (args.event === TileEditor.Events.pixelMouseUp) {
             confirmTileStampRegion();
@@ -3080,8 +3071,10 @@ function confirmTileStampRegion() {
         columns: region.width
     });
     getToolState().tileMap = stampTileMap;
+    getToolState().selectedRegion = null;
+    getToolState().originTile = null;
     tileEditor.setState({
-        selectedRegion: getToolState().selectedRegion,
+        selectedRegion: null,
         tileStampPreview: stampTileMap
     });
     tileContextToolbar.setState({ selectedCommands: [] });
@@ -3090,6 +3083,7 @@ function confirmTileStampRegion() {
 function clearTileStampRegion() {
     getToolState().mode = 'tile';
     getToolState().selectedRegion = null;
+    getToolState().originTile = null;
     getToolState().tileMap = null;
     tileEditor.setState({
         selectedRegion: null
