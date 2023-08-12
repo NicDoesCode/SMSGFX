@@ -1,4 +1,5 @@
 import State from "./state.js";
+import Engine from "./engine/engine.js";
 import AssemblyUtil from "./util/assemblyUtil.js";
 import PaintUtil from "./util/paintUtil.js";
 import ProjectUtil from "./util/projectUtil.js";
@@ -4242,6 +4243,8 @@ function resizeToolbox(toolboxElement) {
 /* ****************************************************************************************************
    Initilisation
 */
+
+Engine.init();
 
 window.addEventListener('load', async () => {
 

@@ -12,15 +12,15 @@
 
                     <div class="col col-6">
 
-                        <div data-smsgfx-id="tile-maps" data-smsgfx-component-id="tile-map-listing mb-3">
+                        <div data-smsgfx-id="tile-maps" data-smsgfx-component-id="tile-map-listing" class="mb-3">
                             <template>
                                 <script data-smsgfx-template-id="item-template" type="text/x-handlebars-template">
                                     <label class="form-label">Tile maps to export</label>
                                     {{#each this}}
                                     <div class="form-check">
-                                        <input id="sms-exptm-{{tileMapId}}" type="checkbox" class="form-check-input" 
-                                            data-tile-map-id="{{tileMapId}}" title="" />
-                                        <label for="sms-exptm-{{tileMapId}}" class="form-check-label">{{title}}</label>
+                                        <input id="sms-exptm-{{attr_escape tileMapId}}" type="checkbox" class="form-check-input" 
+                                            data-tile-map-id="{{attr_escape tileMapId}}" title="{{attr_escape title}}" />
+                                        <label for="sms-exptm-{{attr_escape tileMapId}}" class="form-check-label">{{title}}</label>
                                     </div>
                                     {{/each}}
                                 </script>
@@ -90,4 +90,30 @@
             </div>
         </div>
     </div>
+    <style data-css-scope="global">
+        .sms-colour-picker input[type=number][data-smsgfx-id^=tbColourPicker] {
+            width: 80px;
+        }
+
+        .sms-colour-picker input[type=text][data-smsgfx-id=tbColourPickerHex] {
+            max-width: 150px;
+        }
+
+        .sms-colour-picker input[type=color][data-smsgfx-id=btnColourPickerPick] {
+            max-width: 80px;
+        }
+
+        .sms-colour-picker .sms-preview-row {
+            cursor: pointer;
+        }
+
+        .sms-colour-picker .sms-preview-row p {
+            color: #FFFFFF;
+            text-shadow:
+                -1px 1px 2px #000000,
+                -1px -1px 2px #000000,
+                1px 1px 2px #000000,
+                1px -1px 2px #000000;
+        }
+    </style>
 </div>
