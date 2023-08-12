@@ -825,6 +825,7 @@ function handleAssemblyExportDialogueOnCommand(args) {
             navigator.clipboard.writeText(code);
             toast.show('Code copied to clipboard.');
         } else if (command === commands.download) {
+            downloadAssemblyCode(code);
         }
     }
 }
@@ -3491,6 +3492,24 @@ function getExportAssemblyCode(tileMapIds, optimiseMode, vramOffset, exportWhat)
         exportTileSet: exportWhat.tileSet,
         exportPalettes: exportWhat.palettes
     });
+}
+
+/**
+ * Exports tileset to an image.
+ * @param {string} code
+ */
+function downloadAssemblyCode(code) {
+    const fileName = getProject().title && getProject().title.length > 0 ? getProject().title : 'image';
+    const fileNameClean = FileUtil.getCleanFileName(fileName);
+    const fullFileName = `${fileNameClean}.asm`;
+
+    const fileContent = new Blob([code], { type: 'text/plain' });
+    const dataUrl = URL.createObjectURL(fileContent);
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = fullFileName;
+    a.click();
+    a.remove();
 }
 
 /**
