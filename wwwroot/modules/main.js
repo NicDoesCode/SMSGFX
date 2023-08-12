@@ -1897,7 +1897,7 @@ function refreshProjectUI() {
     if (instanceState.colourIndex >= palette.getColours().length) { instanceState.colourIndex = palette.getColours().length - 1; dirty = true; }
 
     if (instanceState.tileIndex < -1) { instanceState.tileIndex = -1; dirty = true; }
-    if (instanceState.tileIndex >= getTileGrid().tileCount) { instanceState.tileIndex = -1; dirty = true; }
+    if (instanceState.tileIndex >= getTileGrid().tileCount) { instanceState.tileIndex = getTileGrid().tileCount - 1; dirty = true; }
 
     projectToolbar.setState({
         projectTitle: getProject().title
@@ -2221,7 +2221,7 @@ function takeToolAction(args) {
     if (tool !== null && colourIndex >= 0 && colourIndex < 16) {
 
         if (tool === TileEditorToolbar.Tools.select) {
-            if (event === TileEditor.Events.pixelMouseOver) {
+            if (event === TileEditor.Events.pixelMouseDown) {
 
                 const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
                 toggleTileIndexSelectedState(tileIndex);
