@@ -32,19 +32,19 @@
                             <label class="form-label">What to export</label>
                             <div class="form-check">
                                 <input data-smsgfx-id="export-palettes" data-labelled-by="export-palettes"
-                                    type="checkbox" class="form-check-input" title="Export colour palettes?" 
+                                    type="checkbox" class="form-check-input" title="Export colour palettes?"
                                     data-command="update" data-auto-event="change" />
                                 <label for="export-palettes" class="form-check-label">Palettes</label>
                             </div>
                             <div class="form-check">
                                 <input data-smsgfx-id="export-tile-set" data-labelled-by="export-tile-set"
-                                    type="checkbox" class="form-check-input" title="Export a tile set?" 
+                                    type="checkbox" class="form-check-input" title="Export a tile set?"
                                     data-command="update" data-auto-event="change" />
                                 <label for="export-tile-set" class="form-check-label">Tile set</label>
                             </div>
                             <div class="form-check">
                                 <input data-smsgfx-id="export-tile-maps" data-labelled-by="export-tile-maps"
-                                    type="checkbox" class="form-check-input" title="Export tile maps?" 
+                                    type="checkbox" class="form-check-input" title="Export tile maps?"
                                     data-command="update" data-auto-event="change" />
                                 <label for="export-tile-maps" class="form-check-label">Tile maps</label>
                             </div>
@@ -62,11 +62,9 @@
 
                         <div class="mb-3">
                             <label for="memory-offset" class="form-label">VRAM offset (in bytes)</label>
-                            <input type="number" min="0" max="255" class="form-control"
+                            <input data-smsgfx-id="memory-offset" type="number" min="0" max="255" class="form-control"
                                 placeholder="Enter number of bytes" aria-label="Enter number of bytes." value="0"
-                                data-command="update" data-auto-event="change"
-                                data-smsgfx-id="memory-offset" 
-                                data-labelled-by="memory-offset">
+                                data-command="update" data-auto-event="change" data-labelled-by="memory-offset">
                         </div>
 
                     </div>

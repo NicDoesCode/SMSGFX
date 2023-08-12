@@ -29,7 +29,7 @@ export default class GameBoyAssemblySerialiser extends ProjectAssemblySerialiser
                         tileMapClone.optimise = true;
                     else if (options.optimiseMode === 'never')
                         tileMapClone.optimise = false;
-                    tileMapClone.vramOffset = options.tileMapMemoryOffset;
+                    tileMapClone.vramOffset = options.vramOffset;
                     tileMapList.addTileMap(tileMapClone);
                 }
             });

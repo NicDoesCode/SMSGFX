@@ -19,7 +19,7 @@ export default class ProjectAssemblySerialiser {
  * @typedef {object} ProjectAssemblySerialisationOptions
  * @property {string[]?} [tileMapIds] - Tile map IDs to serialise, when omitted all tile maps are serialised, when null or empty none are serialised.
  * @property {string?} optimiseMode - Optimisation mode to use, 'default', 'always' or 'never'.
- * @property {number?} tileMapMemoryOffset - Memory offset of the tile map.
+ * @property {number?} vramOffset - Memory offset of the tile map.
  * @property {boolean} exportTileMaps - Export tile maps?
  * @property {boolean} exportTileSet - Export the tile set?
  * @property {boolean} exportPalettes - Export palettes?

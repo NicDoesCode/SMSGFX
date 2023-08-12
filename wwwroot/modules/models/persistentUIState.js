@@ -124,40 +124,6 @@ export default class PersistentUIState {
     }
 
     /**
-     * Gets or sets whether the project exports an optimised tile map.
-     */
-    get exportOptimiseTileMap() {
-        return this.#exportOptimiseTileMap;
-    }
-    set exportOptimiseTileMap(value) {
-        this.#exportOptimiseTileMap = value;
-    }
-
-    /**
-     * Gets or sets the palette index for exported tile map.
-     */
-    get exportTileMapPaletteIndex() {
-        return this.#exportTileMapPaletteIndex;
-    }
-    set exportTileMapPaletteIndex(value) {
-        if ([0, 1, 2, 3].includes(value)) {
-            this.#exportTileMapPaletteIndex = value;
-        }
-    }
-
-    /**
-     * Gets or sets the VRAM address offset for the tile map generation.
-     */
-    get exportTileMapVramOffset() {
-        return this.#exportTileMapVramOffset;
-    }
-    set exportTileMapVramOffset(value) {
-        if (value >= 0 && value < 255) {
-            this.#exportTileMapVramOffset = value;
-        }
-    }
-
-    /**
      * Gets or sets the project UI states.
      */
     get projectStates() {
@@ -192,12 +158,6 @@ export default class PersistentUIState {
     #welcomeVisibleOnStartup = true;
     /** @type {string} */
     #theme = 'system';
-    /** @type {boolean} */
-    #exportOptimiseTileMap = true;
-    /** @type {number} */
-    #exportTileMapPaletteIndex = 0;
-    /** @type {number} */
-    #exportTileMapVramOffset = 0;
     /** @type {Object.<string, ProjectState>} */
     #projectStates = {};
 
@@ -215,5 +175,18 @@ export default class PersistentUIState {
  * @property {number?} paletteIndex - Last selected palette index.
  * @property {string?} tileMapId - Unique ID of the last selected tile map.
  * @property {string?} tileId - Unique ID of the last selected tile map.
+ * @property {ProjectAssemblyExportState?} assemblyExportState - State of project export to assembly.
+ * @exports
+ */
+
+/** 
+ * An individual project's export state.
+ * @typedef {object} ProjectAssemblyExportState
+ * @property {string[]} tileMapIds
+ * @property {boolean} exportPalettes
+ * @property {boolean} exportTileSet
+ * @property {boolean} exportTileMaps
+ * @property {string} optimiseMode
+ * @property {number} vramOffset
  * @exports
  */
