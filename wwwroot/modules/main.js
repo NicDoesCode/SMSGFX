@@ -47,6 +47,7 @@ import TileEditorToolbar from "./ui/toolbars/tileEditorToolbar.js";
 
 import ColourPickerToolbox from "./ui/colourPickerToolbox.js";
 import DocumentationViewer from "./ui/documentationViewer.js";
+import Toast from "./ui/toast.js";
 import TileMap from "./models/tileMap.js";
 import TileMapUtil from "./util/tileMapUtil.js";
 import TileMapFactory from "./factory/tileMapFactory.js";
@@ -161,6 +162,7 @@ const themeManager = new ThemeManager();
 /** @type {AboutModalDialogue} */ let aboutDialogue;
 /** @type {PrivacyModalDialogue} */ let privacyModalDialogue;
 /** @type {DocumentationViewer} */ let documentationViewer;
+/** @type {Toast} */ let toast;
 /** @type {WelcomeScreen} */ let welcomeScreen;
 
 async function initialiseComponents() {
@@ -188,6 +190,7 @@ async function initialiseComponents() {
     aboutDialogue = await AboutModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=about-modal]'));
     privacyModalDialogue = await PrivacyModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=privacy-modal]'));
     documentationViewer = await DocumentationViewer.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=documentation-viewer]'));
+    toast = await Toast.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=toast]'));
     welcomeScreen = await WelcomeScreen.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=welcome-screen]'));
 }
 
@@ -262,6 +265,8 @@ function wireUpEventHandlers() {
     importImageModalDialogue.addHandlerOnConfirm(handleImageImportModalOnConfirm);
 
     documentationViewer.addHandlerOnCommand(documentationViewerOnCommand);
+
+    toast.addHandlerOnCommand(toastOnCommand);
 
     welcomeScreen.addHandlerOnCommand(welcomeScreenOnCommand);
 }
@@ -806,12 +811,21 @@ function handleExportDialogueOnCommand(args) {
 
 /** @param {import('./ui/dialogues/assemblyExportModalDialogue.js').AssemblyExportDialogueCommandEventArgs} args */
 function handleAssemblyExportDialogueOnCommand(args) {
-    if (args.command === AssemblyExportModalDialogue.Commands.update) {
-        refreshProjectAssemblyExportDialogue(args.selectedTileMapIds, args.optimiseMode, args.vramOffset, {
+    const command = args.command;
+    const commands = AssemblyExportModalDialogue.Commands;
+    if (command === commands.update || command === commands.clipboard || command === commands.download) {
+        const code = getExportAssemblyCode(args.selectedTileMapIds, args.optimiseMode, args.vramOffset, {
             tileMaps: args.exportTileMaps,
             tileSet: args.exportTileSet,
             palettes: args.exportPalettes
         });
+        if (command === commands.update) {
+            assemblyExportDialogue.setState({ content: code });
+        } else if (command === commands.clipboard) {
+            navigator.clipboard.writeText(code);
+            toast.show('Code copied to clipboard.');
+        } else if (command === commands.download) {
+        }
     }
 }
 
@@ -1559,6 +1573,11 @@ function documentationViewerOnCommand(args) {
             break;
 
     }
+}
+
+
+/** @param {import("./ui/toast.js").ToastCommandEventArgs} args */
+function toastOnCommand(args) {
 }
 
 
@@ -3443,12 +3462,15 @@ function exportProjectToAssembly() {
         exportPalettes: true,
         tileMapMemoryOffset: getUIState().exportTileMapVramOffset
     });
-    refreshProjectAssemblyExportDialogue(
+    const code = getExportAssemblyCode(
         getTileMapList().getTileMaps().map((tileMap) => tileMap.tileMapId),
-        AssemblyExportModalDialogue.OptimiseModes.default, 
+        AssemblyExportModalDialogue.OptimiseModes.default,
         getUIState().exportTileMapVramOffset,
         { tileMaps: true, tileSet: true, palettes: true }
     );
+    assemblyExportDialogue.setState({
+        content: code
+    });
     assemblyExportDialogue.show();
 }
 
@@ -3459,18 +3481,15 @@ function exportProjectToAssembly() {
  * @param {number} vramOffset 
  * @param {{tileMaps: boolean, tileSet: boolean, palettes: boolean}} exportWhat 
  */
-function refreshProjectAssemblyExportDialogue(tileMapIds, optimiseMode, vramOffset, exportWhat) {
+function getExportAssemblyCode(tileMapIds, optimiseMode, vramOffset, exportWhat) {
     const serialiser = SerialisationUtil.getProjectAssemblySerialiser(getProject().systemType);
-    const code = serialiser.serialise(getProject(), {
+    return serialiser.serialise(getProject(), {
         tileMapIds: tileMapIds,
         optimiseMode: optimiseMode,
         tileMapMemoryOffset: vramOffset,
         exportTileMaps: exportWhat.tileMaps,
         exportTileSet: exportWhat.tileSet,
         exportPalettes: exportWhat.palettes
-    });
-    assemblyExportDialogue.setState({
-        content: code
     });
 }
 
