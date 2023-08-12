@@ -142,25 +142,27 @@ export default class TileMapListing extends ComponentBase {
         }
 
         this.renderTemplateToElement(this.#listElmement, 'item-template', renderList);
-
-        this.#listElmement.querySelectorAll('[data-command]').forEach((elm) => {
-            const command = elm.getAttribute('data-command');
-            const tileMapId = elm.getAttribute('data-tile-map-id');
-            if (command) {
-                /** @param {MouseEvent} ev */
-                elm.onclick = (ev) => {
-                    this.#handleTileMapCommandButtonClicked(command, tileMapId);
-                    ev.stopImmediatePropagation();
-                    ev.preventDefault();
-                }
-            }
-        });
+        TemplateUtil.wireUpCommandAutoEvents(this.#listElmement, (element, event, command, domEvent) => this.handleAutoEvent(element, event, command, domEvent));
 
         this.#listElmement.querySelectorAll('[data-command=tileMapDelete]').forEach((elm) => {
             elm.style.display = this.#showDeleteButton ? null : 'none';
         });
 
         this.#highlightSelectedTileMapId();
+    }
+
+    /**
+     * Override to handle auto events.
+     * @param {HTMLElement} element - Element that generated the event.
+     * @param {string} event - Name of the event that occurred.
+     * @param {string} command - Name of the command that was invoked.
+     * @param {Event} domEvent - The DOM event that occurred.
+     */
+    handleAutoEvent(element, event, command, domEvent) {
+        const tileMapId = element.getAttribute('data-tile-map-id');
+        this.#handleTileMapCommandButtonClicked(command, tileMapId);
+        domEvent.stopImmediatePropagation();
+        domEvent.preventDefault();
     }
 
 

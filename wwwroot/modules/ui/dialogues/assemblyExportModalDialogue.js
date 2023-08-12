@@ -13,7 +13,7 @@ const optimiseModes = {
 }
 
 const commands = {
-    valueChanged: 'valueChanged',
+    update: 'update',
     clipboard: 'clipboard',
     download: 'download'
 }
@@ -67,32 +67,14 @@ export default class AssemblyExportModalDialogue extends ModalDialogue {
         this.#tbExportPalettes = this.#element.querySelector('[data-smsgfx-id=export-palettes]');
         this.#tbMemoryOffset = this.#element.querySelector('[data-smsgfx-id=memory-offset]');
 
-        this.#element.querySelectorAll('[data-command]').forEach((i) => {
-            i.onchange = () => {
-                const args = this.#createArgs(i.getAttribute('data-command'));
-                this.#dispatcher.dispatch(EVENT_OnCommand, args);
-            }
-        });
-
         TileMapListing.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=tile-map-listing]'))
             .then((component) => {
                 this.#tileMapListing = component;
-                // this.#tileMapListing.addHandlerOnCommand((args) => this.#handleTileMapListingOnCommand(args));
+                this.#tileMapListing.addHandlerOnCommand((args) => this.#handleTileMapListingOnCommand(args));
             });
 
         TemplateUtil.wireUpLabels(this.#element);
-        TemplateUtil.wireUpCommandAutoEvents(this.#element, (element, event, command) => {
-            if (element) {
-                if (event === 'click') {
-                    switch (command) {
-                        case commands.clipboard:
-                        case commands.download:
-                            this.#dispatcher.dispatch(command, this.#createArgs(command));
-                            break;
-                    }
-                }
-            }    
-        });
+        TemplateUtil.wireUpCommandAutoEvents(this.#element, (element, event, command) => this.handleAutoEvent(element, event, command));
     }
 
 
@@ -181,9 +163,18 @@ export default class AssemblyExportModalDialogue extends ModalDialogue {
      * @param {string} event 
      * @param {string} command 
      */
-    #handleAutoEvents(element, event, command) {
+    handleAutoEvent(element, event, command) {
+        if (element && command && commands[command]) {
+            this.#dispatcher.dispatch(EVENT_OnCommand, this.#createArgs(command));
+        }
     }
 
+
+    #handleTileMapListingOnCommand(args) {
+        if (args?.command && commands[args.command]) {
+            this.#dispatcher.dispatch(EVENT_OnCommand, this.#createArgs(args.command));
+        }
+    }
 
     /**
      * @param {HTMLElement} element 
@@ -200,8 +191,8 @@ export default class AssemblyExportModalDialogue extends ModalDialogue {
             optimiseMode: this.#tbOptimiseMode.value,
             selectedTileMapIds: tileMapIds,
             exportTileMaps: this.#tbExportTileMaps.checked,
-            exportTileSet: this.#tbExportTileSet.value,
-            exportPalettes: this.#tbExportPalettes.value,
+            exportTileSet: this.#tbExportTileSet.checked,
+            exportPalettes: this.#tbExportPalettes.checked,
             vramOffset: parseInt(this.#tbMemoryOffset.value)
         };
     }
