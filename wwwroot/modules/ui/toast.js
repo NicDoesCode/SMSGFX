@@ -63,12 +63,11 @@ export default class Toast extends ComponentBase {
      */
     #createToast(content) {
         const toastContainerElm = document.createElement('div');
-        toastContainerElm.classList.add('sms-toast-container', 'position-fixed', 'bottom-0', 'end-0', 'm-4');
         toastContainerElm.innerHTML = this.#template.innerHTML;
         const toastElm = toastContainerElm.querySelector('.toast');
-        this.#element.appendChild(toastContainerElm);
+        this.#element.appendChild(toastElm);
 
-        const contentElm = toastContainerElm.querySelector('[data-smsgfx-id=content]');
+        const contentElm = toastElm.querySelector('[data-smsgfx-id=content]');
         if (contentElm) {
             contentElm.innerText = content;
         }
