@@ -3067,7 +3067,7 @@ function confirmTileStampRegion() {
             }));
         }
     }
-    
+
     const stampTileMap = TileMapFactory.create({
         tiles: tiles,
         rows: region.height,
@@ -3421,6 +3421,13 @@ function setProjectTitle(title) {
 
     getProject().title = title;
     state.saveToLocalStorage();
+
+    projectToolbar.setState({
+        projectTitle: getProject().title
+    });
+    projectDropdown.setState({
+        projectTitle: getProject().title
+    });
 }
 
 /**
