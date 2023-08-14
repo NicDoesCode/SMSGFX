@@ -2191,6 +2191,9 @@ function displayProjectList() {
     projectDropdown.setState({
         projects: projects
     });
+    welcomeScreen.setState({
+        projects: projects
+    });
 }
 
 /** 
