@@ -604,7 +604,9 @@ function handleWatcherEvent(args) {
             break;
 
         case ProjectWatcher.Events.projectListChanged:
-            setTimeout(() => displayProjectList(), 50);
+            setTimeout(() => {
+                displayProjectList();
+            }, 50);
             break;
 
     }
@@ -745,7 +747,10 @@ function handleProjectDropdownOnCommand(args) {
 
 function handleProjectDropdownOnHidden() {
     if (getProject() instanceof Project === false) {
-        welcomeScreen.setState({ visible: true, invisibleCommands: ['dismiss'] });
+        welcomeScreen.setState({
+            visible: true,
+            invisibleCommands: ['dismiss']
+        });
     }
 }
 
@@ -2062,7 +2067,12 @@ function formatForProject() {
 }
 
 function formatForNoProject() {
+    
     const dummyProject = createEmptyProject({ systemType: 'smsgg' });
+    // dummyProject.paletteList.clear();
+    dummyProject.tileMapList.clear();
+    dummyProject.tileSet.clear();
+
     projectToolbar.setState({
         enabled: false,
         projectTitle: '',
@@ -2112,6 +2122,11 @@ function formatForNoProject() {
         palette: null,
         paletteList: null,
         enabled: false
+    });
+    tileManager.setState({
+        tileMapList: dummyProject.tileMapList,
+        tileSet: dummyProject.tileSet,
+        selectedTileMapId: null
     });
 }
 
