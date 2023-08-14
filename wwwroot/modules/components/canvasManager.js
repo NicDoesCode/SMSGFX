@@ -605,6 +605,7 @@ export default class CanvasManager {
         const numColours = palette.getColours().length;
 
         if (tile) {
+            // Tile exists 
             let pixelPaletteIndex = 0;
             for (let tilePx = 0; tilePx < 64; tilePx++) {
 
@@ -626,19 +627,24 @@ export default class CanvasManager {
                     pixelPaletteIndex = tile.readAt(tilePx);
                 }
 
-                // Set colour
+                // Set colour of the pixel
                 if (pixelPaletteIndex >= 0 && pixelPaletteIndex < numColours) {
                     const colour = palette.getColour(pixelPaletteIndex);
                     const hex = ColourUtil.toHex(colour.r, colour.g, colour.b);
                     context.fillStyle = hex;
                 }
 
-                if (transparencyColour === -1 || pixelPaletteIndex !== transparencyColour) {
-                    context.moveTo(0, 0);
+                if (pixelPaletteIndex !== transparencyColour) {
+                    // Pixel colour is different to transparency, so draw it.
                     context.fillRect(x, y, pxSize, pxSize);
+                } else {
+                    // If this pixel colour is the colour of transparency, then it shouldn't be
+                    // drawn, so clear it instead of drawing it.
+                    context.clearRect(x, y, pxSize, pxSize);
                 }
             }
         } else {
+            // Draw in pixel mesh when the tile doesn't exist
             const originX = (tileGridCol * 8) * pxSize;
             const originY = (tileGridRow * 8) * pxSize;
 
