@@ -194,7 +194,7 @@ export default class TileEditor extends ComponentBase {
         // Display native?
         if (typeof state?.displayNative === 'boolean') {
             this.#displayNative = state.displayNative;
-            if (state.displayNative && this.#paletteList?.getPalettes().filter((p) => p.system === 'gb') > 0) {
+            if (state.displayNative && this.#paletteList?.getPalettes().filter((p) => p.system === 'gb').length > 0) {
                 this.#canvasManager.pixelGridColour = '#98a200';
                 this.#canvasManager.pixelGridOpacity = 0.5;
                 this.#canvasManager.tileGridColour = '#98a200';
