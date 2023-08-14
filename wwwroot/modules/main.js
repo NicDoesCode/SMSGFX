@@ -2272,6 +2272,9 @@ function takeToolAction(args) {
                     }
                 }
 
+            } else {
+                instanceState.lastTileMapPx.x = -1;
+                instanceState.lastTileMapPx.y = -1;
             }
         } else if (tool === TileEditorToolbar.Tools.colourReplace && args.isInBounds) {
             if (event === TileEditor.Events.pixelMouseDown || event === TileEditor.Events.pixelMouseOver) {
@@ -2321,6 +2324,9 @@ function takeToolAction(args) {
                     }
                 }
 
+            } else {
+                instanceState.lastTileMapPx.x = -1;
+                instanceState.lastTileMapPx.y = -1;
             }
         } else if (tool === TileEditorToolbar.Tools.bucket && args.isInBounds) {
             if (event === TileEditor.Events.pixelMouseDown) {
