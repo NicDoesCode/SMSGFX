@@ -1,6 +1,6 @@
 <div data-smsgfx-component="components/tileMapListing">
     <div data-smsgfx-id="tile-map-list"
-        class="sms-tile-map-list-component list-group list-group-flush overflow-scroll">
+        class="sms-tile-map-list-component list-group list-group-flush overflow-auto">
     </div>
     <script data-smsgfx-template-id="item-template" type="text/x-handlebars-template">
         {{#each this}}
@@ -19,7 +19,7 @@
     </script>
     <style data-css-scope="global">
         .sms-tile-map-list-component {
-            overflow-y: scroll;
+            overflow-y: auto;
             min-height: 50px;
             max-height: 200px;
         }
