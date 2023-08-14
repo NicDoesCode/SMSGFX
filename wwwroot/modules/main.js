@@ -3045,10 +3045,12 @@ function setTileStampDefineMode() {
 }
 
 function confirmTileStampRegion() {
+    const toolState = getToolState();
+
     if (!isTileMap()) return;
-    getToolState().mode = 'tile';
+    toolState.mode = 'tile';
     /** @type {import("./models/tileGridProvider.js").TileGridRegion} */
-    let region = getToolState().selectedRegion;
+    let region = toolState.selectedRegion;
     /** @type {TileMapTile[]} */
     let tiles = [];
     for (let r = 0; r < region.height; r++) {
@@ -3065,30 +3067,40 @@ function confirmTileStampRegion() {
             }));
         }
     }
+
     const stampTileMap = TileMapFactory.create({
         tiles: tiles,
         rows: region.height,
         columns: region.width
     });
-    getToolState().tileMap = stampTileMap;
-    getToolState().selectedRegion = null;
-    getToolState().originTile = null;
+
+    toolState.tileMap = stampTileMap;
+    toolState.selectedRegion = null;
+    toolState.originTile = null;
+
     tileEditor.setState({
         selectedRegion: null,
         tileStampPreview: stampTileMap
     });
-    tileContextToolbar.setState({ selectedCommands: [] });
+    tileContextToolbar.setState({
+        selectedCommands: []
+    });
 }
 
 function clearTileStampRegion() {
-    getToolState().mode = 'tile';
-    getToolState().selectedRegion = null;
-    getToolState().originTile = null;
-    getToolState().tileMap = null;
+    const toolState = getToolState();
+    toolState.mode = 'tile';
+    toolState.selectedRegion = null;
+    toolState.originTile = null;
+    toolState.tileMap = null;
+
     tileEditor.setState({
         selectedRegion: null
     });
-    tileContextToolbar.setState({ selectedCommands: [] });
+    tileContextToolbar.setState({
+        selectedCommands: []
+    });
+
     selectTileSetTile(getProjectUIState().tileId);
 }
 
@@ -3409,6 +3421,13 @@ function setProjectTitle(title) {
 
     getProject().title = title;
     state.saveToLocalStorage();
+
+    projectToolbar.setState({
+        projectTitle: getProject().title
+    });
+    projectDropdown.setState({
+        projectTitle: getProject().title
+    });
 }
 
 /**
