@@ -11,11 +11,22 @@ const commands = {
     tabChanged: 'tabChanged'
 }
 
+const tabs = {
+    rgb: 'rgb', 
+    ms: 'ms', 
+    gb: 'gb', 
+    nes: 'nes'
+}
+
 export default class ColourPickerToolbox extends ComponentBase {
 
 
     static get Commands() {
         return commands;
+    }
+
+    static get Tabs() {
+        return tabs;
     }
 
 
@@ -180,7 +191,7 @@ export default class ColourPickerToolbox extends ComponentBase {
             });
         }
         if (typeof state?.showTab === 'string') {
-            this.#currentTab = (['ms', 'rgb', 'gb', 'nes'].includes(state.showTab)) ? state.showTab : 'rgb';
+            this.#currentTab = tabs[state.showTab] ? state.showTab : tabs.rgb;
             this.#showCurrentTab();
         }
     }

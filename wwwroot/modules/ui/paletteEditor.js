@@ -149,7 +149,7 @@ export default class PaletteEditor extends ComponentBase {
     setState(state) {
         let updateVirtualList = false;
         let paletteListDirty = false;
-        if (state?.paletteList && typeof state?.paletteList.getPalettes === 'function') {
+        if (state?.paletteList && (state.paletteList instanceof PaletteList || state.paletteList === null)) {
             this.#paletteList = state.paletteList;
             this.#refreshPaletteSelectList(this.#paletteList);
             updateVirtualList = true;
@@ -179,6 +179,8 @@ export default class PaletteEditor extends ComponentBase {
                 const selectedPalette = this.#paletteList.getPalette(select.selectedIndex);
                 this.#setPalette(selectedPalette);
             }
+        } else {
+            this.#setPalette(null);
         }
         if (typeof state?.selectedColourIndex === 'number' && state?.selectedColourIndex >= 0 && state?.selectedColourIndex < 16) {
             this.#currentColourIndex = state.selectedColourIndex;
@@ -319,7 +321,7 @@ export default class PaletteEditor extends ComponentBase {
 
     /**
      * Refreshes the list of palettes.
-     * @param {PaletteList} paletteList - List of palettes.
+     * @param {PaletteList?} paletteList - List of palettes, or null.
      */
     #refreshPaletteSelectList(paletteList) {
         const select = this.#element.querySelector(`select[data-command=${commands.paletteSelect}]`);
@@ -329,16 +331,18 @@ export default class PaletteEditor extends ComponentBase {
             for (let i = 0; i < optionCount; i++) {
                 select.options.remove(0);
             }
-            const palettes = paletteList.getPalettes();
-            for (let i = 0; i < palettes.length; i++) {
-                const option = document.createElement('option');
-                option.innerText = `#${i} | ${palettes[i].title}`;
-                option.value = i.toString();
-                option.selected = lastSelectedIndex === i;
-                select.options.add(option);
-            }
-            if (select.selectedIndex === -1) {
-                select.selectedIndex = 0;
+            if (paletteList) {
+                const palettes = paletteList.getPalettes();
+                for (let i = 0; i < palettes.length; i++) {
+                    const option = document.createElement('option');
+                    option.innerText = `#${i} | ${palettes[i].title}`;
+                    option.value = i.toString();
+                    option.selected = lastSelectedIndex === i;
+                    select.options.add(option);
+                }
+                if (select.selectedIndex === -1) {
+                    select.selectedIndex = 0;
+                }
             }
             this.#updatePaletteSelectVirtualList();
         }
@@ -390,34 +394,36 @@ export default class PaletteEditor extends ComponentBase {
 
     /**
      * Displays a given palette to the screen.
-     * @param {Palette} palette - The palette to show on the buttons.
+     * @param {Palette?} palette - The palette to show on the buttons, or null to hide.
      */
     #setPalette(palette) {
-        this.#createPaletteColourIndexButtons(palette);
         this.#setUI(palette);
-        const paletteButtons = this.#paletteButtons;
-        for (let i = 0; i < paletteButtons.length; i++) {
-            if (i < palette.getColours().length) {
-                const displayNative = this.#getElement(commands.displayNativeColours)?.checked ?? false;
-                const c = palette.getColour(i);
-                if (displayNative) {
-                    const nativeColour = ColourUtil.getClosestNativeColour(palette.system, c.r, c.g, c.b);
-                    paletteButtons[i].style.backgroundColor = ColourUtil.toHex(nativeColour.r, nativeColour.g, nativeColour.b);
+        if (palette) {
+            this.#createPaletteColourIndexButtons(palette);
+            const paletteButtons = this.#paletteButtons;
+            for (let i = 0; i < paletteButtons.length; i++) {
+                if (i < palette.getColours().length) {
+                    const displayNative = this.#getElement(commands.displayNativeColours)?.checked ?? false;
+                    const c = palette.getColour(i);
+                    if (displayNative) {
+                        const nativeColour = ColourUtil.getClosestNativeColour(palette.system, c.r, c.g, c.b);
+                        paletteButtons[i].style.backgroundColor = ColourUtil.toHex(nativeColour.r, nativeColour.g, nativeColour.b);
+                    } else {
+                        paletteButtons[i].style.backgroundColor = ColourUtil.toHex(c.r, c.g, c.b);
+                    }
                 } else {
-                    paletteButtons[i].style.backgroundColor = ColourUtil.toHex(c.r, c.g, c.b);
+                    paletteButtons[i].style.backgroundColor = null;
                 }
-            } else {
-                paletteButtons[i].style.backgroundColor = null;
             }
+            this.#btnPaletteTitle.querySelector('label').innerText = palette.title;
+            this.#getElements(commands.paletteTitle).forEach((element) => {
+                element.value = palette.title
+            });
+            this.#getElements(commands.paletteSystem).forEach((element) => {
+                element.value = palette.system;
+            });
+            this.#updateSystemSelectVirtualList(palette.system);
         }
-        this.#btnPaletteTitle.querySelector('label').innerText = palette.title;
-        this.#getElements(commands.paletteTitle).forEach((element) => {
-            element.value = palette.title
-        });
-        this.#getElements(commands.paletteSystem).forEach((element) => {
-            element.value = palette.system;
-        });
-        this.#updateSystemSelectVirtualList(palette.system);
     }
 
     #shufflePaletteList() {
@@ -443,20 +449,25 @@ export default class PaletteEditor extends ComponentBase {
     }
 
     /**
-     * @param {Palette} palette - The palette to show on the buttons.
+     * @param {Palette?} palette - The palette to show on the buttons, or null.
      */
     #setUI(palette) {
-        document.querySelectorAll('[data-smsgfx-id=system-select]').forEach(elm => {
-            switch (palette.system) {
-                case 'ms': case 'gg': elm.style.display = null; break;
-                case 'gb': elm.style.display = 'none'; break;
-                case 'nes': elm.style.display = 'none'; break;
+        if (palette) {
+            this.#element.querySelector('[data-smsgfx-id=palette-properties]').style.display = null;
+            document.querySelectorAll('[data-smsgfx-id=system-select]').forEach(elm => {
+                switch (palette.system) {
+                    case 'ms': case 'gg': elm.style.display = null; break;
+                    case 'gb': elm.style.display = 'none'; break;
+                    case 'nes': elm.style.display = 'none'; break;
+                }
+            });
+            if (palette.system === 'nes') {
+                this.#element.querySelector('[data-smsgfx-id=emulate-system-colours]').style.display = 'none';
+            } else {
+                this.#element.querySelector('[data-smsgfx-id=emulate-system-colours]').style.display = null;
             }
-        });
-        if (palette.system === 'nes') {
-            this.#element.querySelector('[data-smsgfx-id=emulate-system-colours]').style.display = 'none';
         } else {
-            this.#element.querySelector('[data-smsgfx-id=emulate-system-colours]').style.display = null;
+            this.#element.querySelector('[data-smsgfx-id=palette-properties]').style.display = 'none';
         }
     }
 
@@ -542,7 +553,7 @@ export default class PaletteEditor extends ComponentBase {
 /**
  * Palette editor state.
  * @typedef {object} PaletteEditorState
- * @property {PaletteList?} paletteList - Current list of palettes.
+ * @property {PaletteList?} paletteList - Current list of palettes, null for no palettes.
  * @property {string?} title - Title of the palette.
  * @property {string?} selectedSystem - Sets the selected system, either 'ms', 'gg', 'gb' or 'nes'.
  * @property {number?} selectedPaletteIndex - Sets the selected palette index.

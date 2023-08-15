@@ -2067,15 +2067,17 @@ function formatForProject() {
 }
 
 function formatForNoProject() {
-    
+
     const dummyProject = createEmptyProject({ systemType: 'smsgg' });
-    // dummyProject.paletteList.clear();
+    while (dummyProject.paletteList.length > 1) {
+        dummyProject.paletteList.removeAt(0);
+    }
     dummyProject.tileMapList.clear();
     dummyProject.tileSet.clear();
 
     projectToolbar.setState({
         enabled: false,
-        projectTitle: '',
+        projectTitle: ' ',
         enabledCommands: [
             ProjectToolbar.Commands.showDropdown,
             ProjectToolbar.Commands.projectNew,
@@ -2086,7 +2088,7 @@ function formatForNoProject() {
     });
     projectDropdown.setState({
         enabled: false,
-        projectTitle: '',
+        projectTitle: ' ',
         enabledCommands: [
             ProjectDropdown.Commands.projectNew,
             ProjectDropdown.Commands.projectLoadFromFile,
@@ -2099,10 +2101,14 @@ function formatForNoProject() {
         enabled: false
     });
     paletteEditor.setState({
-        paletteList: dummyProject.paletteList,
+        paletteList: null,
         selectedPaletteIndex: 0,
         selectedColourIndex: 0,
         enabled: false
+    });
+    colourPickerToolbox.setState({
+        visibleTabs: [ ColourPickerToolbox.Tabs.rgb ],
+        showTab: ColourPickerToolbox.Tabs.rgb
     });
     tileContextToolbar.setState({
         enabled: false
