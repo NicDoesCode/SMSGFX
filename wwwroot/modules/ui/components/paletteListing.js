@@ -61,18 +61,21 @@ export default class PaletteListing extends ComponentBase {
         if (state?.paletteList instanceof PaletteList) {
             this.#paletteList = state.paletteList;
             dirty = true;
+        } else if (state?.paletteList === null) {
+            this.#paletteList = null;
+            dirty = true;
         }
 
         if (typeof state?.selectedPaletteId === 'string') {
             this.#selectedPaletteId = state.selectedPaletteId;
             dirty = true;
-        } else if (typeof state?.selectedPaletteId === 'object' && state.selectedPaletteId === null) {
+        } else if (state?.selectedPaletteId === null) {
             this.#selectedPaletteId = null;
             dirty = true;
         }
 
-        if (dirty && this.#paletteList) {
-            this.#displayPalettes(this.#paletteList);
+        if (dirty) {
+            this.#displayPalettes(this.#paletteList?.getPalettes() ?? null);
         }
     }
 
@@ -86,10 +89,10 @@ export default class PaletteListing extends ComponentBase {
     }
 
     /**
-     * @param {PaletteList} paletteList
+     * @param {Palette[]} palettes
      */
-    #displayPalettes(paletteList) {
-        const renderList = paletteList.getPalettes().map((p) => {
+    #displayPalettes(palettes) {
+        const renderList = palettes.map((p) => {
             return {
                 paletteId: p.paletteId,
                 title: p.title,
