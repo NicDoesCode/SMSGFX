@@ -18,6 +18,11 @@ body.sms-app {
     background-color: var(--bs-dark-bg-subtle);
 }
 
+[data-bs-theme=dark] .sms-invert-dark {
+    filter: invert(1);
+}
+
+
 /* Toolstrip button colours */
 .sms-toolstrip button.btn-ui:not([disabled]):not(.btn-link):not(.active),
 .sms-toolstrip input[type=text]:not([disabled]),

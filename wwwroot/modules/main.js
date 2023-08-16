@@ -8,6 +8,7 @@ import TileSetFactory from "./factory/tileSetFactory.js";
 import TileMapTileFactory from "./factory/tileMapTileFactory.js";
 import PaletteColourFactory from "./factory/paletteColourFactory.js";
 import UndoManager from "./components/undoManager.js";
+import ConfigManager from "./components/configManager.js";
 import ProjectFactory from "./factory/projectFactory.js";
 import PaletteListFactory from "./factory/paletteListFactory.js";
 import TileUtil from "./util/tileUtil.js";
@@ -4470,4 +4471,18 @@ window.addEventListener('load', async () => {
     observeResizeEvents();
 
     setTimeout(() => themeManager.setTheme(getUIState().theme), 50);
+
+    ConfigManager.getInstanceAsync().then((configManager) => {
+        const config = configManager.config;
+        if (typeof config?.kofiHandle === 'string') {
+            const link = document.querySelector('[data-smsgfx-id=kofi-link-footer]');
+            link.href = link.getAttribute('data-href').replace('{{HANDLE}}', encodeURIComponent(config.kofiHandle));
+            link.classList.remove('visually-hidden');
+        }
+        if (typeof config?.patreonHandle === 'string') {
+            const link = document.querySelector('[data-smsgfx-id=patreon-link-footer]');
+            link.href = link.getAttribute('data-href').replace('{{HANDLE}}', encodeURIComponent(config.patreonHandle));
+            link.classList.remove('visually-hidden');
+        }
+    });
 });

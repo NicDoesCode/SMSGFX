@@ -65,12 +65,26 @@
         </div>
         <div class="row p-2 mt-2">
             <div class="col border-top p-0">
-                <button type="button" class="btn btn-link m-0 mt-2 p-2 pb-0" data-command="showDocumentation"
+                <button type="button" class="btn btn-link m-0 mt-2 p-2 pb-0 text-start" data-command="showDocumentation"
                     title="Displays the documentation viewer.">
-                    Need help? View the documentation
+                    Need help?<br>View the documentation
                 </button>
             </div>
-        </div>
+            <div class="col border-top pt-3 pb-0 col-3">
+                <a data-smsgfx-id="kofi-link" data-href="https://ko-fi.com/{{HANDLE}}" title="Support on Ko-fi." target="_blank"
+                    class="sms-donate-button sms-kofi btn btn-sm w-100 text-black visually-hidden" rel="noopener">
+                    Support on<br>
+                    <img src="../assets/image/kofi-logo-text-white-stroke.png" alt="Ko-fi.">
+                </a>
+            </div>
+            <div class="col border-top pt-3 pb-0 col-3">
+                <a data-smsgfx-id="patreon-link" data-href="https://www.patreon.com/user?u={{HANDLE}}" title="Support on Patreon." target="_blank"
+                    class="sms-donate-button sms-patreon btn btn-sm w-100 text-black visually-hidden" rel="noopener">
+                    Support on<br>
+                    <img src="../assets/image/patreon-wordmark-black.png" alt="Patreon.">
+                </a>
+            </div>
+</div>
     </div>
     <div class="card-footer">
         <div class="row">
@@ -81,7 +95,7 @@
                         title="Check this option to show the welcome screen on start-up.">
                     <label class="form-check-label" for="welcomeScreenShowOnStartup"
                         title="Check this option to show the welcome screen on start-up.">
-                        Show on start-up?
+                        Show welcome on start-up?
                     </label>
                 </div>
             </div>
@@ -145,5 +159,20 @@
         .sms-welcome-screen .project-listing ul {
             max-height: 200px;
         }
+
+        .sms-welcome-screen .sms-donate-button img {
+        }
+
+        .sms-welcome-screen .sms-donate-button img {
+            max-height: 25px;
+            width: auto;
+        }
+        .sms-welcome-screen .sms-donate-button.sms-kofi {
+            background-color: #29abe0;
+        }
+        .sms-welcome-screen .sms-donate-button.sms-patreon {
+            background-color: #ff4054;
+        }
+
     </style>
 </div>

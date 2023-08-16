@@ -11,14 +11,14 @@ const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 export default {
     mode: 'production',
     entry: {
-        app: './wwwroot/modules/main.js',
-        page: './wwwroot/pages/pages.js'
+        main: './wwwroot/modules/main.js',
+        pages: './wwwroot/pages/pages.js'
     },
     output: {
         filename: (pathData) => {
-            if (pathData.chunk.name === 'app')
+            if (pathData.chunk.name === 'main')
                 return 'modules/[name].js?v=[hash]';
-            else if (pathData.chunk.name === 'page') {
+            else if (pathData.chunk.name === 'pages') {
                 return 'pages/[name].js?v=[hash]';
             } else {
                 return 'assets/scripts/[name].js?v=[hash]';
@@ -51,7 +51,7 @@ export default {
         new HtmlWebpackPlugin({
             template: './wwwroot/index.html',
             filename: 'index.html',
-            chunks: ['app'],
+            chunks: ['main'],
             inject: 'body',
             hash: true,
             // excludeAssets: [
@@ -92,9 +92,11 @@ function createPagesHtmlWebpackPlugins() {
         return new HtmlWebpackPlugin({
             template: path.join(__dirname, 'wwwroot', 'pages', htmlFileName),
             filename: `pages/${htmlFileName}`,
-            chunks: ['page'],
-            inject: 'body',
+            chunks: ['pages'],
+            inject: "head",
             hash: true,
+            scriptLoading: "blocking",
+            minify: false, 
             // excludeAssets: ['**.js'],
         });
     });
