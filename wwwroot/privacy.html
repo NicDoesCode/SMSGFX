@@ -20,38 +20,72 @@
 <body>
 
     <div class="container-fluid">
+
         <h1>SMSGFX Privacy</h1>
-        <h3>First-party data</h3>
-        <p>While you use the application the following information is created:</p>
+
+        <p>
+            One of the design goals for SMSGFX is to create a privacy-first yet fully featured application
+            that runs entirely within the local web browser.
+        </p>
+        <p>
+            Your projects and configuration all stay within your web browser.
+        </p>
+        <p>
+            However, we do use a CDN for some external libraries as well as basic web analytics solution, the details of
+            which are below.
+        </p>
+
+        <h3>Your projects and configuration</h3>
+        <p>
+            While you use the application the following information is created:
+        </p>
         <ul>
-            <li>Your projects into browser local storage.</li>
-            <li>Application settings and preferences into browser local storage.</li>
+            <li>Your projects.</li>
+            <li>Application settings and preferences.</li>
         </ul>
-        <p>The above is stored locally within your web browser, it is not transmitted externally or accessible to third
-            parties.</p>
+        <p>
+            The above is stored locally within your web browser and stays within your web browser.
+        </p>
+
+        <h3>Where is SMSGFX hosted?</h3>
+        <p>
+            We're currently hosted on <a href="https://www.cloudflare.com/" title="Link to Cloudflare." target="_blank"
+                rel="noreferrer noopener">Cloudflare</a>.
+        </p>
+
         <h3>Third party libraries</h3>
-        <p>The following third party libraries are used:</p>
+        <p>
+            To make the application work the following third party libraries are used:
+        </p>
         <ul>
             <li><a href="https://getbootstrap.com/" target="_blank" title="Visit Bootstrap."
-                    rel="noreferrer noopener">Bootstrap</a> (CSS, JavaScript and Icons).</li>
+                    rel="noreferrer noopener">Bootstrap</a> (CSS and JavaScript).</li>
+            <li><a href="https://icons.getbootstrap.com/" target="_blank" title="Visit Bootstrap Icons."
+                    rel="noreferrer noopener">Bootstrap Icons</a> (icons).</li>
             <li><a href="https://handlebarsjs.com/" target="_blank" title="Visit Handlebars."
                     rel="noreferrer noopener">Handlebars</a> (for templating).</li>
             <li><a href="https://momentjs.com/" target="_blank" title="Visit Moment.js."
                     rel="noreferrer noopener">Moment.js</a> (date and time manipulation).</li>
         </ul>
-        <p>These libraries are linked from an external CDN and do not collect personal information.</p>
-        <h3>Google Analytics</h3>
-        <p>We use Google Analytics to monitor and analyse website traffic.</p>
-        <p>Information collected from Google Analytics is used by the authors of this product for the purposes of
-            product improvement, the information is not shared with third parties.</p>
-        <p>The scope of the information collected is the minimum data set that Google Analytics provides, however it may
-            include the device, operating system and browser type.</p>
-        <p>In order for the product to work a cookie may be placed on your device.</p>
-        <p>The information that we have access to is not personally identifiable.</p>
-        <p>Google's advertising features are not used.</p>
-        <p>See "<a href="https://www.google.com/policies/privacy/partners/" target="_blank" title="How Google uses
-            data when you use our partners' sites or apps." rel="noreferrer noopener">How Google uses
-                data when you use our partners' sites or apps</a>" for information on Google's privacy practices.</p>
+        <p>
+            Currently we link these libraries from external CDNs, which are
+            <a href="https://www.jsdelivr.com/" target="_blank" title="Link to jsDelivr"
+                rel="noreferrer noopener">jsDelivr</a> and
+            <a href="https://cdnjs.cloudflare.com/" target="_blank" title="Link to Cloudflare"
+                rel="noreferrer noopener">Cloudflare</a>.
+        </p>
+
+        <h3>Analytics</h3>
+        <p>
+            We use
+            <a href="https://www.cloudflare.com/web-analytics/" target="_blank" title="Link to Cloudflare Web Analytics"
+                rel="noreferrer noopener">Cloudflare Web Analytics</a>,
+            which is a privacy-first analytics platform.
+        </p>
+        <p>
+            This allows us to collect basic usage metrics and understand general product usage data a little better.
+        </p>
+
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.bundle.min.js"
