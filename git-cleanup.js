@@ -1,4 +1,4 @@
-const { exec } = require('node:child_process');
+import { exec } from 'node:child_process';
 
 const rxGone = /:\sgone\]/;
 const rxInUse = /^\*\s/;
