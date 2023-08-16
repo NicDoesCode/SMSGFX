@@ -36,6 +36,7 @@ import PaletteModalDialogue from "./ui/dialogues/paletteImportModalDialogue.js";
 import PrivacyModalDialogue from "./ui/dialogues/privacyModalDialogue.js";
 import ProjectDropdown from "./ui/dialogues/projectDropdown.js";
 import WelcomeScreen from "./ui/dialogues/welcomeScreen.js";
+import PageModalDialogue from "./ui/dialogues/pageModalDialogue.js";
 
 import ExportToolbar from "./ui/toolbars/exportToolbar.js";
 import OptionsToolbar from "./ui/toolbars/optionsToolbar.js";
@@ -189,20 +190,16 @@ async function initialiseComponents() {
     welcomeScreen = await WelcomeScreen.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=welcome-screen]'));
 }
 
-function wireUpGenericComponents() {
+async function wireUpGenericComponents() {
     document.querySelectorAll('[data-smsgfx-generic]').forEach((element) => {
         const command = element.getAttribute('data-smsgfx-generic');
-        if (command === 'about' && ['A', 'BUTTON'].includes(element.tagName)) {
-            element.onclick = () => {
-                aboutDialogue.show();
-                return false;
-            }
-        }
-        if (command === 'privacy' && ['A', 'BUTTON'].includes(element.tagName)) {
-            element.onclick = () => {
-                privacyModalDialogue.show();
-                return false;
-            }
+        if (command === 'documentation' && ['A', 'BUTTON'].includes(element.tagName)) {
+            element.addEventListener('click', (ev) => {
+                documentationViewer.setState({ visible: true });
+                getUIState().documentationVisibleOnStartup = true;
+                state.saveToLocalStorage();
+                ev.preventDefault();
+            });
         }
     });
 }
@@ -1037,7 +1034,6 @@ function handleTileContextToolbarCommand(args) {
 
 /** @param {import("./ui/tileManager.js").TileManagerCommandEventArgs} args */
 function handleTileManagerOnCommand(args) {
-    console.log(args); // TMP 
     switch (args.command) {
 
         case TileManager.Commands.tileMapNew:
@@ -2107,7 +2103,7 @@ function formatForNoProject() {
         enabled: false
     });
     colourPickerToolbox.setState({
-        visibleTabs: [ ColourPickerToolbox.Tabs.rgb ],
+        visibleTabs: [ColourPickerToolbox.Tabs.rgb],
         showTab: ColourPickerToolbox.Tabs.rgb
     });
     tileContextToolbar.setState({
@@ -4404,6 +4400,7 @@ window.addEventListener('load', async () => {
     wireUpEventHandlers();
     createEventListeners();
     wireUpGenericComponents();
+    await PageModalDialogue.wireUpElementsAsync(document.body);
 
     // Load and set state
     state.loadFromLocalStorage();
@@ -4451,15 +4448,6 @@ window.addEventListener('load', async () => {
     });
 
     selectTool(instanceState.tool);
-
-    document.querySelectorAll('[data-smsgfx-command=openDocumentationViewer]').forEach((elm) => {
-        elm.onclick = () => {
-            documentationViewer.setState({ visible: true });
-            getUIState().documentationVisibleOnStartup = true;
-            state.saveToLocalStorage();
-            return false;
-        };
-    });
 
     documentationViewer.setState({
         visible: getUIState().documentationVisibleOnStartup

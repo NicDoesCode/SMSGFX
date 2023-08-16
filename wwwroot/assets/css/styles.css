@@ -1,11 +1,9 @@
-body {
+body.sms-app {
     background-image: url(./../image/background-04-w.png);
-    /* background-blend-mode: normal; */
 }
 
-[data-bs-theme=dark] body {
+[data-bs-theme=dark] body.sms-app {
     background-image: url(./../image/background-04-b.png);
-    /* background-blend-mode: multiply; */
 }
 
 .sms-hidden-system {
