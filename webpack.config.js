@@ -64,7 +64,7 @@ export default {
         new CopyPlugin({
             patterns: [
                 { from: 'wwwroot/assets/image', to: 'assets/image' },
-                { from: 'wwwroot/config', to: 'config' }
+                { from: 'wwwroot/config', to: 'config', noErrorOnMissing: true }
             ]
         }),
         new HtmlWebpackPlugin({

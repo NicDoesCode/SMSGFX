@@ -26,7 +26,9 @@ function makeConfig() {
     };
     const configString = JSON.stringify(config);
     const distDir = path.resolve(__dirname, '..', 'dist');
-    const filePath = path.join(distDir, 'config', 'config.json');
+    const targetDir = path.join(distDir, 'config');
+    if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir);
+    const filePath = path.join(targetDir, 'config.json');
     fs.writeFileSync(filePath, configString);
 }
 
@@ -40,7 +42,9 @@ function makeGoogleAnalyticsConfig() {
     };
     const gaString = JSON.stringify(gaConfig);
     const distDir = path.resolve(__dirname, '..', 'dist');
-    const filePath = path.join(distDir, 'config', 'googleAnalytics.json');
+    const targetDir = path.join(distDir, 'config');
+    if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir);
+    const filePath = path.join(targetDir, 'googleAnalytics.json');
     fs.writeFileSync(filePath, gaString);
 }
 
