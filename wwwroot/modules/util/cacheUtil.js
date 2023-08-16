@@ -5,7 +5,6 @@ export default class CacheUtil {
      * @returns {string}
      */
     static getCacheBuster() {
-        console.log(cacheBuster);
         if (typeof cacheBuster === 'undefined') {
             cacheBuster = null;
             const scriptTag = document.querySelector(`script[src*=${CSS.escape('/main.js?v=')}]`);
@@ -19,7 +18,6 @@ export default class CacheUtil {
                 }
             }
         }
-        console.log(cacheBuster);
         return cacheBuster;
     }
 

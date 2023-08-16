@@ -1,11 +1,9 @@
-body {
+body.sms-app {
     background-image: url(./../image/background-04-w.png);
-    /* background-blend-mode: normal; */
 }
 
-[data-bs-theme=dark] body {
+[data-bs-theme=dark] body.sms-app {
     background-image: url(./../image/background-04-b.png);
-    /* background-blend-mode: multiply; */
 }
 
 .sms-hidden-system {
@@ -19,6 +17,11 @@ body {
 [data-bs-theme=dark] .sms-toolstrip {
     background-color: var(--bs-dark-bg-subtle);
 }
+
+[data-bs-theme=dark] .sms-invert-dark {
+    filter: invert(1);
+}
+
 
 /* Toolstrip button colours */
 .sms-toolstrip button.btn-ui:not([disabled]):not(.btn-link):not(.active),

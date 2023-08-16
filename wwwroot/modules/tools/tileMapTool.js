@@ -11,7 +11,6 @@ export default class TileMapTool {
      * @param {TileMapCreateWithNewTilesArgs} args - Arguments for the creation of the tile map.
      */
     static createTileMapWithNewTiles(args) {
-        console.log(args);
         if (!args.tileSet instanceof TileSet) throw new Error('Please supply a tile set.');
         const tileSet = args.tileSet;
         if (typeof args.defaultColourIndex !== 'number') throw new Error('Colour index not supplied.');

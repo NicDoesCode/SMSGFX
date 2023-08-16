@@ -1,7 +1,11 @@
-const fs = require('fs');
-const path = require('path');
-const express = require('express');
-const https = require('https');
+import path from "path";
+import fs from "fs";
+import url from 'url';
+import express from 'express';
+import https from 'https';
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+
 const app = express();
 const portHttp = 8080;
 const portHttps = 8443;

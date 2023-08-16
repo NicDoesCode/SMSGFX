@@ -8,3 +8,4 @@ cert/
 *.instance.*
 .env
 wwwroot/docs/
+wwwroot/config/

@@ -12,7 +12,7 @@
     <link href="./assets/css/styles.css" rel="stylesheet">
 </head>
 
-<body>
+<body class="sms-app">
 
     <div class="sms-layout d-flex flex-column position-absolute start-0 top-0 end-0 bottom-0 m-0 p-0">
 
@@ -90,13 +90,29 @@
     <div class="sms-layout-footer position-absolute bottom-0 end-0 p-0 m-0 z-3">
         <p class="p-1 m-1 me-3">
             <small>
-                <a data-smsgfx-command="openDocumentationViewer" href="./docs/index.html" target="_blank"
-                    title="View documentation." rel="noreferrer noopener">Documentation</a> |
+                <span>Support on </span>&nbsp;
+                <a data-smsgfx-id="kofi-link-footer" data-href="https://ko-fi.com/{{HANDLE}}" target="_blank"
+                    title="Support on Ko-fi." rel="noreferrer noopener" class="visually-hidden"><img
+                        src="./assets/image/kofi-logo-text-white-stroke.png" height="18" alt="Support on Ko-fi."></a>
+                |
+                <a data-smsgfx-id="patreon-link-footer" data-href="https://www.patreon.com/user?u={{HANDLE}}"
+                    target="_blank" title="Support on Patreon." rel="noreferrer noopener" class="visually-hidden"><img
+                        src="./assets/image/patreon-wordmark-black.png" height="18" alt="Support on Patreon."
+                        class="sms-invert-dark"></a>
+                |
+                <a href="https://docs.smsgfx.qwerky.games/en/latest/inline-help.html" target="_blank"
+                    title="View documentation." data-smsgfx-generic="documentation"
+                    rel="noreferrer noopener">Documentation</a>
+                |
+                <a href="./pages/about.html" target="_blank" title="About the project." data-smsgfx-dialogue
+                    data-title="About SMSGFX" data-show-header="true" rel="noreferrer noopener">About</a>
+                |
                 <a href="https://github.com/NicDoesCode/SMSGFX" target="_blank" title="View this project on GitHub."
-                    rel="noreferrer noopener">GitHub</a> |
-                <a data-smsgfx-generic="privacy" href="./privacy.html" target="_blank" title="View privacy policy."
-                    rel="noreferrer noopener">Privacy</a> |
-                <a data-smsgfx-generic="about" href="#" target="_blank" title="About this application.">About</a>
+                    rel="noreferrer noopener">GitHub</a>
+                |
+                <a href="./pages/privacy.html" target="_blank" title="View information about your privacy."
+                    data-smsgfx-dialogue data-title="SMSGFX privacy" data-show-header="true"
+                    rel="noreferrer noopener">Privacy</a>
             </small>
         </p>
     </div>
