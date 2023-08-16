@@ -1,4 +1,5 @@
 import GeneralUtil from "./generalUtil.js";
+import CacheUtil from "./cacheUtil.js";
 
 const componentRegex = /^[A-z\d_]+(\/[A-z\d_]+)*$/;
 const componentCache = document.createElement('div');
@@ -231,7 +232,7 @@ async function ensureGlobalComponentsCachedAsync() {
         try {
 
             // Load the global file data
-            const url = `./modules/ui/ui.html${getCacheBuster() ?? ''}`;
+            const url = `./modules/ui/ui.html${CacheUtil.getCacheBuster() ?? ''}`;
             const resp = await fetch(url);
             if (resp.ok) {
                 const content = await resp.text();
@@ -254,7 +255,7 @@ async function ensureGlobalComponentsCachedAsync() {
 /** @param {string} componentName */
 async function attemptLoadComponentFromFileAsync(componentName) {
     try {
-        const url = `./modules/ui/${componentName}.html${getCacheBuster() ?? ''}`;
+        const url = `./modules/ui/${componentName}.html${CacheUtil.getCacheBuster() ?? ''}`;
         const resp = await fetch(url);
         const content = await resp.text();
 
@@ -295,23 +296,4 @@ function addComponentToCacheIfNotAlreadyThere(component) {
 /** @param {string} componentName */
 function componentSelector(componentName) {
     return `[data-smsgfx-component=${CSS.escape(componentName)}]`;
-}
-
-let cacheBuster;
-
-function getCacheBuster() {
-    if (typeof cacheBuster === 'undefined') {
-        cacheBuster = null;
-        const scriptTag = document.querySelector(`script[src*=${CSS.escape('/main.js?v=')}]`);
-        if (scriptTag) {
-            const query = scriptTag.getAttribute('src').split('?');
-            if (query.length > 1) {
-                const param = new URLSearchParams(query[1]);
-                if (param.has('v')) {
-                    cacheBuster = `?v=${CSS.escape(param.get('v'))}`;
-                }
-            }
-        }
-    }
-    return cacheBuster;
 }
