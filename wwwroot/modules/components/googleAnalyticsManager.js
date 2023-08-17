@@ -46,7 +46,7 @@ export default class GoogleAnalyticsManager {
     async injectIfConfiguredAsync() {
         if (this.#injected) throw new Error('Script has already been injected.');
         const config = await this.loadConfigAsync();
-        if (config.useGoogleAnalytics && config.key) {
+        if (config?.useGoogleAnalytics && config?.key) {
             this.#injected = true;
 
             const script = document.createElement('script');
