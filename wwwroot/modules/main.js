@@ -40,6 +40,7 @@ import WelcomeScreen from "./ui/dialogues/welcomeScreen.js";
 import PageModalDialogue from "./ui/dialogues/pageModalDialogue.js";
 
 import ExportToolbar from "./ui/toolbars/exportToolbar.js";
+import FeedbackToolbar from "./ui/toolbars/feedbackToolbar.js";
 import OptionsToolbar from "./ui/toolbars/optionsToolbar.js";
 import ProjectToolbar from "./ui/toolbars/projectToolbar.js";
 import TileContextToolbar from "./ui/toolbars/tileContextToolbar.js";
@@ -142,6 +143,7 @@ const themeManager = new ThemeManager();
 /** @type {ProjectToolbar} */ let projectToolbar;
 /** @type {ProjectDropdown} */ let projectDropdown;
 /** @type {ExportToolbar} */ let exportToolbar;
+/** @type {FeedbackToolbar} */ let feedbackToolbar;
 /** @type {OptionsToolbar} */ let optionsToolbar;
 /** @type {AssemblyExportModalDialogue} */ let assemblyExportDialogue;
 /** @type {AssemblyImportTilesModalDialogue} */ let assemblyImportTilesModalDialogue;
@@ -169,6 +171,7 @@ async function initialiseComponents() {
     projectToolbar = await ProjectToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=project-toolbar]'));
     projectDropdown = await ProjectDropdown.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=project-dropdown]'));
     exportToolbar = await ExportToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=export-toolbar]'));
+    feedbackToolbar = await FeedbackToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=feedback-toolbar]'));
     optionsToolbar = await OptionsToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=options-toolbar]'));
     assemblyExportDialogue = await AssemblyExportModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=assembly-export-dialogue]'));
     assemblyImportTilesModalDialogue = await AssemblyImportTilesModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-import-dialogue]'));
@@ -225,6 +228,7 @@ function wireUpEventHandlers() {
     projectDropdown.addHandlerOnHidden(handleProjectDropdownOnHidden);
 
     exportToolbar.addHandlerOnCommand(handleExportToolbarOnCommand);
+    feedbackToolbar.addHandlerOnCommand(handleFeedbackToolbarOnCommand);
 
     optionsToolbar.addHandlerOnCommand(handleOptionsToolbarOnCommand);
 
@@ -752,7 +756,7 @@ function handleProjectDropdownOnHidden() {
     }
 }
 
-/** @param {import('./ui/exportToolbar.js').ExportToolbarCommandEventArgs} args */
+/** @param {import('./ui/toolbars/exportToolbar.js').ExportToolbarCommandEventArgs} args */
 function handleExportToolbarOnCommand(args) {
 
     switch (args.command) {
@@ -768,7 +772,15 @@ function handleExportToolbarOnCommand(args) {
     }
 }
 
-/** @param {import('./ui/optionsToolbar').OptionsToolbarCommandEventArgs} args */
+/** @param {import('./ui/toolbars/feedbackToolbar.js').FeedbackToolbarCommandEventArgs} args */
+function handleFeedbackToolbarOnCommand(args) {
+
+    switch (args.command) {
+    }
+
+}
+
+/** @param {import('./ui/toolbars/optionsToolbar.js').OptionsToolbarCommandEventArgs} args */
 function handleOptionsToolbarOnCommand(args) {
 
     switch (args.command) {
@@ -2003,6 +2015,9 @@ function formatForProject() {
     exportToolbar.setState({
         enabled: true
     });
+    feedbackToolbar.setState({
+        enabled: true
+    });
     paletteEditor.setState({
         paletteList: getPaletteList(),
         selectedPaletteIndex: getProjectUIState().paletteIndex,
@@ -2095,6 +2110,9 @@ function formatForNoProject() {
         ]
     });
     exportToolbar.setState({
+        enabled: false
+    });
+    feedbackToolbar.setState({
         enabled: false
     });
     paletteEditor.setState({
@@ -4472,7 +4490,9 @@ window.addEventListener('load', async () => {
 
     setTimeout(() => themeManager.setTheme(getUIState().theme), 50);
 
+    // Load general config
     ConfigManager.getInstanceAsync().then((configManager) => {
+        // Set handles on Sponsorship buttons
         const config = configManager.config;
         if (typeof config?.kofiHandle === 'string') {
             const link = document.querySelector('[data-smsgfx-id=kofi-link-footer]');
