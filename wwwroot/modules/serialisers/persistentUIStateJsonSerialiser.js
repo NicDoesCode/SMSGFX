@@ -24,6 +24,7 @@ export default class PersistentUIStateJsonSerialiser {
             documentationVisibleOnStartup: appUI.documentationVisibleOnStartup,
             welcomeVisibleOnStartup: appUI.welcomeVisibleOnStartup,
             theme: appUI.theme,
+            backgroundTheme: appUI.backgroundTheme,
             projectStates: appUI.projectStates
         };
         return JSON.stringify(result);
@@ -75,6 +76,9 @@ export default class PersistentUIStateJsonSerialiser {
             if (typeof deserialised.theme === 'string') {
                 result.theme = deserialised.theme;
             }
+            if (typeof deserialised.backgroundTheme === 'string') {
+                result.backgroundTheme = deserialised.backgroundTheme;
+            }
             if (deserialised.projectStates) {
                 result.projectStates = deserialised.projectStates;
             } else {
@@ -102,5 +106,6 @@ export default class PersistentUIStateJsonSerialiser {
  * @property {boolean} documentationVisibleOnStartup
  * @property {boolean} welcomeVisibleOnStartup
  * @property {string} theme
+ * @property {string} backgroundTheme
  * @property {Object.<string, object>} projectStates
  */

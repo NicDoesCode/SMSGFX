@@ -124,6 +124,16 @@ export default class PersistentUIState {
     }
 
     /**
+     * Gets or sets whether the theme (either 'light', 'dark' or 'system').
+     */
+    get backgroundTheme() {
+        return this.#backgroundTheme;
+    }
+    set backgroundTheme(value) {
+        this.#backgroundTheme = value;
+    }
+
+    /**
      * Gets or sets the project UI states.
      */
     get projectStates() {
@@ -158,6 +168,8 @@ export default class PersistentUIState {
     #welcomeVisibleOnStartup = true;
     /** @type {string} */
     #theme = 'system';
+    /** @type {string} */
+    #backgroundTheme = null;
     /** @type {Object.<string, ProjectState>} */
     #projectStates = {};
 
