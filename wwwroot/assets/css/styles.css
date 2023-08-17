@@ -1,10 +1,6 @@
-body.sms-app {
-    background-image: url(./../image/background-04-w.png);
-}
+body.sms-app {}
 
-[data-bs-theme=dark] body.sms-app {
-    background-image: url(./../image/background-04-b.png);
-}
+[data-bs-theme=dark] body.sms-app {}
 
 .sms-hidden-system {
     display: none;
@@ -20,6 +16,112 @@ body.sms-app {
 
 [data-bs-theme=dark] .sms-invert-dark {
     filter: invert(1);
+}
+
+
+/* 
+ * Background themes
+ */
+.sms-app .sms-backdrop {
+    background: none;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    z-index: -1;
+}
+
+/* Background theme 01 */
+.sms-app .sms-backdrop.sms-background-theme-01 {
+    background-image: url(/assets/image/background/theme-01.jpg);
+    background-size: 60%;
+    filter: opacity(0.15);
+}
+
+[data-bs-theme=dark] .sms-app .sms-backdrop.sms-background-theme-01 {
+    filter: brightness(0.75) opacity(0.1);
+}
+
+/* Background theme 02 */
+.sms-app .sms-backdrop.sms-background-theme-02 {
+    background-image: url(/assets/image/background/theme-02.jpg);
+    background-size: 75%;
+    filter: invert() opacity(0.15);
+}
+
+[data-bs-theme=dark] .sms-app .sms-backdrop.sms-background-theme-02 {
+    filter: opacity(0.05);
+}
+
+/* Background theme 03 */
+.sms-app .sms-backdrop.sms-background-theme-03 {
+    background-image: url(/assets/image/background/theme-03.jpg);
+    background-size: 25% auto;
+    filter: opacity(0.075);
+}
+
+[data-bs-theme=dark] .sms-app .sms-backdrop.sms-background-theme-03 {
+    filter: invert() opacity(0.03);
+}
+
+/* Background theme 04 */
+.sms-app .sms-backdrop.sms-background-theme-04 {
+    background-image: url(/assets/image/background/theme-04.jpg);
+    background-size: 35% auto;
+    filter: opacity(0.1) brightness(2) contrast(0.75) grayscale(0.5);
+}
+
+[data-bs-theme=dark] .sms-app .sms-backdrop.sms-background-theme-04 {
+    filter: opacity(0.05) grayscale(0.5);
+}
+
+/* Background theme 05 */
+.sms-app .sms-backdrop.sms-background-theme-05 {
+    background-image: url(/assets/image/background/theme-05.jpg);
+    background-size: 25% auto;
+    filter: opacity(0.1);
+}
+
+[data-bs-theme=dark] .sms-app .sms-backdrop.sms-background-theme-05 {
+    filter: brightness(0.25) opacity(0.2);
+}
+
+/* Background theme 06 */
+.sms-app .sms-backdrop.sms-background-theme-06 {
+    background-image: url(/assets/image/background/theme-06.jpg);
+    background-size: 75%;
+    filter: invert() brightness(1) opacity(0.1);
+}
+
+[data-bs-theme=dark] .sms-app .sms-backdrop.sms-background-theme-06 {
+    filter: brightness(0.5) contrast(1.5) opacity(0.2) grayscale(0.5);
+}
+
+/* Background theme 07 */
+.sms-app .sms-backdrop.sms-background-theme-07 {
+    background-image: url(/assets/image/background/theme-07.jpg);
+    background-position: center bottom;
+    background-size: cover;
+    filter: brightness(1) contrast(0.5) opacity(0.2) grayscale(0.5);
+}
+
+[data-bs-theme=dark] .sms-app .sms-backdrop.sms-background-theme-07 {
+    filter: brightness(0.25) opacity(0.2) grayscale(0.5);
+}
+
+/* Background theme 08 */
+.sms-app .sms-backdrop.sms-background-theme-08 {
+    background-image: url(/assets/image/background/theme-08.jpg), linear-gradient(180deg, rgba(156,203,226,1) 50%, rgba(29,83,104,1) 50%);
+    background-repeat: repeat-x;
+    background-position: center;
+    background-size: 60%;
+    filter: opacity(0.3);
+}
+
+[data-bs-theme=dark] .sms-app .sms-backdrop.sms-background-theme-08 {
+    filter: opacity(0.2) brightness(0.5) grayscale(0.5);
 }
 
 

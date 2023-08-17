@@ -6,6 +6,7 @@ const EVENT_OnCommand = 'EVENT_OnCommand';
 
 const commands = {
     changeTheme: 'changeTheme',
+    changeBackgroundTheme: 'changeBackgroundTheme',
     changeWelcomeOnStartUp: 'changeWelcomeOnStartUp',
     changeDocumentationOnStartUp: 'changeDocumentationOnStartUp'
 }
@@ -89,6 +90,12 @@ export default class OptionsToolbar extends ComponentBase {
             this.#element.querySelector(`[data-command=${commands.changeTheme}]`).value = state.theme;
         }
 
+        if (typeof state?.backgroundTheme === 'string') {
+            this.#element.querySelector(`[data-command=${commands.changeBackgroundTheme}]`).value = state.backgroundTheme;
+        } else if (state?.backgroundTheme === null) {
+            this.#element.querySelector(`[data-command=${commands.changeBackgroundTheme}]`).value = 'none';
+        }
+
         if (typeof state?.welcomeOnStartUp === 'boolean') {
             this.#element.querySelector(`[data-command=${commands.changeWelcomeOnStartUp}]`).checked = state.welcomeOnStartUp;
         }
@@ -113,9 +120,11 @@ export default class OptionsToolbar extends ComponentBase {
      * @returns {OptionsToolbarCommandEventArgs}
      */
     #createArgs(command) {
+        const elmBackgroundTheme = this.#element.querySelector(`[data-command=${commands.changeBackgroundTheme}]`);
         return {
             command: command,
             theme: this.#element.querySelector(`[data-command=${commands.changeTheme}]`).value,
+            backgroundTheme: this.#element.querySelector(`[data-command=${commands.changeBackgroundTheme}]`).value,
             welcomeOnStartUp: this.#element.querySelector(`[data-command=${commands.changeWelcomeOnStartUp}]`).checked,
             documentationOnStartUp: this.#element.querySelector(`[data-command=${commands.changeDocumentationOnStartUp}]`).checked
         };
@@ -132,6 +141,7 @@ export default class OptionsToolbar extends ComponentBase {
  * @property {string[]?} disabledCommands - Array of commands that should be disabled, overrided enabled state.
  * @property {boolean?} enabled - Is the control enabled or disabled?
  * @property {string?} theme - Selected theme.
+ * @property {string?} backgroundTheme - Selected background theme.
  * @property {boolean?} welcomeOnStartUp - Welcome screen on start-up.
  * @property {boolean?} documentationOnStartUp - Documentation on start-up.
  */
@@ -146,6 +156,7 @@ export default class OptionsToolbar extends ComponentBase {
  * @typedef {object} OptionsToolbarCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string} theme - The theme to change to.
+ * @property {string} backgroundTheme - The background theme to change to.
  * @property {boolean} welcomeOnStartUp - Welcome screen on start-up.
  * @property {boolean} documentationOnStartUp - Documentation on start-up.
  * @exports

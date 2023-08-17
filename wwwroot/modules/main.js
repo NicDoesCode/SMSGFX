@@ -791,6 +791,12 @@ function handleOptionsToolbarOnCommand(args) {
             themeManager.setTheme(args.theme);
             break;
 
+        case OptionsToolbar.Commands.changeBackgroundTheme:
+            getUIState().backgroundTheme = args.backgroundTheme;
+            state.saveToLocalStorage();
+            themeManager.setBackgroundTheme(args.backgroundTheme);
+            break;
+
         case OptionsToolbar.Commands.changeWelcomeOnStartUp:
             getUIState().welcomeVisibleOnStartup = args.welcomeOnStartUp;
             state.saveToLocalStorage();
@@ -4482,13 +4488,22 @@ window.addEventListener('load', async () => {
 
     optionsToolbar.setState({
         theme: getUIState().theme,
+        backgroundTheme: getUIState().backgroundTheme,
         welcomeOnStartUp: getUIState().welcomeVisibleOnStartup,
         documentationOnStartUp: getUIState().documentationVisibleOnStartup
     });
 
     observeResizeEvents();
 
-    setTimeout(() => themeManager.setTheme(getUIState().theme), 50);
+    // Set default background theme
+    if (getUIState().backgroundTheme === null) {
+        getUIState().backgroundTheme = '01';
+    }
+
+    setTimeout(() => {
+        themeManager.setTheme(getUIState().theme);
+        themeManager.setBackgroundTheme(getUIState().backgroundTheme);
+    }, 50);
 
     // Load general config
     ConfigManager.getInstanceAsync().then((configManager) => {

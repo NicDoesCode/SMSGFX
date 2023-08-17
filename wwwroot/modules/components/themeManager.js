@@ -79,6 +79,29 @@ export default class ThemeManager {
         }
     }
 
+    /**
+     * Sets the background theme.
+     * @param {string?} theme - Theme to use, or null if none.
+     */
+    setBackgroundTheme(theme) {
+        if (theme && !/^[A-z0-9_-]+$/.test(theme)) throw new Error('Theme name not valid.');
+
+        const element = document.querySelector('[data-smsgfx-id=backdrop]');
+        if (element) {
+
+            element.classList.forEach((className) => {
+                if (className.startsWith('sms-background-theme-')) {
+                    element.classList.remove(className);
+                }
+            });
+
+            if (theme && theme !== 'none') {
+                const themeClassName = `sms-background-theme-${theme}`;
+                element.classList.add(themeClassName);
+            }
+        }
+    }
+
 
 }
 
