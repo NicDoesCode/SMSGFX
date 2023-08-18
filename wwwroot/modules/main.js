@@ -787,24 +787,24 @@ function handleOptionsToolbarOnCommand(args) {
 
         case OptionsToolbar.Commands.changeTheme:
             getUIState().theme = args.theme;
-            state.saveToLocalStorage();
+            state.saveUIStateToLocalStorage();
             themeManager.setTheme(args.theme);
             break;
 
         case OptionsToolbar.Commands.changeBackgroundTheme:
             getUIState().backgroundTheme = args.backgroundTheme;
-            state.saveToLocalStorage();
+            state.saveUIStateToLocalStorage();
             themeManager.setBackgroundTheme(args.backgroundTheme);
             break;
 
         case OptionsToolbar.Commands.changeWelcomeOnStartUp:
             getUIState().welcomeVisibleOnStartup = args.welcomeOnStartUp;
-            state.saveToLocalStorage();
+            state.saveUIStateToLocalStorage();
             break;
 
         case OptionsToolbar.Commands.changeDocumentationOnStartUp:
             getUIState().documentationVisibleOnStartup = args.documentationOnStartUp;
-            state.saveToLocalStorage();
+            state.saveUIStateToLocalStorage();
             break;
 
     }
