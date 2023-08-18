@@ -78,6 +78,8 @@ export default class PersistentUIStateJsonSerialiser {
             }
             if (typeof deserialised.backgroundTheme === 'string') {
                 result.backgroundTheme = deserialised.backgroundTheme;
+            } else if (deserialised.backgroundTheme === null) {
+                result.backgroundTheme = null;
             }
             if (deserialised.projectStates) {
                 result.projectStates = deserialised.projectStates;
@@ -106,6 +108,6 @@ export default class PersistentUIStateJsonSerialiser {
  * @property {boolean} documentationVisibleOnStartup
  * @property {boolean} welcomeVisibleOnStartup
  * @property {string} theme
- * @property {string} backgroundTheme
+ * @property {string?} backgroundTheme
  * @property {Object.<string, object>} projectStates
  */
