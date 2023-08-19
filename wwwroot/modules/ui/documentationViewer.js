@@ -6,7 +6,9 @@ const EVENT_OnCommand = 'EVENT_OnCommand';
 
 const commands = {
     close: 'close',
-    popOut: 'popOut'
+    popOut: 'popOut',
+    shown: 'shown',
+    hidden: 'hidden'
 }
 
 export default class DocumentationViewer extends ComponentBase {
@@ -21,6 +23,8 @@ export default class DocumentationViewer extends ComponentBase {
     #element;
     /** @type {EventDispatcher} */
     #dispatcher;
+    /** @type {HTMLIFrameElement} */
+    #iframe;
 
 
     /**
@@ -33,11 +37,21 @@ export default class DocumentationViewer extends ComponentBase {
 
         this.#dispatcher = new EventDispatcher();
 
+        this.#iframe = this.#element.querySelector('[data-smsgfx-id=documentation-iframe]');
+
         this.#element.querySelectorAll('button[data-command]').forEach(element => {
             element.onclick = () => {
-                const args = this.#createArgs(element);
+                const args = this.#createArgs(element.getAttribute('data-command'));
                 this.#dispatcher.dispatch(EVENT_OnCommand, args);
             };
+        });
+
+        this.addHandlerOnCommand((args) => {
+            if (args.command === commands.shown) {
+                if (!this.#iframe.hasAttribute('src') && this.#iframe.hasAttribute('data-src')) {
+                    this.#iframe.src = this.#iframe.getAttribute('data-src');
+                }
+            }
         });
     }
 
@@ -62,9 +76,11 @@ export default class DocumentationViewer extends ComponentBase {
             if (state.visible) {
                 this.#element.classList.remove('visually-hidden');
                 document.body.setAttribute('data-smsgfx-documentation', 'true');
+                this.#dispatcher.dispatch(EVENT_OnCommand, this.#createArgs(commands.shown));
             } else {
                 this.#element.classList.add('visually-hidden');
                 document.body.removeAttribute('data-smsgfx-documentation');
+                this.#dispatcher.dispatch(EVENT_OnCommand, this.#createArgs(commands.hidden));
             }
         }
     }
@@ -81,18 +97,15 @@ export default class DocumentationViewer extends ComponentBase {
 
     /**
      * Creates command arguments.
-     * @param {HTMLElement} element - Element that invoked the command.
+     * @param {string} command - Command being issued.
      * @returns {DocumentationViewerCommandEventArgs}
      */
-    #createArgs(element) {
-        const iframe = this.#element.querySelector('iframe');
-        // TODO: Commented out till can find an issue to CORS access exception when trying to access URL of embedded help page.
-        // const iframeUrl = (iframe.contentDocument) ? iframe.contentWindow.location.href : iframe.src;
-        const iframeUrl = iframe.src;
-
+    #createArgs(command) {
+        // TODO: CORS access exception when trying to access URL of embedded help page.
+        // See if CORS can be fixed.
         return { 
-            command: element.getAttribute('data-command'),
-            currentDocumentationUrl: iframeUrl
+            command: command,
+            currentDocumentationUrl: this.#iframe.src
         };
     }
 
