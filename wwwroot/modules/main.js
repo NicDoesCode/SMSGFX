@@ -2010,6 +2010,10 @@ function formatForProject() {
         case 'gb': visibleTabs.push('gb'); break;
     }
 
+    if (!getProjectUIState().tileId && getTileSet().tileCount >0) {
+        getProjectUIState().tileId = getTileSet().getTile(0).tileId;
+    }
+
     projectToolbar.setState({
         projectTitle: getProject().title,
         enabled: true
