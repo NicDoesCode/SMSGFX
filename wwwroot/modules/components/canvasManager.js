@@ -474,8 +474,10 @@ export default class CanvasManager {
         const clampedCol = Math.min(Math.max(col, 0), this.tileGrid.columnCount);
         const blockRow = Math.floor(clampedRow / this.tilesPerBlock);
         const blockCol = Math.floor(clampedCol / this.tilesPerBlock);
-        const nearestBlockRow = Math.round(clampedRow / this.tilesPerBlock);
-        const nearestBlockCol = Math.round(clampedCol / this.tilesPerBlock);
+        const nearNextRowAdditionalOffset = tileGridY % 8 >= 4 ? 1 : 0;
+        const nearNextColAdditionalOffset = tileGridX % 8 >= 4 ? 1 : 0;
+        const nearestBlockRow = Math.min(Math.round(clampedRow / this.tilesPerBlock) + nearNextRowAdditionalOffset, this.tileGrid.rowCount);
+        const nearestBlockCol = Math.min(Math.round(clampedCol / this.tilesPerBlock) + nearNextColAdditionalOffset, this.tileGrid.columnCount);
         return {
             rowIndex: row,
             columnIndex: col,
