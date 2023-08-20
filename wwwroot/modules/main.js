@@ -2010,6 +2010,10 @@ function formatForProject() {
         case 'gb': visibleTabs.push('gb'); break;
     }
 
+    if (!getProjectUIState().tileId && getTileSet().tileCount >0) {
+        getProjectUIState().tileId = getTileSet().getTile(0).tileId;
+    }
+
     projectToolbar.setState({
         projectTitle: getProject().title,
         enabled: true
@@ -2406,7 +2410,7 @@ function takeToolAction(args) {
         } else if (tool === TileEditorToolbar.Tools.tileEyedropper) {
             if (event === TileEditor.Events.pixelMouseDown) {
 
-                if (args.tile.row > 0 && args.tile.row < getTileGrid().rowCount && args.tile.col > 0 && args.tile.col < getTileGrid().columnCount) {
+                if (args.tile.row >= 0 && args.tile.row < getTileGrid().rowCount && args.tile.col >= 0 && args.tile.col < getTileGrid().columnCount) {
                     const tileInfo = getTileGrid().getTileInfoByRowAndColumn(args.tile.row, args.tile.col);
                     if (tileInfo) {
                         selectTileSetTile(tileInfo.tileId);
