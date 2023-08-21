@@ -54,7 +54,7 @@ export default class PageModalDialogue extends ModalDialogue {
             }
         }
         if (typeof state.pageUrl === 'string' || state.pageUrl === null) {
-            this.#iframe.src = state.pageUrl;
+            this.#changeIFrameSrc(state.pageUrl);
         }
     }
 
@@ -100,6 +100,16 @@ export default class PageModalDialogue extends ModalDialogue {
 
             });
         });
+    }
+
+
+    #changeIFrameSrc(newUrl) {
+        let onLoad = () => {
+            this.#iframe.removeEventListener('load', onLoad);
+            this.#iframe.src = newUrl;
+        }
+        this.#iframe.addEventListener('load', onLoad);
+        this.#iframe.src = 'about:blank';
     }
 
 
