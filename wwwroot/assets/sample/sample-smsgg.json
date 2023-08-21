@@ -1,0 +1,920 @@
+{
+ "version": 1,
+ "title": "Sample Sega Master System & Game Gear",
+ "systemType": "smsgg",
+ "tileSet": {
+  "tileWidth": 8,
+  "tiles": [
+   {
+    "tileId": "f21829ab5877",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "863bed6f793c",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "c289e4a9dd67",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "80258ffbd293",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "63df55f85abb",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "b54f716a6ce5",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "af7da2ae4469",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "957aae3bd5d9",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "d5a47d9f1e6b",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "e8bc8974b12a",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "6df0c7d8263d",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "ed00b4394ee5",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "9eeab7d7ccb1",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "522a298a5558",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "f4dcece4d626",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "d25e81263f25",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "7633d340a48c",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "7e574b7f7d14",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "30b354147b25",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "b93ae8aa3173",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "1167eb2a6946",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "4c201aababbb",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "6a47e6d26e98",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "a94e0fa0c30d",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "c63efa7c9ce8",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "3142dd4a1b69",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "1d3a4c91695a",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "8b41be7297ae",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "da2915439f81",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "86f3e275138a",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "0baaac0dc21b",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "1b297e7213ee",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "129182d8b4ca",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "523ce118d337",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "7c8825360ead",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "4413852262e7",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "606e23b2ec28",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "c751f3356a63",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "794477c8b497",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "b98f82c8ea23",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "8473478e4f18",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "4c61dd85edf4",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "a3939c78b899",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "367144eaefca",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "aa9dbfd42d8e",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "9ba904ad6558",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "5647eab50d47",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "2f32b9bbf988",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "7f2e4532fd60",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "4296ab364816",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "1f016d39f93e",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "4cf6739b293e",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "543c583891aa",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "44762089337a",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "af8167bb199d",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "445f63d64469",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "a23a4e2133ca",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "b3b3ee5bb981",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "76360cde49c3",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "8e234a1df7fd",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "b573cb29dad2",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "646974e580ce",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "e4835b451427",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   },
+   {
+    "tileId": "f19f48cdf440",
+    "tileData": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f"
+   }
+  ]
+ },
+ "tileMapList": [
+  {
+   "tileMapId": "974e8c5a91cc3a3e",
+   "title": "Tile map",
+   "vramOffset": 0,
+   "rows": 8,
+   "columns": 8,
+   "optimise": true,
+   "paletteSlots": [
+    "9c143a749641",
+    "9c143a749641",
+    "9c143a749641",
+    "9c143a749641",
+    "9c143a749641",
+    "9c143a749641",
+    "9c143a749641",
+    "9c143a749641",
+    "9c143a749641",
+    "9c143a749641",
+    "9c143a749641",
+    "9c143a749641",
+    "9c143a749641",
+    "9c143a749641",
+    "9c143a749641",
+    "9c143a749641"
+   ],
+   "tiles": [
+    {
+     "tileId": "f21829ab5877",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "863bed6f793c",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "c289e4a9dd67",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "80258ffbd293",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "63df55f85abb",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "b54f716a6ce5",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "af7da2ae4469",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "957aae3bd5d9",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "d5a47d9f1e6b",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "e8bc8974b12a",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "6df0c7d8263d",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "ed00b4394ee5",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "9eeab7d7ccb1",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "522a298a5558",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "f4dcece4d626",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "d25e81263f25",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "7633d340a48c",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "7e574b7f7d14",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "30b354147b25",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "b93ae8aa3173",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "1167eb2a6946",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "4c201aababbb",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "6a47e6d26e98",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "a94e0fa0c30d",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "c63efa7c9ce8",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "3142dd4a1b69",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "1d3a4c91695a",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "8b41be7297ae",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "da2915439f81",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "86f3e275138a",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "0baaac0dc21b",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "1b297e7213ee",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "129182d8b4ca",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "523ce118d337",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "7c8825360ead",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "4413852262e7",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "606e23b2ec28",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "c751f3356a63",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "794477c8b497",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "b98f82c8ea23",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "8473478e4f18",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "4c61dd85edf4",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "a3939c78b899",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "367144eaefca",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "aa9dbfd42d8e",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "9ba904ad6558",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "5647eab50d47",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "2f32b9bbf988",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "7f2e4532fd60",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "4296ab364816",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "1f016d39f93e",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "4cf6739b293e",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "543c583891aa",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "44762089337a",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "af8167bb199d",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "445f63d64469",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "a23a4e2133ca",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "b3b3ee5bb981",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "76360cde49c3",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "8e234a1df7fd",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "b573cb29dad2",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "646974e580ce",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "e4835b451427",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "f19f48cdf440",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    }
+   ]
+  }
+ ],
+ "paletteList": [
+  {
+   "paletteId": "9c143a749641",
+   "title": "Default Master System",
+   "system": "ms",
+   "colours": [
+    {
+     "r": 0,
+     "g": 0,
+     "b": 0
+    },
+    {
+     "r": 0,
+     "g": 0,
+     "b": 0
+    },
+    {
+     "r": 0,
+     "g": 170,
+     "b": 0
+    },
+    {
+     "r": 0,
+     "g": 255,
+     "b": 0
+    },
+    {
+     "r": 0,
+     "g": 0,
+     "b": 85
+    },
+    {
+     "r": 0,
+     "g": 0,
+     "b": 255
+    },
+    {
+     "r": 85,
+     "g": 0,
+     "b": 0
+    },
+    {
+     "r": 0,
+     "g": 255,
+     "b": 255
+    },
+    {
+     "r": 170,
+     "g": 0,
+     "b": 0
+    },
+    {
+     "r": 255,
+     "g": 0,
+     "b": 0
+    },
+    {
+     "r": 85,
+     "g": 85,
+     "b": 0
+    },
+    {
+     "r": 255,
+     "g": 255,
+     "b": 0
+    },
+    {
+     "r": 0,
+     "g": 85,
+     "b": 0
+    },
+    {
+     "r": 255,
+     "g": 0,
+     "b": 255
+    },
+    {
+     "r": 85,
+     "g": 85,
+     "b": 85
+    },
+    {
+     "r": 255,
+     "g": 255,
+     "b": 255
+    }
+   ]
+  },
+  {
+   "paletteId": "be4341f68e1d",
+   "title": "Default Game Gear",
+   "system": "gg",
+   "colours": [
+    {
+     "r": 0,
+     "g": 0,
+     "b": 0
+    },
+    {
+     "r": 0,
+     "g": 0,
+     "b": 0
+    },
+    {
+     "r": 0,
+     "g": 170,
+     "b": 0
+    },
+    {
+     "r": 0,
+     "g": 255,
+     "b": 0
+    },
+    {
+     "r": 0,
+     "g": 0,
+     "b": 85
+    },
+    {
+     "r": 0,
+     "g": 0,
+     "b": 255
+    },
+    {
+     "r": 85,
+     "g": 0,
+     "b": 0
+    },
+    {
+     "r": 0,
+     "g": 255,
+     "b": 255
+    },
+    {
+     "r": 170,
+     "g": 0,
+     "b": 0
+    },
+    {
+     "r": 255,
+     "g": 0,
+     "b": 0
+    },
+    {
+     "r": 85,
+     "g": 85,
+     "b": 0
+    },
+    {
+     "r": 255,
+     "g": 255,
+     "b": 0
+    },
+    {
+     "r": 0,
+     "g": 85,
+     "b": 0
+    },
+    {
+     "r": 255,
+     "g": 0,
+     "b": 255
+    },
+    {
+     "r": 85,
+     "g": 85,
+     "b": 85
+    },
+    {
+     "r": 255,
+     "g": 255,
+     "b": 255
+    }
+   ]
+  }
+ ]
+}

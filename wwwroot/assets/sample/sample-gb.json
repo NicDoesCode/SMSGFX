@@ -1,0 +1,773 @@
+{
+ "version": 1,
+ "title": "Sample Nintendo Game Boy",
+ "systemType": "gb",
+ "tileSet": {
+  "tileWidth": 8,
+  "tiles": [
+   {
+    "tileId": "9ec2d55ade28",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "8221e8867518",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "51df89d957d9",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "cc3338a291c6",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "7f290deb9324",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "a1b8b28d17f5",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "fa52c13918de",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "4cfd7e9333f9",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "a7cbcf949698",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "8babb52eb98a",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "4b6cec2a898c",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "47dc119bbfe1",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "0b7dc1d507aa",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "1608755fc4b7",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "cce6de285126",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "33d056d9798d",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "b63c2a6a2814",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "84c9f5d60621",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "b17bc7a99844",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "663443d2ae98",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "0b336802c94c",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "ebc8ba6295d3",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "5e7302f7af82",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "bbd7d37a32b7",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "185ea08ac0ed",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "7572518f576e",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "4dba4f1bd7f9",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "b0b37eae6ece",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "4d275aa5a545",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "987a39969d41",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "2dbedea35d5d",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "c578d5d6cb28",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "68e94eacb829",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "f561e89a344d",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "15ab0a6ba7c9",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "687ecaca6e03",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "431e74064f8e",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "1a59e6349e64",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "2f50c68f9497",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "15d8139751bb",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "682cd8c417c3",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "9c25079cdbc4",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "6a24ac7bebc8",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "4b3e9ce51f50",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "eb8fe493b318",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "410e35ed6031",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "0757462513d9",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "ae5e1bcd5bcd",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "bea1c477c898",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "2d27c13f8254",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "8b0d56b19b12",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "3e1e08e859cc",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "2c647cad4d72",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "f73eca349ede",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "a59c5d7d55a5",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "2667f6e5b6ec",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "1193ed48dc13",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "7e9c7a5514b7",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "dd189b510de4",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "5faee4c06999",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "791ec5755755",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "5d2b7ed24e33",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "4c3ea1b3b277",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   },
+   {
+    "tileId": "e0f760e8b202",
+    "tileData": "03030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303"
+   }
+  ]
+ },
+ "tileMapList": [
+  {
+   "tileMapId": "f9d4cc9abe51c994",
+   "title": "Tile map",
+   "vramOffset": 0,
+   "rows": 8,
+   "columns": 8,
+   "optimise": true,
+   "paletteSlots": [
+    "58e11cdb1943",
+    "58e11cdb1943",
+    "58e11cdb1943",
+    "58e11cdb1943",
+    "58e11cdb1943",
+    "58e11cdb1943",
+    "58e11cdb1943",
+    "58e11cdb1943",
+    "58e11cdb1943",
+    "58e11cdb1943",
+    "58e11cdb1943",
+    "58e11cdb1943",
+    "58e11cdb1943",
+    "58e11cdb1943",
+    "58e11cdb1943",
+    "58e11cdb1943"
+   ],
+   "tiles": [
+    {
+     "tileId": "9ec2d55ade28",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "8221e8867518",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "51df89d957d9",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "cc3338a291c6",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "7f290deb9324",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "a1b8b28d17f5",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "fa52c13918de",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "4cfd7e9333f9",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "a7cbcf949698",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "8babb52eb98a",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "4b6cec2a898c",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "47dc119bbfe1",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "0b7dc1d507aa",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "1608755fc4b7",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "cce6de285126",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "33d056d9798d",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "b63c2a6a2814",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "84c9f5d60621",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "b17bc7a99844",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "663443d2ae98",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "0b336802c94c",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "ebc8ba6295d3",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "5e7302f7af82",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "bbd7d37a32b7",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "185ea08ac0ed",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "7572518f576e",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "4dba4f1bd7f9",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "b0b37eae6ece",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "4d275aa5a545",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "987a39969d41",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "2dbedea35d5d",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "c578d5d6cb28",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "68e94eacb829",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "f561e89a344d",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "15ab0a6ba7c9",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "687ecaca6e03",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "431e74064f8e",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "1a59e6349e64",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "2f50c68f9497",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "15d8139751bb",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "682cd8c417c3",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "9c25079cdbc4",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "6a24ac7bebc8",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "4b3e9ce51f50",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "eb8fe493b318",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "410e35ed6031",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "0757462513d9",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "ae5e1bcd5bcd",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "bea1c477c898",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "2d27c13f8254",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "8b0d56b19b12",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "3e1e08e859cc",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "2c647cad4d72",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "f73eca349ede",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "a59c5d7d55a5",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "2667f6e5b6ec",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "1193ed48dc13",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "7e9c7a5514b7",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "dd189b510de4",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "5faee4c06999",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "791ec5755755",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "5d2b7ed24e33",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "4c3ea1b3b277",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    },
+    {
+     "tileId": "e0f760e8b202",
+     "priority": false,
+     "paletteId": 0,
+     "verticalFlip": false,
+     "horizontalFlip": false
+    }
+   ]
+  }
+ ],
+ "paletteList": [
+  {
+   "paletteId": "58e11cdb1943",
+   "title": "Default Game Boy",
+   "system": "gb",
+   "colours": [
+    {
+     "r": 0,
+     "g": 0,
+     "b": 0
+    },
+    {
+     "r": 85,
+     "g": 85,
+     "b": 85
+    },
+    {
+     "r": 170,
+     "g": 170,
+     "b": 170
+    },
+    {
+     "r": 255,
+     "g": 255,
+     "b": 255
+    }
+   ]
+  }
+ ]
+}

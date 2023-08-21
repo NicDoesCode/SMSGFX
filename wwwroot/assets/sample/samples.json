@@ -1,0 +1,17 @@
+[
+    {
+        "title": "Sample: Sega Master System and Game Gear",
+        "system": "smsgg",
+        "url": "/assets/sample/sample-smsgg.json"
+    },
+    {
+        "title": "Sample: Nintendo Entertainment System",
+        "system": "nes",
+        "url": "/assets/sample/sample-nes.json"
+    },
+    {
+        "title": "Sample: Nintendo Game Boy",
+        "system": "gb",
+        "url": "/assets/sample/sample-gb.json"
+    }
+]

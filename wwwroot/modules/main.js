@@ -63,6 +63,8 @@ import TileStampTool from "./tools/tileStampTool.js";
 import Tile from "./models/tile.js";
 import TileMapTool from "./tools/tileMapTool.js";
 import TileSet from "./models/tileSet.js";
+import SampleProjectManager from "./components/sampleProjectManager.js";
+import ProjectJsonSerialiser from "./serialisers/projectJsonSerialiser.js";
 
 
 /* ****************************************************************************************************
@@ -2010,7 +2012,7 @@ function formatForProject() {
         case 'gb': visibleTabs.push('gb'); break;
     }
 
-    if (!getProjectUIState().tileId && getTileSet().tileCount >0) {
+    if (!getProjectUIState().tileId && getTileSet().tileCount > 0) {
         getProjectUIState().tileId = getTileSet().getTile(0).tileId;
     }
 
@@ -4438,6 +4440,18 @@ window.addEventListener('load', async () => {
 
     // Load initial projects
     const projects = state.getProjectsFromLocalStorage();
+
+    if (projects.length === 0) {
+        const sampleManager = await SampleProjectManager.getInstanceAsync();
+        const samples = sampleManager.samples;
+        for (let i = 0; i < samples.length; i++) {
+            const sample = samples[i];
+            const sampleProject = await sampleManager.loadSampleProjectAsync(sample.url);
+            projects.addProject(sampleProject);
+            state.saveProjectToLocalStorage(sampleProject, false);
+        }
+    }
+
     const project = projects.getProjectById(getUIState().lastProjectId);
     state.setProject(project);
 
