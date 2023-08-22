@@ -26,7 +26,6 @@ import PaletteEditor from "./ui/paletteEditor.js";
 import TileEditor from "./ui/tileEditor.js";
 import TileManager from "./ui/tileManager.js";
 
-import AboutModalDialogue from "./ui/dialogues/aboutModalDialogue.js";
 import ColourPickerDialogue from "./ui/dialogues/colourPickerDialogue.js";
 import AssemblyExportModalDialogue from "./ui/dialogues/assemblyExportModalDialogue.js";
 import AssemblyImportTilesModalDialogue from "./ui/dialogues/assemblyImportTilesModalDialogue.js";
@@ -34,7 +33,6 @@ import ImportImageModalDialogue from "./ui/dialogues/importImageModalDialogue.js
 import NewProjectDialogue from "./ui/dialogues/newProjectDialogue.js";
 import NewTileMapDialogue from "./ui/dialogues/newTileMapDialogue.js";
 import PaletteModalDialogue from "./ui/dialogues/paletteImportModalDialogue.js";
-import PrivacyModalDialogue from "./ui/dialogues/privacyModalDialogue.js";
 import ProjectDropdown from "./ui/dialogues/projectDropdown.js";
 import WelcomeScreen from "./ui/dialogues/welcomeScreen.js";
 import PageModalDialogue from "./ui/dialogues/pageModalDialogue.js";
@@ -163,8 +161,6 @@ const themeManager = new ThemeManager();
 /** @type {TileEditorToolbar} */ let tileEditorBottomToolbar;
 /** @type {TileContextToolbar} */ let tileContextToolbar;
 /** @type {ImportImageModalDialogue} */ let importImageModalDialogue;
-/** @type {AboutModalDialogue} */ let aboutDialogue;
-/** @type {PrivacyModalDialogue} */ let privacyModalDialogue;
 /** @type {DocumentationViewer} */ let documentationViewer;
 /** @type {Toast} */ let toast;
 /** @type {WelcomeScreen} */ let welcomeScreen;
@@ -191,8 +187,6 @@ async function initialiseComponents() {
     tileEditorBottomToolbar = await TileEditorToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-editor-bottom-toolbar]'));
     tileContextToolbar = await TileContextToolbar.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=tile-context-toolbar]'));
     importImageModalDialogue = await ImportImageModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=import-image-modal]'));
-    aboutDialogue = await AboutModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=about-modal]'));
-    privacyModalDialogue = await PrivacyModalDialogue.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=privacy-modal]'));
     documentationViewer = await DocumentationViewer.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=documentation-viewer]'));
     toast = await Toast.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=toast]'));
     welcomeScreen = await WelcomeScreen.loadIntoAsync(document.querySelector('[data-smsgfx-component-id=welcome-screen]'));
@@ -743,6 +737,7 @@ async function handleProjectDropdownOnCommand(args) {
             await loadSampleProjectAsync(args.sampleProjectId);
             projectDropdown.setState({ visible: false });
             refreshProjectLists();
+            toast.show('Sample project loaded.');
             break;
 
         case ProjectDropdown.Commands.showWelcomeScreen:
