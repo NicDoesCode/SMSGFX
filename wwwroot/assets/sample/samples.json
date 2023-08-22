@@ -1,21 +1,21 @@
 [
     {
         "sampleProjectId": "smsgg",
-        "title": "Sample: Sega Master System and Game Gear",
+        "title": "Sega Master System & Game Gear",
         "system": "smsgg",
         "url": "/assets/sample/sample-smsgg.json",
         "defaultTileMapId": "b2e7dd91b33b7952"
     },
     {
         "sampleProjectId": "nes",
-        "title": "Sample: Nintendo Entertainment System",
+        "title": "Nintendo Entertainment System",
         "system": "nes",
         "url": "/assets/sample/sample-nes.json",
         "defaultTileMapId": "b2e7dd91b33b7952"
     },
     {
         "sampleProjectId": "gb",
-        "title": "Sample: Nintendo Game Boy",
+        "title": "Nintendo Game Boy",
         "system": "gb",
         "url": "/assets/sample/sample-gb.json",
         "defaultTileMapId": "b2e7dd91b33b7952"
