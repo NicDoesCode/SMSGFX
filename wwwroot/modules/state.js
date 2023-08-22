@@ -150,14 +150,23 @@ export default class State {
         localStorage.setItem(LOCAL_STORAGE_APPUI, serialisedUIState);
     }
 
-    saveProjectToLocalStorage() {
-        if (this.project) {
-            ensureProjectHasId(this.project);
-            const storageId = `${LOCAL_STORAGE_PROJECTS}${this.project.id}`;
-            const serialised = ProjectJsonSerialiser.serialise(this.project);
+    /**
+     * Saves a project to local storage.
+     * @param {Project?} [projectToSave] - Project to save to local storage, or null or undefined if to save the currently selected project.
+     * @param {boolean?} [raiseEvent] - Raise events that the project was changed? Defaults to true.
+     */
+    saveProjectToLocalStorage(projectToSave, raiseEvent) {
+        const project = projectToSave ?? this.project;
+        const raise = typeof raiseEvent === 'boolean' ? raiseEvent : true;
+        if (project instanceof Project) {
+            ensureProjectHasId(project);
+            const storageId = `${LOCAL_STORAGE_PROJECTS}${project.id}`;
+            const serialised = ProjectJsonSerialiser.serialise(project);
             localStorage.setItem(storageId, serialised);
-            this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectSaved, this.project.id));
-            this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectListChanged));
+            if (raise) {
+                this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectSaved, project.id));
+                this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectListChanged));
+            }
         }
     }
 
@@ -197,6 +206,7 @@ function ensureProjectHasId(project) {
     if (!project.id || !rxProjectId.test(project.id)) {
         project.id = GeneralUtil.generateRandomString(16);
     }
+    return project;
 }
 
 

@@ -20,26 +20,44 @@
             <div class="modal-body">
 
                 <div data-smsgfx-id="new-project" class="sms-project-create border-bottom pb-2 mb-4">
-                    <h5>Create project</h5>
-                    <div class="d-flex justify-content-start p-2">
-                        <button type="button" class="btn btn-secondary flex-fill me-2 p-3" data-command="projectNew"
-                            data-target-system-type="smsgg"
-                            title="Create a new Sega Game Gear and Master System project.">
-                            <img src="assets/image/game-gear-console.svg" alt="Sega Game Gear.">
-                        </button>
-                        <button type="button" class="btn btn-secondary flex-fill me-2 p-3" data-command="projectNew"
-                            data-target-system-type="smsgg"
-                            title="Create a new Sega Game Gear and Master System project.">
-                            <img src="assets/image/master-system-console.svg" alt="Sega Master System.">
-                        </button>
-                        <button type="button" class="btn btn-secondary flex-fill me-2 p-3" data-command="projectNew"
-                            data-target-system-type="nes" title="Create a new Nintendo Entertainment System project.">
-                            <img src="assets/image/nes.svg" alt="Nintendo Entertainment System.">
-                        </button>
-                        <button type="button" class="btn btn-secondary flex-fill p-3" data-command="projectNew"
-                            data-target-system-type="gb" title="Create a new Nintendo Game Boy project.">
-                            <img src="assets/image/game-boy.svg" alt="Nintendo Game Boy.">
-                        </button>
+                    <div class="row">
+                        <div class="col">
+                            <h5>Create project</h5>
+                        </div>
+                        <div class="col-auto">
+                            <div data-smsgfx-id="project-samples" class="dropdown">
+                                <button data-command="projectSample"
+                                    class="btn btn-sm btn-ui btn-outline-secondary dropdown-toggle" type="button"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    Sample projects
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="d-flex justify-content-start p-2">
+                            <button type="button" class="btn btn-secondary flex-fill me-2 p-3" data-command="projectNew"
+                                data-target-system-type="smsgg"
+                                title="Create a new Sega Game Gear and Master System project.">
+                                <img src="assets/image/game-gear-console.svg" alt="Sega Game Gear.">
+                            </button>
+                            <button type="button" class="btn btn-secondary flex-fill me-2 p-3" data-command="projectNew"
+                                data-target-system-type="smsgg"
+                                title="Create a new Sega Game Gear and Master System project.">
+                                <img src="assets/image/master-system-console.svg" alt="Sega Master System.">
+                            </button>
+                            <button type="button" class="btn btn-secondary flex-fill me-2 p-3" data-command="projectNew"
+                                data-target-system-type="nes"
+                                title="Create a new Nintendo Entertainment System project.">
+                                <img src="assets/image/nes.svg" alt="Nintendo Entertainment System.">
+                            </button>
+                            <button type="button" class="btn btn-secondary flex-fill p-3" data-command="projectNew"
+                                data-target-system-type="gb" title="Create a new Nintendo Game Boy project.">
+                                <img src="assets/image/game-boy.svg" alt="Nintendo Game Boy.">
+                            </button>
+                        </div>
                     </div>
                 </div>
 

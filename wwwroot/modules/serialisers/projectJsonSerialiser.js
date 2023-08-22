@@ -15,7 +15,7 @@ export default class ProjectJsonSerialiser {
      * @returns {string} 
      */
     static serialise(project, format) {
-        if (!project) throw new Error('Please pass a project.');
+        if (!project instanceof Project) throw new Error('Please pass a project.');
         if (!format) format = false;
 
         const result = ProjectJsonSerialiser.toSerialisable(project);
@@ -42,7 +42,7 @@ export default class ProjectJsonSerialiser {
      */
     static toSerialisable(project) {
         return {
-            id: project.id,
+            id: project?.id ?? null,
             version: 1,
             title: project.title,
             systemType: project.systemType,
@@ -59,7 +59,7 @@ export default class ProjectJsonSerialiser {
      */
     static fromSerialisable(projectSerialisable) {
         return ProjectFactory.create({
-            id: projectSerialisable.id,
+            id: projectSerialisable.id ?? null,
             title: projectSerialisable.title,
             systemType: projectSerialisable.systemType,
             tileSet: TileSetJsonSerialiser.fromSerialisable(projectSerialisable.tileSet),
