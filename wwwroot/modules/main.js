@@ -127,7 +127,9 @@ const instanceState = {
     /** @type {DOMRect} */
     referenceImageOriginalBounds: null,
     referenceImageLockAspect: true,
-    referenceImageMoving: false
+    referenceImageMoving: false,
+    /** @type {import("./types.js").SampleProject[]} */
+    sampleProjects: []
 };
 
 
@@ -609,7 +611,7 @@ function handleWatcherEvent(args) {
 
         case ProjectWatcher.Events.projectListChanged:
             setTimeout(() => {
-                displayProjectList();
+                refreshProjectLists();
             }, 50);
             break;
 
@@ -631,7 +633,7 @@ function handleStateEvent(args) {
             break;
 
         case State.Events.projectListChanged:
-            displayProjectList();
+            refreshProjectLists();
             watcher.sendProjectListChanged();
             if (args.context === State.Contexts.deleted) {
                 toast.show('Project deleted.');
@@ -699,7 +701,7 @@ function handleProjectToolbarOnCommand(args) {
 }
 
 /** @param {import('./ui/dialogues/projectDropdown.js').ProjectDropdownCommandEventArgs} args */
-function handleProjectDropdownOnCommand(args) {
+async function handleProjectDropdownOnCommand(args) {
     const projects = state.getProjectsFromLocalStorage();
     switch (args.command) {
 
@@ -735,6 +737,12 @@ function handleProjectDropdownOnCommand(args) {
 
         case ProjectDropdown.Commands.projectDelete:
             state.deleteProjectFromStorage(args.projectId);
+            break;
+
+        case ProjectDropdown.Commands.sampleProjectSelect:
+            await loadSampleProjectAsync(args.sampleProjectId);
+            projectDropdown.setState({ visible: false });
+            refreshProjectLists();
             break;
 
         case ProjectDropdown.Commands.showWelcomeScreen:
@@ -2231,7 +2239,7 @@ function displaySelectedProject() {
     }
 }
 
-function displayProjectList() {
+function refreshProjectLists() {
     const projects = state.getProjectsFromLocalStorage();
     projectToolbar.setState({
         projects: projects
@@ -3547,6 +3555,26 @@ function exportProjectToJson() {
     ProjectUtil.saveToFile(getProject());
 }
 
+/** 
+ * Loads a sample project.
+ * @param {string} sampleProjectId 
+ */
+async function loadSampleProjectAsync(sampleProjectId) {
+    if (typeof sampleProjectId !== 'string') throw new Error('No URL.');
+
+    if (Array.isArray(instanceState.sampleProjects)) {
+        const sampleProject = instanceState.sampleProjects.find((s) => s.sampleProjectId === sampleProjectId);
+        if (sampleProject) {
+            const sampleManager = await SampleProjectManager.getInstanceAsync();
+            const loadedProject = await sampleManager.loadSampleProjectAsync(sampleProject.url);
+            if (loadedProject) {
+                state.saveProjectToLocalStorage(loadedProject, false);
+                state.setProject(loadedProject);
+            }
+        }
+    }
+}
+
 /**
  * Shows the export to assembly dialogue.
  */
@@ -4440,12 +4468,13 @@ window.addEventListener('load', async () => {
 
     // Load initial projects
     const projects = state.getProjectsFromLocalStorage();
+    const sampleManager = await SampleProjectManager.getInstanceAsync();
+    instanceState.sampleProjects = await sampleManager.getSampleProjectsAsync();
 
+    const sampleProjects = instanceState.sampleProjects;
     if (projects.length === 0) {
-        const sampleManager = await SampleProjectManager.getInstanceAsync();
-        const samples = sampleManager.samples;
-        for (let i = 0; i < samples.length; i++) {
-            const sample = samples[i];
+        for (let i = 0; i < sampleProjects.length; i++) {
+            const sample = sampleProjects[i];
             const sampleProject = await sampleManager.loadSampleProjectAsync(sample.url);
             projects.addProject(sampleProject);
             state.saveProjectToLocalStorage(sampleProject, false);
@@ -4459,7 +4488,8 @@ window.addEventListener('load', async () => {
         projects: projects
     });
     projectDropdown.setState({
-        projects: projects
+        projects: projects,
+        sampleProjects: sampleProjects
     });
 
     // Clean up unused project states

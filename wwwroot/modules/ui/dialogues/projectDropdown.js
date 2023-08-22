@@ -13,6 +13,7 @@ const commands = {
     projectLoadById: 'projectLoadById',
     projectSaveToFile: 'projectSaveToFile',
     projectDelete: 'projectDelete',
+    sampleProjectSelect: 'sampleProjectSelect',
     showWelcomeScreen: 'showWelcomeScreen'
 }
 
@@ -84,22 +85,27 @@ export default class ProjectDropdown extends ModalDialogue {
      * @param {ProjectDropdownState} state - State to set.
      */
     async setState(state) {
-        if (typeof state?.projectTitle === 'string' && state.projectTitle.length > 0 && state.projectTitle !== null) {
+
+        if (typeof state?.projectTitle === 'string') {
             this.#element.querySelectorAll(`[data-command=${commands.title}]`).forEach(element => {
                 element.value = state.projectTitle;
             });
         }
 
-        if (typeof state.projects?.getProjects === 'function') {
+        if (state.projects instanceof ProjectList) {
             await this.#displayProjects(state.projects);
         }
 
-        if (state.systemType && typeof state.systemType === 'string') {
+        if (typeof state.systemType === 'string') {
             switch (state.systemType) {
-                case 'gb': this.#element.querySelector(`[data-smsgfx-id=system-type`).value = 'gb'; break;
-                case 'nes': this.#element.querySelector(`[data-smsgfx-id=system-type`).value = 'nes'; break;
-                case 'smsgg': default: this.#element.querySelector(`[data-smsgfx-id=system-type`).value = 'smsgg'; break;
+                case 'gb': this.#element.querySelector(`[data-smsgfx-id=system-type]`).value = 'gb'; break;
+                case 'nes': this.#element.querySelector(`[data-smsgfx-id=system-type]`).value = 'nes'; break;
+                case 'smsgg': default: this.#element.querySelector(`[data-smsgfx-id=system-type]`).value = 'smsgg'; break;
             }
+        }
+
+        if (Array.isArray(state.sampleProjects)) {
+            this.#populateSampleProjectSelect(state.sampleProjects);
         }
 
         if (typeof state?.enabled === 'boolean') {
@@ -196,20 +202,51 @@ export default class ProjectDropdown extends ModalDialogue {
         });
     }
 
+    /**
+     * @param {SampleProject[]} arrayOfSampleProjects 
+     */
+    #populateSampleProjectSelect(arrayOfSampleProjects) {
+        const elmSampleProjectList = this.#element.querySelector('[data-smsgfx-id=project-samples] ul');
+        // Create the list items
+        arrayOfSampleProjects
+            .filter((sampleProject) => sampleProject.system && sampleProject.title && sampleProject.url)
+            .forEach((sampleProject) => {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = '#';
+                a.classList.add('dropdown-item');
+                a.innerText = sampleProject.title;
+                a.setAttribute('data-command', commands.sampleProjectSelect);
+                a.setAttribute('data-sample-project-id', sampleProject.sampleProjectId);
+                li.appendChild(a);
+                elmSampleProjectList?.appendChild(li);
+            });
+        // Click event handler
+        elmSampleProjectList?.querySelectorAll('a').forEach((a) => {
+            a.addEventListener('click', (ev) => {
+                const args = this.#createArgs(a.getAttribute('data-command'));
+                args.sampleProjectId = a.getAttribute('data-sample-project-id');
+                this.#dispatcher.dispatch(EVENT_OnCommand, args);
+                ev.preventDefault();
+            });
+        });
+    }
+
 
 }
 
 
 /**
  * Project dropdown state.
- * @typedef {object} ProjectDropdownState
- * @property {string?} projectTitle - Project title to display.
- * @property {string[]?} enabledCommands - Array of commands that should be enabled, overrided enabled state.
- * @property {string[]?} disabledCommands - Array of commands that should be disabled, overrided enabled state.
- * @property {ProjectList} projects - List of projects to display in the menu.
- * @property {string?} systemType - System type to target, either 'smsgg', 'gb' or 'nes'.
- * @property {boolean?} enabled - Is the control enabled or disabled?
- * @property {boolean?} visible - Is the control visible?
+ * @typedef {Object} ProjectDropdownState
+ * @property {string?} [projectTitle] - Project title to display.
+ * @property {string[]?} [enabledCommands] - Array of commands that should be enabled, overrided enabled state.
+ * @property {string[]?} [disabledCommands] - Array of commands that should be disabled, overrided enabled state.
+ * @property {ProjectList} [projects] - List of projects to display in the menu.
+ * @property {string?} [systemType] - System type to target, either 'smsgg', 'gb' or 'nes'.
+ * @property {SampleProject[]?} [sampleProjects] - List of projects to include in samples menu.
+ * @property {boolean?} [enabled] - Is the control enabled or disabled?
+ * @property {boolean?} [visible] - Is the control visible?
  */
 
 /**
@@ -219,10 +256,15 @@ export default class ProjectDropdown extends ModalDialogue {
  * @exports
  */
 /**
- * @typedef {object} ProjectDropdownCommandEventArgs
+ * @typedef {Object} ProjectDropdownCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string?} title - Project title.
  * @property {string?} projectId - Project ID.
  * @property {string?} systemType - Type of system to target, either 'smsgg', 'gb' or 'nes'.
+ * @property {string?} [sampleProjectId] - URL of the sample project to load.
  * @exports
+ */
+
+/**
+ * @typedef {import('../../types.js').SampleProject} SampleProject
  */

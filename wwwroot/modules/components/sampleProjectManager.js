@@ -38,7 +38,7 @@ export default class SampleProjectManager {
      */
     static async createAsync() {
         const result = new SampleProjectManager();
-        await result.loadSamplesAsync();
+        await result.getSampleProjectsAsync();
         return result;
     }
 
@@ -47,7 +47,7 @@ export default class SampleProjectManager {
      * Gets the list of samples.
      * @returns {Promise<SampleProject[]>}
      */
-    async loadSamplesAsync() {
+    async getSampleProjectsAsync() {
         if (this.#samples) return this.#samples;
 
         const url = `./assets/sample/samples.json${CacheUtil.getCacheBuster() ?? ''}`;
@@ -84,10 +84,5 @@ export default class SampleProjectManager {
 }
 
 /**
- * @typedef SampleProject
- * @type {object}
- * @property {string?} title - Display name of the sample project.
- * @property {string?} system - System associated with the sample project.
- * @property {string?} url - Url to load the sample project from.
- * @exports
+ * @typedef {import('../types.js').SampleProject} SampleProject
  */
