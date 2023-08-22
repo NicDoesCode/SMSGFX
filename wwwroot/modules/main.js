@@ -3569,6 +3569,8 @@ async function loadSampleProjectAsync(sampleProjectId) {
             const loadedProject = await sampleManager.loadSampleProjectAsync(sampleProject.url);
             if (loadedProject) {
                 state.saveProjectToLocalStorage(loadedProject, false);
+                const defaultTileMap = loadedProject.tileMapList.getTileMapById(sampleProject.defaultTileMapId);
+                getProjectUIState(loadedProject).tileMapId = defaultTileMap?.tileMapId ?? null;
                 state.setProject(loadedProject);
             }
         }
@@ -4474,11 +4476,16 @@ window.addEventListener('load', async () => {
     const sampleProjects = instanceState.sampleProjects;
     if (projects.length === 0) {
         for (let i = 0; i < sampleProjects.length; i++) {
-            const sample = sampleProjects[i];
-            const sampleProject = await sampleManager.loadSampleProjectAsync(sample.url);
-            projects.addProject(sampleProject);
-            state.saveProjectToLocalStorage(sampleProject, false);
+            const sampleProject = sampleProjects[i];
+            const loadedProject = await sampleManager.loadSampleProjectAsync(sampleProject.url);
+            // Add to storage
+            projects.addProject(loadedProject);
+            state.saveProjectToLocalStorage(loadedProject, false);
+            // Default tile map ID
+            const defaultTileMap = loadedProject.tileMapList.getTileMapById(sampleProject.defaultTileMapId);
+            getProjectUIState(loadedProject).tileMapId = defaultTileMap?.tileMapId ?? null;
         }
+        state.saveUIStateToLocalStorage();
     }
 
     const project = projects.getProjectById(getUIState().lastProjectId);
