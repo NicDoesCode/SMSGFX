@@ -50,12 +50,16 @@ export default class SampleProjectManager {
     async getSampleProjectsAsync() {
         if (this.#samples) return this.#samples;
 
+        this.#samples = [];
+
         const url = `./assets/sample/samples.json${CacheUtil.getCacheBuster() ?? ''}`;
-        let resp = await fetch(url);
-        if (resp.ok) {
-            this.#samples = JSON.parse(await resp.text());
-        } else {
-            this.#samples = [];
+        try {
+            let resp = await fetch(url);
+            if (resp.ok) {
+                this.#samples = JSON.parse(await resp.text());
+            } 
+        } catch {
+            console.error('Unable to get list of samples.');
         }
 
         return this.#samples;
