@@ -159,7 +159,6 @@ export default class State {
         const project = projectToSave ?? this.project;
         const raise = typeof raiseEvent === 'boolean' ? raiseEvent : true;
         if (project instanceof Project) {
-            console.log('Project', project); // TMP 
             ensureProjectHasId(project);
             const storageId = `${LOCAL_STORAGE_PROJECTS}${project.id}`;
             const serialised = ProjectJsonSerialiser.serialise(project);
