@@ -26,7 +26,7 @@ export default class TileUtil {
      * @returns {Tile}
      */
     static mirrorHorizontal(originalTile) {
-        const mirroredTile = TileFactory.create();
+        const mirroredTile = TileFactory.create({ tileId: originalTile.tileId });
         for (let col = 0; col < 8; col++) {
             const mCol = 7 - col;
             for (let row = 0; row < 8; row++) {
@@ -43,7 +43,7 @@ export default class TileUtil {
      * @returns {Tile}
      */
     static mirrorVertical(originalTile) {
-        const mirroredTile = TileFactory.create();
+        const mirroredTile = TileFactory.create({ tileId: originalTile.tileId });
         for (let row = 0; row < 8; row++) {
             const mRow = 7 - row;
             for (let col = 0; col < 8; col++) {

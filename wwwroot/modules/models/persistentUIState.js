@@ -52,16 +52,6 @@ export default class PersistentUIState {
     }
 
     /**
-     * Index in the palette list of the last selected palette.
-     */
-    get paletteIndex() {
-        return this.#paletteIndex;
-    }
-    set paletteIndex(value) {
-        this.#paletteIndex = value;
-    }
-
-    /**
      * Scale level.
      */
     get scale() {
@@ -122,7 +112,7 @@ export default class PersistentUIState {
     }
 
     /**
-     * Gets or sets whether the theme (either 'light', 'dark' or 'system').
+     * Gets or sets the colour theme (either 'light', 'dark' or 'system').
      */
     get theme() {
         return this.#theme;
@@ -134,37 +124,23 @@ export default class PersistentUIState {
     }
 
     /**
-     * Gets or sets whether the project exports an optimised tile map.
+     * Gets or sets whether the background theme name.
      */
-    get exportOptimiseTileMap() {
-        return this.#exportOptimiseTileMap;
+    get backgroundTheme() {
+        return this.#backgroundTheme;
     }
-    set exportOptimiseTileMap(value) {
-        this.#exportOptimiseTileMap = value;
+    set backgroundTheme(value) {
+        this.#backgroundTheme = value;
     }
 
     /**
-     * Gets or sets the palette index for exported tile map.
+     * Gets or sets the project UI states.
      */
-    get exportTileMapPaletteIndex() {
-        return this.#exportTileMapPaletteIndex;
+    get projectStates() {
+        return this.#projectStates;
     }
-    set exportTileMapPaletteIndex(value) {
-        if ([0, 1, 2, 3].includes(value)) {
-            this.#exportTileMapPaletteIndex = value;
-        }
-    }
-
-    /**
-     * Gets or sets the VRAM address offset for the tile map generation.
-     */
-    get exportTileMapVramOffset() {
-        return this.#exportTileMapVramOffset;
-    }
-    set exportTileMapVramOffset(value) {
-        if (value >= 0 && value < 255) {
-            this.#exportTileMapVramOffset = value;
-        }
+    set projectStates(value) {
+        this.#projectStates = value;
     }
 
 
@@ -179,8 +155,6 @@ export default class PersistentUIState {
     /** @type {boolean} */
     #importTileReplace = false;
     /** @type {number} */
-    #paletteIndex = 0;
-    /** @type {number} */
     #scale = 10;
     /** @type {boolean} */
     #displayNativeColour = true;
@@ -194,12 +168,10 @@ export default class PersistentUIState {
     #welcomeVisibleOnStartup = true;
     /** @type {string} */
     #theme = 'system';
-    /** @type {boolean} */
-    #exportOptimiseTileMap = true;
-    /** @type {number} */
-    #exportTileMapPaletteIndex = 0;
-    /** @type {number} */
-    #exportTileMapVramOffset = 0;
+    /** @type {string?} */
+    #backgroundTheme = null;
+    /** @type {Object.<string, ProjectState>} */
+    #projectStates = {};
 
 
     constructor() {
@@ -207,3 +179,26 @@ export default class PersistentUIState {
 
 
 }
+
+/** 
+ * Saved state for an individual project.
+ * @typedef {object} ProjectState
+ * @property {string} projectId - Unique ID of the project.
+ * @property {number?} paletteIndex - Last selected palette index.
+ * @property {string?} tileMapId - Unique ID of the last selected tile map.
+ * @property {string?} tileId - Unique ID of the last selected tile map.
+ * @property {ProjectAssemblyExportState?} assemblyExportState - State of project export to assembly.
+ * @exports
+ */
+
+/** 
+ * An individual project's export state.
+ * @typedef {object} ProjectAssemblyExportState
+ * @property {string[]} tileMapIds
+ * @property {boolean} exportPalettes
+ * @property {boolean} exportTileSet
+ * @property {boolean} exportTileMaps
+ * @property {string} optimiseMode
+ * @property {number} vramOffset
+ * @exports
+ */

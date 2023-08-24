@@ -1,4 +1,5 @@
 import TileSet from "../models/tileSet.js";
+import TileSetJsonSerialiser from "../serialisers/tileSetJsonSerialiser.js";
 import TileFactory from "./tileFactory.js";
 
 export default class TileSetFactory {
@@ -18,7 +19,7 @@ export default class TileSetFactory {
      * @param {number} [sourceIndex=0] Optional. Index to start reading from.
      * @param {number} [sourceLength=null] Optional. Number of items to read, if the end of the array is reached then reading will stop.
      */
-     static fromArray(sourceArray, sourceIndex, sourceLength) {
+    static fromArray(sourceArray, sourceIndex, sourceLength) {
         if (!sourceArray) throw new Error('Source array was not valid.');
         if (!sourceIndex) sourceIndex = 0;
         if (sourceIndex >= sourceArray.length) throw new Error('The source index exceeds the bounds of the source array.');
@@ -39,6 +40,21 @@ export default class TileSetFactory {
             sourceIndex += 64;
         }
         return result;
+    }
+
+
+    /**
+     * Creates a deep copy of a tile set.
+     * @param {TileSet} sourceTileSet - Tile set to clone.
+     * @returns {TileSet}
+     */
+    static clone(sourceTileSet) {
+        if (!sourceTileSet instanceof TileSet) 
+            throw new Error('Clone source was not a tile set.');
+
+        const json = TileSetJsonSerialiser.serialise(sourceTileSet);
+        const cloned = TileSetJsonSerialiser.deserialise(json);
+        return cloned;
     }
 
 

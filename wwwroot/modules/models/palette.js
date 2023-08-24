@@ -1,10 +1,22 @@
 import PaletteColour from './paletteColour.js';
+import GeneralUtil from './../util/generalUtil.js';
 
 /**
  * Represents a colour palette.
  */
 export default class Palette {
 
+
+    /**
+     * Unique ID of the palette.
+     */
+    get paletteId() {
+        return this.#paletteId;
+    }
+    set paletteId(value) {
+        if (!value || value.length === '') throw new Error('Please supply a valid ID value.');
+        this.#paletteId = value;
+    }
 
     /**
      * Title of the palette.
@@ -30,6 +42,8 @@ export default class Palette {
 
 
     /** @type {string} */
+    #paletteId;
+    /** @type {string} */
     #system;
     /** @type {number} */
     #title;
@@ -39,11 +53,21 @@ export default class Palette {
 
     /**
      * Creates a new instance of a palette object.
-     * @param {string} index - Title of the palette.
-     * @param {string} system - Intended system, either 'ms' (Sega Master), 'gg' (Sega Game Gear) or 'gb (Nintendo Game Boy).
+     * @param {string?} [paletteId] - Unique ID of the palette.
+     * @param {string?} [title] - Title of the palette.
+     * @param {string} system - Intended system, either 'ms' (Sega Master System), 'gg' (Sega Game Gear), 'gb (Nintendo Game Boy) or 'nes' (Nintendo Entertainment System).
      */
-    constructor(title, system) {
-        this.title = title ? title : 'Palette';
+    constructor(paletteId, title, system) {
+        if (typeof paletteId !== 'undefined' && paletteId !== null) {
+            this.paletteId = paletteId;
+        } else {
+            this.paletteId = GeneralUtil.generateRandomString(12);
+        }
+        if (typeof title !== 'undefined' && title !== null) {
+            this.title = title;
+        } else {
+            this.title = 'Palette';
+        }
         this.system = system;
         this.#colours = new Array(getSystemColourCount(system));
     }

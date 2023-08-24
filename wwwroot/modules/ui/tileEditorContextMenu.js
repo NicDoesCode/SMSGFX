@@ -1,16 +1,21 @@
+import ComponentBase from "./componentBase.js";
 import EventDispatcher from "../components/eventDispatcher.js";
 import TemplateUtil from "../util/templateUtil.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
 const commands = {
-    clone: 'clone', remove: 'remove',
-    moveLeft: 'moveLeft', moveRight: 'moveRight',
-    mirrorHorizontal: 'mirrorHorizontal', mirrorVertical: 'mirrorVertical',
-    insertBefore: 'insertBefore', insertAfter: 'insertAfter'
+    clone: 'clone', 
+    remove: 'remove',
+    moveLeft: 'moveLeft', 
+    moveRight: 'moveRight',
+    mirrorHorizontal: 'mirrorHorizontal', 
+    mirrorVertical: 'mirrorVertical',
+    insertBefore: 'insertBefore', 
+    insertAfter: 'insertAfter'
 }
 
-export default class TileEditorContextMenu {
+export default class TileEditorContextMenu extends ComponentBase {
 
 
     static get Commands() {
@@ -27,6 +32,7 @@ export default class TileEditorContextMenu {
 
 
     constructor(element) {
+        super(element);
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 

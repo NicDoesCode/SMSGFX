@@ -36,6 +36,18 @@ export default class ProjectList {
     }
 
     /**
+     * Does the project list contain a project with a given unique ID.
+     * @param {string} projectId - Unique ID of the item to check.
+     * @returns {boolean}
+     */
+    containsProjectById(projectId) {
+        if (projectId) {
+            return this.#projects.filter(p => p.id === projectId).length > 0;
+        }
+        return false;
+    }
+
+    /**
      * Gets an item by ID.
      * @param {string} projectId - ID of the item to get.
      * @returns {Project|null}

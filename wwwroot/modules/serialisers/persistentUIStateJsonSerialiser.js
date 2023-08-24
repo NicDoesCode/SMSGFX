@@ -24,9 +24,8 @@ export default class PersistentUIStateJsonSerialiser {
             documentationVisibleOnStartup: appUI.documentationVisibleOnStartup,
             welcomeVisibleOnStartup: appUI.welcomeVisibleOnStartup,
             theme: appUI.theme,
-            exportGenerateTileMap: appUI.exportOptimiseTileMap,
-            exportTileMapPaletteIndex: appUI.exportTileMapPaletteIndex,
-            exportTileMapVramOffset: appUI.exportTileMapVramOffset
+            backgroundTheme: appUI.backgroundTheme,
+            projectStates: appUI.projectStates
         };
         return JSON.stringify(result);
     }
@@ -77,16 +76,17 @@ export default class PersistentUIStateJsonSerialiser {
             if (typeof deserialised.theme === 'string') {
                 result.theme = deserialised.theme;
             }
-            if (typeof deserialised.exportGenerateTileMap === 'boolean') {
-                result.exportOptimiseTileMap = deserialised.exportGenerateTileMap;
-            } 
-            if (typeof deserialised.exportTileMapPaletteIndex === 'number') {
-                result.exportTileMapPaletteIndex = deserialised.exportTileMapPaletteIndex;
-            } 
-            if (typeof deserialised.exportTileMapVramOffset === 'number') {
-                result.exportTileMapVramOffset = deserialised.exportTileMapVramOffset;
-            } 
-        }
+            if (typeof deserialised.backgroundTheme === 'string') {
+                result.backgroundTheme = deserialised.backgroundTheme;
+            } else if (deserialised.backgroundTheme === null) {
+                result.backgroundTheme = null;
+            }
+            if (deserialised.projectStates) {
+                result.projectStates = deserialised.projectStates;
+            } else {
+                result.projectStates = {};
+            }
+      }
         return result;
     }
 
@@ -108,7 +108,6 @@ export default class PersistentUIStateJsonSerialiser {
  * @property {boolean} documentationVisibleOnStartup
  * @property {boolean} welcomeVisibleOnStartup
  * @property {string} theme
- * @property {boolean} exportGenerateTileMap
- * @property {number} exportTileMapPaletteIndex
- * @property {number} exportTileMapVramOffset
+ * @property {string?} backgroundTheme
+ * @property {Object.<string, object>} projectStates
  */

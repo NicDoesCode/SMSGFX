@@ -1,3 +1,5 @@
+import CacheUtil from '../util/cacheUtil.js';
+
 export default class GoogleAnalyticsManager {
 
 
@@ -28,23 +30,12 @@ export default class GoogleAnalyticsManager {
     async loadConfigAsync() {
         if (this.#config) return this.#config;
 
-        let global = {};
-        let instance = {};
-
-        let resp = await fetch('config/googleAnalytics.json');
+        const url = `./config/googleAnalytics.json${CacheUtil.getCacheBuster() ?? ''}`;
+        let resp = await fetch(url);
         if (resp.ok) {
-            global = JSON.parse(await resp.text());
-            if (global.useGoogleAnalytics) {
-                resp = await fetch('config/googleAnalytics.instance.json');
-                if (resp.ok) {
-                    instance = JSON.parse(await resp.text());
-                }
-            }
+            this.#config = JSON.parse(await resp.text());
         }
-        this.#config = {
-            ...global,
-            ...instance
-        }
+
         return this.#config;
     }
 
@@ -55,12 +46,12 @@ export default class GoogleAnalyticsManager {
     async injectIfConfiguredAsync() {
         if (this.#injected) throw new Error('Script has already been injected.');
         const config = await this.loadConfigAsync();
-        if (config.useGoogleAnalytics && config.key) {
+        if (config?.useGoogleAnalytics && config?.key) {
             this.#injected = true;
 
             const script = document.createElement('script');
             script.async = true;
-            script.src = `https://www.googletagmanager.com/gtag/js?id=${config.key}`;
+            script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(config.key)}`;
             script.onload = (ev) => {
                 window.dataLayer = window.dataLayer || [];
                 function gtag() { dataLayer.push(arguments); }

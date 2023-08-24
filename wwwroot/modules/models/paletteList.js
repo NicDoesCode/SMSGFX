@@ -13,6 +13,8 @@ export default class PaletteList {
 
     /** @type {Palette[]} */
     #palettes = [];
+    /** @type {Object.<string, Palette>} */
+    #palettesByIdCache = null;
 
 
     /**
@@ -22,7 +24,7 @@ export default class PaletteList {
     constructor(items) {
         if (items && !Array.isArray(items)) throw new Error('Array of palettes must be passed.');
         if (items && Array.isArray(items)) {
-            items.forEach(p => this.addPalette(p));
+            items.forEach((p) => this.addPalette(p));
         }
     }
 
@@ -49,16 +51,57 @@ export default class PaletteList {
     }
 
     /**
+     * Gets an item by ID.
+     * @param {string} paletteId - Unique Palette ID to fetch.
+     * @returns {number}
+     */
+    indexOf(paletteId) {
+        if (typeof paletteId !== 'string') return -1;
+        for (let i = 0; i < this.#palettes.length; i++) {
+            if (this.#palettes[i].paletteId === paletteId) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Gets an item by ID.
+     * @param {string} paletteId - Unique Palette ID to fetch.
+     * @returns {Palette|null}
+     */
+    getPaletteById(paletteId) {
+        if (this.containsPaletteById(paletteId)) {
+            return this.#getPalettesByIdCache()[paletteId];
+        } else {
+            return null;
+        }
+    }
+
+
+    /**
+     * Gets whether this list has a palette by a given ID.
+     * @param {string} paletteId - Unique Palette ID to query.
+     * @returns {boolean}
+     */
+    containsPaletteById(paletteId) {
+        return (paletteId && this.#getPalettesByIdCache()[paletteId]);
+    }
+
+
+    /**
      * Adds an item to the list.
      * @param {Palette|Palette[]} value - Item or array of items to add.
      */
     addPalette(value) {
         if (Array.isArray(value)) {
-            value.forEach(item => this.#palettes.push(item));
+            value.forEach((p) => this.#palettes.push(p));
         } else {
             this.#palettes.push(value);
         }
+        this.#resetPalettesByIdCache();
     }
+
 
     /**
      * Inserts an item by index.
@@ -66,11 +109,19 @@ export default class PaletteList {
      * @param {Palette} value - Value to insert.
      */
     insertAt(index, value) {
+        if (this.containsPaletteById(value.paletteId)) {
+            throw new Error('Palette list already contains a palette with the given ID.');
+        }
         index = Math.max(index, 0);
         index = Math.min(index, this.#palettes.length);
         if (index === 0) this.#palettes.unshift(value);
         else if (index === this.#palettes.length) this.#palettes.push(value);
-        else this.#palettes = this.#palettes.splice(index, 0, value);
+        else {
+            const start = this.#palettes.slice(0, index + 1);
+            const end = this.#palettes.slice(index + 1);
+            this.#palettes = start.concat([value]).concat(end);
+        }
+        this.#resetPalettesByIdCache();
     }
 
     /**
@@ -81,6 +132,7 @@ export default class PaletteList {
     setPalette(index, value) {
         if (index >= 0 && index < this.#palettes.length) {
             this.#palettes[index] = value;
+            this.#resetPalettesByIdCache();
         } else throw new Error('Index out of range.');
     }
 
@@ -91,7 +143,19 @@ export default class PaletteList {
     removeAt(index) {
         if (index >= 0 && index < this.#palettes.length) {
             this.#palettes.splice(index, 1);
+            this.#resetPalettesByIdCache();
         } else throw new Error('Index out of range.');
+    }
+
+    /**
+     * Removes a palette by ID.
+     * @param {string} paletteId - Unique Palette ID.
+     */
+    removeById(paletteId) {
+        if (paletteId) {
+            this.#palettes = this.#palettes.filter((p) => p.paletteId !== paletteId);
+            this.#resetPalettesByIdCache();
+        } else throw new Error('Please supply a palette ID.');
     }
 
     /**
@@ -99,7 +163,21 @@ export default class PaletteList {
      */
     clear() {
         this.#palettes.splice(0, this.#palettes.length);
+        this.#resetPalettesByIdCache();
     }
 
-    
+
+    #getPalettesByIdCache() {
+        if (!this.#palettesByIdCache) {
+            this.#palettesByIdCache = {};
+            this.#palettes.forEach((p) => this.#palettesByIdCache[p.paletteId] = p);
+        }
+        return this.#palettesByIdCache;
+    }
+
+    #resetPalettesByIdCache() {
+        this.#palettesByIdCache = null;
+    }
+
+
 }

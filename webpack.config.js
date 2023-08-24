@@ -1,13 +1,29 @@
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const CopyPlugin = require("copy-webpack-plugin");
-const path = require('path');
-const fs = require('fs');
+import HtmlWebpackPlugin from "html-webpack-plugin";
+// import HtmlWebpackExcludeScriptsPlugin from "./build/plugins/HtmlWebpackExcludeScriptsPlugin.js";
+import CopyPlugin from "copy-webpack-plugin";
+import path from "path";
+import fs from "fs";
+import url from 'url';
 
-module.exports = {
+const __filename = url.fileURLToPath(import.meta.url);
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+
+export default {
     mode: 'production',
-    entry: './wwwroot/modules/main.js',
+    entry: {
+        main: './wwwroot/modules/main.js',
+        pages: './wwwroot/pages/pages.js'
+    },
     output: {
-        filename: 'modules/main.js',
+        filename: (pathData) => {
+            if (pathData.chunk.name === 'main')
+                return 'modules/[name].js?v=[hash]';
+            else if (pathData.chunk.name === 'pages') {
+                return 'pages/[name].js?v=[hash]';
+            } else {
+                return 'assets/scripts/[name].js?v=[hash]';
+            }
+        },
         path: path.resolve(__dirname, 'dist'),
         clean: true
     },
@@ -21,7 +37,7 @@ module.exports = {
                 test: /\.(png|jpg|gif|svg|ico)$/i,
                 type: 'asset',
                 generator: {
-                    filename: 'assets/[name]-[hash][ext]'
+                    filename: `assets/[name]-[hash][ext]`
                 },
                 parser: {
                     dataUrlCondition: {
@@ -35,7 +51,22 @@ module.exports = {
         new HtmlWebpackPlugin({
             template: './wwwroot/index.html',
             filename: 'index.html',
-            inject: 'body'
+            chunks: ['main'],
+            inject: 'body',
+            hash: true,
+            // excludeAssets: [
+            //     (asset) => {
+            //         console.log('ASSET!', asset);
+            //         return asset.attributes && asset.attributes["x-skip"]
+            //     }
+            // ],
+        }),
+        new CopyPlugin({
+            patterns: [
+                { from: 'wwwroot/assets/image', to: 'assets/image' },
+                { from: 'wwwroot/assets/sample', to: 'assets/sample', noErrorOnMissing: true },
+                { from: 'wwwroot/config', to: 'config', noErrorOnMissing: true }
+            ]
         }),
         new HtmlWebpackPlugin({
             templateContent: bundleHtmlTempatesIntoSingleFile(),
@@ -43,23 +74,46 @@ module.exports = {
             inject: false,
             minify: false
         }),
-        new HtmlWebpackPlugin({
-            template: './wwwroot/privacy.html',
-            filename: 'privacy.html',
-            inject: false
-        }),
-        new HtmlWebpackPlugin({
-            template: './wwwroot/404.html',
-            filename: '404.html',
-            inject: false
-        }),
-        new CopyPlugin({
-            patterns: [
-                { from: 'wwwroot/assets/image', to: 'assets/image' },
-                { from: 'wwwroot/config', to: 'config' }
-            ]
-        })
+        ...createPagesHtmlWebpackPlugins(),
+        // new HtmlWebpackSkipAssetsPlugin()
+        // new HtmlWebpackExcludeScriptsPlugin(),
     ]
+}
+
+
+/**
+ * Scans for HTML files in the UI path and returns them as a single file.
+ * @param {Array} pluginsArray - Array of webpack plugins.
+ * @returns {Array}
+ */
+function createPagesHtmlWebpackPlugins() {
+    const baseDirectory = path.join(__dirname, 'wwwroot', 'pages');
+    const foundFiles = fs.readdirSync(baseDirectory).filter((filePath) => filePath.toLowerCase().endsWith('.html') && filePath.toLowerCase() !== 'index.html');
+    return foundFiles.map((htmlFileName) => {
+        return new HtmlWebpackPlugin({
+            template: path.join(__dirname, 'wwwroot', 'pages', htmlFileName),
+            filename: `pages/${htmlFileName}`,
+            chunks: ['pages'],
+            inject: "head",
+            hash: true,
+            scriptLoading: "blocking",
+            minify: false, 
+            // excludeAssets: ['**.js'],
+        });
+    });
+}
+
+/**
+ * Generates a random string.
+ * @param {number} length - Length of the string to generate.
+ */
+function generateRandomString(length) {
+    if (length < 0) throw new Error('Length must be greater than 0.');
+    const result = [];
+    for (let i = 0; i < length; i++) {
+        result.push(Math.round(Math.random() * 15).toString(16));
+    }
+    return result.join('');
 }
 
 /**

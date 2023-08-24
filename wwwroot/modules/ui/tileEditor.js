@@ -1,11 +1,14 @@
+import ComponentBase from "./componentBase.js";
 import CanvasManager from "../components/canvasManager.js";
 import EventDispatcher from "../components/eventDispatcher.js";
 import PaletteFactory from "../factory/paletteFactory.js";
-import Palette from "../models/palette.js";
+import PaletteListFactory from "../factory/paletteListFactory.js";
 import ReferenceImage from "../models/referenceImage.js";
 import TileSet from "../models/tileSet.js";
 import TileEditorContextMenu from "./tileEditorContextMenu.js";
 import TemplateUtil from "../util/templateUtil.js";
+import PaletteList from "../models/paletteList.js";
+import TileGridProvider from "../models/tileGridProvider.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 const EVENT_OnEvent = 'EVENT_OnEvent';
@@ -25,7 +28,7 @@ const events = {
     pixelMouseUp: 'pixelMouseUp'
 }
 
-export default class TileEditor {
+export default class TileEditor extends ComponentBase {
 
 
     static get Commands() {
@@ -36,6 +39,10 @@ export default class TileEditor {
         return events;
     }
 
+    static get CanvasHighlightModes() {
+        return CanvasManager.HighlightModes;
+    }
+
 
     /** @type {HTMLElement} */
     #element;
@@ -43,15 +50,18 @@ export default class TileEditor {
     #tbCanvas;
     /** @type {TileEditorContextMenu} */
     #tileEditorContextMenu;
-    /** @type {Palette} */
-    #palette = null;
-    /** @type {Palette} */
-    #nativePalette = null;
+    /** @type {PaletteList} */
+    #paletteList = null;
+    /** @type {PaletteList} */
+    #nativePaletteList = null;
+    /** @type {TileGridProvider} */
+    #tileGrid = null;
     /** @type {TileSet} */
     #tileSet = null;
     /** @type {Coordinates} */
     #lastCoords;
     #scale = 1;
+    #tilesPerBlock = 1;
     #canvasManager;
     #panCanvasOnMouseMove = false;
     #canvasMouseLeftDown = false;
@@ -67,12 +77,14 @@ export default class TileEditor {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
+        super(element);
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 
         this.#tbCanvas = this.#element.querySelector('[data-sms-id=tile-editor-canvas]');
         this.#canvasManager = new CanvasManager();
-        this.#canvasManager.backgroundColour = window.getComputedStyle(this.#element).backgroundColor;
+        // this.#canvasManager.backgroundColour = window.getComputedStyle(this.#element).backgroundColor;
+        this.#canvasManager.backgroundColour = null;
 
         document.addEventListener('mousedown', (ev) => this.#handleCanvasMouseDown(ev));
         document.addEventListener('mouseup', (ev) => this.#handleCanvasMouseUp(ev));
@@ -81,13 +93,22 @@ export default class TileEditor {
         this.#tbCanvas.addEventListener('contextmenu', (ev) => this.#handleCanvasContextMenu(ev));
         this.#tbCanvas.addEventListener('wheel', (ev) => this.#handleCanvasMouseWheel(ev));
 
-        const canvasObserver = new ResizeObserver((entries) => {
+        // Observe size changes and redraw where needed
+        const canvasResizeObserver = new ResizeObserver(() => {
             if (this.#enabled && this.#canvasManager.canDraw) {
                 this.#canvasManager.drawUI(this.#tbCanvas);
             }
         });
-        canvasObserver.observe(this.#tbCanvas);
+        canvasResizeObserver.observe(this.#tbCanvas);
 
+        const containerResizeObserver = new ResizeObserver(() => {
+            if (this.#enabled && this.#canvasManager.canDraw) {
+                resizeCanvas(this.#tbCanvas);
+            }
+        });
+        containerResizeObserver.observe(this.#tbCanvas.parentElement);
+
+        // Load up the tile set context menu
         TileEditorContextMenu.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=tile-editor-context-menu]'))
             .then((obj) => {
                 this.#tileEditorContextMenu = obj
@@ -113,12 +134,21 @@ export default class TileEditor {
      */
     setState(state) {
         let dirty = false;
-        // Change palette?
-        const palette = state?.palette;
-        if (palette && typeof palette.getColour === 'function') {
+        let refresh = false;
+        // Change palette list?
+        const paletteList = state?.paletteList;
+        if (paletteList && typeof paletteList.getPaletteById === 'function') {
             this.#canvasManager.invalidateImage();
-            this.#palette = palette;
-            this.#nativePalette = PaletteFactory.convertToNative(this.#palette);
+            this.#paletteList = paletteList;
+            this.#nativePaletteList = PaletteListFactory.create(paletteList.getPalettes().map((p) => PaletteFactory.convertToNative(p)));
+            dirty = true; 
+        }
+        // Changing tile grid
+        const tileGrid = state?.tileGrid;
+        if (tileGrid instanceof TileGridProvider || tileGrid === null) {
+            resizeCanvas(this.#tbCanvas);
+            this.#canvasManager.invalidateImage();
+            this.#tileGrid = tileGrid;
             dirty = true;
         }
         // Changing tile set
@@ -136,6 +166,14 @@ export default class TileEditor {
             });
             dirty = true;
         }
+        // Updated tile IDs
+        if (state?.updatedTileIds && Array.isArray(state?.updatedTileIds)) {
+            const updatedTileIds = state.updatedTileIds;
+            updatedTileIds.forEach((tileId) => {
+                this.#canvasManager.invalidateTileId(tileId);
+            });
+            dirty = true;
+        }
         // Changing scale?
         if (typeof state?.scale === 'number') {
             const scale = state.scale;
@@ -147,10 +185,16 @@ export default class TileEditor {
                 throw new Error('Scale must be between 1 and 50.');
             }
         }
+        // Changing amount of tiles per block?
+        if (typeof state.tilesPerBlock === 'number') {
+            this.#canvasManager.tilesPerBlock = state.tilesPerBlock;
+        } else if (state.tilesPerBlock === null) {
+            this.#canvasManager.tilesPerBlock = 1;
+        }
         // Display native?
         if (typeof state?.displayNative === 'boolean') {
             this.#displayNative = state.displayNative;
-            if (state.displayNative && this.#palette.system === 'gb') {
+            if (state.displayNative && this.#paletteList?.getPalettes().filter((p) => p.system === 'gb').length > 0) {
                 this.#canvasManager.pixelGridColour = '#98a200';
                 this.#canvasManager.pixelGridOpacity = 0.5;
                 this.#canvasManager.tileGridColour = '#98a200';
@@ -204,28 +248,55 @@ export default class TileEditor {
         // Theme
         if (typeof state?.theme === 'string') {
             if (state.theme === 'light') {
-                this.#canvasManager.backgroundColour = '#e9ecef';
-                dirty = true;
+                // this.#canvasManager.backgroundColour = '#e9ecef';
+                // dirty = true;
             }
             if (state.theme === 'dark') {
-                this.#canvasManager.backgroundColour = '#151719';
-                dirty = true;
+                // this.#canvasManager.backgroundColour = '#151719';
+                // dirty = true;
             }
         }
-        // Refresh image?
-        if (dirty && this.#palette) {
-            let palette = !this.#displayNative ? this.#palette : this.#nativePalette;
-            if (this.#canvasManager.palette !== palette) {
-                this.#canvasManager.palette = palette;
+        // Canvas highlight mode
+        if (typeof state?.canvasHighlightMode === 'string') {
+            this.#canvasManager.highlightMode = state.canvasHighlightMode;
+        } else if (typeof state?.canvasHighlightMode === 'object' && state.canvasHighlightMode === null) {
+            this.#canvasManager.highlightMode = CanvasManager.HighlightModes.pixel;
+        }
+        // Tile stamp preview
+        if (typeof state?.tileStampPreview !== 'undefined') {
+            this.#canvasManager.setTilePreview(state.tileStampPreview);
+        }
+        // Selected region 
+        if (typeof state?.selectedRegion !== 'undefined') {
+            if (state.selectedRegion !== null) {
+                const r = state.selectedRegion;
+                this.#canvasManager.setSelectedTileRegion(r.rowIndex, r.columnIndex, r.width, r.height);
+            } else {
+                this.#canvasManager.clearSelectedTileRegion();
             }
-            this.#canvasManager.tileSet = this.#tileSet;
-            if (this.#canvasManager.scale !== this.#scale) {
-                this.#canvasManager.scale = this.#scale;
+            refresh = true;
+        }
+        // Force refresh?
+        if (typeof state.forceRefresh === 'boolean' && state.forceRefresh === true) {
+            dirty = true;
+        }
+        // Refresh image?
+        if ((dirty || refresh) && this.#tileGrid && this.#tileSet && this.#paletteList && this.#paletteList.length > 0) {
+            if (dirty) {
+                let paletteList = !this.#displayNative ? this.#paletteList : this.#nativePaletteList;
+                if (this.#canvasManager.paletteList !== paletteList) {
+                    this.#canvasManager.paletteList = paletteList;
+                }
+                this.#canvasManager.tileSet = this.#tileSet;
+                this.#canvasManager.tileGrid = this.#tileGrid;
+                if (this.#canvasManager.scale !== this.#scale) {
+                    this.#canvasManager.scale = this.#scale;
+                }
             }
             if (this.#lastCoords) {
                 this.#canvasManager.drawUI(this.#tbCanvas, this.#lastCoords.x, this.#lastCoords.y);
             } else {
-                this.#canvasManager.drawUI(this.#tbCanvas, 0, 0);
+                this.#canvasManager.drawUI(this.#tbCanvas);
             }
         }
 
@@ -267,8 +338,10 @@ export default class TileEditor {
     #handleCanvasMouseMove(ev) {
         if (this.#enabled && this.#tileSet) {
             if (ev.target === this.#tbCanvas) {
-                const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(ev.clientX, ev.clientY);
+                const coords = this.#canvasManager.convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
                 if (coords) {
+                    const pxInBounds = coords.x >= 0 && coords.y >= 0 && coords.x < this.#tileGrid.columnCount * 8 && coords.y < this.#tileGrid.rowCount * 8;
+                    const rowColInfo = this.#canvasManager.getRowAndColumnInfo(coords.x, coords.y);
                     const lastCoords = this.#lastCoords;
                     if (!lastCoords || lastCoords.x !== coords.x || lastCoords.y !== coords.y) {
                         /** @type {TileEditorEventArgs} */
@@ -279,7 +352,17 @@ export default class TileEditor {
                             isPrimaryButton: ev.button === 0,
                             isSecondaryButton: ev.button === 2,
                             isAuxButton: ev.button === 1,
-                            ctrlKeyPressed: ev.ctrlKey
+                            ctrlKeyPressed: ev.ctrlKey,
+                            tileGridRowIndex: rowColInfo.rowIndex,
+                            tileGridColumnIndex: rowColInfo.columnIndex,
+                            tileGridInsertRowIndex: rowColInfo.nearestRowIndex,
+                            tileGridInsertColumnIndex: rowColInfo.nearestColumnIndex,
+                            tileBlockGridRowIndex: rowColInfo.rowBlockIndex,
+                            tileBlockGridColumnIndex: rowColInfo.columnBlockIndex,
+                            tileBlockGridInsertRowIndex: rowColInfo.nearestRowBlockIndex,
+                            tileBlockGridInsertColumnIndex: rowColInfo.nearestColumnBlockIndex,
+                            tilesPerBlock: this.#canvasManager.tilesPerBlock,
+                            isInBounds: pxInBounds && rowColInfo.isInBounds
                         };
                         this.#dispatcher.dispatch(EVENT_OnEvent, args);
                         this.#lastCoords = coords;
@@ -309,8 +392,10 @@ export default class TileEditor {
             }
         }
 
-        const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(ev.clientX, ev.clientY);
+        const coords = this.#canvasManager.convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
         if (coords) {
+            const pxInBounds = coords.x >= 0 && coords.y >= 0 && coords.x < this.#tileGrid.columnCount * 8 && coords.y < this.#tileGrid.rowCount * 8;
+            const rowColInfo = this.#canvasManager.getRowAndColumnInfo(coords.x, coords.y);
             /** @type {TileEditorEventArgs} */
             const args = {
                 event: events.pixelMouseDown,
@@ -321,7 +406,17 @@ export default class TileEditor {
                 isPrimaryButton: ev.button === 0,
                 isSecondaryButton: ev.button === 2,
                 isAuxButton: ev.button === 1,
-                ctrlKeyPressed: ev.ctrlKey
+                ctrlKeyPressed: ev.ctrlKey,
+                tileGridRowIndex: rowColInfo.rowIndex,
+                tileGridColumnIndex: rowColInfo.columnIndex,
+                tileGridInsertRowIndex: rowColInfo.nearestRowIndex,
+                tileGridInsertColumnIndex: rowColInfo.nearestColumnIndex,
+                tileBlockGridRowIndex: rowColInfo.rowBlockIndex,
+                tileBlockGridColumnIndex: rowColInfo.columnBlockIndex,
+                tileBlockGridInsertRowIndex: rowColInfo.nearestRowBlockIndex,
+                tileBlockGridInsertColumnIndex: rowColInfo.nearestColumnBlockIndex,
+                tilesPerBlock: this.#canvasManager.tilesPerBlock,
+                isInBounds: pxInBounds && rowColInfo.isInBounds
             };
             this.#dispatcher.dispatch(EVENT_OnEvent, args);
         }
@@ -341,8 +436,10 @@ export default class TileEditor {
             this.#canvasMouseRightDown = false;
         }
 
-        const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(ev.clientX, ev.clientY);
+        const coords = this.#canvasManager.convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
         if (coords) {
+            const pxInBounds = coords.x >= 0 && coords.y >= 0 && coords.x < this.#tileGrid.columnCount * 8 && coords.y < this.#tileGrid.rowCount * 8;
+            const rowColInfo = this.#canvasManager.getRowAndColumnInfo(coords.x, coords.y);
             /** @type {TileEditorEventArgs} */
             const args = {
                 event: events.pixelMouseUp,
@@ -353,7 +450,17 @@ export default class TileEditor {
                 isPrimaryButton: ev.button === 0,
                 isSecondaryButton: ev.button === 2,
                 isAuxButton: ev.button === 1,
-                ctrlKeyPressed: ev.ctrlKey
+                ctrlKeyPressed: ev.ctrlKey,
+                tileGridRowIndex: rowColInfo.rowIndex,
+                tileGridColumnIndex: rowColInfo.columnIndex,
+                tileGridInsertRowIndex: rowColInfo.nearestRowIndex,
+                tileGridInsertColumnIndex: rowColInfo.nearestColumnIndex,
+                tileBlockGridRowIndex: rowColInfo.rowBlockIndex,
+                tileBlockGridColumnIndex: rowColInfo.columnBlockIndex,
+                tileBlockGridInsertRowIndex: rowColInfo.nearestRowBlockIndex,
+                tileBlockGridInsertColumnIndex: rowColInfo.nearestColumnBlockIndex,
+                tilesPerBlock: this.#canvasManager.tilesPerBlock,
+                isInBounds: pxInBounds && rowColInfo.isInBounds
             };
             this.#dispatcher.dispatch(EVENT_OnEvent, args);
         }
@@ -373,7 +480,8 @@ export default class TileEditor {
             isPrimaryButton: this.#canvasMouseLeftDown,
             isSecondaryButton: this.#canvasMouseRightDown,
             isAuxButton: this.#canvasMouseMiddleDown,
-            ctrlKeyPressed: ev.ctrlKey
+            ctrlKeyPressed: ev.ctrlKey,
+            isInBounds: false
         };
         if (this.#lastCoords) {
             args.x = this.#lastCoords.x;
@@ -389,9 +497,9 @@ export default class TileEditor {
 
     /** @param {MouseEvent} ev */
     #handleCanvasContextMenu(ev) {
-        if (!this.#enabled) return;
+        if (!this.#enabled || this.#tileGrid.isTileMap) return;
 
-        const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(ev.clientX, ev.clientY);
+        const coords = this.#canvasManager.convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
         if (coords) {
             // Get the tile index
             const tile = this.#tileSet.getTileByCoordinate(coords.x, coords.y);
@@ -421,7 +529,7 @@ export default class TileEditor {
             const args = {};
 
             // Get the tile index
-            const coords = this.#convertMouseClientCoordsToTileSetPixelCoords(ev.clientX, ev.clientY);
+            const coords = this.#canvasManager.convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
             if (coords) {
                 const tile = this.#tileSet.getTileByCoordinate(coords.x, coords.y);
                 args.tileIndex = this.#tileSet.getTileIndex(tile);
@@ -479,33 +587,10 @@ export default class TileEditor {
         }
     }
 
-
-    /**
-     * Converts a mouse position within the application viewport to the corresponding tile set x/y.
-     * @param {number} mouseClientX - Mouse horizontal coordinate within the application's viewport.
-     * @param {number} mouseClientY - Mouse vertical coordinate within the application's viewport.
-     * @returns {Coordinates|null}
-     */
-    #convertMouseClientCoordsToTileSetPixelCoords(mouseClientX, mouseClientY) {
-        const rect = this.#tbCanvas.getBoundingClientRect();
-        const canvMgr = this.#canvasManager;
-        const canvasX = canvMgr.resolveMouseX(this.#tbCanvas, mouseClientX - rect.left);
-        const canvasY = canvMgr.resolveMouseY(this.#tbCanvas, mouseClientY - rect.top);
-        if (canvasX !== null && canvasY !== null) {
-            const scale = this.#canvasManager.scale;
-            const imageX = Math.floor(canvasX / scale);
-            const imageY = Math.floor(canvasY / scale);
-            return { x: imageX, y: imageY };
-        } else {
-            return null;
-        }
-    }
-
     #focusTile(index) {
         const col = index % this.#tileSet.tileWidth;
         const row = Math.floor(index / this.#tileSet.tileWidth);
         const pxPerTile = this.#canvasManager.scale * 8;
-        const tileX = (col * pxPerTile) + (this.#canvasManager.scale / 2);
         const tileY = (row * pxPerTile) + (this.#canvasManager.scale / 2);
         // const rect = this.#canvasContainer.getBoundingClientRect();
         // this.#canvasContainer.scrollLeft = Math.max(tileX - (rect.width / 2), 0);
@@ -518,9 +603,11 @@ export default class TileEditor {
 
 /**
  * @typedef {object} TileEditorState
+ * @property {TileGridProvider?} tileGrid - Tile grid that will be drawn, passing this will trigger a redraw.
  * @property {TileSet?} tileSet - Tile set that will be drawn, passing this will trigger a redraw.
- * @property {Palette?} palette - Palette to use for drawing, passing this will trigger a redraw.
+ * @property {PaletteList?} paletteList - Palette list to use for drawing, passing this will trigger a redraw.
  * @property {number?} scale - Current scale level.
+ * @property {number?} [tilesPerBlock] - The amount of tiles per tile block.
  * @property {boolean?} displayNative - Should the tile editor display native colours?
  * @property {number?} selectedTileIndex - Currently selected tile index.
  * @property {number?} cursorSize - Size of the cursor in px.
@@ -532,7 +619,12 @@ export default class TileEditor {
  * @property {boolean?} enabled - Is the control enabled or disabled?
  * @property {number?} focusedTile - Will ensure that this tile is shown on the screen.
  * @property {number[]?} updatedTiles - When passing updated tiles, the entire image will not be updated and instead only these tiles will be updated.
+ * @property {string[]?} [updatedTileIds] - Array of unique tile IDs that were updated.
  * @property {string?} theme - Name of the theme being used.
+ * @property {string?} [canvasHighlightMode] - The highlight mode that the canvas should use.
+ * @property {string|Tile|TileGridProvider|null} [tileStampPreview] - Either a tile ID, individual tile object or tile grid object with the tile stamp preview.
+ * @property {import("../models/tileGridProvider.js").TileGridRegion} [selectedRegion] - Selected region to highlight.
+ * @property {boolean?} [forceRefresh] - When true the tile grid image will be refreshed.
  * @exports 
  */
 
@@ -552,7 +644,7 @@ export default class TileEditor {
 /**
  * @typedef {object} TileEditorCommandEventArgs
  * @property {string} command - Command being invoked.
- * @property {number} tileIndex - Index of the tile witin the tile map.
+ * @property {number} tileIndex - Index of the tile witin the tile grid.
  * @exports
  */
 
@@ -565,8 +657,18 @@ export default class TileEditor {
 /**
  * @typedef {object} TileEditorEventArgs
  * @property {string} event - Event that occurred.
- * @property {number} x - X tile map pixel thats selected.
- * @property {number} y - Y tile map pixel thats selected.
+ * @property {number} x - X tile grid pixel thats selected.
+ * @property {number} y - Y tile grid pixel thats selected.
+ * @property {number?} [tileGridRowIndex] - Index of the tile grid row that corresponds with the Y mouse coordinate.
+ * @property {number?} [tileGridColumnIndex] - Index of the tile grid column that corresponds with the X mouse coordinate.
+ * @property {number?} [tileGridInsertRowIndex] - Index in the tile grid row for inserting a new row.
+ * @property {number?} [tileGridInsertColumnIndex] - Index in the tile grid column for inserting a new column.
+ * @property {number?} [tileBlockGridRowIndex] - Index of the tile block grid row that corresponds with the Y mouse coordinate.
+ * @property {number?} [tileBlockGridColumnIndex] - Index of the tile block grid column that corresponds with the X mouse coordinate.
+ * @property {number?} [tileBlockGridInsertRowIndex] - Index in the tile block grid row for inserting a new row.
+ * @property {number?} [tileBlockGridInsertColumnIndex] - Index in the tile block grid column for inserting a new column.
+ * @property {number?} [tilesPerBlock] - The amount of tiles per tile block.
+ * @property {boolean} isInBounds - True when the given coordinate was out of bounds of the tile grid.
  * @property {boolean} mousePrimaryIsDown - True when the primary mouse button is down, otherwise false.
  * @property {boolean} mouseSecondaryIsDown - True when the secondary mouse button is down, otherwise false.
  * @property {boolean} mouseAuxIsDown - True when the auxiliary mouse button is down, otherwise false.
@@ -576,3 +678,14 @@ export default class TileEditor {
  * @property {boolean} ctrlKeyPressed - True when the control key is pressed, otherwise false, otherwise false.
  * @exports
  */
+
+/**
+ * @param {HTMLCanvasElement} canvas
+ */
+function resizeCanvas(canvas) {
+    const parent = canvas.parentElement;
+    const parentRect = parent.getBoundingClientRect();
+    canvas.style.position = 'absolute';
+    canvas.width = parentRect.width;
+    canvas.height = parentRect.height;
+}

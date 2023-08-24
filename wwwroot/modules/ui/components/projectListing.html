@@ -1,7 +1,7 @@
-<div data-smsgfx-component="components/projectListing">
+<div data-smsgfx-component="components/projectListing" class="project-listing">
     <ul data-smsgfx-id="project-list" class="sms-project-list-component list-group list-group-flush">
     </ul>
-    <script data-smsgfx-id="project-list-template" type="text/x-handlebars-template">
+    <script data-smsgfx-template-id="project-list-template" type="text/x-handlebars-template">
         {{#each this}}
             <li data-command="projectSelect" data-project-id="{{id}}" class="list-group-item d-flex justify-content-between align-items-start list-group-item-action border-secondary-subtle ps-0 pe-0 pt-1 pb-1">
                 <span data-field="console" class="text-center me-2">
@@ -16,7 +16,7 @@
                 <span data-field="title" class="flex-fill">
                     {{title}}
                 </span>
-                <button data-command="projectDelete" data-project-id="{{id}}" class="btn btn-sm btn-secondary p-0 px-2" title="Delete this project.">
+                <button data-command="projectDelete" data-project-id="{{id}}" class="btn btn-sm btn-ui btn-outline-secondary p-0 px-2" title="Delete this project.">
                     <i class="bi bi-trash-fill"></i>
                 </button>
             </li>
@@ -38,7 +38,7 @@
 
         .sms-project-list-component {
             height: 190px;
-            overflow-y: scroll;
+            overflow-y: auto;
         }
 
         .sms-project-list-component .list-group-item {

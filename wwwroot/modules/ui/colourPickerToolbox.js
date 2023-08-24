@@ -1,7 +1,8 @@
+import ComponentBase from "./componentBase.js";
 import EventDispatcher from "../components/eventDispatcher.js";
 import ColourUtil from "../util/colourUtil.js";
 import TemplateUtil from "../util/templateUtil.js";
-import ColourPaletteList from "./components/colourPaletteList.js";
+import ColourPaletteListing from "./components/colourPaletteListing.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -10,11 +11,22 @@ const commands = {
     tabChanged: 'tabChanged'
 }
 
-export default class ColourPickerToolbox {
+const tabs = {
+    rgb: 'rgb', 
+    ms: 'ms', 
+    gb: 'gb', 
+    nes: 'nes'
+}
+
+export default class ColourPickerToolbox extends ComponentBase {
 
 
     static get Commands() {
         return commands;
+    }
+
+    static get Tabs() {
+        return tabs;
     }
 
 
@@ -45,11 +57,11 @@ export default class ColourPickerToolbox {
     #currentTab;
     #dispatcher;
     #enabled = true;
-    /** @type {ColourPaletteList} */
-    #smsColourPaletteList = null;
-    /** @type {ColourPaletteList} */
+    /** @type {ColourPaletteListing} */
+    #msColourPaletteList = null;
+    /** @type {ColourPaletteListing} */
     #gbColourPaletteList = null;
-    /** @type {ColourPaletteList} */
+    /** @type {ColourPaletteListing} */
     #nesColourPaletteList = null;
 
 
@@ -58,6 +70,7 @@ export default class ColourPickerToolbox {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
+        super(element);
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 
@@ -94,10 +107,10 @@ export default class ColourPickerToolbox {
             }
         });
 
-        this.#loadPaletteListIfNotLoaded(this.#smsColourPaletteList, 'colour-palette-list-sms').then((control) => {
+        this.#loadPaletteListIfNotLoaded(this.#msColourPaletteList, 'colour-palette-list-ms').then((control) => {
             if (control) {
-                this.#smsColourPaletteList = control;
-                this.#smsColourPaletteList.setState({
+                this.#msColourPaletteList = control;
+                this.#msColourPaletteList.setState({
                     colours: ColourUtil.getFullMasterSystemPalette(),
                     direction: 'row',
                     coloursPerRow: 8
@@ -167,7 +180,7 @@ export default class ColourPickerToolbox {
             this.#element.querySelectorAll('input').forEach(element => {
                 element.disabled = !this.#enabled;
             });
-            this.#smsColourPaletteList.setState({ enabled: this.#enabled });
+            this.#msColourPaletteList.setState({ enabled: this.#enabled });
             this.#gbColourPaletteList.setState({ enabled: this.#enabled });
             this.#nesColourPaletteList.setState({ enabled: this.#enabled });
         }
@@ -178,7 +191,7 @@ export default class ColourPickerToolbox {
             });
         }
         if (typeof state?.showTab === 'string') {
-            this.#currentTab = (['sms', 'rgb', 'gb', 'nes'].includes(state.showTab)) ? state.showTab : 'rgb';
+            this.#currentTab = tabs[state.showTab] ? state.showTab : tabs.rgb;
             this.#showCurrentTab();
         }
     }
@@ -213,7 +226,7 @@ export default class ColourPickerToolbox {
 
 
     /**
-     * @param {ColourPaletteList} colourPaletteListControl 
+     * @param {ColourPaletteListing} colourPaletteListControl 
      * @param {string} componentId 
      */
     async #loadPaletteListIfNotLoaded(colourPaletteListControl, componentId) {
@@ -221,10 +234,10 @@ export default class ColourPickerToolbox {
         if (!colourPaletteListControl) {
             const containerElement = this.#element.querySelector(`[data-smsgfx-component-id=${componentId}]`);
             if (containerElement) {
-                result = await ColourPaletteList.loadIntoAsync(containerElement);
+                result = await ColourPaletteListing.loadIntoAsync(containerElement);
                 result.addHandlerOnCommand((args) => {
                     switch (args.command) {
-                        case ColourPaletteList.Commands.colourSelect:
+                        case ColourPaletteListing.Commands.colourSelect:
                             const hex = ColourUtil.toHex(args.r, args.g, args.b);
                             this.#r = args.r;
                             this.#g = args.g;
@@ -320,8 +333,8 @@ export default class ColourPickerToolbox {
 /**
  * @typedef {object} ColourPickerToolboxState
  * @property {boolean?} enabled - Is the toolbox enabled?
- * @property {string?} showTab - Either 'rgb', 'sms' or 'gb', which content tab to show.
- * @property {string[]?} visibleTabs - Comma separated list of tabs to show, of 'rgb', 'sms' or 'gb'.
+ * @property {string?} showTab - Either 'rgb', 'ms' or 'gb', which content tab to show.
+ * @property {string[]?} visibleTabs - Comma separated list of tabs to show, of 'rgb', 'ms' or 'gb'.
  * @property {number?} r - Red component.
  * @property {number?} g - Green component.
  * @property {number?} b - Blue component.

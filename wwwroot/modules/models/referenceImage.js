@@ -10,33 +10,33 @@ export default class ReferenceImage {
     }
 
     get imageWidth() {
-        return this.#image.width;
+        return this.#image?.width ?? 0;
     }
 
     get imageHeight() {
-        return this.#image.height;
+        return this.#image?.height ?? 0;
     }
 
     get drawWidth() {
-        return this.#bounds.width;
+        return this.#bounds?.width ?? 0;
     }
 
     get drawHeight() {
-        return this.#bounds.height;
+        return this.#bounds?.height ?? 0;
     }
 
     get positionX() {
-        return this.#bounds.x;
+        return this.#bounds?.x ?? 0;
     }
 
     get positionY() {
-        return this.#bounds.y;
+        return this.#bounds?.y ?? 0;
     }
 
 
-    /** @type {HTMLImageElement} */
+    /** @type {HTMLImageElement?} */
     #image;
-    /** @type {DOMRect} */
+    /** @type {DOMRect?} */
     #bounds;
 
 
@@ -44,6 +44,8 @@ export default class ReferenceImage {
      * Represents a reference image to draw.
      */
     constructor() {
+        this.#image = null;
+        this.#bounds = null;
     }
 
 
@@ -60,6 +62,7 @@ export default class ReferenceImage {
    */
     clearImage() {
         this.#image = null;
+        this.#bounds = null;
     }
 
     /**

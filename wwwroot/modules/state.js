@@ -19,6 +19,10 @@ const events = {
     projectSaved: 'projectSaved'
 };
 
+const contexts = {
+    deleted: 'deleted'
+};
+
 const rxProjectId = /^[A-z0-9]+$/;
 
 export default class State {
@@ -27,6 +31,11 @@ export default class State {
     static get Events() {
         return events;
     }
+
+    static get Contexts() {
+        return contexts;
+    }
+
 
     /**
      * Gets the presistent state for UI elements.
@@ -141,14 +150,23 @@ export default class State {
         localStorage.setItem(LOCAL_STORAGE_APPUI, serialisedUIState);
     }
 
-    saveProjectToLocalStorage() {
-        if (this.project) {
-            ensureProjectHasId(this.project);
-            const storageId = `${LOCAL_STORAGE_PROJECTS}${this.project.id}`;
-            const serialised = ProjectJsonSerialiser.serialise(this.project);
+    /**
+     * Saves a project to local storage.
+     * @param {Project?} [projectToSave] - Project to save to local storage, or null or undefined if to save the currently selected project.
+     * @param {boolean?} [raiseEvent] - Raise events that the project was changed? Defaults to true.
+     */
+    saveProjectToLocalStorage(projectToSave, raiseEvent) {
+        const project = projectToSave ?? this.project;
+        const raise = typeof raiseEvent === 'boolean' ? raiseEvent : true;
+        if (project instanceof Project) {
+            ensureProjectHasId(project);
+            const storageId = `${LOCAL_STORAGE_PROJECTS}${project.id}`;
+            const serialised = ProjectJsonSerialiser.serialise(project);
             localStorage.setItem(storageId, serialised);
-            this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectSaved, this.project.id));
-            this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectListChanged));
+            if (raise) {
+                this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectSaved, project.id));
+                this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectListChanged));
+            }
         }
     }
 
@@ -169,7 +187,7 @@ export default class State {
         if (projectId && rxProjectId.test(projectId)) {
             const storageId = `${LOCAL_STORAGE_PROJECTS}${projectId}`;
             localStorage.removeItem(storageId);
-            this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectListChanged));
+            this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectListChanged, projectId, contexts.deleted));
 
             if (this.project?.id === projectId) {
                 this.setProject(null);
@@ -188,17 +206,20 @@ function ensureProjectHasId(project) {
     if (!project.id || !rxProjectId.test(project.id)) {
         project.id = GeneralUtil.generateRandomString(16);
     }
+    return project;
 }
 
 
 /**
  * @param {string} event 
  * @param {string|null} projectId 
+ * @param {string|null} context 
  * @returns {StateEventArgs}
  */
-function createArgs(event, projectId) {
+function createArgs(event, projectId, context) {
     return {
         event: event,
+        context: context ?? null,
         projectId: projectId ?? null
     };
 }
@@ -213,6 +234,7 @@ function createArgs(event, projectId) {
 /**
  * @typedef {object} StateEventArgs
  * @property {string} event - The event that occurred.
+ * @property {string} context - Context about the event that occurred.
  * @property {string} projectId - Associated project ID.
  * @exports
  */

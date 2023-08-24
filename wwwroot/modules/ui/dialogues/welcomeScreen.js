@@ -1,7 +1,9 @@
 import EventDispatcher from "../../components/eventDispatcher.js";
 import ProjectList from "../../models/projectList.js";
 import TemplateUtil from "../../util/templateUtil.js";
+import ComponentBase from "../componentBase.js";
 import ProjectListing from "../components/projectListing.js";
+import ConfigManager from "../../components/configManager.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -15,7 +17,7 @@ const commands = {
     showDocumentation: 'showDocumentation'
 }
 
-export default class WelcomeScreen {
+export default class WelcomeScreen extends ComponentBase {
 
 
     static get Commands() {
@@ -37,6 +39,7 @@ export default class WelcomeScreen {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
+        super(element);
         this.#element = element;
         this.#dispatcher = new EventDispatcher();
 
@@ -54,6 +57,20 @@ export default class WelcomeScreen {
                 const args = this.#createArgs(command, elm);
                 this.#dispatcher.dispatch(EVENT_OnCommand, args);
             };
+        });
+
+        ConfigManager.getInstanceAsync().then((configManager) => {
+            const config = configManager.config;
+            if (typeof config?.kofiHandle === 'string') {
+                const link = this.#element.querySelector('[data-smsgfx-id=kofi-link]');
+                link.href = link.getAttribute('data-href').replace('{{HANDLE}}', encodeURIComponent(config.kofiHandle));
+                link.classList.remove('visually-hidden');
+            }
+            if (typeof config?.patreonHandle === 'string') {
+                const link = this.#element.querySelector('[data-smsgfx-id=patreon-link]');
+                link.href = link.getAttribute('data-href').replace('{{HANDLE}}', encodeURIComponent(config.patreonHandle));
+                link.classList.remove('visually-hidden');
+            }
         });
     }
 

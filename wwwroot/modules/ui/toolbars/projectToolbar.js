@@ -1,3 +1,4 @@
+import ComponentBase from "../componentBase.js";
 import EventDispatcher from "../../components/eventDispatcher.js";
 import ProjectList from "../../models/projectList.js";
 import TemplateUtil from "../../util/templateUtil.js";
@@ -14,7 +15,7 @@ const commands = {
     showDropdown: 'showDropdown'
 }
 
-export default class ProjectToolbar {
+export default class ProjectToolbar extends ComponentBase {
 
 
     static get Commands() {
@@ -34,6 +35,7 @@ export default class ProjectToolbar {
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
+        super(element);
         this.#element = element;
 
         this.#dispatcher = new EventDispatcher();

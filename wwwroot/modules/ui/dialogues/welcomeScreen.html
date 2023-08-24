@@ -1,4 +1,4 @@
-<div data-smsgfx-component="dialogues/welcomeScreen" class="sms-welcome-screen card" tabindex="-1">
+<div data-smsgfx-component="dialogues/welcomeScreen" class="sms-welcome-screen card z-2" tabindex="-1">
     <div class="card-header border border-0">
         <h5 class="modal-title m-0">Welcome to SMSGFX!</h5>
     </div>
@@ -11,13 +11,15 @@
                     <div class="row mb-4">
                         <div class="col">
                             <button type="button" class="btn btn-outline-secondary border border-0 w-100"
-                                data-command="projectNew" data-target-system-type="smsgg">
+                                data-command="projectNew" data-target-system-type="smsgg"
+                                title="Create a new Sega Game Gear and Master System project.">
                                 <img src="assets/image/game-gear-console.svg" alt="Sega Game Gear.">
                             </button>
                         </div>
                         <div class="col">
                             <button type="button" class="btn btn-outline-secondary border border-0 w-100"
-                                data-command="projectNew" data-target-system-type="smsgg">
+                                data-command="projectNew" data-target-system-type="smsgg"
+                                title="Create a new Sega Game Gear and Master System project.">
                                 <img src="assets/image/master-system-console.svg" alt="Sega Master System.">
                             </button>
                         </div>
@@ -25,13 +27,15 @@
                     <div class="row">
                         <div class="col">
                             <button type="button" class="btn btn-outline-secondary border border-0 w-100"
-                                data-command="projectNew" data-target-system-type="nes">
+                                data-command="projectNew" data-target-system-type="nes"
+                                title="Create a new Nintendo Entertainment System project.">
                                 <img src="assets/image/nes.svg" alt="Nintendo Entertainment System.">
                             </button>
                         </div>
                         <div class="col">
                             <button type="button" class="btn btn-outline-secondary border border-0 w-100"
-                                data-command="projectNew" data-target-system-type="gb">
+                                data-command="projectNew" data-target-system-type="gb"
+                                title="Create a new Nintendo Game Boy project.">
                                 <img src="assets/image/game-boy.svg" alt="Nintendo Game Boy.">
                             </button>
                         </div>
@@ -49,43 +53,62 @@
         </div>
         <div class="row">
             <div class="col-6 p-4 pt-0 border-end">
-                <button type="button" class="btn btn-outline-secondary w-100 mt-2" data-command="tileImageImport">
+                <button type="button" class="btn btn-outline-secondary w-100 mt-2" data-command="tileImageImport"
+                    title="Creates a new project from an image stored on your computer.">
                     <small>Load an image or sprite sheet</small></button>
             </div>
             <div class="col-6 p-4 pt-0">
-                <button type="button" class="btn btn-outline-secondary w-100 mt-2" data-command="projectLoadFromFile">
+                <button type="button" class="btn btn-outline-secondary w-100 mt-2" data-command="projectLoadFromFile"
+                    title="Loads a project from a JSON file.">
                     <small>Open project from a file</small></button>
             </div>
         </div>
         <div class="row p-2 mt-2">
             <div class="col border-top p-0">
-                <button type="button" class="btn btn-link m-0 mt-2 p-2 pb-0" data-command="showDocumentation">
-                    Need help? View the documentation
+                <button type="button" class="btn btn-link m-0 mt-2 p-2 pb-0 text-start" data-command="showDocumentation"
+                    title="Displays the documentation viewer.">
+                    Need help?<br>View the documentation
                 </button>
             </div>
-        </div>
+            <div class="col border-top pt-3 pb-0 col-3">
+                <a data-smsgfx-id="kofi-link" data-href="https://ko-fi.com/{{HANDLE}}" title="Support on Ko-fi." target="_blank"
+                    class="sms-donate-button sms-kofi btn btn-sm w-100 text-black visually-hidden" rel="noopener">
+                    Support on<br>
+                    <img src="../assets/image/kofi-logo-text-white-stroke.png" alt="Ko-fi.">
+                </a>
+            </div>
+            <div class="col border-top pt-3 pb-0 col-3">
+                <a data-smsgfx-id="patreon-link" data-href="https://www.patreon.com/user?u={{HANDLE}}" title="Support on Patreon." target="_blank"
+                    class="sms-donate-button sms-patreon btn btn-sm w-100 text-black visually-hidden" rel="noopener">
+                    Support on<br>
+                    <img src="../assets/image/patreon-wordmark-black.png" alt="Patreon.">
+                </a>
+            </div>
+</div>
     </div>
     <div class="card-footer">
         <div class="row">
             <div class="col-auto p-1 ps-3">
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" value="" id="welcomeScreenShowOnStartup"
-                        data-smsgfx-id="showOnStartup" data-command="changeShowOnStartUp">
-                    <label class="form-check-label" for="welcomeScreenShowOnStartup">
-                        Show on start-up?
+                        data-smsgfx-id="showOnStartup" data-command="changeShowOnStartUp"
+                        title="Check this option to show the welcome screen on start-up.">
+                    <label class="form-check-label" for="welcomeScreenShowOnStartup"
+                        title="Check this option to show the welcome screen on start-up.">
+                        Show welcome on start-up?
                     </label>
                 </div>
             </div>
             <div class="col text-end">
-                <button type="button" class="btn btn-secondary" data-command="dismiss">Close</button>
+                <button type="button" class="btn btn-secondary" data-command="dismiss"
+                    title="Dismiss the welcome screen.">Close</button>
             </div>
         </div>
     </div>
     <style data-css-scope="global">
         .sms-welcome-screen {
             position: absolute;
-            z-index: 10;
-            width: 700px;
+            width: 800px;
             height: min-content;
             top: 0;
             bottom: 0;
@@ -108,7 +131,7 @@
 
         [data-bs-theme=dark] .sms-welcome-screen .card-header {
             background:
-                linear-gradient(180deg, rgba(33,37,41,0) 0%, rgba(33,37,41,1) 100%),
+                linear-gradient(180deg, rgba(33, 37, 41, 0) 0%, rgba(33, 37, 41, 1) 100%),
                 url(/assets/image/header.png);
             background-size: 100% auto;
             background-position: center center;
@@ -131,5 +154,25 @@
         .sms-welcome-screen .sms-project-create button img {
             max-height: 50px;
         }
+
+
+        .sms-welcome-screen .project-listing ul {
+            max-height: 200px;
+        }
+
+        .sms-welcome-screen .sms-donate-button img {
+        }
+
+        .sms-welcome-screen .sms-donate-button img {
+            max-height: 25px;
+            width: auto;
+        }
+        .sms-welcome-screen .sms-donate-button.sms-kofi {
+            background-color: #29abe0;
+        }
+        .sms-welcome-screen .sms-donate-button.sms-patreon {
+            background-color: #ff4054;
+        }
+
     </style>
 </div>
