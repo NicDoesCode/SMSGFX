@@ -591,10 +591,8 @@ export default class TileEditor extends ComponentBase {
         const col = index % this.#tileSet.tileWidth;
         const row = Math.floor(index / this.#tileSet.tileWidth);
         const pxPerTile = this.#canvasManager.scale * 8;
-        const tileY = (row * pxPerTile) + (this.#canvasManager.scale / 2);
-        // const rect = this.#canvasContainer.getBoundingClientRect();
-        // this.#canvasContainer.scrollLeft = Math.max(tileX - (rect.width / 2), 0);
-        // this.#canvasContainer.scrollTop = Math.max(tileY - (rect.height / 2), 0);
+        this.#canvasManager.offsetX = col / pxPerTile;
+        this.#canvasManager.offsetY = row / pxPerTile;
     }
 
 

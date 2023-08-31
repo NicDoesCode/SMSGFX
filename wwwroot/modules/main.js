@@ -1558,10 +1558,12 @@ function handleImageImportModalOnConfirm(args) {
     setCommonTileToolbarStates({
         tileWidth: getTileSet().tileWidth
     });
+    const focusedTile = (Math.floor(getTileGrid().rowCount / 2) * getTileGrid().columnCount) + (Math.floor(getTileGrid().columnCount) / 2);
     tileEditor.setState({
         paletteList: getTileEditorPaletteList(),
         tileGrid: getTileGrid(),
-        tileSet: getTileSet()
+        tileSet: getTileSet(),
+        focusedTile: focusedTile
     });
     projectToolbar.setState({
         projectTitle: getProject().title
@@ -2062,6 +2064,7 @@ function formatForProject() {
         showPixelGridChecked: getUIState().showPixelGrid,
         enabled: true
     });
+    const focusedTile = (Math.floor(getTileGrid().rowCount / 2) * getTileGrid().columnCount) + (Math.floor(getTileGrid().columnCount) / 2);
     tileEditor.setState({
         palette: palette,
         paletteList: getTileEditorPaletteList(),
@@ -2073,6 +2076,7 @@ function formatForProject() {
         cursorSize: instanceState.pencilSize,
         showTileGrid: getUIState().showTileGrid,
         showPixelGrid: getUIState().showPixelGrid,
+        focusedTile: focusedTile,
         enabled: true
     });
     tileContextToolbar.setState({
@@ -3938,6 +3942,12 @@ function selectTileSetOrMap(tileMapId) {
     state.saveToLocalStorage();
 
     refreshProjectUI();
+
+    // Focus the centre tile
+    const focusedTile = (Math.floor(getTileGrid().rowCount / 2) * getTileGrid().columnCount) + (Math.floor(getTileGrid().columnCount) / 2);
+    tileEditor.setState({
+        focusedTile: focusedTile
+    });
 }
 
 /**
