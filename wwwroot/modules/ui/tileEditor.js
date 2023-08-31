@@ -58,8 +58,10 @@ export default class TileEditor extends ComponentBase {
     #tileGrid = null;
     /** @type {TileSet} */
     #tileSet = null;
-    /** @type {Coordinates} */
-    #lastCoords;
+    /** @type {import("../types.js").Coordinate?} */
+    #lastCoords = null;
+    /** @type {import("../types.js").Coordinate?} */
+    #lastMouseCoords = null;
     #scale = 1;
     #tilesPerBlock = 1;
     #canvasManager;
@@ -141,7 +143,7 @@ export default class TileEditor extends ComponentBase {
             this.#canvasManager.invalidateImage();
             this.#paletteList = paletteList;
             this.#nativePaletteList = PaletteListFactory.create(paletteList.getPalettes().map((p) => PaletteFactory.convertToNative(p)));
-            dirty = true; 
+            dirty = true;
         }
         // Changing tile grid
         const tileGrid = state?.tileGrid;
@@ -177,12 +179,12 @@ export default class TileEditor extends ComponentBase {
         // Changing scale?
         if (typeof state?.scale === 'number') {
             const scale = state.scale;
-            if (scale > 0 && scale <= 50) {
+            if (scale > 0 && scale <= 100) {
                 this.#scale = state.scale;
                 this.#canvasManager.invalidateImage();
                 dirty = true;
             } else {
-                throw new Error('Scale must be between 1 and 50.');
+                throw new Error('Scale must be between 1 and 100.');
             }
         }
         // Changing amount of tiles per block?
@@ -290,7 +292,24 @@ export default class TileEditor extends ComponentBase {
                 this.#canvasManager.tileSet = this.#tileSet;
                 this.#canvasManager.tileGrid = this.#tileGrid;
                 if (this.#canvasManager.scale !== this.#scale) {
+                    const prevScale = this.#canvasManager.scale;
                     this.#canvasManager.scale = this.#scale;
+                    if (state?.scaleRelativeToMouse === true && this.#lastCoords && this.#lastMouseCoords) {
+                        // Scale / zoom based on mouse coord
+                        const mouseXRelativeToCentre = -((this.#tbCanvas.clientWidth / 2) - this.#lastMouseCoords.x);
+                        const zeroOffsetX = (((this.#tileGrid.columnCount * 8) / 2) * this.#scale);
+                        const hoverPixelNewXOffset = this.#lastCoords.x * this.#scale;
+                        this.#canvasManager.offsetX = Math.round(zeroOffsetX + mouseXRelativeToCentre - hoverPixelNewXOffset);
+
+                        const mouseYRelativeToCentre = -((this.#tbCanvas.clientHeight / 2) - this.#lastMouseCoords.y);
+                        const zeroOffsetY = (((this.#tileGrid.rowCount * 8) / 2) * this.#scale);
+                        const hoverPixelNewYOffset = this.#lastCoords.y * this.#scale;
+                        this.#canvasManager.offsetY = Math.round(zeroOffsetY + mouseYRelativeToCentre - hoverPixelNewYOffset);
+                    } else {
+                        // Scale / zoom based on viewport centre
+                        this.#canvasManager.offsetX = Math.round((this.#canvasManager.offsetX / prevScale) * this.#scale);
+                        this.#canvasManager.offsetY = Math.round((this.#canvasManager.offsetY / prevScale) * this.#scale);
+                    }
                 }
             }
             if (this.#lastCoords) {
@@ -366,6 +385,7 @@ export default class TileEditor extends ComponentBase {
                         };
                         this.#dispatcher.dispatch(EVENT_OnEvent, args);
                         this.#lastCoords = coords;
+                        this.#lastMouseCoords = this.#canvasManager.convertViewportCoordsToCanvasCoords(this.#tbCanvas, ev.clientX, ev.clientY);
                         if (this.#canvasManager.canDraw) {
                             this.#canvasManager.drawUI(this.#tbCanvas, coords.x, coords.y);
                         }
@@ -535,9 +555,9 @@ export default class TileEditor extends ComponentBase {
                 args.tileIndex = this.#tileSet.getTileIndex(tile);
 
                 if (ev.deltaY > 0) {
-                    args.command = commands.zoomIn;
-                } else {
                     args.command = commands.zoomOut;
+                } else {
+                    args.command = commands.zoomIn;
                 }
 
                 this.#dispatcher.dispatch(EVENT_OnCommand, args);
@@ -605,6 +625,7 @@ export default class TileEditor extends ComponentBase {
  * @property {TileSet?} tileSet - Tile set that will be drawn, passing this will trigger a redraw.
  * @property {PaletteList?} paletteList - Palette list to use for drawing, passing this will trigger a redraw.
  * @property {number?} scale - Current scale level.
+ * @property {boolean?} [scaleRelativeToMouse] - Scale based on the mouse cursor position?.
  * @property {number?} [tilesPerBlock] - The amount of tiles per tile block.
  * @property {boolean?} displayNative - Should the tile editor display native colours?
  * @property {number?} selectedTileIndex - Currently selected tile index.
@@ -624,13 +645,6 @@ export default class TileEditor extends ComponentBase {
  * @property {import("../models/tileGridProvider.js").TileGridRegion} [selectedRegion] - Selected region to highlight.
  * @property {boolean?} [forceRefresh] - When true the tile grid image will be refreshed.
  * @exports 
- */
-
-/**
- * @typedef {object} Coordinates
- * @property {number} x - X coordinate.
- * @property {number} y - Y coordinate.
- * @exports
  */
 
 /**

@@ -94,13 +94,13 @@ export default class CanvasManager {
     }
 
     /**
-     * Gets or sets the image drawing scale between 1 and 50 (1:1 and 50:1).
+     * Gets or sets the image drawing scale between 1 and 100 (1:1 and 100:1).
      */
     get scale() {
         return this.#scale;
     }
     set scale(value) {
-        if (value < 1 || value > 50) throw new Error('Scale factor must be between 1 and 50.');
+        if (value < 1 || value > 100) throw new Error('Scale factor must be between 1 and 100.');
         const newScale = Math.round(value);
         if (newScale !== this.#scale) {
             this.invalidateImage();
@@ -402,7 +402,7 @@ export default class CanvasManager {
     /**
      * Gets the top left coordinate of where the tile image is to be drawn.
      * @param {HTMLCanvasElement} canvas - Canvas where the image is to be drawn.
-     * @returns {{x: number, y: number}}
+     * @returns {import("../types.js").Coordinate}
      */
     getDrawCoords(canvas) {
         return {
@@ -412,11 +412,26 @@ export default class CanvasManager {
     }
 
     /**
-     * Converts mouse X and Y coordinates on a canvas object to the corresponding tile grid coordinate.
+     * Converts mouse X and Y coordinates from the viewport to X and Y coordinates relative to a given canvas object.
      * @param {HTMLCanvasElement} canvas - Canvas element to use for the conversion.
      * @param {number} viewportX - Y pixel coordinate within the viewport.
      * @param {number} viewportY - Y pixel coordinate within the viewport.
-     * @returns {{x: number, y: number}}
+     * @returns {import("../types.js").Coordinate}
+     */
+    convertViewportCoordsToCanvasCoords(canvas, viewportX, viewportY) {
+        const canvasRect = canvas.getBoundingClientRect();
+        return {
+            x: viewportX - canvasRect.left - (this.scale / 2),
+            y: viewportY - canvasRect.top - (this.scale / 2)
+        };
+    }
+
+    /**
+     * Converts mouse X and Y coordinates from the viewport to the corresponding tile grid coordinate.
+     * @param {HTMLCanvasElement} canvas - Canvas element to use for the conversion.
+     * @param {number} viewportX - Y pixel coordinate within the viewport.
+     * @param {number} viewportY - Y pixel coordinate within the viewport.
+     * @returns {import("../types.js").Coordinate}
      */
     convertViewportCoordsToTileGridCoords(canvas, viewportX, viewportY) {
         const canvasRect = canvas.getBoundingClientRect();
@@ -426,7 +441,7 @@ export default class CanvasManager {
     }
 
     /**
-     * Converts mouse X and Y coordinates on a canvas object to the corresponding tile grid coordinate.
+     * Converts mouse X and Y coordinates from the viewport to the corresponding tile grid coordinate.
      * @param {HTMLCanvasElement} canvas - Canvas element to use for the conversion.
      * @param {number} canvasX - Y pixel coordinate within the canvas.
      * @param {number} canvasY - Y pixel coordinate within the canvas.
