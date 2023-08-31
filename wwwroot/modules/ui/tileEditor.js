@@ -608,7 +608,6 @@ export default class TileEditor extends ComponentBase {
     }
 
     #focusTile(index) {
-        console.log('focusTile'); // TMP
         const col = index % this.#tileSet.tileWidth;
         const row = Math.floor(index / this.#tileSet.tileWidth);
         const pxPerTile = this.#canvasManager.scale * 8;
