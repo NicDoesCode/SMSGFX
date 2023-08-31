@@ -1152,13 +1152,11 @@ function handleTileEditorOnCommand(args) {
             break;
 
         case TileEditor.Commands.zoomIn:
-            increaseScale();
-            tileEditor.setState({ focusedTile: args.tileIndex });
+            increaseScale(true);
             break;
 
         case TileEditor.Commands.zoomOut:
-            decreaseScale();
-            tileEditor.setState({ focusedTile: args.tileIndex });
+            decreaseScale(true);
             break;
     }
 }
@@ -4289,8 +4287,9 @@ function selectTool(tool) {
 /**
  * Sets the image scale level on the tile editor.
  * @param {number} scale - Must be in allowed scale levels.
+ * @param {boolean?} [relativeToMouse] - Scale relative to the mouse position.
  */
-function setScale(scale) {
+function setScale(scale, relativeToMouse) {
     if (typeof scale !== 'number') return;
     if (!TileEditorToolbar.scales.includes(scale)) return;
 
@@ -4302,32 +4301,33 @@ function setScale(scale) {
     });
     tileEditor.setState({
         forceRefresh: true,
-        scale: scale
+        scale: scale,
+        scaleRelativeToMouse: relativeToMouse
     });
 }
 
 /**
- * Selects a tool on the tile editor toolbar.
- * @param {string} tool - Name of the tool to select.
+ * Increases the tile editor display scale.
+ * @param {boolean?} [relativeToMouse] - Scale relative to the mouse position.
  */
-function increaseScale() {
+function increaseScale(relativeToMouse) {
     const scaleIndex = TileEditorToolbar.scales.indexOf(getUIState().scale);
     if (scaleIndex >= TileEditorToolbar.scales.length - 1) return;
 
     let newScale = TileEditorToolbar.scales[scaleIndex + 1];
-    setScale(newScale);
+    setScale(newScale, relativeToMouse);
 }
 
 /**
- * Selects a tool on the tile editor toolbar.
- * @param {string} tool - Name of the tool to select.
+ * Decreases the tile editor display scale.
+ * @param {boolean?} [relativeToMouse] - Scale relative to the mouse position.
  */
-function decreaseScale() {
+function decreaseScale(relativeToMouse) {
     const scaleIndex = TileEditorToolbar.scales.indexOf(getUIState().scale);
     if (scaleIndex <= 0) return;
 
     let newScale = TileEditorToolbar.scales[scaleIndex - 1];
-    setScale(newScale);
+    setScale(newScale, relativeToMouse);
 }
 
 /**
