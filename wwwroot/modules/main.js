@@ -4534,10 +4534,6 @@ window.addEventListener('load', async () => {
 
     selectTool(instanceState.tool);
 
-    documentationViewer.setState({
-        visible: getUIState().documentationVisibleOnStartup
-    });
-
     welcomeScreen.setState({
         visible: getUIState().welcomeVisibleOnStartup || getProject() instanceof Project === false,
         showWelcomeScreenOnStartUpChecked: getUIState().welcomeVisibleOnStartup,
@@ -4578,6 +4574,17 @@ window.addEventListener('load', async () => {
             const link = document.querySelector('[data-smsgfx-id=patreon-link-footer]');
             link.href = link.getAttribute('data-href').replace('{{HANDLE}}', encodeURIComponent(config.patreonHandle));
             link.classList.remove('visually-hidden');
+        }
+
+        documentationViewer.setState({
+            documentationUrl: config.documentationUrl,
+            documentationInlineUrl: config.documentationInlineUrl,
+            visible: getUIState().documentationVisibleOnStartup
+        });
+
+        if (!config.documentationUrl && !config.documentationInlineUrl) {
+            const link = document.querySelector('[data-smsgfx-id=documentation-link]');
+            link.style.display = 'none';
         }
     });
 });

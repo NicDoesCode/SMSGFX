@@ -3,6 +3,9 @@ import CacheUtil from '../util/cacheUtil.js';
 export default class ConfigManager {
 
 
+    /**
+     * @returns {Promise<ConfigManager>}
+     */
     static async getInstanceAsync() {
         if (!ConfigManager.#instance) {
             ConfigManager.#instance = await ConfigManager.createAsync();
@@ -57,6 +60,8 @@ export default class ConfigManager {
 
         if (typeof this.#config.patreonHandle !== 'string') this.#config.patreonHandle = null;
         if (typeof this.#config.kofiHandle !== 'string') this.#config.kofiHandle = null;
+        if (typeof this.#config.documentationUrl !== 'string') this.#config.documentationUrl = null;
+        if (typeof this.#config.documentationInlineUrl !== 'string') this.#config.documentationInlineUrl = null;
 
         return this.#config;
     }
@@ -69,5 +74,7 @@ export default class ConfigManager {
  * @type {object}
  * @property {string?} patreonHandle - Patreon handle.
  * @property {string?} kofiHandle - Ko-Fi handle.
+ * @property {string?} documentationUrl - URL for main documentation site.
+ * @property {string?} documentationInlineUrl - URL for documentation inline help.
  * @exports
  */

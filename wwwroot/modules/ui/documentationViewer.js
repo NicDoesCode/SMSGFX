@@ -72,6 +72,13 @@ export default class DocumentationViewer extends ComponentBase {
      * @param {DocumentationViewerState} state - State object.
      */
     setState(state) {
+        if (typeof state.documentationInlineUrl === 'string' && state.documentationInlineUrl !== '') {
+            this.#iframe.setAttribute('data-src', state.documentationInlineUrl);
+            if (this.#iframe.hasAttribute('src')) this.#iframe.src = state.documentationInlineUrl;
+        } else if (typeof state.documentationUrl === 'string' && state.documentationUrl !== '') {
+            this.#iframe.setAttribute('data-src', state.documentationUrl);
+            if (this.#iframe.hasAttribute('src')) this.#iframe.src = state.documentationUrl;
+        }
         if (typeof state?.visible === 'boolean') {
             if (state.visible) {
                 this.#element.classList.remove('visually-hidden');
@@ -116,6 +123,8 @@ export default class DocumentationViewer extends ComponentBase {
 /**
  * Documentation viewer state object.
  * @typedef {object} DocumentationViewerState
+ * @property {string?} [documentationUrl] - URL for main documentation.
+ * @property {string?} [documentationInlineUrl] - URL for inline help.
  * @property {string} visible - Should the sidebar be visible?
  * @exports
  */
