@@ -4582,9 +4582,12 @@ window.addEventListener('load', async () => {
             visible: getUIState().documentationVisibleOnStartup
         });
 
-        if (!config.documentationUrl && !config.documentationInlineUrl) {
-            const link = document.querySelector('[data-smsgfx-id=documentation-link]');
-            link.style.display = 'none';
+        const link = document.querySelector('[data-smsgfx-id=documentation-link]');
+        if (link) {
+            link.href = config.documentationInlineUrl ?? config.documentationUrl ?? 'about:blank';
+            if (!config.documentationUrl && !config.documentationInlineUrl) {
+                link.style.display = 'none';
+            }
         }
     });
 });
