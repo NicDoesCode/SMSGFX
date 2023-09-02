@@ -2348,7 +2348,10 @@ function takeToolAction(args) {
                         }
 
                         if (event === TileEditor.Events.pixelMouseDown) {
-                            instanceState.startingColourIndex = getTileSet().getPixelAt(imageX, imageY);
+                            const tileInfo = getTileGrid().getTileInfoByPixel(imageX, imageY);
+                            const tile = getTileSet().getTileById(tileInfo.tileId);
+                            const colour = tile.readAtCoord(imageX % 8, imageY % 8);
+                            instanceState.startingColourIndex = colour;
                         }
 
                         instanceState.lastTileMapPx.x = imageX;
