@@ -2364,7 +2364,7 @@ function takeToolAction(args) {
                         const size = instanceState.pencilSize;
                         const updatedTiles = PaintTool.replaceColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, sourceColourindex, replacementColourIndex, size, clamp);
 
-                        if (updatedTiles.affectedTileIndexes.length > 0) {
+                        if (updatedTiles && updatedTiles.affectedTileIndexes.length > 0) {
 
                             if (breakLinks) {
                                 takeToolAction_breakLinks(updatedTiles.affectedTileIndexes, originalTileSet);
@@ -3683,6 +3683,8 @@ function undoOrRedo(undoOrRedo) {
             const retrievedProjectState = undoManager.redo(getProject());
             state.setProject(retrievedProjectState);
         }
+
+        state.saveProjectToLocalStorage();
 
         // Set UI state
         refreshProjectUI();
