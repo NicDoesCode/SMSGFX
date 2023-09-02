@@ -913,7 +913,7 @@ export default class CanvasManager {
         if (this.#highlightMode === CanvasManager.HighlightModes.column) {
             if (coords.x >= 0 && coords.x < coords.gridColumns * 8) {
                 const tile = coords.tile;
-                const columnHeight = coords.gridColumns * coords.tile.sizePx;
+                const columnHeight = coords.gridRows * coords.tile.sizePx;
                 const originX = drawX + (tile.sizePx * tile.col);
                 const originY = drawY;
                 context.filter = 'opacity(0.25)';
@@ -931,7 +931,7 @@ export default class CanvasManager {
         if (this.#highlightMode === CanvasManager.HighlightModes.columnBlock) {
             if (coords.x >= 0 && coords.x < coords.gridColumns * 8) {
                 const block = coords.block;
-                const columnHeight = coords.gridColumns * coords.tile.sizePx;
+                const columnHeight = coords.gridRows * coords.tile.sizePx;
                 const originX = drawX + (block.sizePx * block.col);
                 const originY = drawY;
                 context.filter = 'opacity(0.25)';

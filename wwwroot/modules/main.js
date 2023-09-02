@@ -1171,7 +1171,7 @@ function handleTileEditorOnEvent(args) {
             case TileEditor.Events.pixelMouseDown:
                 instanceState.operationTileIndex = getTileGrid().getTileIndexByCoordinate(args.x, args.y);
                 if (args.isPrimaryButton) {
-                    takeToolAction({
+                    const result = takeToolAction({
                         tool: instanceState.tool,
                         colourIndex: instanceState.colourIndex,
                         imageX: args.x,
@@ -1184,12 +1184,15 @@ function handleTileEditorOnEvent(args) {
                         isInBounds: args.isInBounds,
                         event: TileEditor.Events.pixelMouseDown
                     });
+                    if (result?.saveProject) {
+                        state.saveToLocalStorage();
+                    }
                 }
                 break;
 
             case TileEditor.Events.pixelMouseOver:
                 if (args.mousePrimaryIsDown) {
-                    takeToolAction({
+                    const result = takeToolAction({
                         tool: instanceState.tool,
                         colourIndex: instanceState.colourIndex,
                         imageX: args.x,
@@ -1202,6 +1205,9 @@ function handleTileEditorOnEvent(args) {
                         isInBounds: args.isInBounds,
                         event: TileEditor.Events.pixelMouseOver
                     });
+                    if (result?.saveProject) {
+                        state.saveToLocalStorage();
+                    }
                 }
 
                 // Show the palette colour
@@ -2267,12 +2273,14 @@ function refreshProjectLists() {
 /**
  * Performs the action for a tool.
  * @param {ToolActionArgs} args 
+ * @returns {undefined|{ saveProject: boolean }}
  */
 function takeToolAction(args) {
 
     const tool = args.tool; const colourIndex = args.colourIndex;
     const event = args.event;
     const imageX = args.imageX; const imageY = args.imageY;
+    let saveProject = false;
 
     if (tool !== null && colourIndex >= 0 && colourIndex < 16) {
 
@@ -2289,7 +2297,6 @@ function takeToolAction(args) {
         } else if (tool === TileEditorToolbar.Tools.pencil && args.isInBounds) {
             if (event === TileEditor.Events.pixelMouseDown || event === TileEditor.Events.pixelMouseOver) {
 
-                // CTRL not down, so draw pixel
                 const lastPx = instanceState.lastTileMapPx;
                 if (imageX !== lastPx.x || imageY !== lastPx.y) {
 
@@ -2348,7 +2355,10 @@ function takeToolAction(args) {
                         }
 
                         if (event === TileEditor.Events.pixelMouseDown) {
-                            instanceState.startingColourIndex = getTileSet().getPixelAt(imageX, imageY);
+                            const tileInfo = getTileGrid().getTileInfoByPixel(imageX, imageY);
+                            const tile = getTileSet().getTileById(tileInfo.tileId);
+                            const colour = tile.readAtCoord(imageX % 8, imageY % 8);
+                            instanceState.startingColourIndex = colour;
                         }
 
                         instanceState.lastTileMapPx.x = imageX;
@@ -2359,9 +2369,9 @@ function takeToolAction(args) {
                         const sourceColourindex = instanceState.startingColourIndex;
                         const replacementColourIndex = colourIndex;
                         const size = instanceState.pencilSize;
+                        
                         const updatedTiles = PaintTool.replaceColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, sourceColourindex, replacementColourIndex, size, clamp);
-
-                        if (updatedTiles.affectedTileIndexes.length > 0) {
+                        if (updatedTiles && updatedTiles.affectedTileIndexes.length > 0) {
 
                             if (breakLinks) {
                                 takeToolAction_breakLinks(updatedTiles.affectedTileIndexes, originalTileSet);
@@ -2371,7 +2381,6 @@ function takeToolAction(args) {
                                 updatedTileIds: updatedTiles.affectedTileIds
                             });
                             tileManager.setState({
-                                tileSet: getTileSet(),
                                 updatedTileIds: updatedTiles.affectedTileIds
                             });
 
@@ -2389,6 +2398,7 @@ function takeToolAction(args) {
 
                 addUndoState();
                 PaintTool.fillColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, colourIndex, instanceState.clampToTile);
+                saveProject = true;
 
                 tileEditor.setState({
                     tileGrid: getTileGrid(),
@@ -2465,6 +2475,7 @@ function takeToolAction(args) {
                             colourIndex: instanceState.colourIndex
                         });
                         actionTaken = true;
+                        saveProject = true;
                     } catch (e) {
                         undoManager.removeLastUndo();
                         throw e;
@@ -2476,6 +2487,7 @@ function takeToolAction(args) {
                 const stampUpdatedTileIds = takeToolAction_tileStamp(args);
                 if (Array.isArray(stampUpdatedTileIds)) {
                     updatedTileIds = updatedTileIds.concat(stampUpdatedTileIds);
+                    saveProject = true;
                 }
 
             } else if (tool === TileEditorToolbar.Tools.palettePaint && args.isInBounds) {
@@ -2483,6 +2495,9 @@ function takeToolAction(args) {
 
                     addUndoState();
                     try {
+                        if (!instanceState.undoDisabled) {
+                            instanceState.undoDisabled = true;
+                        }
                         const result = PalettePaintTool.setTileBlockPaletteIndex({
                             paletteIndex: instanceState.paletteSlot,
                             tileMap: getTileMap(),
@@ -2513,6 +2528,7 @@ function takeToolAction(args) {
 
                             tileEditor.setState({ tileGrid: getTileGrid(), tileSet: getTileSet() });
                             tileManager.setState({ tileSet: getTileSet() });
+                            saveProject = true;
 
                         } else {
                             undoManager.removeLastUndo();
@@ -2543,6 +2559,9 @@ function takeToolAction(args) {
 
     }
 
+    return {
+        saveProject: saveProject
+    };
 }
 
 /**
@@ -3680,6 +3699,8 @@ function undoOrRedo(undoOrRedo) {
             const retrievedProjectState = undoManager.redo(getProject());
             state.setProject(retrievedProjectState);
         }
+
+        state.saveProjectToLocalStorage();
 
         // Set UI state
         refreshProjectUI();
