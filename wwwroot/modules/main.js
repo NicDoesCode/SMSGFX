@@ -2297,7 +2297,6 @@ function takeToolAction(args) {
         } else if (tool === TileEditorToolbar.Tools.pencil && args.isInBounds) {
             if (event === TileEditor.Events.pixelMouseDown || event === TileEditor.Events.pixelMouseOver) {
 
-                // CTRL not down, so draw pixel
                 const lastPx = instanceState.lastTileMapPx;
                 if (imageX !== lastPx.x || imageY !== lastPx.y) {
 
@@ -2356,7 +2355,10 @@ function takeToolAction(args) {
                         }
 
                         if (event === TileEditor.Events.pixelMouseDown) {
-                            instanceState.startingColourIndex = getTileSet().getPixelAt(imageX, imageY);
+                            const tileInfo = getTileGrid().getTileInfoByPixel(imageX, imageY);
+                            const tile = getTileSet().getTileById(tileInfo.tileId);
+                            const colour = tile.readAtCoord(imageX % 8, imageY % 8);
+                            instanceState.startingColourIndex = colour;
                         }
 
                         instanceState.lastTileMapPx.x = imageX;
@@ -2367,9 +2369,9 @@ function takeToolAction(args) {
                         const sourceColourindex = instanceState.startingColourIndex;
                         const replacementColourIndex = colourIndex;
                         const size = instanceState.pencilSize;
+                        
                         const updatedTiles = PaintTool.replaceColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, sourceColourindex, replacementColourIndex, size, clamp);
-
-                        if (updatedTiles.affectedTileIndexes.length > 0) {
+                        if (updatedTiles && updatedTiles.affectedTileIndexes.length > 0) {
 
                             if (breakLinks) {
                                 takeToolAction_breakLinks(updatedTiles.affectedTileIndexes, originalTileSet);
@@ -2379,7 +2381,6 @@ function takeToolAction(args) {
                                 updatedTileIds: updatedTiles.affectedTileIds
                             });
                             tileManager.setState({
-                                tileSet: getTileSet(),
                                 updatedTileIds: updatedTiles.affectedTileIds
                             });
 
@@ -3698,6 +3699,8 @@ function undoOrRedo(undoOrRedo) {
             const retrievedProjectState = undoManager.redo(getProject());
             state.setProject(retrievedProjectState);
         }
+
+        state.saveProjectToLocalStorage();
 
         // Set UI state
         refreshProjectUI();
