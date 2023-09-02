@@ -2289,7 +2289,6 @@ function takeToolAction(args) {
         } else if (tool === TileEditorToolbar.Tools.pencil && args.isInBounds) {
             if (event === TileEditor.Events.pixelMouseDown || event === TileEditor.Events.pixelMouseOver) {
 
-                // CTRL not down, so draw pixel
                 const lastPx = instanceState.lastTileMapPx;
                 if (imageX !== lastPx.x || imageY !== lastPx.y) {
 
@@ -2362,8 +2361,8 @@ function takeToolAction(args) {
                         const sourceColourindex = instanceState.startingColourIndex;
                         const replacementColourIndex = colourIndex;
                         const size = instanceState.pencilSize;
+                        
                         const updatedTiles = PaintTool.replaceColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, sourceColourindex, replacementColourIndex, size, clamp);
-
                         if (updatedTiles && updatedTiles.affectedTileIndexes.length > 0) {
 
                             if (breakLinks) {
@@ -2374,7 +2373,6 @@ function takeToolAction(args) {
                                 updatedTileIds: updatedTiles.affectedTileIds
                             });
                             tileManager.setState({
-                                tileSet: getTileSet(),
                                 updatedTileIds: updatedTiles.affectedTileIds
                             });
 
