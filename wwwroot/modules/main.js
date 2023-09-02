@@ -1171,7 +1171,7 @@ function handleTileEditorOnEvent(args) {
             case TileEditor.Events.pixelMouseDown:
                 instanceState.operationTileIndex = getTileGrid().getTileIndexByCoordinate(args.x, args.y);
                 if (args.isPrimaryButton) {
-                    takeToolAction({
+                    const result = takeToolAction({
                         tool: instanceState.tool,
                         colourIndex: instanceState.colourIndex,
                         imageX: args.x,
@@ -1184,12 +1184,15 @@ function handleTileEditorOnEvent(args) {
                         isInBounds: args.isInBounds,
                         event: TileEditor.Events.pixelMouseDown
                     });
+                    if (result?.saveProject) {
+                        state.saveToLocalStorage();
+                    }
                 }
                 break;
 
             case TileEditor.Events.pixelMouseOver:
                 if (args.mousePrimaryIsDown) {
-                    takeToolAction({
+                    const result = takeToolAction({
                         tool: instanceState.tool,
                         colourIndex: instanceState.colourIndex,
                         imageX: args.x,
@@ -1202,6 +1205,9 @@ function handleTileEditorOnEvent(args) {
                         isInBounds: args.isInBounds,
                         event: TileEditor.Events.pixelMouseOver
                     });
+                    if (result?.saveProject) {
+                        state.saveToLocalStorage();
+                    }
                 }
 
                 // Show the palette colour
@@ -2267,12 +2273,14 @@ function refreshProjectLists() {
 /**
  * Performs the action for a tool.
  * @param {ToolActionArgs} args 
+ * @returns {undefined|{ saveProject: boolean }}
  */
 function takeToolAction(args) {
 
     const tool = args.tool; const colourIndex = args.colourIndex;
     const event = args.event;
     const imageX = args.imageX; const imageY = args.imageY;
+    let saveProject = false;
 
     if (tool !== null && colourIndex >= 0 && colourIndex < 16) {
 
@@ -2389,6 +2397,7 @@ function takeToolAction(args) {
 
                 addUndoState();
                 PaintTool.fillColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, colourIndex, instanceState.clampToTile);
+                saveProject = true;
 
                 tileEditor.setState({
                     tileGrid: getTileGrid(),
@@ -2465,6 +2474,7 @@ function takeToolAction(args) {
                             colourIndex: instanceState.colourIndex
                         });
                         actionTaken = true;
+                        saveProject = true;
                     } catch (e) {
                         undoManager.removeLastUndo();
                         throw e;
@@ -2476,6 +2486,7 @@ function takeToolAction(args) {
                 const stampUpdatedTileIds = takeToolAction_tileStamp(args);
                 if (Array.isArray(stampUpdatedTileIds)) {
                     updatedTileIds = updatedTileIds.concat(stampUpdatedTileIds);
+                    saveProject = true;
                 }
 
             } else if (tool === TileEditorToolbar.Tools.palettePaint && args.isInBounds) {
@@ -2483,6 +2494,9 @@ function takeToolAction(args) {
 
                     addUndoState();
                     try {
+                        if (!instanceState.undoDisabled) {
+                            instanceState.undoDisabled = true;
+                        }
                         const result = PalettePaintTool.setTileBlockPaletteIndex({
                             paletteIndex: instanceState.paletteSlot,
                             tileMap: getTileMap(),
@@ -2513,6 +2527,7 @@ function takeToolAction(args) {
 
                             tileEditor.setState({ tileGrid: getTileGrid(), tileSet: getTileSet() });
                             tileManager.setState({ tileSet: getTileSet() });
+                            saveProject = true;
 
                         } else {
                             undoManager.removeLastUndo();
@@ -2543,6 +2558,9 @@ function takeToolAction(args) {
 
     }
 
+    return {
+        saveProject: saveProject
+    };
 }
 
 /**
