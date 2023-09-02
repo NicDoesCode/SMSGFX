@@ -7,6 +7,7 @@ import ProjectList from "./models/projectList.js";
 import GeneralUtil from "./util/generalUtil.js";
 import ProjectJsonSerialiser from "./serialisers/projectJsonSerialiser.js";
 import EventDispatcher from "./components/eventDispatcher.js";
+import ProjectUtil from "./util/projectUtil.js";
 
 const LOCAL_STORAGE_APPUI = 'smsgfxappui';
 const LOCAL_STORAGE_PROJECTS = 'smsgfxproject_';
@@ -144,14 +145,16 @@ export default class State {
         this.setProject(project);
     }
 
-
+    /**
+     * Saves the current UI state variables to local storage.
+     */
     saveUIStateToLocalStorage() {
         const serialisedUIState = AppUIStateJsonSerialiser.serialise(this.persistentUIState);
         localStorage.setItem(LOCAL_STORAGE_APPUI, serialisedUIState);
     }
 
     /**
-     * Saves a project to local storage.
+     * Saves a project to local storage, if a project with the same ID exists it will be overwritten.
      * @param {Project?} [projectToSave] - Project to save to local storage, or null or undefined if to save the currently selected project.
      * @param {boolean?} [raiseEvent] - Raise events that the project was changed? Defaults to true.
      */
@@ -195,6 +198,17 @@ export default class State {
         }
     }
 
+    /**
+     * Ensures that the given project has a unique ID.
+     * @param {string?} preferredProjectId - If possible use this project ID, if it exists then new one will be generated.
+     */
+    getProjectIdThatDoesntCollide(preferredProjectId) {
+        if (typeof preferredProjectId === 'string' && preferredProjectId !== '' && !projectIdExists(preferredProjectId)) {
+            return preferredProjectId;
+        } 
+        return generateUniqueProjectId();
+    }
+
 
 }
 
@@ -204,11 +218,31 @@ export default class State {
  */
 function ensureProjectHasId(project) {
     if (!project.id || !rxProjectId.test(project.id)) {
-        project.id = GeneralUtil.generateRandomString(16);
+        project.id = ProjectUtil.generateProjectId();
     }
     return project;
 }
 
+/**
+ * Returns a boolean value on whether a project exists or not.
+ * @param {string} projectId - Project ID to check.
+ */
+function projectIdExists(projectId) {
+    if (typeof projectId !== 'string' || projectId === '') throw new Error('Project ID was not valid.');
+    const storageId = `${LOCAL_STORAGE_PROJECTS}${projectId}`;
+    return localStorage.getItem(storageId) !== null;
+}
+
+/**
+ * Returns a unique project ID that doesn't exist in local storage.
+ */
+function generateUniqueProjectId() {
+    let result;
+    do {
+        result = ProjectUtil.generateProjectId();
+    } while (projectIdExists(result))
+    return result;
+}
 
 /**
  * @param {string} event 

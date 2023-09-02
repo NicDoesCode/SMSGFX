@@ -3529,13 +3529,19 @@ function importProjectFromJson() {
     input.onchange = () => {
         if (input.files.length > 0) {
             // Load the project from the file
-            ProjectUtil.loadFromBlob(input.files[0]).then(project => {
+            ProjectUtil.loadFromBlob(input.files[0]).then((project) => {
                 addUndoState();
 
+                // If it doesn't exist, use the project ID
+                const preferredProjectId = project.id;
+                project.id = state.getProjectIdThatDoesntCollide(preferredProjectId);
+
+                // Store the project
                 state.setProject(project);
                 state.saveProjectToLocalStorage();
                 getProjectUIState().paletteIndex = 0;
 
+                // Display the project
                 displaySelectedProject();
                 projectDropdown.setState({ visible: false });
                 welcomeScreen.setState({ visible: false });

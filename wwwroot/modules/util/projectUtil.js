@@ -1,6 +1,7 @@
 import Project from "../models/project.js";
 import ProjectJsonSerialiser from "../serialisers/projectJsonSerialiser.js";
 import FileUtil from "./fileUtil.js";
+import GeneralUtil from "./generalUtil.js";
 
 export default class ProjectUtil {
 
@@ -37,5 +38,13 @@ export default class ProjectUtil {
         return ProjectJsonSerialiser.deserialise(text);
     }
 
+    /**
+     * Generates a new project ID.
+     * @returns {string}
+     */
+    static generateProjectId() {
+        return GeneralUtil.generateRandomString(16);
+    }
+    
 
 }
