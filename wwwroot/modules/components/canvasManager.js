@@ -236,6 +236,8 @@ export default class CanvasManager {
     #tilePreviewMap = null;
     /** @type {HTMLCanvasElement} */
     #tilePreviewCanvas = null;
+    /** @type {HTMLCanvasElement} */
+    #gridPatternCanvas = null;
     /** @type {TileSet} */
     #tileSet = null;
     /** @type {PaletteList} */
@@ -554,6 +556,7 @@ export default class CanvasManager {
      */
     #refreshTileImage() {
         const transColour = this.#referenceImages.filter(r => r.image !== null).length > 0 ? this.#transparencyIndex : -1;
+        this.#gridPatternCanvas = createGridPatternCanvas(this.scale);
         this.#drawTileImage(this.#tileCanvas, transColour);
     }
 
@@ -664,19 +667,7 @@ export default class CanvasManager {
             // Draw in pixel mesh when the tile doesn't exist
             const originX = (tileGridCol * 8) * pxSize;
             const originY = (tileGridRow * 8) * pxSize;
-
-            context.fillStyle = '#FFFFFF';
-            context.fillRect(originX, originY, pxSize * 8, pxSize * 8);
-            context.fillStyle = '#777777';
-            for (let x = 0; x < pxSize * 8; x++) {
-                const drawX = originX + x;
-                for (let y = 0; y < pxSize * 8; y++) {
-                    const drawY = originY + y;
-                    if ((x % 2 === 0 && y % 2 === 1) || (x % 2 === 1 && y % 2 === 0)) {
-                        context.fillRect(drawX, drawY, 1, 1);
-                    }
-                }
-            }
+            context.drawImage(this.#gridPatternCanvas, originX, originY);
         }
     }
 
@@ -1269,4 +1260,25 @@ function isInBounds(tileGrid, row, column) {
     if (row < 0 || row >= tileGrid.rowCount) return false;
     if (column < 0 || column >= tileGrid.columnCount) return false;
     return true;
+}
+
+/**
+ * @param {number} scale 
+ * @returns {CanvasPattern}
+ */
+function createGridPatternCanvas(scale) {
+    const gridColour1 = 'rgba(255,255,255,0.25)';
+    const gridColour2 = 'rgba(0,0,0,0.25)';
+    const gridSizePx = 2;
+    const gridCanvas = document.createElement('canvas');
+    const gridCtx = gridCanvas.getContext('2d');
+    gridCanvas.width = scale * 8;
+    gridCanvas.height = scale * 8;
+    for (let y = 0; y < gridCanvas.height; y += gridSizePx) {
+        for (let x = 0; x < gridCanvas.width; x += gridSizePx) {
+            gridCtx.fillStyle = (x + y) % (gridSizePx * 2) === 0 ? gridColour1 : gridColour2;
+            gridCtx.fillRect(x, y, gridSizePx, gridSizePx);
+        }
+    }
+    return gridCanvas;
 }
