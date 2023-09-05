@@ -63,6 +63,7 @@ import TileMapTool from "./tools/tileMapTool.js";
 import TileSet from "./models/tileSet.js";
 import SampleProjectManager from "./components/sampleProjectManager.js";
 import ProjectJsonSerialiser from "./serialisers/projectJsonSerialiser.js";
+import KeyboardManager, { KeyDownHandler, KeyUpHandler } from "./components/keyboardManager.js";
 
 
 /* ****************************************************************************************************
@@ -266,6 +267,24 @@ function wireUpEventHandlers() {
 
 function createEventListeners() {
 
+    const platform = navigator.userAgent.includes('(Macintosh;') ? 'mac' : 'pc';
+    const km = new KeyboardManager(platform);
+    // this.#keyHandlers.push(new KeyDownHandler('one', [{ platform: '', modifiers: null, keySeries: ['1'] }]));
+    // this.#keyHandlers.push(new KeyDownHandler('shiftonetwo', [{ platform: '', modifiers: { shift: true }, keySeries: ['!', '@'] }]));
+    km.addKeyHandler(new KeyDownHandler('ctrl x', [
+        { platform: 'pc', modifiers: { control: true }, keySeries: { key: ['x', 'X'] } },
+        { platform: 'mac', modifiers: { meta: true }, keySeries: { key: ['x', 'X'] } }
+    ]));
+    // km.addKeyHandler(new KeyDownHandler('ctrl u', [{ platform: '', modifiers: { control: true }, keySeries: 'u' }]));
+    // km.addKeyHandler(new KeyDownHandler('shift d2 d3', [{ platform: '', modifiers: { shift: true }, keySeries: [{ code: 'Digit2' }, { code: 'Digit3' }] }]));
+    // km.addKeyHandler(new KeyDownHandler('shift n2 n3 n4', [{ platform: '', modifiers: { shift: true }, keySeries: [{ code: 'Numpad2' }, { code: 'Numpad3' }, { code: 'Numpad4' }] }]));
+    km.addHandlerOnCommand((args) => {
+        console.log(`got: ${args.type}: ${args.command}`);
+        args.preventDefault();
+        args.stopImmediatePropagation();
+    });
+
+
     document.addEventListener('paste', (clipboardEvent) => {
         if (clipboardEvent.clipboardData?.files?.length > 0) {
             const targetTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/gif', 'image/svg+xml'];
@@ -349,7 +368,7 @@ function createEventListeners() {
     });
 
     document.addEventListener('keyup', (keyEvent) => {
-        console.log('keyup', keyEvent);
+        // console.log('keyup', keyEvent);
 
         // instanceState.ctrlIsDown = keyEvent.ctrlKey;
         // instanceState.altIsDown = keyEvent.altKey;
@@ -2369,7 +2388,7 @@ function takeToolAction(args) {
                         const sourceColourindex = instanceState.startingColourIndex;
                         const replacementColourIndex = colourIndex;
                         const size = instanceState.pencilSize;
-                        
+
                         const updatedTiles = PaintTool.replaceColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, sourceColourindex, replacementColourIndex, size, clamp);
                         if (updatedTiles && updatedTiles.affectedTileIndexes.length > 0) {
 
