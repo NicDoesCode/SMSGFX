@@ -50,14 +50,14 @@ export default class KeyboardManager {
         });
         document.addEventListener('keydown', (keyEvent) => {
             this.#keyHandlers.forEach((kh) => {
-                if (kh.check(this.#platform, keyEvent)) {
+                if (kh.test(this.#platform, keyEvent)) {
                     this.#dispatcher.dispatch(EVENT_OnCommand, createArgs(types.keydown, kh, keyEvent));
                 }
             });
         });
         document.addEventListener('keyup', (keyEvent) => {
             this.#keyHandlers.forEach((kh) => {
-                if (kh.check(this.#platform, keyEvent)) {
+                if (kh.test(this.#platform, keyEvent)) {
                     this.#dispatcher.dispatch(EVENT_OnCommand, createArgs(types.keyup, kh, keyEvent));
                 }
             });
@@ -106,7 +106,7 @@ class KeyHandler {
     }
 
 
-    check(platform, keyEvent) {
+    test(platform, keyEvent) {
         return false;
     }
 
@@ -131,30 +131,30 @@ export class KeyDownHandler extends KeyHandler {
         super(command);
         entries.forEach((entry) => {
             const platform = entry?.platform ?? '';
-            const keySeriesAsArray = Array.isArray(entry?.keySeries) ? entry.keySeries : [entry?.keySeries ?? ''];
+            /** @type {KeyDefinition[]} */
+            const keySeriesAsArray = [];
+            if (typeof entry.key === 'string' || Array.isArray(entry.key) || typeof entry.code === 'string' || Array.isArray(entry.code)) {
+                keySeriesAsArray.push(ensureIsKeyDefinition({ key: entry.key, code: entry.code }));
+            } else if (entry?.keySeries && Array.isArray(entry?.keySeries)) {
+                entry.keySeries.forEach((keySeriesEntry) => {
+                    keySeriesAsArray.push(ensureIsKeyDefinition(keySeriesEntry));
+                });
+            }
             this.#entries[platform] = {
                 platform: platform,
                 modifiers: entry?.modifiers ?? {},
-                keySeries: keySeriesAsArray.map((k) => {
-                    if (typeof k === 'string') {
-                        return { key: k };
-                    } else if (typeof k?.key === 'string' || Array.isArray(k?.key)) {
-                        return { key: k.key };
-                    } else if (typeof k?.code === 'string' || Array.isArray(k?.code)) {
-                        return { code: k.code };
-                    } else return {};
-                })
+                keySeries: keySeriesAsArray
             };
         });
     }
 
 
     /**
-     * Checks to see whether the keyboard event triggers the handler.
+     * Tests to see whether the keyboard event triggers the handler.
      * @property {string?} platform - Platform to handle.
      * @param {KeyboardEvent} keyEvent - Event that was triggered.
      */
-    check(platform, keyEvent) {
+    test(platform, keyEvent) {
         if (!keyEvent instanceof KeyboardEvent) return false;
 
         if (keyEvent.type !== 'keydown') {
@@ -164,7 +164,7 @@ export class KeyDownHandler extends KeyHandler {
             return;
         };
 
-        const entry = this.#entries[platform ?? ''];
+        const entry = this.#entries[platform ?? ''] ?? this.#entries[''];
         if (entry) {
             const modifiersMatch = allModifiersSatisfied(entry.modifiers, keyEvent);
             const nextKeyMatches = keyEventMatchesDefinition(keyEvent, entry.keySeries[this.#index]);
@@ -174,6 +174,9 @@ export class KeyDownHandler extends KeyHandler {
                 if (hasSatisfiedAllKeysInSeries) {
                     this.reset();
                     return true;
+                } else {
+                    keyEvent.stopImmediatePropagation();
+                    keyEvent.preventDefault();
                 }
             } else {
                 this.reset();
@@ -207,19 +210,10 @@ export class KeyUpHandler extends KeyHandler {
         super(command);
         entries.forEach((entry) => {
             const platform = entry?.platform ?? '';
-            let key = {};
-            if (typeof entry.key === 'string') {
-                key.key = entry.key;
-            } else if (typeof entry.key?.key === 'string' || Array.isArray(entry.key?.key)) {
-                key.key = entry.key?.key;
-            } else if (typeof entry.key?.code === 'string' || Array.isArray(entry.key?.code)) {
-                key.code = entry.key?.code;
-            }
-
             this.#entries[platform] = {
                 platform: platform,
                 modifiers: entry?.modifiers ?? {},
-                key: key
+                key: ensureIsKeyDefinition(entry.key)
             };
         });
     }
@@ -230,12 +224,12 @@ export class KeyUpHandler extends KeyHandler {
      * @property {string?} platform - Platform to handle.
      * @param {KeyboardEvent} keyEvent - Event that was triggered.
      */
-    check(platform, keyEvent) {
+    test(platform, keyEvent) {
         if (!keyEvent instanceof KeyboardEvent) return false;
 
         if (keyEvent.type !== 'keyup') return;
 
-        const entry = this.#entries[platform ?? ''];
+        const entry = this.#entries[platform ?? ''] ?? this.#entries[''];
         if (entry) {
             const modifiersMatch = allModifiersSatisfied(entry.modifiers, keyEvent);
             const keyMatches = keyEventMatchesDefinition(keyEvent, entry.key);
@@ -286,20 +280,25 @@ function wasModifierKey(keyEvent) {
 
 /**
  * @param {KeyboardEvent} keyEvent 
- * @param {string|KeyDefinition} key 
+ * @param {string|KeyDefinition} keyOrKeyDefinition 
  */
-function keyEventMatchesDefinition(keyEvent, key) {
-    if (typeof key === 'string') {
-        return keyEvent.key === key;
-    } else if (typeof key?.key === 'string') {
-        return keyEvent.key === key.key;
-    } else if (Array.isArray(key?.key)) {
-        return key.key.includes(keyEvent.key);
-    } else if (typeof key?.code === 'string') {
-        return keyEvent.code === key.code;
-    } else if (Array.isArray(key?.code)) {
-        return key.code.includes(keyEvent.code);
+function keyEventMatchesDefinition(keyEvent, keyOrKeyDefinition) {
+    if (typeof keyOrKeyDefinition === 'string') {
+        return keyEvent.key === keyOrKeyDefinition;
     }
+    if (typeof keyOrKeyDefinition?.key === 'string' && keyEvent.key === keyOrKeyDefinition.key) {
+        return true;
+    }
+    if (typeof keyOrKeyDefinition?.code === 'string' && keyEvent.code === keyOrKeyDefinition.code) {
+        return true;
+    }
+    if (Array.isArray(keyOrKeyDefinition?.key) && keyOrKeyDefinition.key.includes(keyEvent.key)) {
+        return true;
+    }
+    if (Array.isArray(keyOrKeyDefinition?.code) && keyOrKeyDefinition.code.includes(keyEvent.code)) {
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -316,6 +315,35 @@ function createArgs(type, keyHandler, keyEvent) {
         preventDefault: () => { keyEvent.preventDefault() },
         stopImmediatePropagation: () => { keyEvent.stopImmediatePropagation() }
     };
+}
+
+/**
+ * @param {string|KeyDefinition} keyOrKeyDefinition 
+ * @returns {KeyDefinition}
+ */
+function ensureIsKeyDefinition(keyOrKeyDefinition) {
+    /** @type {KeyDefinition} */
+    const result = { key: [], code: [] };
+
+    if (typeof keyOrKeyDefinition === 'string') {
+        result.key.push(keyOrKeyDefinition);
+    } else if (Array.isArray(keyOrKeyDefinition)) {
+        result.key = keyOrKeyDefinition.filter((k) => typeof k === 'string');
+    }
+
+    if (typeof keyOrKeyDefinition?.key === 'string') {
+        result.key.push(keyOrKeyDefinition.key);
+    } else if (Array.isArray(keyOrKeyDefinition.key)) {
+        result.key = keyOrKeyDefinition.key.filter((k) => typeof k === 'string');
+    }
+
+    if (typeof keyOrKeyDefinition.code === 'string') {
+        result.code.push(keyOrKeyDefinition.code);
+    } else if (Array.isArray(keyOrKeyDefinition.code)) {
+        result.code = keyOrKeyDefinition.code.filter((k) => typeof k === 'string');
+    }
+
+    return result;
 }
 
 
@@ -347,23 +375,25 @@ function createArgs(type, keyHandler, keyEvent) {
 
 /**
  * @typedef {Object} KeyDownEntry
- * @property {string?} platform - Platform to handle.
+ * @property {string?} [platform] - Platform to handle.
  * @property {ModifierKeys?} modifiers - Modifier keys.
- * @property {string|string[]|KeyDefinition|KeyDefinition[]} keySeries - Array of sequential key strokes that comprise this shortcut.
+ * @property {string|string[]|null} [key] - Key that activates this command.
+ * @property {string|string[]|null} [code] - Key code hat activates this command.
+ * @property {string[]|KeyDefinition[]|null} [keySeries] - Array of sequential key strokes that activate this command.
  * @exports
  */
 
 /**
  * @typedef {Object} KeyUpEntry
- * @property {string?} platform - Platform to handle.
+ * @property {string?} [platform] - Platform to handle.
  * @property {ModifierKeys?} modifiers - Modifier keys.
- * @property {string|KeyDefinition} key - Key that activates this command.
+ * @property {string|string[]|KeyDefinition} key - Key that activates this command.
  * @exports
  */
 
 /**
  * @typedef {Object} KeyDefinition
- * @property {string?} code - Platform to handle.
- * @property {string|string[]|null} key - Platform to handle.
+ * @property {string|string[]|null} [key] - Key or list of keys that validate this definition.
+ * @property {string|string[]|null} [code] - Key code or list of key codes that validate this definition.
  * @exports
  */
