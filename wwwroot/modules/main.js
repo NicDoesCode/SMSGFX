@@ -287,7 +287,7 @@ function createEventListeners() {
     });
 
     document.addEventListener('keydown', (keyEvent) => {
-        // console.log('keydown', keyEvent);
+        console.log('keydown', keyEvent);
 
         // instanceState.ctrlIsDown = keyEvent.ctrlKey;
         // instanceState.altIsDown = keyEvent.altKey;
@@ -349,7 +349,7 @@ function createEventListeners() {
     });
 
     document.addEventListener('keyup', (keyEvent) => {
-        // console.log('keyup', keyEvent);
+        console.log('keyup', keyEvent);
 
         // instanceState.ctrlIsDown = keyEvent.ctrlKey;
         // instanceState.altIsDown = keyEvent.altKey;
