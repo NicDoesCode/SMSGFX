@@ -398,6 +398,10 @@ function createEventListeners() {
         { modifiers: { alt: true }, keySeries: [{ key: ['i', 'I'] }, { key: ['t', 'T'] }] },
         { platform: 'mac', modifiers: { alt: true }, keySeries: [{ code: 'KeyI' }, { key: ['†', 'ˇ'], code: 'KeyT' }] }
     ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileImportImage, [
+        { modifiers: { alt: true }, keySeries: [{ key: ['i', 'I'] }, { key: ['i', 'I'] }] },
+        { platform: 'mac', modifiers: { alt: true }, keySeries: [{ code: 'KeyI' }, { code: 'KeyI' }] }
+    ]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileMirrorHorizontal, [
         { modifiers: { alt: true }, key: ['[', '{', '“'] }
     ]));
