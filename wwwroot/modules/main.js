@@ -518,8 +518,6 @@ function createEventListeners() {
     ]));
 
     keyboardManager.addHandlerOnCommand((args) => {
-        // console.log(`got: ${args.type}: ${args.command}`);
-
         const keyEvent = args.keyboardEvent;
 
         if (keyEvent.target.tagName === 'INPUT') return;
