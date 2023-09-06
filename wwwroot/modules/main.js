@@ -304,7 +304,7 @@ const keyboardCommands = {
     toolBreakLink: 'toolBreakLink',
     toolRowColumn: 'toolRowColumn',
     toolTileStamp: 'toolTileStamp',
-    toolTilePalette: 'toolTilePalette',
+    toolTilePalettePaint: 'toolTilePalettePaint',
     toolEyedropper: 'toolEyedropper',
     viewportZoomIn: 'viewportZoomIn',
     viewportZoomOut: 'viewportZoomOut',
@@ -328,90 +328,194 @@ function createEventListeners() {
     const keyboardManager = new KeyboardManager(platform);
 
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.undo, [
-        { platform: 'pc', modifiers: { control: true }, key: ['z', 'Z'] },
+        { modifiers: { control: true }, key: ['z', 'Z'] },
         { platform: 'mac', modifiers: { meta: true }, key: ['z', 'Z'] }
     ]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.redo, [
-        { platform: 'pc', modifiers: { control: true }, key: ['y', 'Y'] },
+        { modifiers: { control: true }, key: ['y', 'Y'] },
         { platform: 'mac', modifiers: { meta: true, shift: true }, key: ['z', 'Z'] }
     ]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.cut, [
-        { platform: 'pc', modifiers: { control: true }, key: ['x', 'X'] },
+        { modifiers: { control: true }, key: ['x', 'X'] },
         { platform: 'mac', modifiers: { meta: true }, key: ['x', 'X'] }
     ]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.copy, [
-        { platform: 'pc', modifiers: { control: true }, key: ['c', 'C'] },
+        { modifiers: { control: true }, key: ['c', 'C'] },
         { platform: 'mac', modifiers: { meta: true }, key: ['c', 'C'] }
     ]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paste, [
-        { platform: 'pc', modifiers: { control: true }, key: ['v', 'V'] },
+        { modifiers: { control: true }, key: ['v', 'V'] },
         { platform: 'mac', modifiers: { meta: true }, key: ['v', 'V'] }
     ]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.duplicate, [
-        { platform: 'pc', modifiers: { control: true }, key: ['d', 'D'] },
+        { modifiers: { control: true }, key: ['d', 'D'] },
         { platform: 'mac', modifiers: { meta: true }, key: ['d', 'D'] }
     ]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.exportCode, [
-        { platform: 'pc', modifiers: { control: true, shift: true }, key: ['e', 'E'] },
+        { modifiers: { control: true, shift: true }, key: ['e', 'E'] },
         { platform: 'mac', modifiers: { meta: true, shift: true }, key: ['e', 'E'] }
     ]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.jsonImport, [
-        { platform: 'pc', modifiers: { control: true }, key: ['o', 'O'] },
+        { modifiers: { control: true }, key: ['o', 'O'] },
         { platform: 'mac', modifiers: { meta: true }, key: ['o', 'O'] }
     ]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.jsonExport, [
-        { platform: 'pc', modifiers: { control: true }, key: ['s', 'S'] },
+        { modifiers: { control: true }, key: ['s', 'S'] },
         { platform: 'mac', modifiers: { meta: true }, key: ['s', 'S'] }
     ]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.projectNew, [{ modifiers: { alt: true }, keySeries: [{ key: ['n', 'N'] }, { key: ['n', 'N'] }] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paletteNew, [{ modifiers: { alt: true }, keySeries: [{ key: ['n', 'N'] }, { key: ['p', 'P'] }] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paletteImportCode, [{ modifiers: { alt: true }, keySeries: [{ key: ['i', 'I'] }, { key: ['p', 'P'] }] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paletteIndexLeft, [{ modifiers: { shift: true }, keySeries: [{ key: ['<', ','] }] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paletteIndexRight, [{ modifiers: { shift: true }, keySeries: [{ key: ['>', ','] }] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paletteIndexHigher, [{ modifiers: { shift: true, control: true }, keySeries: [{ key: ['>', '.'] }] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paletteIndexLower, [{ modifiers: { shift: true, control: true }, keySeries: [{ key: ['<', ','] }] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileNew, [{ modifiers: { alt: true }, keySeries: [{ key: ['n', 'N'] }, { key: ['t', 'T'] }] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileDelete, [{ modifiers: {}, key: 'Delete' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileImportCode, [{ modifiers: { alt: true }, keySeries: [{ key: ['i', 'I'] }, { key: ['t', 'T'] }] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileMirrorHorizontal, [{ modifiers: { alt: true }, key: ['[', '{'] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileMirrorVertical, [{ modifiers: { alt: true }, key: [']', '}'] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileMapNew, [{ modifiers: { alt: true }, keySeries: [{ key: ['n', 'N'] }, { key: ['m', 'M'] }] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileMapIndexHigher, [{ modifiers: { shift: true, alt: true }, key: ['>', '.'] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileMapIndexLower, [{ modifiers: { shift: true, alt: true }, key: ['<', ','] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.moveUp, [{ modifiers: { alt: true }, key: 'ArrowUp' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.moveDown, [{ modifiers: { alt: true }, key: 'ArrowDown' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.moveLeft, [{ modifiers: { alt: true }, key: 'ArrowLeft' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.moveRight, [{ modifiers: { alt: true }, key: 'ArrowRight' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.brushSmaller, [{ modifiers: { control: true }, key: '[' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.brushBigger, [{ modifiers: { control: true }, key: ']' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.brushMuchSmaller, [{ modifiers: { control: true, shift: true }, key: '{' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.brushMuchBigger, [{ modifiers: { control: true, shift: true }, key: '}' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolSelect, [{ modifiers: {}, key: ['s', 'S'] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolPencil, [{ modifiers: {}, key: ['p', 'P'] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolColourReplace, [{ modifiers: {}, key: ['r', 'R'] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolPaintBucket, [{ modifiers: {}, key: ['b', 'B'] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolEyedropper, [{ modifiers: {}, key: ['i', 'I'] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolReferenceImage, [{ modifiers: {}, key: ['f', 'F'] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolRowColumn, [{ modifiers: {}, key: ['-', '_', '+', '='] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolBreakLink, [{ modifiers: {}, key: ['l', 'L'] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolTileStamp, [{ modifiers: {}, key: ['x', 'X'] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolTilePalette, [{ modifiers: {}, key: ['c', 'C'] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportZoomIn, [{ modifiers: { shift: true }, key: ['=', '+'], code: 'NumpadAdd' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportZoomOut, [{ modifiers: { shift: true }, key: ['-', '_'], code: 'NumpadSubtract' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanUp, [{ modifiers: { shift: true }, key: 'ArrowUp' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanDown, [{ modifiers: { shift: true }, key: 'ArrowDown' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanLeft, [{ modifiers: { shift: true }, key: 'ArrowLeft' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanRight, [{ modifiers: { shift: true }, key: 'ArrowRight' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanUp, [{ modifiers: { shift: true, control: true }, key: 'ArrowUp' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanDown, [{ modifiers: { shift: true, control: true }, key: 'ArrowDown' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanLeft, [{ modifiers: { shift: true, control: true }, key: 'ArrowLeft' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanRight, [{ modifiers: { shift: true, control: true }, key: 'ArrowRight' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.selectUp, [{ modifiers: {}, key: 'ArrowUp' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.selectDown, [{ modifiers: {}, key: 'ArrowDown' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.selectLeft, [{ modifiers: {}, key: 'ArrowLeft' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.selectRigth, [{ modifiers: {}, key: 'ArrowRight' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.control, [{ modifiers: { control: true }, key: 'Control' }]));
-    keyboardManager.addKeyHandler(new KeyUpHandler(keyboardCommands.control, [{ key: 'Control' }]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.projectNew, [
+        { modifiers: { alt: true }, keySeries: [{ key: ['n', 'N'] }, { key: ['n', 'N'] }] },
+        { platform: 'mac', modifiers: { alt: true }, keySeries: [{ code: 'KeyN' }, { code: 'KeyN' }] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paletteNew, [
+        { modifiers: { alt: true }, keySeries: [{ key: ['n', 'N'] }, { key: ['p', 'P'] }] },
+        { platform: 'mac', modifiers: { alt: true }, keySeries: [{ code: 'KeyN' }, { code: 'KeyP' }] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paletteImportCode, [
+        { modifiers: { alt: true }, keySeries: [{ key: ['i', 'I'] }, { key: ['p', 'P'] }] },
+        { platform: 'mac', modifiers: { alt: true }, keySeries: [{ code: 'KeyI' }, { code: 'KeyP' }] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paletteIndexLeft, [
+        { modifiers: { shift: true }, keySeries: [{ key: ['<', ','] }] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paletteIndexRight, [
+        { modifiers: { shift: true }, keySeries: [{ key: ['>', ','] }] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paletteIndexHigher, [
+        { modifiers: { shift: true, control: true }, keySeries: [{ key: ['>', '.'] }] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paletteIndexLower, [
+        { modifiers: { shift: true, control: true }, keySeries: [{ key: ['<', ','] }] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileNew, [
+        { modifiers: { alt: true }, keySeries: [{ key: ['n', 'N'] }, { key: ['t', 'T'] }] },
+        { platform: 'mac', modifiers: { alt: true }, keySeries: [{ code: 'KeyN' }, { key: ['†', 'ˇ'], code: 'KeyT' }] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileDelete, [
+        { key: 'Delete' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileImportCode, [
+        { modifiers: { alt: true }, keySeries: [{ key: ['i', 'I'] }, { key: ['t', 'T'] }] },
+        { platform: 'mac', modifiers: { alt: true }, keySeries: [{ code: 'KeyI' }, { key: ['†', 'ˇ'], code: 'KeyT' }] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileMirrorHorizontal, [
+        { modifiers: { alt: true }, key: ['[', '{', '“'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileMirrorVertical, [
+        { modifiers: { alt: true }, key: [']', '}', '‘'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileMapNew, [
+        { modifiers: { alt: true }, keySeries: [{ code: ['n', 'N'] }, { key: ['m', 'M'] }] },
+        { platform: 'mac', modifiers: { alt: true }, keySeries: [{ code: 'KeyN' }, { key: ['µ', 'Â'], code: 'KeyM' }] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileMapIndexHigher, [
+        { modifiers: { shift: true, alt: true }, key: ['>', '.', '˘'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileMapIndexLower, [
+        { modifiers: { shift: true, alt: true }, key: ['<', ',', '¯'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.moveUp, [
+        { modifiers: { alt: true }, key: 'ArrowUp' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.moveDown, [
+        { modifiers: { alt: true }, key: 'ArrowDown' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.moveLeft, [
+        { modifiers: { alt: true }, key: 'ArrowLeft' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.moveRight, [
+        { modifiers: { alt: true }, key: 'ArrowRight' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.brushSmaller, [
+        { modifiers: { control: true }, key: '[' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.brushBigger, [
+        { modifiers: { control: true }, key: ']' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.brushMuchSmaller, [
+        { modifiers: { control: true, shift: true }, key: '{' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.brushMuchBigger, [
+        { modifiers: { control: true, shift: true }, key: '}' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolSelect, [
+        { key: ['s', 'S'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolPencil, [
+        { key: ['p', 'P'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolColourReplace, [
+        { key: ['r', 'R'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolPaintBucket, [
+        { key: ['b', 'B'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolEyedropper, [
+        { key: ['i', 'I'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolReferenceImage, [
+        { key: ['f', 'F'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolRowColumn, [
+        { key: ['-', '_', '+', '='] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolBreakLink, [
+        { key: ['l', 'L'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolTileStamp, [
+        { key: ['x', 'X'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolTilePalettePaint, [
+        { key: ['c', 'C'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportZoomIn, [
+        { modifiers: { shift: true }, key: ['=', '+'], code: 'NumpadAdd' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportZoomOut, [
+        { modifiers: { shift: true }, key: ['-', '_'], code: 'NumpadSubtract' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanUp, [
+        { modifiers: { shift: true }, key: 'ArrowUp' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanDown, [
+        { modifiers: { shift: true }, key: 'ArrowDown' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanLeft, [
+        { modifiers: { shift: true }, key: 'ArrowLeft' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanRight, [
+        { modifiers: { shift: true }, key: 'ArrowRight' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanUp, [
+        { modifiers: { shift: true, control: true }, key: 'ArrowUp' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanDown, [
+        { modifiers: { shift: true, control: true }, key: 'ArrowDown' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanLeft, [
+        { modifiers: { shift: true, control: true }, key: 'ArrowLeft' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanRight, [
+        { modifiers: { shift: true, control: true }, key: 'ArrowRight' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.selectUp, [
+        { key: 'ArrowUp' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.selectDown, [
+        { key: 'ArrowDown' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.selectLeft, [
+        { key: 'ArrowLeft' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.selectRight, [
+        { key: 'ArrowRight' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.control, [
+        { modifiers: { control: true }, key: 'Control' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyUpHandler(keyboardCommands.control, [
+        { key: 'Control' }
+    ]));
 
     keyboardManager.addHandlerOnCommand((args) => {
         // console.log(`got: ${args.type}: ${args.command}`);
@@ -498,7 +602,7 @@ function createEventListeners() {
             case keyboardCommands.tileMirrorHorizontal:
                 if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileGrid().tileCount) {
                     if (isTileSet()) {
-                        mirrorHorizontal(instanceState.tileIndex);
+                        mirrorTileAt('h', instanceState.tileIndex);
                     } else {
                         const tile = getTileMap().getTileByIndex(instanceState.tileIndex);
                         tile.horizontalFlip = !tile.horizontalFlip;
@@ -509,7 +613,7 @@ function createEventListeners() {
             case keyboardCommands.tileMirrorVertical:
                 if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileGrid().tileCount) {
                     if (isTileSet()) {
-                        mirrorVertical(instanceState.tileIndex);
+                        mirrorTileAt('v', instanceState.tileIndex);
                     } else {
                         const tile = getTileMap().getTileByIndex(instanceState.tileIndex);
                         tile.verticalFlip = !tile.verticalFlip;
@@ -585,16 +689,16 @@ function createEventListeners() {
                 selectTool(TileEditorToolbar.Tools.referenceImage);
                 break;
             case keyboardCommands.toolBreakLink:
-                selectTool(TileEditorToolbar.Tools.tileLinkBreak);
+                if (isTileMap()) selectTool(TileEditorToolbar.Tools.tileLinkBreak);
                 break;
             case keyboardCommands.toolRowColumn:
-                selectTool(TileEditorToolbar.Tools.rowColumn);
+                if (isTileMap()) selectTool(TileEditorToolbar.Tools.rowColumn);
                 break;
             case keyboardCommands.toolTileStamp:
-                selectTool(TileEditorToolbar.Tools.tileStamp);
+                if (isTileMap()) selectTool(TileEditorToolbar.Tools.tileStamp);
                 break;
-            case keyboardCommands.toolTilePalette:
-                selectTool(TileEditorToolbar.Tools.palettePaint);
+            case keyboardCommands.toolTilePalettePaint:
+                if (isTileMap()) selectTool(TileEditorToolbar.Tools.palettePaint);
                 break;
             case keyboardCommands.toolEyedropper:
                 if (instanceState.tool === TileEditorToolbar.Tools.tileStamp) {
@@ -622,24 +726,24 @@ function createEventListeners() {
                 tileEditor.setState({ viewportPanHorizontal: keyEvent.ctrlKey ? 250 : 50 });
                 break;
             case keyboardCommands.selectUp:
-                proposedIndex = instanceState.tileIndex - getTileSet().tileWidth;
-                if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
+                proposedIndex = instanceState.tileIndex - getTileGrid().columnCount;
+                if (proposedIndex >= 0 && proposedIndex < getTileGrid().tileCount) {
                     toggleTileIndexSelectedState(proposedIndex);
                 }
                 break;
             case keyboardCommands.selectDown:
-                proposedIndex = instanceState.tileIndex + getTileSet().tileWidth;
-                if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
+                proposedIndex = instanceState.tileIndex + getTileGrid().columnCount;
+                if (proposedIndex >= 0 && proposedIndex < getTileGrid().tileCount) {
                     toggleTileIndexSelectedState(proposedIndex);
                 }
                 break;
             case keyboardCommands.selectLeft:
-                if (instanceState.tileIndex > 0 && instanceState.tileIndex < getTileSet().length) {
+                if (instanceState.tileIndex > 0 && instanceState.tileIndex < getTileGrid().tileCount) {
                     toggleTileIndexSelectedState(instanceState.tileIndex - 1);
                 }
                 break;
             case keyboardCommands.selectRight:
-                if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length - 1) {
+                if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileGrid().tileCount - 1) {
                     toggleTileIndexSelectedState(instanceState.tileIndex + 1);
                 }
                 break;
