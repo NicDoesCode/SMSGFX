@@ -63,6 +63,7 @@ import TileMapTool from "./tools/tileMapTool.js";
 import TileSet from "./models/tileSet.js";
 import SampleProjectManager from "./components/sampleProjectManager.js";
 import ProjectJsonSerialiser from "./serialisers/projectJsonSerialiser.js";
+import KeyboardManager, { KeyDownHandler, KeyUpHandler } from "./components/keyboardManager.js";
 
 
 /* ****************************************************************************************************
@@ -264,14 +265,545 @@ function wireUpEventHandlers() {
     welcomeScreen.addHandlerOnCommand(welcomeScreenOnCommand);
 }
 
+const keyboardCommands = {
+    undo: 'undo',
+    redo: 'redo',
+    cut: 'cut',
+    copy: 'copy',
+    paste: 'paste',
+    duplicate: 'duplicate',
+    exportCode: 'exportCode',
+    jsonImport: 'jsonImport',
+    jsonExport: 'jsonExport',
+    control: 'control',
+    brushBigger: 'brushBigger',
+    brushSmaller: 'brushSmaller',
+    brushMuchBigger: 'brushMuchBigger',
+    brushMuchSmaller: 'brushMuchSmaller',
+    projectNew: 'projectNew',
+    paletteNew: 'paletteNew',
+    paletteImportCode: 'paletteImportCode',
+    paletteIndexLeft: 'paletteIndexLeft',
+    paletteIndexRight: 'paletteIndexRight',
+    paletteIndexHigher: 'paletteIndexHigher',
+    paletteIndexLower: 'paletteIndexLower',
+    tileNew: 'tileNew',
+    tileDelete: 'tileDelete',
+    tileMapNew: 'tileMapNew',
+    tileMapIndexHigher: 'tileMapIndexHigher',
+    tileMapIndexLower: 'tileMapIndexLower',
+    tileImportCode: 'tileImportCode',
+    tileImportImage: 'tileImportImage',
+    tileMirrorHorizontal: 'tileMirrorHorizontal',
+    tileMirrorVertical: 'tileMirrorVertical',
+    toolSelect: 'toolSelect',
+    toolPencil: 'toolPencil',
+    toolPaintBucket: 'toolPaintBucket',
+    toolColourReplace: 'toolColourReplace',
+    toolReferenceImage: 'toolReferenceImage',
+    toolBreakLink: 'toolBreakLink',
+    toolRowColumn: 'toolRowColumn',
+    toolTileStamp: 'toolTileStamp',
+    toolTilePalettePaint: 'toolTilePalettePaint',
+    toolEyedropper: 'toolEyedropper',
+    viewportZoomIn: 'viewportZoomIn',
+    viewportZoomOut: 'viewportZoomOut',
+    viewportPanLeft: 'viewportPanLeft',
+    viewportPanRight: 'viewportPanRight',
+    viewportPanUp: 'viewportPanUp',
+    viewportPanDown: 'viewportPanDown',
+    selectUp: 'selectUp',
+    selectDown: 'selectDown',
+    selectLeft: 'selectLeft',
+    selectRight: 'selectRight',
+    moveUp: 'moveUp',
+    moveDown: 'moveDown',
+    moveLeft: 'moveLeft',
+    moveRight: 'moveRight',
+}
+
 function createEventListeners() {
+
+    const platform = navigator.userAgent.includes('(Macintosh;') ? 'mac' : 'pc';
+    const keyboardManager = new KeyboardManager(platform);
+
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.undo, [
+        { modifiers: { control: true }, key: ['z', 'Z'] },
+        { platform: 'mac', modifiers: { meta: true }, key: ['z', 'Z'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.redo, [
+        { modifiers: { control: true }, key: ['y', 'Y'] },
+        { platform: 'mac', modifiers: { meta: true, shift: true }, key: ['z', 'Z'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.cut, [
+        { modifiers: { control: true }, key: ['x', 'X'] },
+        { platform: 'mac', modifiers: { meta: true }, key: ['x', 'X'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.copy, [
+        { modifiers: { control: true }, key: ['c', 'C'] },
+        { platform: 'mac', modifiers: { meta: true }, key: ['c', 'C'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paste, [
+        { modifiers: { control: true }, key: ['v', 'V'] },
+        { platform: 'mac', modifiers: { meta: true }, key: ['v', 'V'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.duplicate, [
+        { modifiers: { control: true }, key: ['d', 'D'] },
+        { platform: 'mac', modifiers: { meta: true }, key: ['d', 'D'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.exportCode, [
+        { modifiers: { control: true, shift: true }, key: ['e', 'E'] },
+        { platform: 'mac', modifiers: { meta: true, shift: true }, key: ['e', 'E'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.jsonImport, [
+        { modifiers: { control: true }, key: ['o', 'O'] },
+        { platform: 'mac', modifiers: { meta: true }, key: ['o', 'O'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.jsonExport, [
+        { modifiers: { control: true }, key: ['s', 'S'] },
+        { platform: 'mac', modifiers: { meta: true }, key: ['s', 'S'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.projectNew, [
+        { modifiers: { alt: true }, keySeries: [{ key: ['n', 'N'] }, { key: ['n', 'N'] }] },
+        { platform: 'mac', modifiers: { alt: true }, keySeries: [{ code: 'KeyN' }, { code: 'KeyN' }] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paletteNew, [
+        { modifiers: { alt: true }, keySeries: [{ key: ['n', 'N'] }, { key: ['p', 'P'] }] },
+        { platform: 'mac', modifiers: { alt: true }, keySeries: [{ code: 'KeyN' }, { code: 'KeyP' }] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paletteImportCode, [
+        { modifiers: { alt: true }, keySeries: [{ key: ['i', 'I'] }, { key: ['p', 'P'] }] },
+        { platform: 'mac', modifiers: { alt: true }, keySeries: [{ code: 'KeyI' }, { code: 'KeyP' }] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paletteIndexLeft, [
+        { modifiers: { shift: true }, keySeries: [{ key: ['<', ','] }] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paletteIndexRight, [
+        { modifiers: { shift: true }, keySeries: [{ key: ['>', ','] }] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paletteIndexHigher, [
+        { modifiers: { shift: true, control: true }, keySeries: [{ key: ['>', '.'] }] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paletteIndexLower, [
+        { modifiers: { shift: true, control: true }, keySeries: [{ key: ['<', ','] }] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileNew, [
+        { modifiers: { alt: true }, keySeries: [{ key: ['n', 'N'] }, { key: ['t', 'T'] }] },
+        { platform: 'mac', modifiers: { alt: true }, keySeries: [{ code: 'KeyN' }, { key: ['†', 'ˇ'], code: 'KeyT' }] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileDelete, [
+        { key: 'Delete' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileImportCode, [
+        { modifiers: { alt: true }, keySeries: [{ key: ['i', 'I'] }, { key: ['t', 'T'] }] },
+        { platform: 'mac', modifiers: { alt: true }, keySeries: [{ code: 'KeyI' }, { key: ['†', 'ˇ'], code: 'KeyT' }] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileMirrorHorizontal, [
+        { modifiers: { alt: true }, key: ['[', '{', '“'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileMirrorVertical, [
+        { modifiers: { alt: true }, key: [']', '}', '‘'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileMapNew, [
+        { modifiers: { alt: true }, keySeries: [{ code: ['n', 'N'] }, { key: ['m', 'M'] }] },
+        { platform: 'mac', modifiers: { alt: true }, keySeries: [{ code: 'KeyN' }, { key: ['µ', 'Â'], code: 'KeyM' }] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileMapIndexHigher, [
+        { modifiers: { shift: true, alt: true }, key: ['>', '.', '˘'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileMapIndexLower, [
+        { modifiers: { shift: true, alt: true }, key: ['<', ',', '¯'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.moveUp, [
+        { modifiers: { alt: true }, key: 'ArrowUp' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.moveDown, [
+        { modifiers: { alt: true }, key: 'ArrowDown' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.moveLeft, [
+        { modifiers: { alt: true }, key: 'ArrowLeft' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.moveRight, [
+        { modifiers: { alt: true }, key: 'ArrowRight' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.brushSmaller, [
+        { modifiers: { control: true }, key: '[' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.brushBigger, [
+        { modifiers: { control: true }, key: ']' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.brushMuchSmaller, [
+        { modifiers: { control: true, shift: true }, key: '{' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.brushMuchBigger, [
+        { modifiers: { control: true, shift: true }, key: '}' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolSelect, [
+        { key: ['s', 'S'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolPencil, [
+        { key: ['p', 'P'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolColourReplace, [
+        { key: ['r', 'R'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolPaintBucket, [
+        { key: ['b', 'B'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolEyedropper, [
+        { key: ['i', 'I'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolReferenceImage, [
+        { key: ['f', 'F'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolRowColumn, [
+        { key: ['-', '_', '+', '='] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolBreakLink, [
+        { key: ['l', 'L'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolTileStamp, [
+        { key: ['x', 'X'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolTilePalettePaint, [
+        { key: ['c', 'C'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportZoomIn, [
+        { modifiers: { shift: true }, key: ['=', '+'], code: 'NumpadAdd' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportZoomOut, [
+        { modifiers: { shift: true }, key: ['-', '_'], code: 'NumpadSubtract' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanUp, [
+        { modifiers: { shift: true }, key: 'ArrowUp' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanDown, [
+        { modifiers: { shift: true }, key: 'ArrowDown' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanLeft, [
+        { modifiers: { shift: true }, key: 'ArrowLeft' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanRight, [
+        { modifiers: { shift: true }, key: 'ArrowRight' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanUp, [
+        { modifiers: { shift: true, control: true }, key: 'ArrowUp' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanDown, [
+        { modifiers: { shift: true, control: true }, key: 'ArrowDown' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanLeft, [
+        { modifiers: { shift: true, control: true }, key: 'ArrowLeft' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanRight, [
+        { modifiers: { shift: true, control: true }, key: 'ArrowRight' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.selectUp, [
+        { key: 'ArrowUp' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.selectDown, [
+        { key: 'ArrowDown' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.selectLeft, [
+        { key: 'ArrowLeft' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.selectRight, [
+        { key: 'ArrowRight' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.control, [
+        { modifiers: { control: true }, key: 'Control' }
+    ]));
+    keyboardManager.addKeyHandler(new KeyUpHandler(keyboardCommands.control, [
+        { key: 'Control' }
+    ]));
+
+    keyboardManager.addHandlerOnCommand((args) => {
+        const keyEvent = args.keyboardEvent;
+
+        if (keyEvent.target.tagName === 'INPUT') return;
+        if (keyEvent.target.tagName === 'SELECT') return;
+        if (keyEvent.target.tagName === 'TEXTAREA') return;
+
+        let proposedIndex;
+
+        switch (args.command) {
+            case keyboardCommands.undo:
+                undoOrRedo('u');
+                break;
+            case keyboardCommands.redo:
+                undoOrRedo('r');
+                break;
+            case keyboardCommands.jsonImport:
+                importProjectFromJson();
+                break;
+            case keyboardCommands.jsonExport:
+                exportProjectToJson();
+                break;
+            case keyboardCommands.exportCode:
+                displayExportToAssemblyDialogue();
+                break;
+            case keyboardCommands.brushBigger:
+                restoreSwapTool();
+                changePencilSize(1);
+                break;
+            case keyboardCommands.brushSmaller:
+                restoreSwapTool();
+                changePencilSize(-1);
+                break;
+            case keyboardCommands.brushMuchBigger:
+                changePencilSize(5);
+                break;
+            case keyboardCommands.brushMuchSmaller:
+                changePencilSize(-5);
+                break;
+            case keyboardCommands.projectNew:
+                newProjectDialogue.setState({
+                    title: 'New project',
+                    systemType: getProject()?.systemType ?? NewProjectDialogue.Systems.smsgg,
+                    selectedtilePreset: NewProjectDialogue.TilePresets["8x8"],
+                    createTileMap: true
+                });
+                newProjectDialogue.show();
+                break;
+            case keyboardCommands.paletteNew:
+                paletteNew();
+                break;
+            case keyboardCommands.paletteImportCode:
+                paletteImportFromAssembly();
+                break;
+            case keyboardCommands.paletteIndexLeft:
+                selectColourIndex(instanceState.colourIndex - 1);
+                break;
+            case keyboardCommands.paletteIndexRight:
+                selectColourIndex(instanceState.colourIndex + 1);
+                break;
+            case keyboardCommands.paletteIndexHigher:
+                changePaletteIndex(getProjectUIState().paletteIndex + 1);
+                break;
+            case keyboardCommands.paletteIndexLower:
+                changePaletteIndex(getProjectUIState().paletteIndex - 1);
+                break;
+            case keyboardCommands.tileNew:
+                tileNew();
+                break;
+            case keyboardCommands.tileDelete:
+                if (isTileSet() && instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
+                    removeTileAt(instanceState.tileIndex);
+                }
+                break;
+            case keyboardCommands.tileImportCode:
+                tilesImportFromAssembly();
+                break;
+            case keyboardCommands.tileImportImage:
+                tilesImportFromImage();
+                break;
+            case keyboardCommands.tileMirrorHorizontal:
+                if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileGrid().tileCount) {
+                    if (isTileSet()) {
+                        mirrorTileAt('h', instanceState.tileIndex);
+                    } else {
+                        const tile = getTileMap().getTileByIndex(instanceState.tileIndex);
+                        tile.horizontalFlip = !tile.horizontalFlip;
+                        tileEditor.setState({ updatedTileIds: [tile.tileId] });
+                    }
+                }
+                break;
+            case keyboardCommands.tileMirrorVertical:
+                if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileGrid().tileCount) {
+                    if (isTileSet()) {
+                        mirrorTileAt('v', instanceState.tileIndex);
+                    } else {
+                        const tile = getTileMap().getTileByIndex(instanceState.tileIndex);
+                        tile.verticalFlip = !tile.verticalFlip;
+                        tileEditor.setState({ updatedTileIds: [tile.tileId] });
+                    }
+                }
+                break;
+            case keyboardCommands.moveUp:
+                if (isTileSet()) {
+                    proposedIndex = instanceState.tileIndex - getTileSet().tileWidth;
+                    if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
+                        swapTilesAt(proposedIndex, instanceState.tileIndex);
+                    }
+                }
+                break;
+            case keyboardCommands.moveDown:
+                if (isTileSet()) {
+                    proposedIndex = instanceState.tileIndex + getTileSet().tileWidth;
+                    if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
+                        swapTilesAt(instanceState.tileIndex, proposedIndex);
+                    }
+                }
+                break;
+            case keyboardCommands.moveLeft:
+                if (isTileSet()) {
+                    if (instanceState.tileIndex > 0 && instanceState.tileIndex < getTileSet().length) {
+                        swapTilesAt(instanceState.tileIndex - 1, instanceState.tileIndex);
+                    }
+                }
+                break;
+            case keyboardCommands.moveRight:
+                if (isTileSet()) {
+                    if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length - 1) {
+                        swapTilesAt(instanceState.tileIndex, instanceState.tileIndex + 1);
+                    }
+                }
+                break;
+            case keyboardCommands.tileMapNew:
+                tileMapNew();
+                break;
+            case keyboardCommands.tileMapIndexLower:
+                if (isTileMap()) {
+                    const index = getTileMapList().getTileMaps().findIndex((tm) => tm.tileMapId === getProjectUIState().tileMapId);
+                    changeTileMapIndex(index - 1);
+                } else {
+                    changeTileMapIndex(getTileMapList().length - 1);
+                }
+                break;
+            case keyboardCommands.tileMapIndexHigher:
+                if (isTileMap()) {
+                    const index = getTileMapList().getTileMaps().findIndex((tm) => tm.tileMapId === getProjectUIState().tileMapId);
+                    changeTileMapIndex(index + 1);
+                } else {
+                    changeTileMapIndex(0);
+                }
+                break;
+            case keyboardCommands.toolSelect:
+                selectTool(isTileSet() ? TileEditorToolbar.Tools.select : TileEditorToolbar.Tools.tileAttributes);
+                break;
+            case keyboardCommands.toolPencil:
+                selectTool(TileEditorToolbar.Tools.pencil);
+                break;
+            case keyboardCommands.toolPencil:
+                selectTool(TileEditorToolbar.Tools.pencil);
+                break;
+            case keyboardCommands.toolPaintBucket:
+                selectTool(TileEditorToolbar.Tools.bucket);
+                break;
+            case keyboardCommands.toolColourReplace:
+                selectTool(TileEditorToolbar.Tools.colourReplace);
+                break;
+            case keyboardCommands.toolReferenceImage:
+                selectTool(TileEditorToolbar.Tools.referenceImage);
+                break;
+            case keyboardCommands.toolBreakLink:
+                if (isTileMap()) selectTool(TileEditorToolbar.Tools.tileLinkBreak);
+                break;
+            case keyboardCommands.toolRowColumn:
+                if (isTileMap()) selectTool(TileEditorToolbar.Tools.rowColumn);
+                break;
+            case keyboardCommands.toolTileStamp:
+                if (isTileMap()) selectTool(TileEditorToolbar.Tools.tileStamp);
+                break;
+            case keyboardCommands.toolTilePalettePaint:
+                if (isTileMap()) selectTool(TileEditorToolbar.Tools.palettePaint);
+                break;
+            case keyboardCommands.toolEyedropper:
+                if (instanceState.tool === TileEditorToolbar.Tools.tileStamp) {
+                    selectTool(TileEditorToolbar.Tools.tileEyedropper);
+                } else {
+                    selectTool(TileEditorToolbar.Tools.eyedropper);
+                }
+                break;
+            case keyboardCommands.viewportZoomIn:
+                increaseScale();
+                break;
+            case keyboardCommands.viewportZoomOut:
+                decreaseScale();
+                break;
+            case keyboardCommands.viewportPanUp:
+                tileEditor.setState({ viewportPanVertical: keyEvent.ctrlKey ? -250 : -50 });
+                break;
+            case keyboardCommands.viewportPanDown:
+                tileEditor.setState({ viewportPanVertical: keyEvent.ctrlKey ? 250 : 50 });
+                break;
+            case keyboardCommands.viewportPanLeft:
+                tileEditor.setState({ viewportPanHorizontal: keyEvent.ctrlKey ? -250 : -50 });
+                break;
+            case keyboardCommands.viewportPanRight:
+                tileEditor.setState({ viewportPanHorizontal: keyEvent.ctrlKey ? 250 : 50 });
+                break;
+            case keyboardCommands.selectUp:
+                proposedIndex = instanceState.tileIndex - getTileGrid().columnCount;
+                if (proposedIndex >= 0 && proposedIndex < getTileGrid().tileCount) {
+                    toggleTileIndexSelectedState(proposedIndex);
+                }
+                break;
+            case keyboardCommands.selectDown:
+                proposedIndex = instanceState.tileIndex + getTileGrid().columnCount;
+                if (proposedIndex >= 0 && proposedIndex < getTileGrid().tileCount) {
+                    toggleTileIndexSelectedState(proposedIndex);
+                }
+                break;
+            case keyboardCommands.selectLeft:
+                if (instanceState.tileIndex > 0 && instanceState.tileIndex < getTileGrid().tileCount) {
+                    toggleTileIndexSelectedState(instanceState.tileIndex - 1);
+                }
+                break;
+            case keyboardCommands.selectRight:
+                if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileGrid().tileCount - 1) {
+                    toggleTileIndexSelectedState(instanceState.tileIndex + 1);
+                }
+                break;
+        }
+
+        if (isTileSet()) {
+            switch (args.command) {
+                case keyboardCommands.cut:
+                    if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
+                        cutTileToClipboardAt(instanceState.tileIndex);
+                    }
+                    break;
+                case keyboardCommands.copy:
+                    if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
+                        copyTileToClipboardAt(instanceState.tileIndex);
+                    }
+                    break;
+                case keyboardCommands.paste:
+                    if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
+                        pasteTileAt(instanceState.tileIndex);
+                    }
+                    break;
+                case keyboardCommands.duplicate:
+                    if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
+                        cloneTileAt(instanceState.tileIndex);
+                    }
+                    break;
+            }
+        }
+
+        if (args.type === KeyboardManager.types.keydown && args.command === keyboardCommands.control) {
+            if (instanceState.tool === TileEditorToolbar.Tools.pencil) {
+                selectTool(TileEditorToolbar.Tools.eyedropper);
+                instanceState.swapTool = TileEditorToolbar.Tools.pencil;
+            } else if (instanceState.tool === TileEditorToolbar.Tools.colourReplace) {
+                selectTool(TileEditorToolbar.Tools.eyedropper);
+                instanceState.swapTool = TileEditorToolbar.Tools.colourReplace;
+            } else if (instanceState.tool === TileEditorToolbar.Tools.bucket) {
+                selectTool(TileEditorToolbar.Tools.eyedropper);
+                instanceState.swapTool = TileEditorToolbar.Tools.bucket;
+            } else if (instanceState.tool === TileEditorToolbar.Tools.tileStamp) {
+                selectTool(TileEditorToolbar.Tools.tileEyedropper);
+                instanceState.swapTool = TileEditorToolbar.Tools.tileStamp;
+            }
+        } else if (args.type === KeyboardManager.types.keyup && args.command === keyboardCommands.control) {
+            restoreSwapTool();
+        }
+
+        args.preventDefault();
+        args.stopImmediatePropagation();
+    });
+
+    document.addEventListener('blur', (e) => {
+        restoreSwapTool();
+    });
 
     document.addEventListener('paste', (clipboardEvent) => {
         if (clipboardEvent.clipboardData?.files?.length > 0) {
             const targetTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/gif', 'image/svg+xml'];
             const file = clipboardEvent.clipboardData.files[0];
             if (targetTypes.includes(file.type)) {
-                importTilesFromImage(file);
+                tilesImportFromImage(file);
             }
         } else {
             /** @type {string} */
@@ -283,302 +815,6 @@ function createEventListeners() {
                 instanceState.tileClipboard = pasteData;
                 pasteTileAt(instanceState.tileIndex);
             }
-        }
-    });
-
-    document.addEventListener('keydown', (keyEvent) => {
-        // console.log('keydown', keyEvent);
-
-        // instanceState.ctrlIsDown = keyEvent.ctrlKey;
-        // instanceState.altIsDown = keyEvent.altKey;
-        // instanceState.shiftIsDown = keyEvent.shiftKey;
-
-        if (keyEvent.target.tagName === 'INPUT') return;
-        if (keyEvent.target.tagName === 'SELECT') return;
-        if (keyEvent.target.tagName === 'TEXTAREA') return;
-
-        let handled = false;
-        if (keyEvent.ctrlKey && keyEvent.shiftKey) {
-            // Ctrl + Shift
-
-            if (keyEvent.code === 'KeyE') { // Plus shift (capital letter)
-                // Export
-                displayExportToAssemblyDialogue();
-                handled = true;
-            }
-
-        } else if (keyEvent.ctrlKey) {
-            // Ctrl
-
-            if (keyEvent.code === 'KeyO') {
-                // Import project
-                importProjectFromJson();
-                handled = true;
-            } else if (keyEvent.code === 'KeyS') {
-                // Export project
-                exportProjectToJson();
-                handled = true;
-            } else {
-                // Ctrl key with no other modifier
-
-                if (instanceState.tool === TileEditorToolbar.Tools.pencil) {
-                    selectTool(TileEditorToolbar.Tools.eyedropper);
-                    instanceState.swapTool = TileEditorToolbar.Tools.pencil;
-                    handled = true;
-                } else if (instanceState.tool === TileEditorToolbar.Tools.colourReplace) {
-                    selectTool(TileEditorToolbar.Tools.eyedropper);
-                    instanceState.swapTool = TileEditorToolbar.Tools.colourReplace;
-                    handled = true;
-                } else if (instanceState.tool === TileEditorToolbar.Tools.bucket) {
-                    selectTool(TileEditorToolbar.Tools.eyedropper);
-                    instanceState.swapTool = TileEditorToolbar.Tools.bucket;
-                    handled = true;
-                } else if (instanceState.tool === TileEditorToolbar.Tools.tileStamp) {
-                    selectTool(TileEditorToolbar.Tools.tileEyedropper);
-                    instanceState.swapTool = TileEditorToolbar.Tools.tileStamp;
-                    handled = true;
-                }
-
-            }
-
-        }
-        if (handled) {
-            keyEvent.preventDefault();
-            keyEvent.stopImmediatePropagation();
-        }
-    });
-
-    document.addEventListener('keyup', (keyEvent) => {
-        // console.log('keyup', keyEvent);
-
-        // instanceState.ctrlIsDown = keyEvent.ctrlKey;
-        // instanceState.altIsDown = keyEvent.altKey;
-        // instanceState.shiftIsDown = keyEvent.shiftKey;
-
-        if (keyEvent.target.tagName === 'INPUT') return;
-        if (keyEvent.target.tagName === 'SELECT') return;
-        if (keyEvent.target.tagName === 'TEXTAREA') return;
-
-        let handled = false;
-        if (keyEvent.ctrlKey && keyEvent.altKey) {
-            // Ctrl + alt
-
-            if (keyEvent.code === 'KeyP') {
-                // New palette
-                newPalette();
-                handled = true;
-            } else if (keyEvent.code === 'KeyE') {
-                // New tile
-                tileNew();
-                handled = true;
-            }
-
-        } else if (keyEvent.shiftKey) {
-            // Shift
-
-            if (keyEvent.code === 'KeyI') {
-                // Tile eyedropper
-                selectTool(TileEditorToolbar.Tools.tileEyedropper);
-                handled = true;
-            } else if (keyEvent.code === 'KeyS') {
-                // Tile stamp
-                selectTool(TileEditorToolbar.Tools.tileStamp);
-                handled = true;
-            }
-
-        } else if (keyEvent.altKey) {
-            // Alt key only
-
-            if (keyEvent.code === 'Equal' || keyEvent.code === 'NumpadAdd') {
-                // Increase viewport scale
-                increaseScale();
-                handled = true;
-            } else if (keyEvent.code === 'Minus' || keyEvent.code === 'NumpadSubtract') {
-                // Decrease viewport scale
-                decreaseScale();
-                handled = true;
-            } else if (keyEvent.code === 'ArrowDown') {
-                // Lower palette
-                changePaletteIndex(getProjectUIState().paletteIndex + 1);
-                handled = true;
-            } else if (keyEvent.code === 'ArrowUp') {
-                // Higher palette
-                changePaletteIndex(getProjectUIState().paletteIndex - 1);
-                handled = true;
-            } else if (keyEvent.code === 'ArrowLeft') {
-                // Lower palette
-                selectColourIndex(instanceState.colourIndex - 1);
-                handled = true;
-            } else if (keyEvent.code === 'ArrowRight') {
-                // Higher palette
-                selectColourIndex(instanceState.colourIndex + 1);
-                handled = true;
-            }
-
-        } else if (keyEvent.ctrlKey) {
-            // Ctrl key only
-
-            if (keyEvent.code === 'KeyN') {
-                // Export
-                newProjectDialogue.setState({
-                    title: 'New project',
-                    systemType: getProject()?.systemType ?? NewProjectDialogue.Systems.smsgg,
-                    selectedtilePreset: NewProjectDialogue.TilePresets["8x8"],
-                    createTileMap: true
-                });
-                newProjectDialogue.show();
-                handled = true;
-            } else if (keyEvent.code === 'KeyX') {
-                // Cut tile
-                if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
-                    cutTileToClipboardAt(instanceState.tileIndex);
-                    handled = true;
-                }
-            } else if (keyEvent.code === 'KeyC') {
-                // Copy tile
-                if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
-                    copyTileToClipboardAt(instanceState.tileIndex);
-                    handled = true;
-                }
-            } else if (keyEvent.code === 'KeyV') {
-                // Paste tile
-                if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
-                    pasteTileAt(instanceState.tileIndex);
-                    handled = true;
-                }
-            } else if (keyEvent.code === 'KeyD') {
-                // Clone tile
-                if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
-                    cloneTileAt(instanceState.tileIndex);
-                    handled = true;
-                }
-            } else if (keyEvent.code === 'KeyZ') {
-                // Undo
-                undoOrRedo('u');
-                handled = true;
-            } else if (keyEvent.code === 'KeyY') {
-                // Redo
-                undoOrRedo('r');
-                handled = true;
-            } else if (/^Digit([0-9])$/.test(keyEvent.code)) {
-                // Brush size
-                let size = parseInt(/^Digit([0-9])$/.exec(keyEvent.code)[1]);
-                if (size === 0) size = 10;
-                if (keyEvent.shiftKey) size += 10;
-                setPencilSize(size);
-                handled = true;
-            } else if (keyEvent.code === 'BracketLeft') {
-                // Mirror horizontal
-                if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
-                    mirrorHorizontal(instanceState.tileIndex);
-                    handled = true;
-                }
-            } else if (keyEvent.code === 'BracketRight') {
-                // Mirror Vertical
-                if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
-                    mirrorVertical(instanceState.tileIndex);
-                    handled = true;
-                }
-            } else if (keyEvent.code === 'ArrowLeft') {
-                // Move tile left
-                if (instanceState.tileIndex > 0 && instanceState.tileIndex < getTileSet().length) {
-                    swapTilesAt(instanceState.tileIndex - 1, instanceState.tileIndex);
-                    handled = true;
-                }
-            } else if (keyEvent.code === 'ArrowRight') {
-                // Move tile right
-                if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length - 1) {
-                    swapTilesAt(instanceState.tileIndex, instanceState.tileIndex + 1);
-                    handled = true;
-                }
-            } else if (keyEvent.code === 'ArrowUp') {
-                // Move tile up
-                const proposedIndex = instanceState.tileIndex - getTileSet().tileWidth;
-                if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
-                    swapTilesAt(proposedIndex, instanceState.tileIndex);
-                    handled = true;
-                }
-            } else if (keyEvent.code === 'ArrowDown') {
-                // Move tile down
-                const proposedIndex = instanceState.tileIndex + getTileSet().tileWidth;
-                if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
-                    swapTilesAt(instanceState.tileIndex, proposedIndex);
-                    handled = true;
-                }
-            }
-
-        } else {
-            // No modifier key
-
-            if (keyEvent.code === 'KeyF' || keyEvent.code === 'KeyB') {
-                // Select fill tool
-                selectTool(TileEditorToolbar.Tools.bucket);
-                handled = true;
-            } else if (keyEvent.code === 'KeyS') {
-                // Select selection tool
-                selectTool(TileEditorToolbar.Tools.select);
-                handled = true;
-            } else if (keyEvent.code === 'KeyP') {
-                // Select pencil tool
-                selectTool(TileEditorToolbar.Tools.pencil);
-                handled = true;
-            } else if (keyEvent.code === 'KeyI') {
-                // Select eyedropper tool
-                selectTool(TileEditorToolbar.Tools.eyedropper);
-                handled = true;
-            } else if (keyEvent.code === 'Delete') {
-                // Delete any selected tile
-                if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length) {
-                    removeTileAt(instanceState.tileIndex);
-                    handled = true;
-                }
-            } else if (keyEvent.code === 'ArrowLeft') {
-                // Move selection tile left
-                if (instanceState.tileIndex > 0 && instanceState.tileIndex < getTileSet().length) {
-                    toggleTileIndexSelectedState(instanceState.tileIndex - 1);
-                    handled = true;
-                }
-            } else if (keyEvent.code === 'ArrowRight') {
-                // Move selection tile right
-                if (instanceState.tileIndex >= 0 && instanceState.tileIndex < getTileSet().length - 1) {
-                    toggleTileIndexSelectedState(instanceState.tileIndex + 1);
-                    handled = true;
-                }
-            } else if (keyEvent.code === 'ArrowUp') {
-                // Move selection tile up
-                const proposedIndex = instanceState.tileIndex - getTileSet().tileWidth;
-                if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
-                    toggleTileIndexSelectedState(proposedIndex);
-                    handled = true;
-                }
-            } else if (keyEvent.code === 'ArrowDown') {
-                // Move selection tile down
-                const proposedIndex = instanceState.tileIndex + getTileSet().tileWidth;
-                if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
-                    toggleTileIndexSelectedState(proposedIndex);
-                    handled = true;
-                }
-            } else if (keyEvent.code === 'NumpadAdd') {
-                // Increase viewport scale
-                increaseScale();
-                handled = true;
-            } else if (keyEvent.code === 'NumpadSubtract') {
-                // Decrease viewport scale
-                decreaseScale();
-                handled = true;
-            } else if (keyEvent.code === 'ControlLeft' || keyEvent.code === 'ControlRight') {
-                // Swap back to previous tool?
-                if (instanceState.swapTool) {
-                    selectTool(instanceState.swapTool);
-                    handled = true;
-                    instanceState.swapTool = null;
-                }
-            }
-
-        }
-        if (handled) {
-            keyEvent.preventDefault();
-            keyEvent.stopImmediatePropagation();
         }
     });
 }
@@ -860,16 +1096,11 @@ function handlePaletteEditorOnCommand(args) {
             break;
 
         case PaletteEditor.Commands.paletteNew:
-            newPalette();
+            paletteNew();
             break;
 
         case PaletteEditor.Commands.paletteImport:
-            paletteImportDialogue.setState({
-                paletteData: getUIState().importPaletteAssemblyCode,
-                system: getUIState().importPaletteSystem,
-                allowedSystems: getProject().systemType === 'gb' ? ['gb'] : getProject().systemType === 'nes' ? ['nes'] : ['ms', 'gg']
-            });
-            paletteImportDialogue.show();
+            paletteImportFromAssembly();
             break;
 
         case PaletteEditor.Commands.paletteClone:
@@ -919,10 +1150,10 @@ function handleTileEditorToolbarOnCommand(args) {
             tileNew();
             break;
         case TileEditorToolbar.Commands.tileImageImport:
-            importTilesFromImage();
+            tilesImportFromImage();
             break;
         case TileEditorToolbar.Commands.tileCodeImport:
-            importTilesFromAssembly();
+            tilesImportFromAssembly();
             break;
         case TileEditorToolbar.Commands.undo:
             undoOrRedo('u');
@@ -1061,7 +1292,7 @@ function handleTileManagerOnCommand(args) {
     switch (args.command) {
 
         case TileManager.Commands.tileMapNew:
-            createNewTileMap();
+            tileMapNew();
             break;
 
         case TileManager.Commands.tileSetToTileMap:
@@ -1098,7 +1329,7 @@ function handleTileManagerOnCommand(args) {
             break;
 
         case TileManager.Commands.assemblyImport:
-            importTilesFromAssembly();
+            tilesImportFromAssembly();
             break;
 
     }
@@ -1253,7 +1484,7 @@ function handleTileEditorOnEvent(args) {
 
 /** @param {import('./ui/dialogues/newProjectDialogue.js').NewProjectDialogueConfirmEventArgs} args */
 function handleNewProjectDialogueOnConfirm(args) {
-    newProject({
+    projectNew({
         title: args.title,
         systemType: args.systemType ?? 'smsgg',
         createTileMap: args.createTileMap,
@@ -1646,7 +1877,7 @@ function welcomeScreenOnCommand(args) {
             break;
 
         case WelcomeScreen.Commands.tileImageImport:
-            importTilesFromImage();
+            tilesImportFromImage();
             break;
 
         case WelcomeScreen.Commands.showDocumentation:
@@ -2369,7 +2600,7 @@ function takeToolAction(args) {
                         const sourceColourindex = instanceState.startingColourIndex;
                         const replacementColourIndex = colourIndex;
                         const size = instanceState.pencilSize;
-                        
+
                         const updatedTiles = PaintTool.replaceColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, sourceColourindex, replacementColourIndex, size, clamp);
                         if (updatedTiles && updatedTiles.affectedTileIndexes.length > 0) {
 
@@ -2959,8 +3190,18 @@ function updateReferenceImage(bounds, transparencyIndex) {
 }
 
 /**
+ * Makes the pencil size bigger or smaller.
+ * @param {number} step - Step in size, between -50 and 50.
+ */
+function changePencilSize(step) {
+    step = Math.max(-50, Math.min(step, 50));
+    const newSize = instanceState.pencilSize + step;
+    setPencilSize(Math.max(1, Math.min(newSize, 50)));
+}
+
+/**
  * Sets the pencil size.
- * @param {number} brushSize - Pencil size, 1 to 5.
+ * @param {number} brushSize - Pencil size, 1 to 50.
  */
 function setPencilSize(brushSize) {
     if (brushSize && brushSize >= 1 && brushSize <= 50) {
@@ -3259,7 +3500,7 @@ function selectTileIndexIfNotSelected(tileIndex) {
 /**
  * Creates a new palette.
  */
-function newPalette() {
+function paletteNew() {
     addUndoState();
 
     const newPalette = PaletteFactory.createNewStandardColourPalette('New palette', getDefaultPaletteSystemType());
@@ -3325,6 +3566,15 @@ function deletePalette(paletteIndex) {
             throw e;
         }
     }
+}
+
+function paletteImportFromAssembly() {
+    paletteImportDialogue.setState({
+        paletteData: getUIState().importPaletteAssemblyCode,
+        system: getUIState().importPaletteSystem,
+        allowedSystems: getProject().systemType === 'gb' ? ['gb'] : getProject().systemType === 'nes' ? ['nes'] : ['ms', 'gg']
+    });
+    paletteImportDialogue.show();
 }
 
 function changePaletteTitle(paletteIndex, newTitle) {
@@ -3465,7 +3715,7 @@ function tileNew() {
 /**
  * @param {File|null} file 
  */
-function importTilesFromImage(file) {
+function tilesImportFromImage(file) {
     importImageModalDialogue.setState({
         paletteList: getPaletteList(),
         file: file ?? null
@@ -3473,7 +3723,7 @@ function importTilesFromImage(file) {
     importImageModalDialogue.show();
 }
 
-function importTilesFromAssembly() {
+function tilesImportFromAssembly() {
     assemblyImportTilesModalDialogue.setState({
         tileSetData: getUIState().importTileAssemblyCode,
         replace: getUIState().importTileReplace
@@ -3515,7 +3765,7 @@ function setProjectTitle(title) {
  * Imports the project from a JSON file.
  * @argument {{title: string?, systemType: string?, createTileMap: boolean?, tileWidth: number?, tileHeight: number?}} args
  */
-function newProject(args) {
+function projectNew(args) {
     addUndoState();
 
     const newProject = createEmptyProject({
@@ -3874,7 +4124,7 @@ function pasteTileAt(index) {
 /**
  * Creates a new tile map.
  */
-function createNewTileMap() {
+function tileMapNew() {
     newTileMapDialogue.setState({
         title: 'New tile map',
         createMode: NewTileMapDialogue.CreateModes.new,
@@ -3973,6 +4223,20 @@ function selectTileSetOrMap(tileMapId) {
     tileEditor.setState({
         focusedTile: focusedTile
     });
+}
+
+/**
+ * Changes the selected tile map index.
+ * @param {number?} index - Tile map index in the tile map list.
+ */
+function changeTileMapIndex(index) {
+    if (index === null || index < 0 || index >= getTileMapList().length) {
+        selectTileSetOrMap();
+    } else {
+        const tileMap = getTileMapList().getTileMap(index);
+        if (tileMap.tileMapId === getProjectUIState().tileMapId) return;
+        selectTileSetOrMap(tileMap.tileMapId);
+    }
 }
 
 /**
@@ -4311,6 +4575,13 @@ function selectTool(tool) {
     }
 }
 
+function restoreSwapTool() {
+    if (instanceState.swapTool) {
+        selectTool(instanceState.swapTool);
+        instanceState.swapTool = null;
+    }
+}
+
 /**
  * Sets the image scale level on the tile editor.
  * @param {number} scale - Must be in allowed scale levels.
@@ -4372,7 +4643,8 @@ function changePalette(paletteId) {
  * @param {number} index - Palette index in the palette list.
  */
 function changePaletteIndex(index) {
-    if (index < 0 || index >= getPaletteList().length) return;
+    if (index < 0) index = getPaletteList().length - 1;
+    if (index >= getPaletteList().length) index = 0;
     if (index === getProjectUIState().paletteIndex) return;
 
     getProjectUIState().paletteIndex = index;

@@ -229,6 +229,7 @@ export default class TileEditor extends ComponentBase {
             if (state.cursorSize > 0 && state.cursorSize <= 50) {
                 this.#canvasManager.cursorSize = state.cursorSize;
             }
+            refresh = true;
         }
         // Cursor type
         if (typeof state?.cursor === 'string') {
@@ -276,6 +277,16 @@ export default class TileEditor extends ComponentBase {
             } else {
                 this.#canvasManager.clearSelectedTileRegion();
             }
+            refresh = true;
+        }
+        // Pan horizontal
+        if (typeof state?.viewportPanHorizontal === 'number') {
+            this.#canvasManager.offsetX += state?.viewportPanHorizontal;
+            refresh = true;
+        }
+        // Pan vertical
+        if (typeof state?.viewportPanVertical === 'number') {
+            this.#canvasManager.offsetY += state?.viewportPanVertical;
             refresh = true;
         }
         // Force refresh?
@@ -631,6 +642,8 @@ export default class TileEditor extends ComponentBase {
  * @property {number?} selectedTileIndex - Currently selected tile index.
  * @property {number?} cursorSize - Size of the cursor in px.
  * @property {string?} cursor - Cursor to use when the mouse hovers over the image editor.
+ * @property {number?} [viewportPanHorizontal] - Pan the viewport horizontally.
+ * @property {number?} [viewportPanVertical] - Pan the viewport vertically.
  * @property {ReferenceImage?} referenceImage - Reference image to draw.
  * @property {number?} transparencyIndex - 0 to 15 of which colour index to make transparent.
  * @property {boolean?} showTileGrid - Should the tile grid be drawn?
