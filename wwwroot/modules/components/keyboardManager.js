@@ -9,14 +9,25 @@ const types = {
 }
 
 
+/**
+ * Keyboard manager monitors the document for keyboard input and raises 
+ * an event when the command criteria is met.
+ */
 export default class KeyboardManager {
 
 
+    /**
+     * Gets an array of supported event types.
+     */
     static get types() {
         return types;
     }
 
 
+    /** 
+     * Gets or sets the platform that the keyboard manager is targetting.
+     * KeyHandlers that match this platform will be invoked.
+     */
     get platform() {
         return this.#platform;
     }
@@ -36,6 +47,10 @@ export default class KeyboardManager {
     #keyHandlers = [];
 
 
+    /**
+     * Constructor for the class.
+     * @param {string} platform - Specifies the platform for the key handlers.
+     */
     constructor(platform) {
 
         this.#dispatcher = new EventDispatcher();
@@ -87,9 +102,16 @@ export default class KeyboardManager {
 
 }
 
+
+/**
+ * Abstract class that defines the basic functionality of a key handler.
+ */
 class KeyHandler {
 
 
+    /** 
+     * Gets the name command represented by this key handler.
+     */
     get command() {
         return this.#command;
     }
@@ -99,6 +121,7 @@ class KeyHandler {
 
 
     /**
+     * Constructor for the class.
      * @param {string} command - Name of the command.
      */
     constructor(command) {
@@ -106,26 +129,43 @@ class KeyHandler {
     }
 
 
+    /**
+     * Tests a keyboard event against the key handler to see if it triggers. 
+     * Returns 'true' if conditions were satisfied.
+     * @param {string} platform - Name of the platform for which the test will be performed.
+     * @param {KeyboardEvent} keyEvent - DOM KeyboardEvent that triggered the test.
+     * @returns {boolean}
+     */
     test(platform, keyEvent) {
         return false;
     }
 
+    /**
+     * In the case that this is a multi key combination key handler, it resets the tracking
+     * back to the start.
+     */
     reset() {
     }
 
 
 }
 
+
+/**
+ * Defines a key handler that occurs when a key down event is received.
+ */
 export class KeyDownHandler extends KeyHandler {
+
 
     /** @type {Object.<string, KeyDownEntry>} */
     #entries = {};
     #index = 0;
 
+
     /**
-     * Initialises a new instance of the object.
+     * Constructor for the class.
      * @param {string} command - Name of the command.
-     * @param {KeyDownEntry[]} entries - Key entries.
+     * @param {KeyDownEntry[]} entries - Keyboard key conbination entries that trigger this handler.
      */
     constructor(command, entries) {
         super(command);
@@ -150,9 +190,11 @@ export class KeyDownHandler extends KeyHandler {
 
 
     /**
-     * Tests to see whether the keyboard event triggers the handler.
-     * @property {string?} platform - Platform to handle.
-     * @param {KeyboardEvent} keyEvent - Event that was triggered.
+     * Tests a keyboard event against the key handler to see if it triggers. 
+     * Returns 'true' if conditions were satisfied.
+     * @param {string} platform - Name of the platform for which the test will be performed.
+     * @param {KeyboardEvent} keyEvent - DOM KeyboardEvent that triggered the test.
+     * @returns {boolean}
      */
     test(platform, keyEvent) {
         if (!keyEvent instanceof KeyboardEvent) return false;
@@ -187,6 +229,10 @@ export class KeyDownHandler extends KeyHandler {
     }
 
 
+    /**
+     * In the case that this is a multi key combination key handler, it resets the tracking
+     * back to the start.
+     */
     reset() {
         this.#index = 0;
     }
@@ -194,6 +240,9 @@ export class KeyDownHandler extends KeyHandler {
 
 }
 
+/**
+ * Defines a key handler that occurs when a key up event is received.
+ */
 export class KeyUpHandler extends KeyHandler {
 
 
@@ -202,9 +251,9 @@ export class KeyUpHandler extends KeyHandler {
 
 
     /**
-     * Initialises a new instance of the object.
+     * Constructor for the class.
      * @param {string} command - Name of the command.
-     * @param {KeyUpEntry[]} entries - Key entries.
+     * @param {KeyUpEntry[]} entries - Keyboard key conbination entries that trigger this handler.
      */
     constructor(command, entries) {
         super(command);
@@ -220,9 +269,11 @@ export class KeyUpHandler extends KeyHandler {
 
 
     /**
-     * Checks to see whether the keyboard event triggers the handler.
-     * @property {string?} platform - Platform to handle.
-     * @param {KeyboardEvent} keyEvent - Event that was triggered.
+     * Tests a keyboard event against the key handler to see if it triggers. 
+     * Returns 'true' if conditions were satisfied.
+     * @param {string} platform - Name of the platform for which the test will be performed.
+     * @param {KeyboardEvent} keyEvent - DOM KeyboardEvent that triggered the test.
+     * @returns {boolean}
      */
     test(platform, keyEvent) {
         if (!keyEvent instanceof KeyboardEvent) return false;

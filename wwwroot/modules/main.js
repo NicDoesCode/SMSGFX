@@ -396,14 +396,12 @@ function createEventListeners() {
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolBreakLink, [{ modifiers: {}, key: ['l', 'L'] }]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolTileStamp, [{ modifiers: {}, key: ['x', 'X'] }]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolTilePalette, [{ modifiers: {}, key: ['c', 'C'] }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.control, [{ modifiers: { control: true }, key: 'Control' }]));
-    keyboardManager.addKeyHandler(new KeyUpHandler(keyboardCommands.control, [{ key: 'Control' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportZoomIn, [{ modifiers: { control: true }, key: ['=', '+'], code: 'NumpadAdd' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportZoomOut, [{ modifiers: { control: true }, key: ['-', '_'], code: 'NumpadSubtract' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanUp, [{ modifiers: { control: true }, key: 'ArrowUp' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanDown, [{ modifiers: { control: true }, key: 'ArrowDown' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanLeft, [{ modifiers: { control: true }, key: 'ArrowLeft' }]));
-    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanRight, [{ modifiers: { control: true }, key: 'ArrowRight' }]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportZoomIn, [{ modifiers: { shift: true }, key: ['=', '+'], code: 'NumpadAdd' }]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportZoomOut, [{ modifiers: { shift: true }, key: ['-', '_'], code: 'NumpadSubtract' }]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanUp, [{ modifiers: { shift: true }, key: 'ArrowUp' }]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanDown, [{ modifiers: { shift: true }, key: 'ArrowDown' }]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanLeft, [{ modifiers: { shift: true }, key: 'ArrowLeft' }]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanRight, [{ modifiers: { shift: true }, key: 'ArrowRight' }]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanUp, [{ modifiers: { shift: true, control: true }, key: 'ArrowUp' }]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanDown, [{ modifiers: { shift: true, control: true }, key: 'ArrowDown' }]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.viewportPanLeft, [{ modifiers: { shift: true, control: true }, key: 'ArrowLeft' }]));
@@ -412,6 +410,8 @@ function createEventListeners() {
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.selectDown, [{ modifiers: {}, key: 'ArrowDown' }]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.selectLeft, [{ modifiers: {}, key: 'ArrowLeft' }]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.selectRigth, [{ modifiers: {}, key: 'ArrowRight' }]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.control, [{ modifiers: { control: true }, key: 'Control' }]));
+    keyboardManager.addKeyHandler(new KeyUpHandler(keyboardCommands.control, [{ key: 'Control' }]));
 
     keyboardManager.addHandlerOnCommand((args) => {
         // console.log(`got: ${args.type}: ${args.command}`);
@@ -610,16 +610,16 @@ function createEventListeners() {
                 decreaseScale();
                 break;
             case keyboardCommands.viewportPanUp:
-                tileEditor.setState({ viewportPanVertical: keyEvent.shiftKey ? -100 : -10 });
+                tileEditor.setState({ viewportPanVertical: keyEvent.ctrlKey ? -250 : -50 });
                 break;
             case keyboardCommands.viewportPanDown:
-                tileEditor.setState({ viewportPanVertical: keyEvent.shiftKey ? 100 : 10 });
+                tileEditor.setState({ viewportPanVertical: keyEvent.ctrlKey ? 250 : 50 });
                 break;
             case keyboardCommands.viewportPanLeft:
-                tileEditor.setState({ viewportPanHorizontal: keyEvent.shiftKey ? -100 : -10 });
+                tileEditor.setState({ viewportPanHorizontal: keyEvent.ctrlKey ? -250 : -50 });
                 break;
             case keyboardCommands.viewportPanRight:
-                tileEditor.setState({ viewportPanHorizontal: keyEvent.shiftKey ? 100 : 10 });
+                tileEditor.setState({ viewportPanHorizontal: keyEvent.ctrlKey ? 250 : 50 });
                 break;
             case keyboardCommands.selectUp:
                 proposedIndex = instanceState.tileIndex - getTileSet().tileWidth;
