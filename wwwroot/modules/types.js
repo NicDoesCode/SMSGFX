@@ -9,3 +9,10 @@ export const Types = {};
  * @property {string?} defaultTileMapId - Default tile map to load.
  * @exports
  */
+
+/**
+ * @typedef {Object} Coordinate
+ * @property {number} x - X coordinate.
+ * @property {number} y - Y coordinate.
+ * @exports
+ */

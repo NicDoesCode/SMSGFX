@@ -94,13 +94,13 @@ export default class CanvasManager {
     }
 
     /**
-     * Gets or sets the image drawing scale between 1 and 50 (1:1 and 50:1).
+     * Gets or sets the image drawing scale between 1 and 100 (1:1 and 100:1).
      */
     get scale() {
         return this.#scale;
     }
     set scale(value) {
-        if (value < 1 || value > 50) throw new Error('Scale factor must be between 1 and 50.');
+        if (value < 1 || value > 100) throw new Error('Scale factor must be between 1 and 100.');
         const newScale = Math.round(value);
         if (newScale !== this.#scale) {
             this.invalidateImage();
@@ -236,6 +236,8 @@ export default class CanvasManager {
     #tilePreviewMap = null;
     /** @type {HTMLCanvasElement} */
     #tilePreviewCanvas = null;
+    /** @type {HTMLCanvasElement} */
+    #gridPatternCanvas = null;
     /** @type {TileSet} */
     #tileSet = null;
     /** @type {PaletteList} */
@@ -402,7 +404,7 @@ export default class CanvasManager {
     /**
      * Gets the top left coordinate of where the tile image is to be drawn.
      * @param {HTMLCanvasElement} canvas - Canvas where the image is to be drawn.
-     * @returns {{x: number, y: number}}
+     * @returns {import("../types.js").Coordinate}
      */
     getDrawCoords(canvas) {
         return {
@@ -412,11 +414,26 @@ export default class CanvasManager {
     }
 
     /**
-     * Converts mouse X and Y coordinates on a canvas object to the corresponding tile grid coordinate.
+     * Converts mouse X and Y coordinates from the viewport to X and Y coordinates relative to a given canvas object.
      * @param {HTMLCanvasElement} canvas - Canvas element to use for the conversion.
      * @param {number} viewportX - Y pixel coordinate within the viewport.
      * @param {number} viewportY - Y pixel coordinate within the viewport.
-     * @returns {{x: number, y: number}}
+     * @returns {import("../types.js").Coordinate}
+     */
+    convertViewportCoordsToCanvasCoords(canvas, viewportX, viewportY) {
+        const canvasRect = canvas.getBoundingClientRect();
+        return {
+            x: viewportX - canvasRect.left - (this.scale / 2),
+            y: viewportY - canvasRect.top - (this.scale / 2)
+        };
+    }
+
+    /**
+     * Converts mouse X and Y coordinates from the viewport to the corresponding tile grid coordinate.
+     * @param {HTMLCanvasElement} canvas - Canvas element to use for the conversion.
+     * @param {number} viewportX - Y pixel coordinate within the viewport.
+     * @param {number} viewportY - Y pixel coordinate within the viewport.
+     * @returns {import("../types.js").Coordinate}
      */
     convertViewportCoordsToTileGridCoords(canvas, viewportX, viewportY) {
         const canvasRect = canvas.getBoundingClientRect();
@@ -426,7 +443,7 @@ export default class CanvasManager {
     }
 
     /**
-     * Converts mouse X and Y coordinates on a canvas object to the corresponding tile grid coordinate.
+     * Converts mouse X and Y coordinates from the viewport to the corresponding tile grid coordinate.
      * @param {HTMLCanvasElement} canvas - Canvas element to use for the conversion.
      * @param {number} canvasX - Y pixel coordinate within the canvas.
      * @param {number} canvasY - Y pixel coordinate within the canvas.
@@ -539,6 +556,7 @@ export default class CanvasManager {
      */
     #refreshTileImage() {
         const transColour = this.#referenceImages.filter(r => r.image !== null).length > 0 ? this.#transparencyIndex : -1;
+        this.#gridPatternCanvas = createGridPatternCanvas(this.scale);
         this.#drawTileImage(this.#tileCanvas, transColour);
     }
 
@@ -649,19 +667,7 @@ export default class CanvasManager {
             // Draw in pixel mesh when the tile doesn't exist
             const originX = (tileGridCol * 8) * pxSize;
             const originY = (tileGridRow * 8) * pxSize;
-
-            context.fillStyle = '#FFFFFF';
-            context.fillRect(originX, originY, pxSize * 8, pxSize * 8);
-            context.fillStyle = '#777777';
-            for (let x = 0; x < pxSize * 8; x++) {
-                const drawX = originX + x;
-                for (let y = 0; y < pxSize * 8; y++) {
-                    const drawY = originY + y;
-                    if ((x % 2 === 0 && y % 2 === 1) || (x % 2 === 1 && y % 2 === 0)) {
-                        context.fillRect(drawX, drawY, 1, 1);
-                    }
-                }
-            }
+            context.drawImage(this.#gridPatternCanvas, originX, originY);
         }
     }
 
@@ -898,7 +904,7 @@ export default class CanvasManager {
         if (this.#highlightMode === CanvasManager.HighlightModes.column) {
             if (coords.x >= 0 && coords.x < coords.gridColumns * 8) {
                 const tile = coords.tile;
-                const columnHeight = coords.gridColumns * coords.tile.sizePx;
+                const columnHeight = coords.gridRows * coords.tile.sizePx;
                 const originX = drawX + (tile.sizePx * tile.col);
                 const originY = drawY;
                 context.filter = 'opacity(0.25)';
@@ -916,7 +922,7 @@ export default class CanvasManager {
         if (this.#highlightMode === CanvasManager.HighlightModes.columnBlock) {
             if (coords.x >= 0 && coords.x < coords.gridColumns * 8) {
                 const block = coords.block;
-                const columnHeight = coords.gridColumns * coords.tile.sizePx;
+                const columnHeight = coords.gridRows * coords.tile.sizePx;
                 const originX = drawX + (block.sizePx * block.col);
                 const originY = drawY;
                 context.filter = 'opacity(0.25)';
@@ -1254,4 +1260,25 @@ function isInBounds(tileGrid, row, column) {
     if (row < 0 || row >= tileGrid.rowCount) return false;
     if (column < 0 || column >= tileGrid.columnCount) return false;
     return true;
+}
+
+/**
+ * @param {number} scale 
+ * @returns {CanvasPattern}
+ */
+function createGridPatternCanvas(scale) {
+    const gridColour1 = 'rgba(255,255,255,0.25)';
+    const gridColour2 = 'rgba(0,0,0,0.25)';
+    const gridSizePx = 2;
+    const gridCanvas = document.createElement('canvas');
+    const gridCtx = gridCanvas.getContext('2d');
+    gridCanvas.width = scale * 8;
+    gridCanvas.height = scale * 8;
+    for (let y = 0; y < gridCanvas.height; y += gridSizePx) {
+        for (let x = 0; x < gridCanvas.width; x += gridSizePx) {
+            gridCtx.fillStyle = (x + y) % (gridSizePx * 2) === 0 ? gridColour1 : gridColour2;
+            gridCtx.fillRect(x, y, gridSizePx, gridSizePx);
+        }
+    }
+    return gridCanvas;
 }

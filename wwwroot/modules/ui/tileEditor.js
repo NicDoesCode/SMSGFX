@@ -58,8 +58,10 @@ export default class TileEditor extends ComponentBase {
     #tileGrid = null;
     /** @type {TileSet} */
     #tileSet = null;
-    /** @type {Coordinates} */
-    #lastCoords;
+    /** @type {import("../types.js").Coordinate?} */
+    #lastCoords = null;
+    /** @type {import("../types.js").Coordinate?} */
+    #lastMouseCoords = null;
     #scale = 1;
     #tilesPerBlock = 1;
     #canvasManager;
@@ -133,15 +135,15 @@ export default class TileEditor extends ComponentBase {
      * @param {TileEditorState} state - State object.
      */
     setState(state) {
-        let dirty = false;
-        let refresh = false;
+        let refreshTiles = false;
+        let redrawUI = false;
         // Change palette list?
         const paletteList = state?.paletteList;
         if (paletteList && typeof paletteList.getPaletteById === 'function') {
             this.#canvasManager.invalidateImage();
             this.#paletteList = paletteList;
             this.#nativePaletteList = PaletteListFactory.create(paletteList.getPalettes().map((p) => PaletteFactory.convertToNative(p)));
-            dirty = true; 
+            refreshTiles = true;
         }
         // Changing tile grid
         const tileGrid = state?.tileGrid;
@@ -149,14 +151,14 @@ export default class TileEditor extends ComponentBase {
             resizeCanvas(this.#tbCanvas);
             this.#canvasManager.invalidateImage();
             this.#tileGrid = tileGrid;
-            dirty = true;
+            refreshTiles = true;
         }
         // Changing tile set
         const tileSet = state?.tileSet;
         if (tileSet instanceof TileSet || tileSet === null) {
             this.#canvasManager.invalidateImage();
             this.#tileSet = tileSet;
-            dirty = true;
+            refreshTiles = true;
         }
         // Updated tiles
         if (state?.updatedTiles && Array.isArray(state?.updatedTiles)) {
@@ -164,7 +166,7 @@ export default class TileEditor extends ComponentBase {
             updatedTiles.forEach((tileIndex) => {
                 this.#canvasManager.invalidateTile(tileIndex);
             });
-            dirty = true;
+            refreshTiles = true;
         }
         // Updated tile IDs
         if (state?.updatedTileIds && Array.isArray(state?.updatedTileIds)) {
@@ -172,17 +174,17 @@ export default class TileEditor extends ComponentBase {
             updatedTileIds.forEach((tileId) => {
                 this.#canvasManager.invalidateTileId(tileId);
             });
-            dirty = true;
+            refreshTiles = true;
         }
         // Changing scale?
         if (typeof state?.scale === 'number') {
             const scale = state.scale;
-            if (scale > 0 && scale <= 50) {
+            if (scale > 0 && scale <= 100) {
                 this.#scale = state.scale;
                 this.#canvasManager.invalidateImage();
-                dirty = true;
+                refreshTiles = true;
             } else {
-                throw new Error('Scale must be between 1 and 50.');
+                throw new Error('Scale must be between 1 and 100.');
             }
         }
         // Changing amount of tiles per block?
@@ -205,28 +207,29 @@ export default class TileEditor extends ComponentBase {
                 this.#canvasManager.tileGridColour = '#000000';
                 this.#canvasManager.tileGridOpacity = 0.4;
             }
-            dirty = true;
+            refreshTiles = true;
         }
         // Draw tile grid
         if (['boolean', 'number'].includes(typeof state?.showTileGrid)) {
             this.#canvasManager.showTileGrid = state?.showTileGrid;
-            dirty = true;
+            refreshTiles = true;
         }
         // Draw pixel grid
         if (['boolean', 'number'].includes(typeof state?.showPixelGrid)) {
             this.#canvasManager.showPixelGrid = state?.showPixelGrid;
-            dirty = true;
+            refreshTiles = true;
         }
         // Selected tile index?
         if (typeof state?.selectedTileIndex === 'number') {
             this.#canvasManager.selectedTileIndex = state.selectedTileIndex;
-            dirty = true;
+            refreshTiles = true;
         }
         // Cursor size
         if (typeof state?.cursorSize === 'number') {
             if (state.cursorSize > 0 && state.cursorSize <= 50) {
                 this.#canvasManager.cursorSize = state.cursorSize;
             }
+            redrawUI = true;
         }
         // Cursor type
         if (typeof state?.cursor === 'string') {
@@ -237,13 +240,13 @@ export default class TileEditor extends ComponentBase {
             this.#canvasManager.clearReferenceImages();
             this.#canvasManager.addReferenceImage(state.referenceImage);
             this.#canvasManager.invalidateImage();
-            dirty = true;
+            refreshTiles = true;
         }
         // Transparency index
         if (typeof state?.transparencyIndex === 'number') {
             this.#canvasManager.transparencyIndex = state.transparencyIndex;
             this.#canvasManager.invalidateImage();
-            dirty = true;
+            refreshTiles = true;
         }
         // Theme
         if (typeof state?.theme === 'string') {
@@ -274,15 +277,25 @@ export default class TileEditor extends ComponentBase {
             } else {
                 this.#canvasManager.clearSelectedTileRegion();
             }
-            refresh = true;
+            redrawUI = true;
+        }
+        // Pan horizontal
+        if (typeof state?.viewportPanHorizontal === 'number') {
+            this.#canvasManager.offsetX += state?.viewportPanHorizontal;
+            redrawUI = true;
+        }
+        // Pan vertical
+        if (typeof state?.viewportPanVertical === 'number') {
+            this.#canvasManager.offsetY += state?.viewportPanVertical;
+            redrawUI = true;
         }
         // Force refresh?
         if (typeof state.forceRefresh === 'boolean' && state.forceRefresh === true) {
-            dirty = true;
+            refreshTiles = true;
         }
         // Refresh image?
-        if ((dirty || refresh) && this.#tileGrid && this.#tileSet && this.#paletteList && this.#paletteList.length > 0) {
-            if (dirty) {
+        if ((refreshTiles || redrawUI) && this.#tileGrid && this.#tileSet && this.#paletteList && this.#paletteList.length > 0) {
+            if (refreshTiles) {
                 let paletteList = !this.#displayNative ? this.#paletteList : this.#nativePaletteList;
                 if (this.#canvasManager.paletteList !== paletteList) {
                     this.#canvasManager.paletteList = paletteList;
@@ -290,7 +303,24 @@ export default class TileEditor extends ComponentBase {
                 this.#canvasManager.tileSet = this.#tileSet;
                 this.#canvasManager.tileGrid = this.#tileGrid;
                 if (this.#canvasManager.scale !== this.#scale) {
+                    const prevScale = this.#canvasManager.scale;
                     this.#canvasManager.scale = this.#scale;
+                    if (state?.scaleRelativeToMouse === true && this.#lastCoords && this.#lastMouseCoords) {
+                        // Scale / zoom based on mouse coord
+                        const mouseXRelativeToCentre = -((this.#tbCanvas.clientWidth / 2) - this.#lastMouseCoords.x);
+                        const zeroOffsetX = (((this.#tileGrid.columnCount * 8) / 2) * this.#scale);
+                        const hoverPixelNewXOffset = this.#lastCoords.x * this.#scale;
+                        this.#canvasManager.offsetX = Math.round(zeroOffsetX + mouseXRelativeToCentre - hoverPixelNewXOffset);
+
+                        const mouseYRelativeToCentre = -((this.#tbCanvas.clientHeight / 2) - this.#lastMouseCoords.y);
+                        const zeroOffsetY = (((this.#tileGrid.rowCount * 8) / 2) * this.#scale);
+                        const hoverPixelNewYOffset = this.#lastCoords.y * this.#scale;
+                        this.#canvasManager.offsetY = Math.round(zeroOffsetY + mouseYRelativeToCentre - hoverPixelNewYOffset);
+                    } else {
+                        // Scale / zoom based on viewport centre
+                        this.#canvasManager.offsetX = Math.round((this.#canvasManager.offsetX / prevScale) * this.#scale);
+                        this.#canvasManager.offsetY = Math.round((this.#canvasManager.offsetY / prevScale) * this.#scale);
+                    }
                 }
             }
             if (this.#lastCoords) {
@@ -304,7 +334,7 @@ export default class TileEditor extends ComponentBase {
             this.#enabled = state?.enabled;
         }
 
-        if (typeof state?.focusedTile === 'number') {
+        if (this.#tileGrid && typeof state?.focusedTile === 'number') {
             this.#focusTile(state?.focusedTile);
         }
     }
@@ -366,6 +396,7 @@ export default class TileEditor extends ComponentBase {
                         };
                         this.#dispatcher.dispatch(EVENT_OnEvent, args);
                         this.#lastCoords = coords;
+                        this.#lastMouseCoords = this.#canvasManager.convertViewportCoordsToCanvasCoords(this.#tbCanvas, ev.clientX, ev.clientY);
                         if (this.#canvasManager.canDraw) {
                             this.#canvasManager.drawUI(this.#tbCanvas, coords.x, coords.y);
                         }
@@ -535,9 +566,9 @@ export default class TileEditor extends ComponentBase {
                 args.tileIndex = this.#tileSet.getTileIndex(tile);
 
                 if (ev.deltaY > 0) {
-                    args.command = commands.zoomIn;
-                } else {
                     args.command = commands.zoomOut;
+                } else {
+                    args.command = commands.zoomIn;
                 }
 
                 this.#dispatcher.dispatch(EVENT_OnCommand, args);
@@ -591,10 +622,8 @@ export default class TileEditor extends ComponentBase {
         const col = index % this.#tileSet.tileWidth;
         const row = Math.floor(index / this.#tileSet.tileWidth);
         const pxPerTile = this.#canvasManager.scale * 8;
-        const tileY = (row * pxPerTile) + (this.#canvasManager.scale / 2);
-        // const rect = this.#canvasContainer.getBoundingClientRect();
-        // this.#canvasContainer.scrollLeft = Math.max(tileX - (rect.width / 2), 0);
-        // this.#canvasContainer.scrollTop = Math.max(tileY - (rect.height / 2), 0);
+        this.#canvasManager.offsetX = col / pxPerTile;
+        this.#canvasManager.offsetY = row / pxPerTile;
     }
 
 
@@ -607,11 +636,14 @@ export default class TileEditor extends ComponentBase {
  * @property {TileSet?} tileSet - Tile set that will be drawn, passing this will trigger a redraw.
  * @property {PaletteList?} paletteList - Palette list to use for drawing, passing this will trigger a redraw.
  * @property {number?} scale - Current scale level.
+ * @property {boolean?} [scaleRelativeToMouse] - Scale based on the mouse cursor position?.
  * @property {number?} [tilesPerBlock] - The amount of tiles per tile block.
  * @property {boolean?} displayNative - Should the tile editor display native colours?
  * @property {number?} selectedTileIndex - Currently selected tile index.
  * @property {number?} cursorSize - Size of the cursor in px.
  * @property {string?} cursor - Cursor to use when the mouse hovers over the image editor.
+ * @property {number?} [viewportPanHorizontal] - Pan the viewport horizontally.
+ * @property {number?} [viewportPanVertical] - Pan the viewport vertically.
  * @property {ReferenceImage?} referenceImage - Reference image to draw.
  * @property {number?} transparencyIndex - 0 to 15 of which colour index to make transparent.
  * @property {boolean?} showTileGrid - Should the tile grid be drawn?
@@ -626,13 +658,6 @@ export default class TileEditor extends ComponentBase {
  * @property {import("../models/tileGridProvider.js").TileGridRegion} [selectedRegion] - Selected region to highlight.
  * @property {boolean?} [forceRefresh] - When true the tile grid image will be refreshed.
  * @exports 
- */
-
-/**
- * @typedef {object} Coordinates
- * @property {number} x - X coordinate.
- * @property {number} y - Y coordinate.
- * @exports
  */
 
 /**

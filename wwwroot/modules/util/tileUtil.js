@@ -11,7 +11,7 @@ export default class TileUtil {
      */
     static toHex(tile) {
         let result = '';
-        const tileData = tile.readAll();
+        const tileData = tile?.readAll() ?? TileFactory.create().readAll();
         for (let i = 0; i < tileData.length; i++) {
             let byteAsString = tileData[i].toString(16);
             if (byteAsString.length % 2 !== 0) result += '0';
