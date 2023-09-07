@@ -120,7 +120,7 @@ export default class ProjectWatcher {
  * @typedef {object} ProjectWatcherEventArgs
  * @property {string} event - The event that occurred.
  * @property {string} sessionId - Session ID.
- * @property {string} project - Project that the message related to.
+ * @property {Project} project - Project that the message related to.
  * @exports
  */
 
