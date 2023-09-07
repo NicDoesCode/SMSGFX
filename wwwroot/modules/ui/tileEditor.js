@@ -135,15 +135,15 @@ export default class TileEditor extends ComponentBase {
      * @param {TileEditorState} state - State object.
      */
     setState(state) {
-        let dirty = false;
-        let refresh = false;
+        let refreshTiles = false;
+        let redrawUI = false;
         // Change palette list?
         const paletteList = state?.paletteList;
         if (paletteList && typeof paletteList.getPaletteById === 'function') {
             this.#canvasManager.invalidateImage();
             this.#paletteList = paletteList;
             this.#nativePaletteList = PaletteListFactory.create(paletteList.getPalettes().map((p) => PaletteFactory.convertToNative(p)));
-            dirty = true;
+            refreshTiles = true;
         }
         // Changing tile grid
         const tileGrid = state?.tileGrid;
@@ -151,14 +151,14 @@ export default class TileEditor extends ComponentBase {
             resizeCanvas(this.#tbCanvas);
             this.#canvasManager.invalidateImage();
             this.#tileGrid = tileGrid;
-            dirty = true;
+            refreshTiles = true;
         }
         // Changing tile set
         const tileSet = state?.tileSet;
         if (tileSet instanceof TileSet || tileSet === null) {
             this.#canvasManager.invalidateImage();
             this.#tileSet = tileSet;
-            dirty = true;
+            refreshTiles = true;
         }
         // Updated tiles
         if (state?.updatedTiles && Array.isArray(state?.updatedTiles)) {
@@ -166,7 +166,7 @@ export default class TileEditor extends ComponentBase {
             updatedTiles.forEach((tileIndex) => {
                 this.#canvasManager.invalidateTile(tileIndex);
             });
-            dirty = true;
+            refreshTiles = true;
         }
         // Updated tile IDs
         if (state?.updatedTileIds && Array.isArray(state?.updatedTileIds)) {
@@ -174,7 +174,7 @@ export default class TileEditor extends ComponentBase {
             updatedTileIds.forEach((tileId) => {
                 this.#canvasManager.invalidateTileId(tileId);
             });
-            dirty = true;
+            refreshTiles = true;
         }
         // Changing scale?
         if (typeof state?.scale === 'number') {
@@ -182,7 +182,7 @@ export default class TileEditor extends ComponentBase {
             if (scale > 0 && scale <= 100) {
                 this.#scale = state.scale;
                 this.#canvasManager.invalidateImage();
-                dirty = true;
+                refreshTiles = true;
             } else {
                 throw new Error('Scale must be between 1 and 100.');
             }
@@ -207,29 +207,29 @@ export default class TileEditor extends ComponentBase {
                 this.#canvasManager.tileGridColour = '#000000';
                 this.#canvasManager.tileGridOpacity = 0.4;
             }
-            dirty = true;
+            refreshTiles = true;
         }
         // Draw tile grid
         if (['boolean', 'number'].includes(typeof state?.showTileGrid)) {
             this.#canvasManager.showTileGrid = state?.showTileGrid;
-            dirty = true;
+            refreshTiles = true;
         }
         // Draw pixel grid
         if (['boolean', 'number'].includes(typeof state?.showPixelGrid)) {
             this.#canvasManager.showPixelGrid = state?.showPixelGrid;
-            dirty = true;
+            refreshTiles = true;
         }
         // Selected tile index?
         if (typeof state?.selectedTileIndex === 'number') {
             this.#canvasManager.selectedTileIndex = state.selectedTileIndex;
-            dirty = true;
+            refreshTiles = true;
         }
         // Cursor size
         if (typeof state?.cursorSize === 'number') {
             if (state.cursorSize > 0 && state.cursorSize <= 50) {
                 this.#canvasManager.cursorSize = state.cursorSize;
             }
-            refresh = true;
+            redrawUI = true;
         }
         // Cursor type
         if (typeof state?.cursor === 'string') {
@@ -240,13 +240,13 @@ export default class TileEditor extends ComponentBase {
             this.#canvasManager.clearReferenceImages();
             this.#canvasManager.addReferenceImage(state.referenceImage);
             this.#canvasManager.invalidateImage();
-            dirty = true;
+            refreshTiles = true;
         }
         // Transparency index
         if (typeof state?.transparencyIndex === 'number') {
             this.#canvasManager.transparencyIndex = state.transparencyIndex;
             this.#canvasManager.invalidateImage();
-            dirty = true;
+            refreshTiles = true;
         }
         // Theme
         if (typeof state?.theme === 'string') {
@@ -277,25 +277,25 @@ export default class TileEditor extends ComponentBase {
             } else {
                 this.#canvasManager.clearSelectedTileRegion();
             }
-            refresh = true;
+            redrawUI = true;
         }
         // Pan horizontal
         if (typeof state?.viewportPanHorizontal === 'number') {
             this.#canvasManager.offsetX += state?.viewportPanHorizontal;
-            refresh = true;
+            redrawUI = true;
         }
         // Pan vertical
         if (typeof state?.viewportPanVertical === 'number') {
             this.#canvasManager.offsetY += state?.viewportPanVertical;
-            refresh = true;
+            redrawUI = true;
         }
         // Force refresh?
         if (typeof state.forceRefresh === 'boolean' && state.forceRefresh === true) {
-            dirty = true;
+            refreshTiles = true;
         }
         // Refresh image?
-        if ((dirty || refresh) && this.#tileGrid && this.#tileSet && this.#paletteList && this.#paletteList.length > 0) {
-            if (dirty) {
+        if ((refreshTiles || redrawUI) && this.#tileGrid && this.#tileSet && this.#paletteList && this.#paletteList.length > 0) {
+            if (refreshTiles) {
                 let paletteList = !this.#displayNative ? this.#paletteList : this.#nativePaletteList;
                 if (this.#canvasManager.paletteList !== paletteList) {
                     this.#canvasManager.paletteList = paletteList;
