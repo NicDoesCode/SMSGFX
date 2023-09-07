@@ -334,7 +334,7 @@ export default class TileEditor extends ComponentBase {
             this.#enabled = state?.enabled;
         }
 
-        if (typeof state?.focusedTile === 'number') {
+        if (this.#tileGrid && typeof state?.focusedTile === 'number') {
             this.#focusTile(state?.focusedTile);
         }
     }

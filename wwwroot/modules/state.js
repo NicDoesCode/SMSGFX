@@ -9,6 +9,7 @@ import ProjectJsonSerialiser from "./serialisers/projectJsonSerialiser.js";
 import EventDispatcher from "./components/eventDispatcher.js";
 import ProjectUtil from "./util/projectUtil.js";
 
+
 const LOCAL_STORAGE_APPUI = 'smsgfxappui';
 const LOCAL_STORAGE_PROJECTS = 'smsgfxproject_';
 
@@ -16,6 +17,7 @@ const EVENT_OnEvent = 'EVENT_OnEvent';
 
 const events = {
     projectChanged: 'projectChanged',
+    projectUpdated: 'projectUpdated',
     projectListChanged: 'projectListUpdated',
     projectSaved: 'projectSaved'
 };
@@ -24,45 +26,66 @@ const contexts = {
     deleted: 'deleted'
 };
 
+
 const rxProjectId = /^[A-z0-9]+$/;
 
+
+/**
+ * This class handles the application state such as the current loaded project, as well as management of local storage.
+ */
 export default class State {
 
 
+    /**
+     * Gets a list of events that can occur.
+     */
     static get Events() {
         return events;
     }
 
+    /**
+     * Gets a list of event contexts that can occur.
+     */
     static get Contexts() {
         return contexts;
     }
 
 
     /**
-     * Gets the presistent state for UI elements.
+     * Gets the presistent UI state (must call the 'loadPersistentUIStateFromLocalStorage()' method before accessing).
      */
     get persistentUIState() {
         return this.#persistentUIState;
     }
 
     /**
-     * Gets the project.
+     * Gets the current project.
      */
     get project() {
+        return this.#project;
+    }
+
+    /**
+     * Gets the current project state.
+     */
+    get projectState() {
         return this.#project;
     }
 
 
     /** @type {PersistentUIState} */
     #persistentUIState;
-    /** @type {Object.<string, Project>} */
-    #projects = {};
     /** @type {Project} */
     #project;
+    /** @type {import("./models/persistentUIState.js").ProjectState?} */
+    #projectState;
     /** @type {EventDispatcher} */
     #dispatcher;
 
 
+    /**
+     * Constructor for the class.
+     */
     constructor() {
         this.#persistentUIState = PersistentUIStateFactory.create();
         this.#project = null;
@@ -71,7 +94,7 @@ export default class State {
 
 
     /**
-     * Adds a callback for when the loaded project changes.
+     * Adds a callback for when an event occurs.
      * @param {StateCallback} callback - Callback function.
      */
     addHandlerOnEvent(callback) {
@@ -82,7 +105,7 @@ export default class State {
 
 
     /**
-     * Gets all projects from local storage.
+     * Gets a list containing all projects found in local storage.
      * @returns {ProjectList}
      */
     getProjectsFromLocalStorage() {
@@ -105,22 +128,29 @@ export default class State {
 
     /**
      * Set the current project.
-     * @param {Project|null} project - Project to set.
+     * @param {Project?} project - Project to set, or null if no project.
      */
     setProject(project) {
+        let lastProjectId = this.project?.id ?? null;
         if (project) {
             this.#project = project;
         } else {
             this.#project = null;
         }
-        this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectChanged));
+        let thisProjectId = this.project?.id ?? null;
+
+        if (lastProjectId !== thisProjectId) {
+            this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectChanged, { projectId: thisProjectId, lastProjectId: lastProjectId }));
+        } else {
+            this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectUpdated, { projectId: thisProjectId }));
+        }
     }
 
 
     /**
      * Loads persistent UI values from local storage.
      */
-    loadFromLocalStorage() {
+    loadPersistentUIStateFromLocalStorage() {
         // Load UI from local storage
         const serialisedAppUI = localStorage.getItem(LOCAL_STORAGE_APPUI);
         if (serialisedAppUI) {
@@ -129,10 +159,20 @@ export default class State {
     }
 
     /**
-     * Loads values from local storage.
-     * @param {string?} projectId - Project details to load.
+     * Loads a project from local storage and sets it as the current project.
+     * @param {string?} projectId - Unique ID of the project to load from local storage.
      */
-    loadProjectFromLocalStorage(projectId) {
+    setProjectFromLocalStorage(projectId) {
+        const project = getProjectFromLocalStorage(projectId);
+        ensureProjectHasId(project);
+        this.setProject(project);
+    }
+
+    /**
+     * Gets a project from local storage.
+     * @param {string?} projectId - Unique ID of the project to load from local storage.
+     */
+    getProjectFromLocalStorage(projectId) {
         if (!projectId || !rxProjectId.test(projectId)) throw new Error('Invalid project ID given.');
 
         const storageId = `${LOCAL_STORAGE_PROJECTS}${projectId}`;
@@ -140,15 +180,13 @@ export default class State {
 
         if (!serialised) throw new Error('Project ID not found.');
 
-        const project = ProjectJsonSerialiser.deserialise(serialised);
-        ensureProjectHasId(project);
-        this.setProject(project);
+        return ProjectJsonSerialiser.deserialise(serialised);
     }
 
     /**
      * Saves the current UI state variables to local storage.
      */
-    saveUIStateToLocalStorage() {
+    savePersistentUIStateToLocalStorage() {
         const serialisedUIState = AppUIStateJsonSerialiser.serialise(this.persistentUIState);
         localStorage.setItem(LOCAL_STORAGE_APPUI, serialisedUIState);
     }
@@ -167,30 +205,30 @@ export default class State {
             const serialised = ProjectJsonSerialiser.serialise(project);
             localStorage.setItem(storageId, serialised);
             if (raise) {
-                this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectSaved, project.id));
+                this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectSaved, { projectId: project.id }));
                 this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectListChanged));
             }
         }
     }
 
     /**
-     * Saves to local storage.
+     * Saves the persistent UI values and current project to local storage.
      */
     saveToLocalStorage() {
-        this.saveUIStateToLocalStorage();
+        this.savePersistentUIStateToLocalStorage();
         this.saveProjectToLocalStorage();
     }
 
 
     /**
      * Deletes a project from local storage.
-     * @param {string?} projectId - Project ID to delete.
+     * @param {string?} projectId - Unique ID of the project to delete.
      */
     deleteProjectFromStorage(projectId) {
         if (projectId && rxProjectId.test(projectId)) {
             const storageId = `${LOCAL_STORAGE_PROJECTS}${projectId}`;
             localStorage.removeItem(storageId);
-            this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectListChanged, projectId, contexts.deleted));
+            this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectListChanged, { context: contexts.deleted, projectId: projectId }));
 
             if (this.project?.id === projectId) {
                 this.setProject(null);
@@ -202,10 +240,10 @@ export default class State {
      * Ensures that the given project has a unique ID.
      * @param {string?} preferredProjectId - If possible use this project ID, if it exists then new one will be generated.
      */
-    getProjectIdThatDoesntCollide(preferredProjectId) {
-        if (typeof preferredProjectId === 'string' && preferredProjectId !== '' && !projectIdExists(preferredProjectId)) {
+    generateUniqueProjectId(preferredProjectId) {
+        if (typeof preferredProjectId === 'string' && preferredProjectId !== '' && !projectIdExistsInLocalSTorage(preferredProjectId)) {
             return preferredProjectId;
-        } 
+        }
         return generateUniqueProjectId();
     }
 
@@ -224,10 +262,10 @@ function ensureProjectHasId(project) {
 }
 
 /**
- * Returns a boolean value on whether a project exists or not.
+ * Returns a boolean value on whether there is an antry for a project ID in local storage.
  * @param {string} projectId - Project ID to check.
  */
-function projectIdExists(projectId) {
+function projectIdExistsInLocalSTorage(projectId) {
     if (typeof projectId !== 'string' || projectId === '') throw new Error('Project ID was not valid.');
     const storageId = `${LOCAL_STORAGE_PROJECTS}${projectId}`;
     return localStorage.getItem(storageId) !== null;
@@ -240,21 +278,21 @@ function generateUniqueProjectId() {
     let result;
     do {
         result = ProjectUtil.generateProjectId();
-    } while (projectIdExists(result))
+    } while (projectIdExistsInLocalSTorage(result))
     return result;
 }
 
 /**
  * @param {string} event 
- * @param {string|null} projectId 
- * @param {string|null} context 
+ * @param {{ context?: string?, projectId?: string?, lastProjectId?: string?}} args 
  * @returns {StateEventArgs}
  */
-function createArgs(event, projectId, context) {
+function createArgs(event, args) {
     return {
         event: event,
-        context: context ?? null,
-        projectId: projectId ?? null
+        context: args?.context ?? null,
+        projectId: args?.projectId ?? null,
+        lastProjectId: args?.lastProjectId ?? null
     };
 }
 

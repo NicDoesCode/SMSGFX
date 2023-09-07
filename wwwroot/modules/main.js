@@ -824,13 +824,17 @@ function createEventListeners() {
 }
 
 
-/** @param {import('./components/projectWatcher').ProjectWatcherEventArgs} args */
+/** 
+ * Project watcher was notified of a project change from another window
+ * @param {import('./components/projectWatcher.js').ProjectWatcherEventArgs} args 
+ */
 function handleWatcherEvent(args) {
     switch (args.event) {
 
         case ProjectWatcher.Events.projectChanged:
             const project = getProject();
-            if (project && args.project && args.project.id === project.id) {
+            const sameProjectInRemoteWindowAsThisOne = project && args.project && args.project.id === project.id;
+            if (sameProjectInRemoteWindowAsThisOne) {
                 state.setProject(args.project);
             } else {
                 tileEditor.setState({
@@ -858,6 +862,11 @@ function handleStateEvent(args) {
     switch (args.event) {
 
         case State.Events.projectChanged:
+            resetViewportToCentre();
+            displaySelectedProject();
+            break;
+
+        case State.Events.projectUpdated:
             displaySelectedProject();
             break;
 
@@ -1032,24 +1041,24 @@ function handleOptionsToolbarOnCommand(args) {
 
         case OptionsToolbar.Commands.changeTheme:
             getUIState().theme = args.theme;
-            state.saveUIStateToLocalStorage();
+            state.savePersistentUIStateToLocalStorage();
             themeManager.setTheme(args.theme);
             break;
 
         case OptionsToolbar.Commands.changeBackgroundTheme:
             getUIState().backgroundTheme = args.backgroundTheme;
-            state.saveUIStateToLocalStorage();
+            state.savePersistentUIStateToLocalStorage();
             themeManager.setBackgroundTheme(args.backgroundTheme);
             break;
 
         case OptionsToolbar.Commands.changeWelcomeOnStartUp:
             getUIState().welcomeVisibleOnStartup = args.welcomeOnStartUp;
-            state.saveUIStateToLocalStorage();
+            state.savePersistentUIStateToLocalStorage();
             break;
 
         case OptionsToolbar.Commands.changeDocumentationOnStartUp:
             getUIState().documentationVisibleOnStartup = args.documentationOnStartUp;
-            state.saveUIStateToLocalStorage();
+            state.savePersistentUIStateToLocalStorage();
             break;
 
     }
@@ -1074,7 +1083,7 @@ function handleAssemblyExportDialogueOnCommand(args) {
         getProjectAssemblyExportState().exportTileMaps = args.exportTileMaps;
         getProjectAssemblyExportState().exportTileSet = args.exportTileSet;
         getProjectAssemblyExportState().exportPalettes = args.exportPalettes;
-        state.saveUIStateToLocalStorage();
+        state.savePersistentUIStateToLocalStorage();
 
         if (command === commands.update) {
             assemblyExportDialogue.setState({ content: code });
@@ -2303,7 +2312,6 @@ function formatForProject() {
         showPixelGridChecked: getUIState().showPixelGrid,
         enabled: true
     });
-    const focusedTile = (Math.floor(getTileGrid().rowCount / 2) * getTileGrid().columnCount) + (Math.floor(getTileGrid().columnCount) / 2);
     tileEditor.setState({
         palette: palette,
         paletteList: getTileEditorPaletteList(),
@@ -2315,7 +2323,6 @@ function formatForProject() {
         cursorSize: instanceState.pencilSize,
         showTileGrid: getUIState().showTileGrid,
         showPixelGrid: getUIState().showPixelGrid,
-        focusedTile: focusedTile,
         enabled: true
     });
     tileContextToolbar.setState({
@@ -2334,6 +2341,15 @@ function formatForProject() {
     refreshProjectUI();
 
     instanceState.lastProjectId = getProject().id;
+}
+
+function resetViewportToCentre() {
+    if (getProject()) {
+        const focusedTile = (Math.floor(getTileGrid().rowCount / 2) * getTileGrid().columnCount) + (Math.floor(getTileGrid().columnCount) / 2);
+        tileEditor.setState({
+            focusedTile: focusedTile
+        });
+    }
 }
 
 function formatForNoProject() {
@@ -2461,7 +2477,7 @@ function getTileMapContextToolbarVisibleToolstrips(tool) {
 function displaySelectedProject() {
     if (getProject()) {
         getUIState().lastProjectId = getProject().id;
-        state.saveUIStateToLocalStorage();
+        state.savePersistentUIStateToLocalStorage();
         formatForProject();
     } else {
         formatForNoProject();
@@ -3789,6 +3805,8 @@ function projectNew(args) {
     state.setProject(newProject);
     state.saveToLocalStorage();
 
+    resetViewportToCentre();
+
     toast.show('New project created.');
 }
 
@@ -3807,12 +3825,13 @@ function importProjectFromJson() {
 
                 // If it doesn't exist, use the project ID
                 const preferredProjectId = project.id;
-                project.id = state.getProjectIdThatDoesntCollide(preferredProjectId);
+                project.id = state.generateUniqueProjectId(preferredProjectId);
 
                 // Store the project
                 state.setProject(project);
                 state.saveProjectToLocalStorage();
                 getProjectUIState().paletteIndex = 0;
+                resetViewportToCentre();
 
                 // Display the project
                 displaySelectedProject();
@@ -3848,6 +3867,7 @@ async function loadSampleProjectAsync(sampleProjectId) {
                 const defaultTileMap = loadedProject.tileMapList.getTileMapById(sampleProject.defaultTileMapId);
                 getProjectUIState(loadedProject).tileMapId = defaultTileMap?.tileMapId ?? null;
                 state.setProject(loadedProject);
+                resetViewportToCentre();
             }
         }
     }
@@ -4220,13 +4240,13 @@ function selectTileSetOrMap(tileMapId) {
     state.setProject(getProject());
     state.saveToLocalStorage();
 
-    refreshProjectUI();
-
     // Focus the centre tile
     const focusedTile = (Math.floor(getTileGrid().rowCount / 2) * getTileGrid().columnCount) + (Math.floor(getTileGrid().columnCount) / 2);
     tileEditor.setState({
         focusedTile: focusedTile
     });
+
+    refreshProjectUI();
 }
 
 /**
@@ -4265,7 +4285,7 @@ function selectTileSetTile(tileId) {
     const tile = getTileSet().getTileById(tileId);
     if (tile) {
         getProjectUIState().tileId = tileId;
-        state.saveUIStateToLocalStorage();
+        state.savePersistentUIStateToLocalStorage();
         tileManager.setState({
             selectedTileId: tileId
         });
@@ -4772,7 +4792,7 @@ window.addEventListener('load', async () => {
     await PageModalDialogue.wireUpElementsAsync(document.body);
 
     // Load and set state
-    state.loadFromLocalStorage();
+    state.loadPersistentUIStateFromLocalStorage();
 
     checkPersistentUIValues();
 
@@ -4793,7 +4813,7 @@ window.addEventListener('load', async () => {
             const defaultTileMap = loadedProject.tileMapList.getTileMapById(sampleProject.defaultTileMapId);
             getProjectUIState(loadedProject).tileMapId = defaultTileMap?.tileMapId ?? null;
         }
-        state.saveUIStateToLocalStorage();
+        state.savePersistentUIStateToLocalStorage();
     }
 
     const project = projects.getProjectById(getUIState().lastProjectId);
