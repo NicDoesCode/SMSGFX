@@ -7,6 +7,7 @@ import TileGridProvider from "../models/tileGridProvider.js";
 import Tile from "../models/tile.js";
 import TileMap from "../models/tileMap.js";
 import TileMapFactory from "../factory/tileMapFactory.js";
+import PaintUtil from "../util/paintUtil.js";
 
 
 const highlightModes = {
@@ -663,7 +664,6 @@ export default class CanvasManager {
         const tileGridCol = tileindex % tileWidth;
         const tileGridRow = (tileindex - tileGridCol) / tileWidth;
         const palette = this.paletteList.getPalette(tileInfo.paletteIndex);
-        const numColours = palette.getColours().length;
 
         context.imageSmoothingEnabled = false;
 
@@ -671,60 +671,33 @@ export default class CanvasManager {
 
             let tileCanvas = this.#tileCanvases[tile.tileId];
             if (!tileCanvas) {
-
-                tileCanvas = document.createElement('canvas');
-                tileCanvas.width = 8;
-                tileCanvas.height = 8;
+                tileCanvas = PaintUtil.createTileCanvas(tile, palette, transparencyColour);
                 this.#tileCanvases[tile.tileId] = tileCanvas;
-
-                const tileContext = tileCanvas.getContext('2d');
-
-                let pixelPaletteIndex = 0;
-                for (let tilePx = 0; tilePx < 64; tilePx++) {
-
-                    const tileCol = tilePx % 8;
-                    const tileRow = (tilePx - tileCol) / 8;
-
-                    const x = tileCol;
-                    const y = tileRow;
-
-                    if (tileInfo.horizontalFlip && tileInfo.verticalFlip) {
-                        pixelPaletteIndex = tile.readAt(63 - tilePx);
-                    } else if (tileInfo.horizontalFlip) {
-                        const readPx = (tileRow * 8) + (7 - tileCol);
-                        pixelPaletteIndex = tile.readAt(readPx);
-                    } else if (tileInfo.verticalFlip) {
-                        const readPx = ((7 - tileRow) * 8) + tileCol;
-                        pixelPaletteIndex = tile.readAt(readPx);
-                    } else {
-                        pixelPaletteIndex = tile.readAt(tilePx);
-                    }
-
-                    // Set colour of the pixel
-                    if (pixelPaletteIndex >= 0 && pixelPaletteIndex < numColours) {
-                        const colour = palette.getColour(pixelPaletteIndex);
-                        const hex = ColourUtil.toHex(colour.r, colour.g, colour.b);
-                        tileContext.fillStyle = hex;
-                    }
-
-                    if (pixelPaletteIndex !== transparencyColour) {
-                        // Pixel colour is different to transparency, so draw it.
-                        tileContext.fillRect(x, y, 1, 1);
-                    } else {
-                        // If this pixel colour is the colour of transparency, then it shouldn't be
-                        // drawn, so clear it instead of drawing it.
-                        tileContext.clearRect(x, y, 1, 1);
-                    }
-                }
             }
 
             // Tile exists 
             const x = tileGridCol * 8 * pxSize;
             const y = tileGridRow * 8 * pxSize;
             const sizeXY = pxSize * 8;
-            context.drawImage(tileCanvas, x, y, sizeXY, sizeXY);
+            if (tileInfo.horizontalFlip && tileInfo.verticalFlip) {
+                context.scale(-1, -1);
+                context.drawImage(tileCanvas, -x, -y, -sizeXY, -sizeXY);
+                context.setTransform(1, 0, 0, 1, 0, 0);
+            } else if (tileInfo.horizontalFlip) {
+                context.scale(-1, 1);
+                context.drawImage(tileCanvas, -x, y, -sizeXY, sizeXY);
+                context.setTransform(1, 0, 0, 1, 0, 0);
+            } else if (tileInfo.verticalFlip) {
+                context.scale(1, -1);
+                context.drawImage(tileCanvas, x, -y, sizeXY, -sizeXY);
+                context.setTransform(1, 0, 0, 1, 0, 0);
+            } else {
+                context.drawImage(tileCanvas, x, y, sizeXY, sizeXY);
+            }
         } else {
-            this.#tileCanvases[tileInfo.tileId] = null;
+            if (this.#tileCanvases[tileInfo.tileId]) {
+                delete this.#tileCanvases[tileInfo.tileId];
+            }
 
             // Draw in pixel mesh when the tile doesn't exist
             const originX = (tileGridCol * 8) * pxSize;

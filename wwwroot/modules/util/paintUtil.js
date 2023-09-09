@@ -244,6 +244,48 @@ export default class PaintUtil {
         }
     }
 
+    /**
+     * Generates a canvas object and renders a tile to it.
+     * @param {Tile} tileToDraw - Tile to draw to the canvas.
+     * @param {Palette} paletteToUse - Colour palette to use.
+     * @param {number} colourIndexToRenderTransparent - Colour index to render as transparent.
+     * @returns {HTMLCanvasElement}
+     */
+    static createTileCanvas(tileToDraw, paletteToUse, colourIndexToRenderTransparent) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 8;
+        canvas.height = 8;
+        const context = canvas.getContext('2d');
+
+        let pixelIndex = 0;
+        for (let y = 0; y < 8; y++) {
+            for (let x = 0; x < 8; x++) {
+
+                const pixelPaletteIndex = tileToDraw.readAt(pixelIndex);
+
+                // Set colour of the pixel
+                if (pixelPaletteIndex >= 0 && pixelPaletteIndex < paletteToUse.getColours().length) {
+                    const colour = paletteToUse.getColour(pixelPaletteIndex);
+                    const hex = ColourUtil.toHex(colour.r, colour.g, colour.b);
+                    context.fillStyle = hex;
+                }
+
+                if (pixelPaletteIndex !== colourIndexToRenderTransparent) {
+                    // Pixel colour is different to transparency, so draw it.
+                    context.fillRect(x, y, 1, 1);
+                } else {
+                    // If this pixel colour is the colour of transparency, then it shouldn't be
+                    // drawn, so clear it instead of drawing it.
+                    context.clearRect(x, y, 1, 1);
+                }
+
+                pixelIndex++;
+            }
+        }
+
+        return canvas;
+    }
+
 
 }
 

@@ -241,6 +241,6 @@ function selectTile(tileId, element) {
     });
 
     if (selectedButton) {
-        selectedButton.scrollIntoView({behavior: 'smooth', block: 'end', inline: 'nearest'});
+        selectedButton.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' });
     }
 }
