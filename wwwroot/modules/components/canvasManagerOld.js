@@ -28,7 +28,7 @@ const highlightModes = {
  * The CanvasManager class renders a tile grid onto a HTMLCanvasElement, as well as other features
  * such as the tile / pixel grid, the cursor, etc.
  */
-export default class CanvasManager {
+export default class CanvasManagerOld {
 
 
     /**
@@ -54,8 +54,8 @@ export default class CanvasManager {
     }
     set highlightMode(value) {
         if (!value || value === null) {
-            this.#highlightMode = CanvasManager.HighlightModes.pixel;
-        } else if (Object.keys(CanvasManager.HighlightModes).includes(value)) {
+            this.#highlightMode = CanvasManagerOld.HighlightModes.pixel;
+        } else if (Object.keys(CanvasManagerOld.HighlightModes).includes(value)) {
             this.#highlightMode = value;
         } else {
             throw new Error('Unknown highlight mode.');
@@ -294,7 +294,7 @@ export default class CanvasManager {
     #pixelGridOpacity = 0.2;
     #tileGridColour = '#000000';
     #tileGridOpacity = 0.4;
-    #highlightMode = CanvasManager.HighlightModes.pixel;
+    #highlightMode = CanvasManagerOld.HighlightModes.pixel;
 
 
     /**
@@ -361,7 +361,7 @@ export default class CanvasManager {
                 tileMap = TileMapFactory.create({ defaultTileId: tile.tileId, rows: 1, columns: 1 });
             } else {
                 const tileId = tileOrTileIdOrTileMap instanceof Tile ? tileOrTileIdOrTileMap.tileId : tileOrTileIdOrTileMap;
-                console.warn(`CanvasManager.setTilePreview: Tile with ID '${tileId}' not found, tile preview will be slipped.`);
+                console.warn(`CanvasManagerOld.setTilePreview: Tile with ID '${tileId}' not found, tile preview will be slipped.`);
             }
         } else if (tileOrTileIdOrTileMap instanceof TileMap) {
             tileMap = tileOrTileIdOrTileMap;
@@ -853,7 +853,7 @@ export default class CanvasManager {
         }
 
         // Highlight mode is pixel
-        if (this.highlightMode === CanvasManager.HighlightModes.pixel) {
+        if (this.highlightMode === CanvasManagerOld.HighlightModes.pixel) {
             if (coords.x >= 0 && coords.x < coords.gridColumns * 8 && coords.y >= 0 && coords.y < coords.gridRows * 8) {
                 // Highlight the tile
                 context.strokeStyle = 'yellow';
@@ -868,7 +868,7 @@ export default class CanvasManager {
         }
 
         // Highlight mode is tile
-        if (this.#highlightMode === CanvasManager.HighlightModes.tile) {
+        if (this.#highlightMode === CanvasManagerOld.HighlightModes.tile) {
             if (coords.x >= 0 && coords.x < coords.gridColumns * 8 && coords.y >= 0 && coords.y < coords.gridRows * 8) {
                 const tile = coords.tile;
                 const originX = drawX + (tile.sizePx * tile.col);
@@ -881,7 +881,7 @@ export default class CanvasManager {
         }
 
         // Highlight mode is tile block
-        if (this.#highlightMode === CanvasManager.HighlightModes.tileBlock) {
+        if (this.#highlightMode === CanvasManagerOld.HighlightModes.tileBlock) {
             if (coords.x >= 0 && coords.x < coords.gridColumns * 8 && coords.y >= 0 && coords.y < coords.gridRows * 8) {
                 const block = coords.block;
                 const originX = drawX + (block.sizePx * block.col);
@@ -894,7 +894,7 @@ export default class CanvasManager {
         }
 
         // Highlight mode is row
-        if (this.#highlightMode === CanvasManager.HighlightModes.row) {
+        if (this.#highlightMode === CanvasManagerOld.HighlightModes.row) {
             if (coords.y >= 0 && coords.y < coords.gridRows * 8) {
                 const tile = coords.tile;
                 const rowWidth = coords.gridColumns * coords.tile.sizePx;
@@ -912,7 +912,7 @@ export default class CanvasManager {
         }
 
         // Highlight mode is row block
-        if (this.#highlightMode === CanvasManager.HighlightModes.rowBlock) {
+        if (this.#highlightMode === CanvasManagerOld.HighlightModes.rowBlock) {
             if (coords.y >= 0 && coords.y < coords.gridRows * 8) {
                 const block = coords.block;
                 const rowWidth = coords.gridColumns * coords.tile.sizePx;
@@ -930,7 +930,7 @@ export default class CanvasManager {
         }
 
         // Highlight mode is column
-        if (this.#highlightMode === CanvasManager.HighlightModes.column) {
+        if (this.#highlightMode === CanvasManagerOld.HighlightModes.column) {
             if (coords.x >= 0 && coords.x < coords.gridColumns * 8) {
                 const tile = coords.tile;
                 const columnHeight = coords.gridRows * coords.tile.sizePx;
@@ -948,7 +948,7 @@ export default class CanvasManager {
         }
 
         // Highlight mode is column block
-        if (this.#highlightMode === CanvasManager.HighlightModes.columnBlock) {
+        if (this.#highlightMode === CanvasManagerOld.HighlightModes.columnBlock) {
             if (coords.x >= 0 && coords.x < coords.gridColumns * 8) {
                 const block = coords.block;
                 const columnHeight = coords.gridRows * coords.tile.sizePx;
@@ -966,7 +966,7 @@ export default class CanvasManager {
         }
 
         // Highlight mode is row index
-        if (this.#highlightMode === CanvasManager.HighlightModes.rowIndex) {
+        if (this.#highlightMode === CanvasManagerOld.HighlightModes.rowIndex) {
             const pxInRow = 8;
             if (coords.y >= -(pxInRow / 2) && coords.y < (coords.gridRows * pxInRow) + (pxInRow / 2)) {
                 const tile = coords.tile;
@@ -987,7 +987,7 @@ export default class CanvasManager {
         }
 
         // Highlight mode is row block index
-        if (this.#highlightMode === CanvasManager.HighlightModes.rowBlockIndex) {
+        if (this.#highlightMode === CanvasManagerOld.HighlightModes.rowBlockIndex) {
             const pxInRow = 8;
             const pxInBlock = this.tilesPerBlock * 8;
             if (coords.y >= -(pxInRow / 2) && coords.y < (coords.gridRows * pxInRow) + (pxInRow / 2)) {
@@ -1009,7 +1009,7 @@ export default class CanvasManager {
         }
 
         // Highlight mode is column index
-        if (this.#highlightMode === CanvasManager.HighlightModes.columnIndex) {
+        if (this.#highlightMode === CanvasManagerOld.HighlightModes.columnIndex) {
             const pxInCol = 8;
             if (coords.x >= -(pxInCol / 2) && coords.x < (coords.gridColumns * pxInCol) + (pxInCol / 2)) {
                 const tile = coords.tile;
@@ -1030,7 +1030,7 @@ export default class CanvasManager {
         }
 
         // Highlight mode is column block index
-        if (this.#highlightMode === CanvasManager.HighlightModes.columnBlockIndex) {
+        if (this.#highlightMode === CanvasManagerOld.HighlightModes.columnBlockIndex) {
             const pxInCol = 8;
             const pxInBlock = this.tilesPerBlock * 8;
             if (coords.x >= -(pxInCol / 2) && coords.x < (coords.gridColumns * pxInCol) + ((pxInCol / 2) - 2)) {
