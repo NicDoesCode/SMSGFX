@@ -8,6 +8,7 @@ import Tile from "../models/tile.js";
 import TileMap from "../models/tileMap.js";
 import TileMapFactory from "../factory/tileMapFactory.js";
 
+
 const highlightModes = {
     pixel: 'pixel',
     tile: 'tile',
@@ -22,6 +23,11 @@ const highlightModes = {
     columnBlockIndex: 'columnBlockIndex'
 }
 
+
+/**
+ * The CanvasManager class renders a tile grid onto a HTMLCanvasElement, as well as other features
+ * such as the tile / pixel grid, the cursor, etc.
+ */
 export default class CanvasManager {
 
 
@@ -176,6 +182,9 @@ export default class CanvasManager {
         this.#transparencyIndex = value;
     }
 
+    /**
+     * Gets or sets the X offset of the tile grid image.
+     */
     get offsetX() {
         return this.#offsetX;
     }
@@ -183,6 +192,9 @@ export default class CanvasManager {
         this.#offsetX = value;
     }
 
+    /**
+     * Gets or sets the Y offset of the tile grid image.
+     */
     get offsetY() {
         return this.#offsetY;
     }
@@ -190,6 +202,9 @@ export default class CanvasManager {
         this.#offsetY = value;
     }
 
+    /**
+     * Gets or sets the background colour of the viewport, set to null for transparency.
+     */
     get backgroundColour() {
         return this.#backgroundColour;
     }
@@ -197,6 +212,9 @@ export default class CanvasManager {
         this.#backgroundColour = value;
     }
 
+    /**
+     * Gets or sets the colour of the pixel grid.
+     */
     get pixelGridColour() {
         return this.#pixelGridColour;
     }
@@ -204,6 +222,9 @@ export default class CanvasManager {
         this.#pixelGridColour = value;
     }
 
+    /**
+     * Gets or sets the opacity of the pixel grid.
+     */
     get pixelGridOpacity() {
         return this.#pixelGridOpacity;
     }
@@ -211,6 +232,9 @@ export default class CanvasManager {
         this.#pixelGridOpacity = value;
     }
 
+    /**
+     * Gets or sets the colour of the tile grid.
+     */
     get tileGridColour() {
         return this.#tileGridColour;
     }
@@ -218,6 +242,9 @@ export default class CanvasManager {
         this.#tileGridColour = value;
     }
 
+    /**
+     * Gets or sets the opacity of the tile grid.
+     */
     get tileGridOpacity() {
         return this.#tileGridOpacity;
     }
@@ -269,7 +296,7 @@ export default class CanvasManager {
 
 
     /**
-     * Creates a new instance of the tile canvas.
+     * Constructor for the class.
      * @param {TileGridProvider} [tileGrid] - Object that contains the tile grid to render.
      * @param {TileSet} [tileSet] - Tile set that is the source of tiles.
      * @param {PaletteList} [paletteList] - Colour palette list to use.
