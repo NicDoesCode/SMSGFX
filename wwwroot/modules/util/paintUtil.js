@@ -24,7 +24,7 @@ export default class PaintUtil {
         const updatedTileIds = {};
 
         const tileInfo = tileGrid.getTileInfoByPixel(x, y);
-        if (tileInfo === null || tileInfo < 0) return;
+        if (tileInfo === null || tileInfo < 0) return { affectedTileIds: [], affectedTileIndexes: [] };
 
         const brushSize = options.brushSize ?? 1;
         if (brushSize < 1 || brushSize > 100) throw new Error('Brush size must be between 1 and 100 px.');
@@ -88,7 +88,7 @@ export default class PaintUtil {
         const updatedTileIds = {};
 
         const tileInfo = tileGrid.getTileInfoByPixel(x, y);
-        if (tileInfo === null || tileInfo < 0) return;
+        if (tileInfo === null || tileInfo < 0) return { affectedTileIds: [], affectedTileIndexes: [] };
 
         const brushSize = options.brushSize ?? 1;
         if (brushSize < 1 || brushSize > 100) throw new Error('Brush size must be between 1 and 100 px.');
@@ -149,6 +149,7 @@ export default class PaintUtil {
      * @param {number} y - Origin Y coordinate.
      * @param {number} fillColour - Palette index to fill with.
      * @param {FillOptions} options - Options for bucked tool.
+     * @returns {DrawResult}
      */
     static fillOnTileGrid(tileGrid, tileSet, x, y, fillColour, options) {
         const w = tileGrid.columnCount * 8;
@@ -157,7 +158,7 @@ export default class PaintUtil {
 
         const tileInfo = tileGrid.getTileInfoByPixel(x, y);
         const tile = tileSet.getTileById(tileInfo?.tileId ?? null);
-        if (!tile) return;
+        if (!tile) return { affectedTileIds: [], affectedTileIndexes: [] };
 
         // Constrain? Create a virtual tile set and operate on that
         if (!options.affectAdjacentTiles) {
@@ -170,7 +171,10 @@ export default class PaintUtil {
 
         const coords = translateCoordinate(tileInfo, x % 8, y % 8);
         const originColour = tile.readAtCoord(coords.x, coords.y);
-        if (originColour === null || originColour === fillColour) return;
+        if (originColour === null || originColour === fillColour) return { affectedTileIds: [], affectedTileIndexes: [] };
+
+        const updatedTileIds = {};
+        const updatedTileIndexes = {};
 
         /** @type {FillProps} */
         const props = { tileGrid, tileSet, w, h, originColour };
@@ -187,14 +191,22 @@ export default class PaintUtil {
                 // Fill left of the origin
                 let leftX = scanCoord.x;
                 while (pxIsInsideImageAndMatchesOriginColour(pxToLeftOf(leftX), y, props)) {
-                    setColourOnPixel(tileGrid, tileSet, pxToLeftOf(leftX), y, fillColour);
+                    const result = setColourOnPixel(tileGrid, tileSet, pxToLeftOf(leftX), y, fillColour);
+                    if (result.wasUpdated) {
+                        updatedTileIds[result.tileId] = result.tileId;
+                        updatedTileIndexes[result.tileIndex] = result.tileIndex;
+                    }
                     leftX = pxToLeftOf(leftX);
                 }
 
                 // Fill right of the origin
                 let rightX = scanCoord.x - 1;
                 while (pxIsInsideImageAndMatchesOriginColour(pxToRightOf(rightX), y, props)) {
-                    setColourOnPixel(tileGrid, tileSet, pxToRightOf(rightX), y, fillColour);
+                    const result = setColourOnPixel(tileGrid, tileSet, pxToRightOf(rightX), y, fillColour);
+                    if (result.wasUpdated) {
+                        updatedTileIds[result.tileId] = result.tileId;
+                        updatedTileIndexes[result.tileIndex] = result.tileIndex;
+                    }
                     rightX = pxToRightOf(rightX);
                 }
 
@@ -205,6 +217,11 @@ export default class PaintUtil {
                     .concat(scanLineForBlocksOfPixelsWithSameOriginColour(leftX, rightX, oneAbove(y), props));
             }
 
+        }
+
+        return {
+            affectedTileIndexes: Object.keys(updatedTileIndexes),
+            affectedTileIds: Object.keys(updatedTileIds)
         }
 
     }
@@ -242,6 +259,48 @@ export default class PaintUtil {
             context.moveTo(0, 0);
             context.fillRect(x, y, w, h);
         }
+    }
+
+    /**
+     * Generates a canvas object and renders a tile to it.
+     * @param {Tile} tileToDraw - Tile to draw to the canvas.
+     * @param {Palette} paletteToUse - Colour palette to use.
+     * @param {number} colourIndexToRenderTransparent - Colour index to render as transparent.
+     * @returns {HTMLCanvasElement}
+     */
+    static createTileCanvas(tileToDraw, paletteToUse, colourIndexToRenderTransparent) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 8;
+        canvas.height = 8;
+        const context = canvas.getContext('2d');
+
+        let pixelIndex = 0;
+        for (let y = 0; y < 8; y++) {
+            for (let x = 0; x < 8; x++) {
+
+                const pixelPaletteIndex = tileToDraw.readAt(pixelIndex);
+
+                // Set colour of the pixel
+                if (pixelPaletteIndex >= 0 && pixelPaletteIndex < paletteToUse.getColours().length) {
+                    const colour = paletteToUse.getColour(pixelPaletteIndex);
+                    const hex = ColourUtil.toHex(colour.r, colour.g, colour.b);
+                    context.fillStyle = hex;
+                }
+
+                if (pixelPaletteIndex !== colourIndexToRenderTransparent) {
+                    // Pixel colour is different to transparency, so draw it.
+                    context.fillRect(x, y, 1, 1);
+                } else {
+                    // If this pixel colour is the colour of transparency, then it shouldn't be
+                    // drawn, so clear it instead of drawing it.
+                    context.clearRect(x, y, 1, 1);
+                }
+
+                pixelIndex++;
+            }
+        }
+
+        return canvas;
     }
 
 
@@ -309,13 +368,17 @@ function pxIsInsideImageAndMatchesOriginColour(x, y, props) {
  * @param {number} x - Image X coordinate.
  * @param {number} y - Image Y coordinate.
  * @param {number} colour - Palette index to set.
- * @returns {boolean}
+ * @returns {{wasUpdated: boolean, tileId: string, tileIndex: number}}
  */
 function setColourOnPixel(tileGrid, tileSet, x, y, colour) {
     const tileInfo = tileGrid.getTileInfoByPixel(x, y);
     const tile = tileSet.getTileById(tileInfo.tileId);
     const coords = translateCoordinate(tileInfo, x % 8, y % 8);
-    return tile.setValueAtCoord(coords.x, coords.y, colour);
+    return {
+        wasUpdated: tile.setValueAtCoord(coords.x, coords.y, colour),
+        tileId: tileInfo.tileId,
+        tileIndex: tileInfo.tileIndex
+    };
 }
 
 /**

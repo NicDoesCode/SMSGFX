@@ -4,6 +4,7 @@ import PaintUtil from "./../../util/paintUtil.js";
 import TemplateUtil from "./../../util/templateUtil.js";
 import TileSet from './../../models/tileSet.js';
 import Palette from "./../../models/palette.js";
+import TileImageManager from "../../components/tileImageManager.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -31,6 +32,10 @@ export default class TileListing extends ComponentBase {
     #selectedTileId = null;
     /** @type {Object.<string, HTMLCanvasElement>} */
     #canvases = {};
+    /** @type {TileImageManager} */
+    #tileImageManager;
+    /** @type {Object.<string, HTMLButtonElement>} */
+    #buttons = {};
 
 
     /**
@@ -42,6 +47,8 @@ export default class TileListing extends ComponentBase {
         this.#element = element;
 
         this.#dispatcher = new EventDispatcher();
+
+        this.#tileImageManager = new TileImageManager();
     }
 
 
@@ -63,22 +70,25 @@ export default class TileListing extends ComponentBase {
     setState(state) {
         let dirty = false;
 
-        if (typeof state?.tileSet?.getTile === 'function') {
+        if (state?.tileSet instanceof TileSet) {
             this.#tileSet = state.tileSet;
             dirty = true;
         }
 
-        if (typeof state?.palette?.getColour === 'function') {
+        if (state?.palette instanceof Palette) {
             this.#palette = state.palette;
             dirty = true;
         }
 
-        if (typeof state?.selectedTileId === 'string') {
-            this.#selectedTileId = state.selectedTileId;
-            selectTile(this.#selectedTileId, this.#element);
-        } else if (typeof state?.selectedTileId === 'object' && state.selectedTileId === null) {
-            this.#selectedTileId = null;
-            selectTile(this.#selectedTileId, this.#element);
+        if (state?.updatedTileIds && Array.isArray(state.updatedTileIds)) {
+            // If any of the updated tile IDs don't have images, then we should refresh everything
+            state.updatedTileIds.forEach((tileId) => {
+                if (!this.#buttons[tileId]) dirty = true;
+            });
+            // Otherwise we can get away with simply updating the affected tiles
+            if (!dirty) {
+                this.#updateTileImages(state.updatedTileIds);
+            }
         }
 
         if (dirty && this.#tileSet && this.#palette) {
@@ -86,8 +96,10 @@ export default class TileListing extends ComponentBase {
             this.#displayTiles(this.#tileSet);
         }
 
-        if (state?.updatedTileIds && Array.isArray(state.updatedTileIds)) {
-            this.#updateTileImages(state.updatedTileIds);
+        if (typeof state?.selectedTileId === 'string' || state.selectedTileId === null) {
+            const changed = this.#selectedTileId !== state?.selectedTileId;
+            this.#selectedTileId = state.selectedTileId;
+            this.#selectTile(this.#selectedTileId, changed);
         }
     }
 
@@ -102,18 +114,37 @@ export default class TileListing extends ComponentBase {
 
 
     /**
+     * Sets or clears the tile image manager.
+     * @param {TileImageManager?} tileImageManager - Tile image manager to set.
+     */
+    setTileImageManager(tileImageManager) {
+        if (tileImageManager && tileImageManager instanceof TileImageManager) {
+            this.#tileImageManager = tileImageManager;
+        } else {
+            this.#tileImageManager = new TileImageManager();
+        }
+    }
+
+
+    /**
      * @param {TileSet} tileSet
      * @param {Palette} palette
      */
     #refreshCanvases(tileSet, palette) {
         tileSet.getTiles().forEach((tile) => {
-            const canvas = document.createElement('canvas');
-            canvas.width = 32;
-            canvas.height = 32;
+            let canvas = this.#canvases[tile.tileId];
+            if (!canvas) {
+                canvas = document.createElement('canvas');
+                canvas.width = 32;
+                canvas.height = 32;
+                this.#canvases[tile.tileId] = canvas;
+            }
 
-            PaintUtil.drawTile(canvas, tile, palette);
+            const context = canvas.getContext('2d');
+            context.imageSmoothingEnabled = false;
 
-            this.#canvases[tile.tileId] = canvas;
+            const tileCanvas = this.#tileImageManager.getTileImage(tile, palette, null);
+            context.drawImage(tileCanvas, 0, 0, 32, 32);
         });
     }
 
@@ -121,43 +152,60 @@ export default class TileListing extends ComponentBase {
      * @param {TileSet} tileSet
      */
     #displayTiles(tileSet) {
-        const renderList = tileSet.getTiles().map((t) => {
-            return {
-                tileId: t.tileId
-            };
-        });
-
-        const dom = document.createElement('div');
-        this.renderTemplateToElement(dom, 'item-template', renderList);
-
-        this.#element.querySelectorAll('[data-command]').forEach((button) => {
-            button.remove();
-        });
-
-        dom.querySelectorAll('[data-command]').forEach((button) => {
+        this.#ensureButtons(tileSet);
+        this.#element.innerHTML = '';
+        tileSet.getTiles().forEach((tile) => {
+            const button = this.#buttons[tile.tileId];
+            if (this.#selectedTileId && this.#selectedTileId === tile.tileId) {
+                button.classList.add('selected');
+            } else {
+                button.classList.remove('selected');
+            }
             this.#element.appendChild(button);
-            const command = button.getAttribute('data-command');
-            const tileId = button.getAttribute('data-tile-id');
-            if (command && tileId) {
-                if (tileId === this.#selectedTileId) {
-                    button.classList.add('selected');
-                }
-                const canvas = this.#canvases[tileId];
+        });
+    }
+
+    /**
+     * @param {TileSet} tileSet
+     */
+    #ensureButtons(tileSet) {
+        tileSet.getTiles().forEach((tile) => {
+            if (!this.#buttons[tile.tileId]) {
+
+                const button = document.createElement('button');
+                button.setAttribute('data-command', commands.tileSelect);
+                button.setAttribute('data-tile-id', tile.tileId);
+                button.classList.add('btn', 'btn-secondary');
+
+                const canvas = this.#canvases[tile.tileId];
                 if (canvas) {
-                    while (button.hasChildNodes()) button.firstChild.remove();
                     button.appendChild(canvas);
-                    button.style.height = `${canvas.getBoundingClientRect().height}px`;
+                    button.style.width = `${canvas.width}px`;
+                    button.style.height = `${canvas.height}px`;
                 }
-                /** @param {MouseEvent} ev */
-                button.onclick = (ev) => {
-                    this.#handleTileListingCommandButtonClicked(command, tileId);
+                button.addEventListener('click', (ev) => {
+                    this.#handleTileListingCommandButtonClicked(commands.tileSelect, tile.tileId);
                     ev.stopImmediatePropagation();
                     ev.preventDefault();
-                }
+                });
+
+                this.#buttons[tile.tileId] = button;
             }
         });
+    }
 
-        selectTile(this.#selectedTileId, this.#element);
+    #selectTile(tileId, scrollIntoView) {
+        Object.keys(this.#buttons).forEach((buttonTileId) => {
+            const button = this.#buttons[buttonTileId];
+            if (tileId === buttonTileId) {
+                button.classList.add('selected');
+                if (scrollIntoView) {
+                    button.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+                }
+            } else {
+                button.classList.remove('selected');
+            }
+        });
     }
 
 
@@ -209,6 +257,7 @@ export default class TileListing extends ComponentBase {
  * @property {Palette?} [palette] - Palette to use to render the tiles.
  * @property {string?} [selectedTileId] - Unique ID of the selected tile.
  * @property {string[]?} [updatedTileIds] - Array of unique tile IDs that were updated.
+ * @property {TileImageManager?} [tileImageManager] - Tile image manager to use for rendering tiles.
  */
 
 /**
@@ -223,24 +272,3 @@ export default class TileListing extends ComponentBase {
  * @property {string} tileId - Unique ID of the tile.
  * @exports
  */
-
-/**
- * @param {string} tileIds - Tile ID to select.
- * @param {HTMLElement} element - HTML element that contains the buttons.
- */
-function selectTile(tileId, element) {
-    /** @type {HTMLButtonElement} */
-    let selectedButton = null;
-    element.querySelectorAll(`button[data-command=${commands.tileSelect}][data-tile-id]`).forEach((button) => {
-        const thisTileId = button.getAttribute('data-tile-id');
-        button.classList.remove('selected');
-        if (thisTileId === tileId) {
-            button.classList.add('selected');
-            selectedButton = button;
-        }
-    });
-
-    if (selectedButton) {
-        selectedButton.scrollIntoView({behavior: 'smooth', block: 'end', inline: 'nearest'});
-    }
-}

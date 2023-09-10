@@ -7,6 +7,9 @@ import TileGridProvider from "../models/tileGridProvider.js";
 import Tile from "../models/tile.js";
 import TileMap from "../models/tileMap.js";
 import TileMapFactory from "../factory/tileMapFactory.js";
+import PaintUtil from "../util/paintUtil.js";
+import TileImageManager from "./tileImageManager.js";
+
 
 const highlightModes = {
     pixel: 'pixel',
@@ -22,6 +25,11 @@ const highlightModes = {
     columnBlockIndex: 'columnBlockIndex'
 }
 
+
+/**
+ * The CanvasManager class renders a tile grid onto a HTMLCanvasElement, as well as other features
+ * such as the tile / pixel grid, the cursor, etc.
+ */
 export default class CanvasManager {
 
 
@@ -176,6 +184,9 @@ export default class CanvasManager {
         this.#transparencyIndex = value;
     }
 
+    /**
+     * Gets or sets the X offset of the tile grid image.
+     */
     get offsetX() {
         return this.#offsetX;
     }
@@ -183,6 +194,9 @@ export default class CanvasManager {
         this.#offsetX = value;
     }
 
+    /**
+     * Gets or sets the Y offset of the tile grid image.
+     */
     get offsetY() {
         return this.#offsetY;
     }
@@ -190,6 +204,9 @@ export default class CanvasManager {
         this.#offsetY = value;
     }
 
+    /**
+     * Gets or sets the background colour of the viewport, set to null for transparency.
+     */
     get backgroundColour() {
         return this.#backgroundColour;
     }
@@ -197,6 +214,9 @@ export default class CanvasManager {
         this.#backgroundColour = value;
     }
 
+    /**
+     * Gets or sets the colour of the pixel grid.
+     */
     get pixelGridColour() {
         return this.#pixelGridColour;
     }
@@ -204,6 +224,9 @@ export default class CanvasManager {
         this.#pixelGridColour = value;
     }
 
+    /**
+     * Gets or sets the opacity of the pixel grid.
+     */
     get pixelGridOpacity() {
         return this.#pixelGridOpacity;
     }
@@ -211,6 +234,9 @@ export default class CanvasManager {
         this.#pixelGridOpacity = value;
     }
 
+    /**
+     * Gets or sets the colour of the tile grid.
+     */
     get tileGridColour() {
         return this.#tileGridColour;
     }
@@ -218,6 +244,9 @@ export default class CanvasManager {
         this.#tileGridColour = value;
     }
 
+    /**
+     * Gets or sets the opacity of the tile grid.
+     */
     get tileGridOpacity() {
         return this.#tileGridOpacity;
     }
@@ -238,6 +267,8 @@ export default class CanvasManager {
     #tilePreviewCanvas = null;
     /** @type {HTMLCanvasElement} */
     #gridPatternCanvas = null;
+    /** @type {TileImageManager} */
+    #tileImageManager = {};
     /** @type {TileSet} */
     #tileSet = null;
     /** @type {PaletteList} */
@@ -269,7 +300,7 @@ export default class CanvasManager {
 
 
     /**
-     * Creates a new instance of the tile canvas.
+     * Constructor for the class.
      * @param {TileGridProvider} [tileGrid] - Object that contains the tile grid to render.
      * @param {TileSet} [tileSet] - Tile set that is the source of tiles.
      * @param {PaletteList} [paletteList] - Colour palette list to use.
@@ -279,6 +310,7 @@ export default class CanvasManager {
         if (tileGrid) this.#tileGrid = tileGrid;
         if (tileSet) this.#tileSet = tileSet;
         if (paletteList) this.#paletteList = paletteList;
+        this.#tileImageManager = new TileImageManager();
     }
 
 
@@ -286,6 +318,7 @@ export default class CanvasManager {
      * Invalidates the tile set image and forces a redraw.
      */
     invalidateImage() {
+        // Set redraw variables
         this.#needToDrawTileImage = true;
         this.#tilePreviewCanvas = null;
     }
@@ -295,6 +328,7 @@ export default class CanvasManager {
      * @param {number} index - Index of the tile to invalidate.
      */
     invalidateTile(index) {
+        // Set redraw variables
         this.#redrawTiles.push(index);
         this.#tilePreviewCanvas = null;
     }
@@ -305,8 +339,9 @@ export default class CanvasManager {
      */
     invalidateTileId(tileId) {
         this.tileGrid.getTileIdIndexes(tileId).forEach((index) => {
-            this.invalidateTile(index);
+            this.#redrawTiles.push(index);
         });
+        this.#tilePreviewCanvas = null;
     }
 
 
@@ -317,6 +352,19 @@ export default class CanvasManager {
         const canvas = document.createElement('canvas');
         this.#drawTileImage(canvas, -1);
         return canvas.toDataURL('image/png');
+    }
+
+
+    /**
+     * Sets or clears the tile image manager.
+     * @param {TileImageManager?} tileImageManager - Tile image manager to set.
+     */
+    setTileImageManager(tileImageManager) {
+        if (tileImageManager && tileImageManager instanceof TileImageManager) {
+            this.#tileImageManager = tileImageManager;
+        } else {
+            this.#tileImageManager = new TileImageManager();
+        }
     }
 
 
@@ -622,48 +670,34 @@ export default class CanvasManager {
         const tileGridCol = tileindex % tileWidth;
         const tileGridRow = (tileindex - tileGridCol) / tileWidth;
         const palette = this.paletteList.getPalette(tileInfo.paletteIndex);
-        const numColours = palette.getColours().length;
+
+        context.imageSmoothingEnabled = false;
 
         if (tile) {
+
+            const tileCanvas = this.#tileImageManager.getTileImage(tile, palette, transparencyColour);
+
             // Tile exists 
-            let pixelPaletteIndex = 0;
-            for (let tilePx = 0; tilePx < 64; tilePx++) {
-
-                const tileCol = tilePx % 8;
-                const tileRow = (tilePx - tileCol) / 8;
-
-                const x = ((tileGridCol * 8) + tileCol) * pxSize;
-                const y = ((tileGridRow * 8) + tileRow) * pxSize;
-
-                if (tileInfo.horizontalFlip && tileInfo.verticalFlip) {
-                    pixelPaletteIndex = tile.readAt(63 - tilePx);
-                } else if (tileInfo.horizontalFlip) {
-                    const readPx = (tileRow * 8) + (7 - tileCol);
-                    pixelPaletteIndex = tile.readAt(readPx);
-                } else if (tileInfo.verticalFlip) {
-                    const readPx = ((7 - tileRow) * 8) + tileCol;
-                    pixelPaletteIndex = tile.readAt(readPx);
-                } else {
-                    pixelPaletteIndex = tile.readAt(tilePx);
-                }
-
-                // Set colour of the pixel
-                if (pixelPaletteIndex >= 0 && pixelPaletteIndex < numColours) {
-                    const colour = palette.getColour(pixelPaletteIndex);
-                    const hex = ColourUtil.toHex(colour.r, colour.g, colour.b);
-                    context.fillStyle = hex;
-                }
-
-                if (pixelPaletteIndex !== transparencyColour) {
-                    // Pixel colour is different to transparency, so draw it.
-                    context.fillRect(x, y, pxSize, pxSize);
-                } else {
-                    // If this pixel colour is the colour of transparency, then it shouldn't be
-                    // drawn, so clear it instead of drawing it.
-                    context.clearRect(x, y, pxSize, pxSize);
-                }
+            const x = tileGridCol * 8 * pxSize;
+            const y = tileGridRow * 8 * pxSize;
+            const sizeXY = pxSize * 8;
+            if (tileInfo.horizontalFlip && tileInfo.verticalFlip) {
+                context.scale(-1, -1);
+                context.drawImage(tileCanvas, -x, -y, -sizeXY, -sizeXY);
+                context.setTransform(1, 0, 0, 1, 0, 0);
+            } else if (tileInfo.horizontalFlip) {
+                context.scale(-1, 1);
+                context.drawImage(tileCanvas, -x, y, -sizeXY, sizeXY);
+                context.setTransform(1, 0, 0, 1, 0, 0);
+            } else if (tileInfo.verticalFlip) {
+                context.scale(1, -1);
+                context.drawImage(tileCanvas, x, -y, sizeXY, -sizeXY);
+                context.setTransform(1, 0, 0, 1, 0, 0);
+            } else {
+                context.drawImage(tileCanvas, x, y, sizeXY, sizeXY);
             }
         } else {
+            this.#tileImageManager.clearByTile(tileInfo.tileId);
             // Draw in pixel mesh when the tile doesn't exist
             const originX = (tileGridCol * 8) * pxSize;
             const originY = (tileGridRow * 8) * pxSize;
