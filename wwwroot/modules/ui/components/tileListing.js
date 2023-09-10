@@ -4,6 +4,7 @@ import PaintUtil from "./../../util/paintUtil.js";
 import TemplateUtil from "./../../util/templateUtil.js";
 import TileSet from './../../models/tileSet.js';
 import Palette from "./../../models/palette.js";
+import TileImageManager from "../../components/tileImageManager.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -31,6 +32,8 @@ export default class TileListing extends ComponentBase {
     #selectedTileId = null;
     /** @type {Object.<string, HTMLCanvasElement>} */
     #canvases = {};
+    /** @type {TileImageManager} */
+    #tileImageManager;
 
 
     /**
@@ -42,6 +45,8 @@ export default class TileListing extends ComponentBase {
         this.#element = element;
 
         this.#dispatcher = new EventDispatcher();
+
+        this.#tileImageManager = new TileImageManager();
     }
 
 
@@ -102,18 +107,37 @@ export default class TileListing extends ComponentBase {
 
 
     /**
+     * Sets or clears the tile image manager.
+     * @param {TileImageManager?} tileImageManager - Tile image manager to set.
+     */
+    setTileImageManager(tileImageManager) {
+        if (tileImageManager && tileImageManager instanceof TileImageManager) {
+            this.#tileImageManager = tileImageManager;
+        } else {
+            this.#tileImageManager = new TileImageManager();
+        }
+    }
+
+
+    /**
      * @param {TileSet} tileSet
      * @param {Palette} palette
      */
     #refreshCanvases(tileSet, palette) {
         tileSet.getTiles().forEach((tile) => {
-            const canvas = document.createElement('canvas');
-            canvas.width = 32;
-            canvas.height = 32;
+            let canvas = this.#canvases[tile.tileId];
+            if (!canvas) {
+                canvas = document.createElement('canvas');
+                canvas.width = 32;
+                canvas.height = 32;
+                this.#canvases[tile.tileId] = canvas;
+            }
 
-            PaintUtil.drawTile(canvas, tile, palette);
+            const context = canvas.getContext('2d');
+            context.imageSmoothingEnabled = false;
 
-            this.#canvases[tile.tileId] = canvas;
+            const tileCanvas = this.#tileImageManager.getTileImage(tile, palette, null);
+            context.drawImage(tileCanvas, 0, 0, 32, 32);
         });
     }
 
@@ -130,12 +154,7 @@ export default class TileListing extends ComponentBase {
         const dom = document.createElement('div');
         this.renderTemplateToElement(dom, 'item-template', renderList);
 
-        this.#element.querySelectorAll('[data-command]').forEach((button) => {
-            button.remove();
-        });
-
         dom.querySelectorAll('[data-command]').forEach((button) => {
-            this.#element.appendChild(button);
             const command = button.getAttribute('data-command');
             const tileId = button.getAttribute('data-tile-id');
             if (command && tileId) {
@@ -144,18 +163,25 @@ export default class TileListing extends ComponentBase {
                 }
                 const canvas = this.#canvases[tileId];
                 if (canvas) {
-                    while (button.hasChildNodes()) button.firstChild.remove();
                     button.appendChild(canvas);
-                    button.style.height = `${canvas.getBoundingClientRect().height}px`;
                 }
-                /** @param {MouseEvent} ev */
-                button.onclick = (ev) => {
+                button.addEventListener('click', (ev) => {
                     this.#handleTileListingCommandButtonClicked(command, tileId);
                     ev.stopImmediatePropagation();
                     ev.preventDefault();
-                }
+                });
             }
         });
+
+        const oldDisplay = this.#element.style.display;
+        this.#element.style.display = 'none';
+        this.#element.querySelectorAll('[data-command]').forEach((button) => {
+            button.remove();
+        });
+        dom.querySelectorAll('[data-command]').forEach((button) => {
+            this.#element.appendChild(button);
+        });
+        this.#element.style.display = oldDisplay;
 
         selectTile(this.#selectedTileId, this.#element);
     }
@@ -209,6 +235,7 @@ export default class TileListing extends ComponentBase {
  * @property {Palette?} [palette] - Palette to use to render the tiles.
  * @property {string?} [selectedTileId] - Unique ID of the selected tile.
  * @property {string[]?} [updatedTileIds] - Array of unique tile IDs that were updated.
+ * @property {TileImageManager?} [tileImageManager] - Tile image manager to use for rendering tiles.
  */
 
 /**

@@ -131,6 +131,7 @@ export default class State {
      * @param {Project?} project - Project to set, or null if no project.
      */
     setProject(project) {
+        console.log(`State manager: Set project ${(project?.id ?? 'null')}.`); // TMP 
         let lastProjectId = this.project?.id ?? null;
         if (project) {
             this.#project = project;

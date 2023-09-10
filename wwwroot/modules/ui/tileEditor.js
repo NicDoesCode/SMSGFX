@@ -9,6 +9,7 @@ import TileEditorContextMenu from "./tileEditorContextMenu.js";
 import TemplateUtil from "../util/templateUtil.js";
 import PaletteList from "../models/paletteList.js";
 import TileGridProvider from "../models/tileGridProvider.js";
+import TileImageManager from "../components/tileImageManager.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 const EVENT_OnEvent = 'EVENT_OnEvent';
@@ -137,6 +138,10 @@ export default class TileEditor extends ComponentBase {
     setState(state) {
         let refreshTiles = false;
         let redrawUI = false;
+        // Tile image manager
+        if (state?.tileImageManager === null || state.tileImageManager instanceof TileImageManager) {
+            this.#canvasManager.setTileImageManager(state.tileImageManager);
+        }
         // Change palette list?
         const paletteList = state?.paletteList;
         if (paletteList && typeof paletteList.getPaletteById === 'function') {
@@ -221,8 +226,10 @@ export default class TileEditor extends ComponentBase {
         }
         // Selected tile index?
         if (typeof state?.selectedTileIndex === 'number') {
-            this.#canvasManager.selectedTileIndex = state.selectedTileIndex;
-            refreshTiles = true;
+            if (this.#canvasManager.selectedTileIndex !== state.selectedTileIndex) {
+                this.#canvasManager.selectedTileIndex = state.selectedTileIndex;
+                redrawUI = true;
+            }
         }
         // Cursor size
         if (typeof state?.cursorSize === 'number') {
@@ -296,6 +303,7 @@ export default class TileEditor extends ComponentBase {
         // Refresh image?
         if ((refreshTiles || redrawUI) && this.#tileGrid && this.#tileSet && this.#paletteList && this.#paletteList.length > 0) {
             if (refreshTiles) {
+                console.log(`tileEditor > refreshTiles`); // TMP 
                 let paletteList = !this.#displayNative ? this.#paletteList : this.#nativePaletteList;
                 if (this.#canvasManager.paletteList !== paletteList) {
                     this.#canvasManager.paletteList = paletteList;
@@ -657,6 +665,7 @@ export default class TileEditor extends ComponentBase {
  * @property {string|Tile|TileGridProvider|null} [tileStampPreview] - Either a tile ID, individual tile object or tile grid object with the tile stamp preview.
  * @property {import("../models/tileGridProvider.js").TileGridRegion} [selectedRegion] - Selected region to highlight.
  * @property {boolean?} [forceRefresh] - When true the tile grid image will be refreshed.
+ * @property {TileImageManager?} [tileImageManager] - Tile image manager to use for rendering tiles.
  * @exports 
  */
 

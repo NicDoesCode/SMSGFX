@@ -8,6 +8,7 @@ import Tile from "../models/tile.js";
 import TileMap from "../models/tileMap.js";
 import TileMapFactory from "../factory/tileMapFactory.js";
 import PaintUtil from "../util/paintUtil.js";
+import TileImageManager from "./tileImageManager.js";
 
 
 const highlightModes = {
@@ -266,8 +267,8 @@ export default class CanvasManager {
     #tilePreviewCanvas = null;
     /** @type {HTMLCanvasElement} */
     #gridPatternCanvas = null;
-    /** @type {Object.<string, HTMLCanvasElement>} */
-    #tileCanvases = {};
+    /** @type {TileImageManager} */
+    #tileImageManager = {};
     /** @type {TileSet} */
     #tileSet = null;
     /** @type {PaletteList} */
@@ -309,6 +310,7 @@ export default class CanvasManager {
         if (tileGrid) this.#tileGrid = tileGrid;
         if (tileSet) this.#tileSet = tileSet;
         if (paletteList) this.#paletteList = paletteList;
+        this.#tileImageManager = new TileImageManager();
     }
 
 
@@ -316,11 +318,6 @@ export default class CanvasManager {
      * Invalidates the tile set image and forces a redraw.
      */
     invalidateImage() {
-        // Remove cached tile images
-        const keys = Object.keys(this.#tileCanvases);
-        keys.forEach((key) => {
-            delete this.#tileCanvases[key]
-        });
         // Set redraw variables
         this.#needToDrawTileImage = true;
         this.#tilePreviewCanvas = null;
@@ -331,11 +328,6 @@ export default class CanvasManager {
      * @param {number} index - Index of the tile to invalidate.
      */
     invalidateTile(index) {
-        // Remove cached tile image
-        const info = this.#tileGrid.getTileInfoByIndex(index);
-        if (this.#tileCanvases[info.tileId]) {
-            delete this.#tileCanvases[info.tileId];
-        }
         // Set redraw variables
         this.#redrawTiles.push(index);
         this.#tilePreviewCanvas = null;
@@ -347,8 +339,9 @@ export default class CanvasManager {
      */
     invalidateTileId(tileId) {
         this.tileGrid.getTileIdIndexes(tileId).forEach((index) => {
-            this.invalidateTile(index);
+            this.#redrawTiles.push(index);
         });
+        this.#tilePreviewCanvas = null;
     }
 
 
@@ -359,6 +352,19 @@ export default class CanvasManager {
         const canvas = document.createElement('canvas');
         this.#drawTileImage(canvas, -1);
         return canvas.toDataURL('image/png');
+    }
+
+
+    /**
+     * Sets or clears the tile image manager.
+     * @param {TileImageManager?} tileImageManager - Tile image manager to set.
+     */
+    setTileImageManager(tileImageManager) {
+        if (tileImageManager && tileImageManager instanceof TileImageManager) {
+            this.#tileImageManager = tileImageManager;
+        } else {
+            this.#tileImageManager = new TileImageManager();
+        }
     }
 
 
@@ -669,11 +675,7 @@ export default class CanvasManager {
 
         if (tile) {
 
-            let tileCanvas = this.#tileCanvases[tile.tileId];
-            if (!tileCanvas) {
-                tileCanvas = PaintUtil.createTileCanvas(tile, palette, transparencyColour);
-                this.#tileCanvases[tile.tileId] = tileCanvas;
-            }
+            const tileCanvas = this.#tileImageManager.getTileImage(tile, palette, transparencyColour);
 
             // Tile exists 
             const x = tileGridCol * 8 * pxSize;
@@ -695,10 +697,7 @@ export default class CanvasManager {
                 context.drawImage(tileCanvas, x, y, sizeXY, sizeXY);
             }
         } else {
-            if (this.#tileCanvases[tileInfo.tileId]) {
-                delete this.#tileCanvases[tileInfo.tileId];
-            }
-
+            this.#tileImageManager.clearByTile(tileInfo.tileId);
             // Draw in pixel mesh when the tile doesn't exist
             const originX = (tileGridCol * 8) * pxSize;
             const originY = (tileGridRow * 8) * pxSize;

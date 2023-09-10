@@ -7,6 +7,8 @@ import PaletteList from "../models/paletteList.js";
 import TileSet from "./../models/tileSet.js";
 import TileListing from "./components/tileListing.js";
 import TileMapListing from "./components/tileMapListing.js";
+import TileImageManager from "../components/tileImageManager.js";
+
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -30,9 +32,16 @@ const fields = {
     tileWidth: 'tileWidth'
 }
 
+
+/**
+ * Manages the right side of the screen with the tile map selector, the tile set selector and tile palette.
+ */
 export default class TileManager extends ComponentBase {
 
 
+    /**
+     * Gets a list of commands this component can invoke.
+     */
     static get Commands() {
         return commands;
     }
@@ -73,7 +82,7 @@ export default class TileManager extends ComponentBase {
 
 
     /**
-     * Initialises a new instance of this class.
+     * Constructor for the class.
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
@@ -136,6 +145,11 @@ export default class TileManager extends ComponentBase {
         let paletteSlotsDirty = false;
         let updatedTileIds = null;
 
+        if (state?.tileImageManager === null || state.tileImageManager instanceof TileImageManager) {
+            console.log('Tile manager: Set tile image manager on tile listing.'); // TMP 
+            this.#tileListing.setTileImageManager(state.tileImageManager);
+        }
+
         if (state?.tileMapList && state.tileMapList instanceof TileMapList) {
             this.#tileMapList = state.tileMapList;
             tileMapListingDirty = true;
@@ -161,6 +175,7 @@ export default class TileManager extends ComponentBase {
         }
 
         if (typeof state?.selectedTileId !== 'undefined') {
+            console.log('Tile manager: Set selected tile on tile listing.'); // TMP 
             this.#tileListing.setState({
                 selectedTileId: state?.selectedTileId
             });
@@ -196,6 +211,7 @@ export default class TileManager extends ComponentBase {
         }
 
         if (tileListDirty) {
+            console.log('Tile manager: Updated palette or tile set on tile listing.'); // TMP 
             this.#tileListing.setState({
                 tileSet: this.#tileSet ?? undefined,
                 palette: this.#palette ?? undefined
@@ -203,6 +219,7 @@ export default class TileManager extends ComponentBase {
         }
 
         if (updatedTileIds) {
+            console.log('Tile manager: Send updated tile IDs.'); // TMP 
             this.#tileListing.setState({
                 updatedTileIds: updatedTileIds
             });
@@ -485,6 +502,7 @@ export default class TileManager extends ComponentBase {
  * @property {string[]?} [updatedTileIds] - Array of unique tile IDs that were updated.
  * @property {number?} [numberOfPaletteSlots] - Amount of palette slots that the tile map provides.
  * @property {number?} [tileWidth] - Display tile width for the tile set.
+ * @property {TileImageManager?} [tileImageManager] - Tile image manager to use for rendering tiles.
  */
 
 /**
