@@ -146,7 +146,6 @@ export default class TileManager extends ComponentBase {
         let updatedTileIds = null;
 
         if (state?.tileImageManager === null || state.tileImageManager instanceof TileImageManager) {
-            console.log('Tile manager: Set tile image manager on tile listing.'); // TMP 
             this.#tileListing.setTileImageManager(state.tileImageManager);
         }
 
@@ -175,7 +174,6 @@ export default class TileManager extends ComponentBase {
         }
 
         if (typeof state?.selectedTileId !== 'undefined') {
-            console.log('Tile manager: Set selected tile on tile listing.'); // TMP 
             this.#tileListing.setState({
                 selectedTileId: state?.selectedTileId
             });
@@ -211,7 +209,6 @@ export default class TileManager extends ComponentBase {
         }
 
         if (tileListDirty) {
-            console.log('Tile manager: Updated palette or tile set on tile listing.'); // TMP 
             this.#tileListing.setState({
                 tileSet: this.#tileSet ?? undefined,
                 palette: this.#palette ?? undefined
@@ -219,7 +216,6 @@ export default class TileManager extends ComponentBase {
         }
 
         if (updatedTileIds) {
-            console.log('Tile manager: Send updated tile IDs.'); // TMP 
             this.#tileListing.setState({
                 updatedTileIds: updatedTileIds
             });

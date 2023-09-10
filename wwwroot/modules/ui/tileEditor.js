@@ -303,7 +303,6 @@ export default class TileEditor extends ComponentBase {
         // Refresh image?
         if ((refreshTiles || redrawUI) && this.#tileGrid && this.#tileSet && this.#paletteList && this.#paletteList.length > 0) {
             if (refreshTiles) {
-                console.log(`tileEditor > refreshTiles`); // TMP 
                 let paletteList = !this.#displayNative ? this.#paletteList : this.#nativePaletteList;
                 if (this.#canvasManager.paletteList !== paletteList) {
                     this.#canvasManager.paletteList = paletteList;

@@ -2158,7 +2158,6 @@ function isTileMap() {
 }
 
 function refreshProjectUI() {
-    console.log(`refreshProjectUI()`); // TMP 
     let dirty = false;
 
     const maps = getTileMapList();
@@ -2256,7 +2255,6 @@ function refreshProjectUI() {
 }
 
 function formatForProject() {
-    console.log(`formatForProject()`); // TMP 
 
     const project = getProject();
     const projectChanged = project.id !== instanceState.lastProjectId;
