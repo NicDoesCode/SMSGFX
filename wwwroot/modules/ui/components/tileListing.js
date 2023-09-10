@@ -164,6 +164,8 @@ export default class TileListing extends ComponentBase {
                 const canvas = this.#canvases[tileId];
                 if (canvas) {
                     button.appendChild(canvas);
+                    button.style.width = `${canvas.width}px`;
+                    button.style.height = `${canvas.height}px`;
                 }
                 button.addEventListener('click', (ev) => {
                     this.#handleTileListingCommandButtonClicked(command, tileId);
