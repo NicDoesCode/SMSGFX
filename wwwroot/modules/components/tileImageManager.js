@@ -59,6 +59,7 @@ export default class TileImageManager {
      * Clears all cached tile images.
      */
     clear() {
+        console.log('cleared all cached images'); // TMP 
         const keys = Object.keys(this.#tileCanvases);
         keys.forEach((tileId) => this.clearByTile(tileId));
     }

@@ -2662,16 +2662,11 @@ function takeToolAction(args) {
             if (event === TileEditor.Events.pixelMouseDown) {
 
                 addUndoState();
-                PaintTool.fillColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, colourIndex, instanceState.clampToTile);
+                const updatedTiles = PaintTool.fillColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, colourIndex, instanceState.clampToTile);
+                if (updatedTiles && updatedTiles.affectedTileIndexes.length > 0) {
+                    updateTilesOnEditors(updatedTiles.affectedTileIds);
+                }
                 saveProject = true;
-
-                tileEditor.setState({
-                    tileGrid: getTileGrid(),
-                    tileSet: getTileSet()
-                });
-                tileManager.setState({
-                    tileSet: getTileSet()
-                });
 
                 instanceState.lastTileMapPx.x = -1;
                 instanceState.lastTileMapPx.y = -1;
