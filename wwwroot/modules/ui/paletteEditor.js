@@ -149,39 +149,43 @@ export default class PaletteEditor extends ComponentBase {
     setState(state) {
         let updateVirtualList = false;
         let paletteListDirty = false;
-        if (state?.paletteList && (state.paletteList instanceof PaletteList || state.paletteList === null)) {
+
+        if (state?.paletteList instanceof PaletteList || state.paletteList === null) {
             this.#paletteList = state.paletteList;
             this.#refreshPaletteSelectList(this.#paletteList);
             updateVirtualList = true;
             paletteListDirty = true;
         }
-        if (typeof state?.selectedPaletteIndex === 'number') {
-            this.#element.querySelectorAll(`[data-command=${commands.paletteSelect}]`).forEach(element => {
+
+        // Select a palette by index or ID
+        if (typeof state?.selectedPaletteIndex === 'number' || typeof state?.selectedPaletteId === 'string') {
+            let index = null;
+            if (typeof state?.selectedPaletteIndex === 'number') {
+                index = state.selectedPaletteIndex;
+            } else if (typeof state?.selectedPaletteId === 'string') {
+                index = this.#paletteList.indexOf(state?.selectedPaletteId);
+            }
+
+            if (index < 0 || index >= this.#paletteList.length) index = 0;
+
+            const palette = this.#paletteList.getPalette(state.selectedPaletteIndex);
+            this.#selectedPaletteId = palette.paletteId;
+
+            this.#element.querySelectorAll(`[data-command=${commands.paletteSelect}]`).forEach((element) => {
                 element.selectedIndex = state.selectedPaletteIndex;
-                updateVirtualList = true;
             });
+
+            this.#setPalette(palette);
+
+            updateVirtualList = true;
         }
-        if (typeof state?.selectedPaletteId === 'string') {
-            this.#selectedPaletteId = state.selectedPaletteId;
-            paletteListDirty = true;
-        } else if (state && state.selectedPaletteId === null) {
-            this.#selectedPaletteId = null;
-            paletteListDirty = true;
-        }
+
         if (typeof state?.displayNative === 'boolean') {
             this.#element.querySelectorAll(`[data-command=${commands.displayNativeColours}]`).forEach(element => {
                 element.checked = state.displayNative;
             });
         }
-        if (this.#paletteList) {
-            const select = this.#element.querySelector(`[data-command=${commands.paletteSelect}]`);
-            if (select) {
-                const selectedPalette = this.#paletteList.getPalette(select.selectedIndex);
-                this.#setPalette(selectedPalette);
-            }
-        } else {
-            this.#setPalette(null);
-        }
+
         if (typeof state?.selectedColourIndex === 'number' && state?.selectedColourIndex >= 0 && state?.selectedColourIndex < 16) {
             this.#currentColourIndex = state.selectedColourIndex;
             this.#selectPaletteColour(state.selectedColourIndex);
@@ -202,6 +206,7 @@ export default class PaletteEditor extends ComponentBase {
             });
             this.#updateSystemSelectVirtualList(state.selectedSystem);
         }
+
         // Refresh the virtual list if needed
         if (updateVirtualList) {
             this.#updatePaletteSelectVirtualList();
