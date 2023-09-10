@@ -2562,8 +2562,9 @@ function takeToolAction(args) {
         if (tool === TileEditorToolbar.Tools.select) {
             if (event === TileEditor.Events.pixelMouseDown) {
 
-                const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
-                toggleTileIndexSelectedState(tileIndex);
+                const tileInfo = getTileGrid().getTileInfoByPixel(imageX, imageY);
+                toggleTileIndexSelectedState(tileInfo.tileIndex);
+                selectTileSetTile(tileInfo.tileId);
 
                 instanceState.lastTileMapPx.x = -1;
                 instanceState.lastTileMapPx.y = -1;
@@ -4018,11 +4019,7 @@ function mirrorTileAt(way, index) {
     state.setProject(getProject());
     state.saveToLocalStorage();
 
-    tileEditor.setState({
-        selectedTileIndex: instanceState.selectedColourIndex,
-        tileGrid: getTileGrid(),
-        tileSet: getTileSet()
-    });
+    updateTilesOnEditors([tile.tileId]);
 }
 
 /**
@@ -4035,7 +4032,7 @@ function insertTileAt(index) {
     addUndoState();
 
     const tileDataArray = new Uint8ClampedArray(64);
-    tileDataArray.fill(15, 0, tileDataArray.length);
+    tileDataArray.fill(0, 0, tileDataArray.length);
 
     const newTile = TileFactory.fromArray(tileDataArray);
     if (index < getTileSet().length) {

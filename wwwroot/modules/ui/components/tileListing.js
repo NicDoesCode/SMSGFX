@@ -34,6 +34,8 @@ export default class TileListing extends ComponentBase {
     #canvases = {};
     /** @type {TileImageManager} */
     #tileImageManager;
+    /** @type {Object.<string, HTMLButtonElement>} */
+    #buttons = {};
 
 
     /**
@@ -68,22 +70,25 @@ export default class TileListing extends ComponentBase {
     setState(state) {
         let dirty = false;
 
-        if (typeof state?.tileSet?.getTile === 'function') {
+        if (state?.tileSet instanceof TileSet) {
             this.#tileSet = state.tileSet;
             dirty = true;
         }
 
-        if (typeof state?.palette?.getColour === 'function') {
+        if (state?.palette instanceof Palette) {
             this.#palette = state.palette;
             dirty = true;
         }
 
-        if (typeof state?.selectedTileId === 'string') {
-            this.#selectedTileId = state.selectedTileId;
-            selectTile(this.#selectedTileId, this.#element);
-        } else if (typeof state?.selectedTileId === 'object' && state.selectedTileId === null) {
-            this.#selectedTileId = null;
-            selectTile(this.#selectedTileId, this.#element);
+        if (state?.updatedTileIds && Array.isArray(state.updatedTileIds)) {
+            // If any of the updated tile IDs don't have images, then we should refresh everything
+            state.updatedTileIds.forEach((tileId) => {
+                if (!this.#buttons[tileId]) dirty = true;
+            });
+            // Otherwise we can get away with simply updating the affected tiles
+            if (!dirty) {
+                this.#updateTileImages(state.updatedTileIds);
+            }
         }
 
         if (dirty && this.#tileSet && this.#palette) {
@@ -91,8 +96,10 @@ export default class TileListing extends ComponentBase {
             this.#displayTiles(this.#tileSet);
         }
 
-        if (state?.updatedTileIds && Array.isArray(state.updatedTileIds)) {
-            this.#updateTileImages(state.updatedTileIds);
+        if (typeof state?.selectedTileId === 'string' || state.selectedTileId === null) {
+            const changed = this.#selectedTileId !== state?.selectedTileId;
+            this.#selectedTileId = state.selectedTileId;
+            this.#selectTile(this.#selectedTileId, changed);
         }
     }
 
@@ -145,47 +152,60 @@ export default class TileListing extends ComponentBase {
      * @param {TileSet} tileSet
      */
     #displayTiles(tileSet) {
-        const renderList = tileSet.getTiles().map((t) => {
-            return {
-                tileId: t.tileId
-            };
+        this.#ensureButtons(tileSet);
+        this.#element.innerHTML = '';
+        tileSet.getTiles().forEach((tile) => {
+            const button = this.#buttons[tile.tileId];
+            if (this.#selectedTileId && this.#selectedTileId === tile.tileId) {
+                button.classList.add('selected');
+            } else {
+                button.classList.remove('selected');
+            }
+            this.#element.appendChild(button);
         });
+    }
 
-        const dom = document.createElement('div');
-        this.renderTemplateToElement(dom, 'item-template', renderList);
+    /**
+     * @param {TileSet} tileSet
+     */
+    #ensureButtons(tileSet) {
+        tileSet.getTiles().forEach((tile) => {
+            if (!this.#buttons[tile.tileId]) {
 
-        dom.querySelectorAll('[data-command]').forEach((button) => {
-            const command = button.getAttribute('data-command');
-            const tileId = button.getAttribute('data-tile-id');
-            if (command && tileId) {
-                if (tileId === this.#selectedTileId) {
-                    button.classList.add('selected');
-                }
-                const canvas = this.#canvases[tileId];
+                const button = document.createElement('button');
+                button.setAttribute('data-command', commands.tileSelect);
+                button.setAttribute('data-tile-id', tile.tileId);
+                button.classList.add('btn', 'btn-secondary');
+
+                const canvas = this.#canvases[tile.tileId];
                 if (canvas) {
                     button.appendChild(canvas);
                     button.style.width = `${canvas.width}px`;
                     button.style.height = `${canvas.height}px`;
                 }
                 button.addEventListener('click', (ev) => {
-                    this.#handleTileListingCommandButtonClicked(command, tileId);
+                    this.#handleTileListingCommandButtonClicked(commands.tileSelect, tile.tileId);
                     ev.stopImmediatePropagation();
                     ev.preventDefault();
                 });
+
+                this.#buttons[tile.tileId] = button;
             }
         });
+    }
 
-        const oldDisplay = this.#element.style.display;
-        this.#element.style.display = 'none';
-        this.#element.querySelectorAll('[data-command]').forEach((button) => {
-            button.remove();
+    #selectTile(tileId, scrollIntoView) {
+        Object.keys(this.#buttons).forEach((buttonTileId) => {
+            const button = this.#buttons[buttonTileId];
+            if (tileId === buttonTileId) {
+                button.classList.add('selected');
+                if (scrollIntoView) {
+                    button.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+                }
+            } else {
+                button.classList.remove('selected');
+            }
         });
-        dom.querySelectorAll('[data-command]').forEach((button) => {
-            this.#element.appendChild(button);
-        });
-        this.#element.style.display = oldDisplay;
-
-        selectTile(this.#selectedTileId, this.#element);
     }
 
 
@@ -252,24 +272,3 @@ export default class TileListing extends ComponentBase {
  * @property {string} tileId - Unique ID of the tile.
  * @exports
  */
-
-/**
- * @param {string} tileIds - Tile ID to select.
- * @param {HTMLElement} element - HTML element that contains the buttons.
- */
-function selectTile(tileId, element) {
-    /** @type {HTMLButtonElement} */
-    let selectedButton = null;
-    element.querySelectorAll(`button[data-command=${commands.tileSelect}][data-tile-id]`).forEach((button) => {
-        const thisTileId = button.getAttribute('data-tile-id');
-        button.classList.remove('selected');
-        if (thisTileId === tileId) {
-            button.classList.add('selected');
-            selectedButton = button;
-        }
-    });
-
-    if (selectedButton) {
-        selectedButton.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' });
-    }
-}
