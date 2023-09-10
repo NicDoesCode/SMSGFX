@@ -2786,8 +2786,7 @@ function takeToolAction(args) {
                         const result = TileLinkBreakTool.createAndLinkNewTileIfUsedElsewhere(tileIndex, getTileMap(), getTileSet(), getProject());
                         if (Array.isArray(result.updatedTileIds) && result.updatedTileIds.length > 0) {
 
-                            tileEditor.setState({ tileGrid: getTileGrid(), tileSet: getTileSet() });
-                            tileManager.setState({ tileSet: getTileSet() });
+                            updateTilesOnEditors(result.updatedTileIds);
                             saveProject = true;
 
                         } else {
