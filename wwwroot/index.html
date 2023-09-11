@@ -14,150 +14,156 @@
 
 <body class="sms-app">
 
-    <div class="sms-layout d-flex flex-column position-absolute start-0 top-0 end-0 bottom-0 m-0 p-0">
+    <div class="sms-application">
 
-        <div class="sms-layout-header m-0 p-0">
+        <div class="sms-layout d-flex flex-column position-absolute start-0 top-0 end-0 bottom-0 m-0 p-0">
 
-            <div class="container-fluid">
-                <div class="row p-3">
-                    <div class="col-auto ps-0">
-                        <div class="p-0 text-nowrap">
-                            <span class="navbar-brand mb-0 h1">
-                                <img src="./assets/image/controller.png" alt="SMSGFX." class="float-start" />
-                                <label class="float-start ms-3">SMSGFX</label>
-                            </span>
+            <div class="sms-layout-header m-0 p-0">
+
+                <div class="container-fluid">
+                    <div class="row p-3">
+                        <div class="col-auto ps-0">
+                            <div class="p-0 text-nowrap">
+                                <span class="navbar-brand mb-0 h1">
+                                    <img src="./assets/image/controller.png" alt="SMSGFX." class="float-start" />
+                                    <label class="float-start ms-3">SMSGFX</label>
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col text-center">
-                        <div data-smsgfx-component-id="project-toolbar" class="d-inline-block">
+                        <div class="col text-center">
+                            <div data-smsgfx-component-id="project-toolbar" class="d-inline-block">
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-auto p-0 ms-2 me-2">
-                        <div data-smsgfx-component-id="feedback-toolbar">
+                        <div class="col-auto p-0 ms-2 me-2">
+                            <div data-smsgfx-component-id="feedback-toolbar">
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-auto p-0 ms-2 me-2">
-                        <div data-smsgfx-component-id="export-toolbar">
+                        <div class="col-auto p-0 ms-2 me-2">
+                            <div data-smsgfx-component-id="export-toolbar">
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-auto p-0 ms-2">
-                        <div data-smsgfx-component-id="options-toolbar">
+                        <div class="col-auto p-0 ms-2">
+                            <div data-smsgfx-component-id="options-toolbar">
+                            </div>
                         </div>
                     </div>
                 </div>
+
+            </div>
+
+            <div class="sms-layout-content flex-fill d-flex flex-row m-0 p-0">
+
+                <div class="sms-layout-content-left m-0 p-3 pt-0">
+
+                    <div class="d-flex flex-column h-100" data-smsgfx-toolbox data-smsgfx-toolbox-vertical>
+                        <div data-smsgfx-component-id="palette-editor" data-smsgfx-toolbox-item
+                            data-smsgfx-toolbox-grow>
+                        </div>
+                        <div data-smsgfx-component-id="colour-picker-toolbox" data-smsgfx-toolbox-item>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="sms-layout-content-centre d-flex flex-column flex-fill m-0 p-2 pt-0 ps-0 pe-0">
+                    <div class="pb-2">
+                        <div data-smsgfx-component-id="tile-editor-toolbar">
+                        </div>
+                    </div>
+                    <div class="pb-2">
+                        <div data-smsgfx-component-id="tile-context-toolbar">
+                        </div>
+                    </div>
+                    <div class="pb-2 flex-fill">
+                        <div data-smsgfx-component-id="tile-editor">
+                        </div>
+                    </div>
+                    <div class="pb-0">
+                        <div data-smsgfx-component-id="tile-editor-bottom-toolbar">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sms-layout-content-right m-0 ms-2 me-2 p-2 pt-0" data-smsgfx-toolbox
+                    data-smsgfx-toolbox-vertical>
+                    <div data-smsgfx-component-id="tile-manager">
+                    </div>
+                </div>
+
             </div>
 
         </div>
 
-        <div class="sms-layout-content flex-fill d-flex flex-row m-0 p-0">
-
-            <div class="sms-layout-content-left m-0 p-3 pt-0">
-
-                <div class="d-flex flex-column h-100" data-smsgfx-toolbox data-smsgfx-toolbox-vertical>
-                    <div data-smsgfx-component-id="palette-editor" data-smsgfx-toolbox-item data-smsgfx-toolbox-grow>
-                    </div>
-                    <div data-smsgfx-component-id="colour-picker-toolbox" data-smsgfx-toolbox-item>
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="sms-layout-content-centre d-flex flex-column flex-fill m-0 p-2 pt-0 ps-0 pe-0">
-                <div class="pb-2">
-                    <div data-smsgfx-component-id="tile-editor-toolbar">
-                    </div>
-                </div>
-                <div class="pb-2">
-                    <div data-smsgfx-component-id="tile-context-toolbar">
-                    </div>
-                </div>
-                <div class="pb-2 flex-fill">
-                    <div data-smsgfx-component-id="tile-editor">
-                    </div>
-                </div>
-                <div class="pb-0">
-                    <div data-smsgfx-component-id="tile-editor-bottom-toolbar">
-                    </div>
-                </div>
-            </div>
-
-            <div class="sms-layout-content-right m-0 ms-2 me-2 p-2 pt-0" data-smsgfx-toolbox
-                data-smsgfx-toolbox-vertical>
-                <div data-smsgfx-component-id="tile-manager">
-                </div>
-            </div>
-
+        <div class="sms-layout-footer position-absolute bottom-0 end-0 p-0 m-0 z-3">
+            <p class="p-1 m-1 me-3">
+                <small>
+                    <span>Support on </span>&nbsp;
+                    <a data-smsgfx-id="kofi-link-footer" data-href="https://ko-fi.com/{{HANDLE}}" target="_blank"
+                        title="Support on Ko-fi." rel="noreferrer noopener" class="visually-hidden"><img
+                            src="./assets/image/kofi-logo-text-white-stroke.png" height="18"
+                            alt="Support on Ko-fi."></a>
+                    |
+                    <a data-smsgfx-id="patreon-link-footer" data-href="https://www.patreon.com/user?u={{HANDLE}}"
+                        target="_blank" title="Support on Patreon." rel="noreferrer noopener"
+                        class="visually-hidden"><img src="./assets/image/patreon-wordmark-black.png" height="18"
+                            alt="Support on Patreon." class="sms-invert-dark"></a>
+                    |
+                    <a href="about:blank" target="_blank" title="View documentation."
+                        data-smsgfx-id="documentation-link" data-smsgfx-generic="documentation"
+                        rel="noreferrer noopener">Documentation</a>
+                    |
+                    <a href="./pages/about.html" target="_blank" title="About the project." data-smsgfx-dialogue
+                        data-title="About SMSGFX" data-show-header="true" rel="noreferrer noopener">About</a>
+                    |
+                    <a href="https://github.com/NicDoesCode/SMSGFX" target="_blank" title="View this project on GitHub."
+                        rel="noreferrer noopener">GitHub</a>
+                    |
+                    <a href="./pages/privacy.html" target="_blank" title="View information about your privacy."
+                        data-smsgfx-dialogue data-title="SMSGFX privacy" data-show-header="true"
+                        rel="noreferrer noopener">Privacy</a>
+                </small>
+            </p>
         </div>
 
-    </div>
+        <div data-smsgfx-component-id="documentation-viewer" class="sms-documentation-viewer position-absolute end-0">
+        </div>
 
-    <div class="sms-layout-footer position-absolute bottom-0 end-0 p-0 m-0 z-3">
-        <p class="p-1 m-1 me-3">
-            <small>
-                <span>Support on </span>&nbsp;
-                <a data-smsgfx-id="kofi-link-footer" data-href="https://ko-fi.com/{{HANDLE}}" target="_blank"
-                    title="Support on Ko-fi." rel="noreferrer noopener" class="visually-hidden"><img
-                        src="./assets/image/kofi-logo-text-white-stroke.png" height="18" alt="Support on Ko-fi."></a>
-                |
-                <a data-smsgfx-id="patreon-link-footer" data-href="https://www.patreon.com/user?u={{HANDLE}}"
-                    target="_blank" title="Support on Patreon." rel="noreferrer noopener" class="visually-hidden"><img
-                        src="./assets/image/patreon-wordmark-black.png" height="18" alt="Support on Patreon."
-                        class="sms-invert-dark"></a>
-                |
-                <a href="about:blank" target="_blank"
-                    title="View documentation." data-smsgfx-id="documentation-link" data-smsgfx-generic="documentation"
-                    rel="noreferrer noopener">Documentation</a>
-                |
-                <a href="./pages/about.html" target="_blank" title="About the project." data-smsgfx-dialogue
-                    data-title="About SMSGFX" data-show-header="true" rel="noreferrer noopener">About</a>
-                |
-                <a href="https://github.com/NicDoesCode/SMSGFX" target="_blank" title="View this project on GitHub."
-                    rel="noreferrer noopener">GitHub</a>
-                |
-                <a href="./pages/privacy.html" target="_blank" title="View information about your privacy."
-                    data-smsgfx-dialogue data-title="SMSGFX privacy" data-show-header="true"
-                    rel="noreferrer noopener">Privacy</a>
-            </small>
-        </p>
-    </div>
+        <div data-smsgfx-component-id="new-project-dialogue">
+        </div>
 
-    <div data-smsgfx-component-id="documentation-viewer" class="sms-documentation-viewer position-absolute end-0">
-    </div>
+        <div data-smsgfx-component-id="new-tile-map-dialogue">
+        </div>
 
-    <div data-smsgfx-component-id="new-project-dialogue">
-    </div>
+        <div data-smsgfx-component-id="palette-import-dialogue">
+        </div>
 
-    <div data-smsgfx-component-id="new-tile-map-dialogue">
-    </div>
+        <div data-smsgfx-component-id="tile-import-dialogue">
+        </div>
 
-    <div data-smsgfx-component-id="palette-import-dialogue">
-    </div>
+        <div data-smsgfx-component-id="export-dialogue">
+        </div>
 
-    <div data-smsgfx-component-id="tile-import-dialogue">
-    </div>
+        <div data-smsgfx-component-id="assembly-export-dialogue">
+        </div>
 
-    <div data-smsgfx-component-id="export-dialogue">
-    </div>
+        <div data-smsgfx-component-id="colour-picker-dialogue">
+        </div>
 
-    <div data-smsgfx-component-id="assembly-export-dialogue">
-    </div>
+        <div data-smsgfx-component-id="import-image-modal">
+        </div>
 
-    <div data-smsgfx-component-id="colour-picker-dialogue">
-    </div>
+        <div data-smsgfx-component-id="welcome-screen">
+        </div>
 
-    <div data-smsgfx-component-id="import-image-modal">
-    </div>
+        <div data-smsgfx-component-id="project-dropdown">
+        </div>
 
-    <div data-smsgfx-component-id="welcome-screen">
-    </div>
+        <div data-smsgfx-component-id="toast">
+        </div>
 
-    <div data-smsgfx-component-id="project-dropdown">
-    </div>
+        <div data-smsgfx-id="backdrop" class="sms-backdrop"></div>
 
-    <div data-smsgfx-component-id="toast">
     </div>
-
-    <div data-smsgfx-id="backdrop" class="sms-backdrop"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"

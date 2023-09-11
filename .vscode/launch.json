@@ -58,6 +58,12 @@
             "webRoot": "${workspaceFolder}/dist",
             "profile": "debug",
             "keepProfileChanges": true,
+            "pathMappings": [
+                {
+                    "url": "https://localhost:8443",
+                    "path": "${workspaceFolder}/dist"
+                }
+            ],
             "preLaunchTask": "launch-prod-server",
             "postDebugTask": "stop-server"
         }

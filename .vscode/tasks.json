@@ -14,12 +14,15 @@
 			"type": "shell",
 			"isBackground": true,
 			"problemMatcher": [],
-			"dependsOn": ["build-prod"]
+			"dependsOn": ["build"]
 		},
 		{
-			"label": "build-prod",
-			"command": "webpack && node ./build/post-build.js",
-			"type": "shell"
+			"label": "build",
+			"command": "npm",
+			"type": "shell",
+			"args": [
+				"run", "build"
+			]
 		},
 		{
 			"label": "stop-server",
