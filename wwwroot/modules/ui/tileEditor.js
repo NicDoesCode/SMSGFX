@@ -11,6 +11,7 @@ import PaletteList from "../models/paletteList.js";
 import TileGridProvider from "../models/tileGridProvider.js";
 import TileImageManager from "../components/tileImageManager.js";
 
+
 const EVENT_OnCommand = 'EVENT_OnCommand';
 const EVENT_OnEvent = 'EVENT_OnEvent';
 
@@ -29,17 +30,30 @@ const events = {
     pixelMouseUp: 'pixelMouseUp'
 }
 
+
+/**
+ * Manages and renders the tile editor including rendered tile image and toolbars.
+ */
 export default class TileEditor extends ComponentBase {
 
 
+    /**
+     * Gets a list of commands this component can invoke.
+     */
     static get Commands() {
         return commands;
     }
 
+    /**
+     * Gets a list of events this component can raise.
+     */
     static get Events() {
         return events;
     }
 
+    /**
+     * Gets a list of canvas highlight modes that this object can accept.
+     */
     static get CanvasHighlightModes() {
         return CanvasManager.HighlightModes;
     }
@@ -76,7 +90,7 @@ export default class TileEditor extends ComponentBase {
 
 
     /**
-     * Initialises a new instance of this class.
+     * Constructor for the class.
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
@@ -250,8 +264,14 @@ export default class TileEditor extends ComponentBase {
             refreshTiles = true;
         }
         // Transparency index
-        if (typeof state?.transparencyIndex === 'number') {
-            this.#canvasManager.transparencyIndex = state.transparencyIndex;
+        if (typeof state.transparencyIndex === 'number' || state.transparencyIndex === null) {
+            this.#canvasManager.transparencyIndex = state.transparencyIndex ?? -1;
+            this.#canvasManager.invalidateImage();
+            refreshTiles = true;
+        }
+        // Locked palette slot index
+        if (typeof state.lockedPaletteSlotIndex === 'number' || state.lockedPaletteSlotIndex === null) {
+            this.#canvasManager.lockedPaletteSlotIndex = state.lockedPaletteSlotIndex ?? -1;
             this.#canvasManager.invalidateImage();
             refreshTiles = true;
         }
@@ -299,6 +319,7 @@ export default class TileEditor extends ComponentBase {
         // Force refresh?
         if (typeof state.forceRefresh === 'boolean' && state.forceRefresh === true) {
             refreshTiles = true;
+            this.#canvasManager.invalidateImage();
         }
         // Refresh image?
         if ((refreshTiles || redrawUI) && this.#tileGrid && this.#tileSet && this.#paletteList && this.#paletteList.length > 0) {
@@ -653,6 +674,7 @@ export default class TileEditor extends ComponentBase {
  * @property {number?} [viewportPanVertical] - Pan the viewport vertically.
  * @property {ReferenceImage?} referenceImage - Reference image to draw.
  * @property {number?} transparencyIndex - 0 to 15 of which colour index to make transparent.
+ * @property {number?} [lockedPaletteSlotIndex] - When not null, the palette slot index specified here will be repeated from palette 0 across all palettes.
  * @property {boolean?} showTileGrid - Should the tile grid be drawn?
  * @property {boolean?} showPixelGrid - Should the pixel grid be drawn?
  * @property {boolean?} enabled - Is the control enabled or disabled?

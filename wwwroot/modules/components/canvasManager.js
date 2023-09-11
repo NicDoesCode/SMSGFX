@@ -9,6 +9,7 @@ import TileMap from "../models/tileMap.js";
 import TileMapFactory from "../factory/tileMapFactory.js";
 import PaintUtil from "../util/paintUtil.js";
 import TileImageManager from "./tileImageManager.js";
+import PaletteListFactory from "../factory/paletteListFactory.js";
 
 
 const highlightModes = {
@@ -185,6 +186,16 @@ export default class CanvasManager {
     }
 
     /**
+     * Gets or sets the locked palette slot index from 0 to 15, null for none.
+     */
+    get lockedPaletteSlotIndex() {
+        return this.#lockedPaletteSlotIndex;
+    }
+    set lockedPaletteSlotIndex(value) {
+        this.#lockedPaletteSlotIndex = value;
+    }
+
+    /**
      * Gets or sets the X offset of the tile grid image.
      */
     get offsetX() {
@@ -273,6 +284,8 @@ export default class CanvasManager {
     #tileSet = null;
     /** @type {PaletteList} */
     #paletteList = null;
+    /** @type {PaletteList} */
+    #renderPaletteList = null;
     /** @type {number} */
     #scale = 10;
     /** @type {number} */
@@ -283,6 +296,8 @@ export default class CanvasManager {
     #selectedRegion = null;
     #cursorSize = 1;
     #transparencyIndex = 15;
+    /** @type {number?} */
+    #lockedPaletteSlotIndex = null;
     #drawTileGrid = false;
     #drawPixelGrid = false;
     /** @type {ReferenceImage[]} */
@@ -320,6 +335,7 @@ export default class CanvasManager {
     invalidateImage() {
         // Set redraw variables
         this.#needToDrawTileImage = true;
+        this.#renderPaletteList = null;
         this.#tilePreviewCanvas = null;
     }
 
@@ -603,9 +619,8 @@ export default class CanvasManager {
      * Refreshes the entire tile image.
      */
     #refreshTileImage() {
-        const transColour = this.#referenceImages.filter(r => r.image !== null).length > 0 ? this.#transparencyIndex : -1;
         this.#gridPatternCanvas = createGridPatternCanvas(this.scale);
-        this.#drawTileImage(this.#tileCanvas, transColour);
+        this.#drawTileImage(this.#tileCanvas, this.#transparencyIndex);
     }
 
     /**
@@ -663,18 +678,25 @@ export default class CanvasManager {
      * @param {number} transparencyColour 
      */
     #drawTile(context, tileindex, transparencyColour) {
+        this.#buildRenderPaletteList();
+
         const pxSize = this.scale;
         const tileInfo = this.tileGrid.getTileInfoByIndex(tileindex);
         const tile = this.tileSet.getTileById(tileInfo.tileId);
         const tileWidth = Math.max(this.tileGrid.columnCount, 1);
         const tileGridCol = tileindex % tileWidth;
         const tileGridRow = (tileindex - tileGridCol) / tileWidth;
-        const palette = this.paletteList.getPalette(tileInfo.paletteIndex);
+        const palette = this.#renderPaletteList.getPalette(tileInfo.paletteIndex);
 
         context.imageSmoothingEnabled = false;
 
+        if (!tile || transparencyColour >= 0) {
+            // Draw in transparency pixel mesh when the tile doesn't exist
+            const originX = (tileGridCol * 8) * pxSize;
+            const originY = (tileGridRow * 8) * pxSize;
+            context.drawImage(this.#gridPatternCanvas, originX, originY);
+        }
         if (tile) {
-
             const tileCanvas = this.#tileImageManager.getTileImage(tile, palette, transparencyColour);
 
             // Tile exists 
@@ -698,10 +720,27 @@ export default class CanvasManager {
             }
         } else {
             this.#tileImageManager.clearByTile(tileInfo.tileId);
-            // Draw in pixel mesh when the tile doesn't exist
-            const originX = (tileGridCol * 8) * pxSize;
-            const originY = (tileGridRow * 8) * pxSize;
-            context.drawImage(this.#gridPatternCanvas, originX, originY);
+        }
+    }
+
+    #buildRenderPaletteList() {
+        if (this.#renderPaletteList !== null) return;
+        if (this.lockedPaletteSlotIndex !== null && this.lockedPaletteSlotIndex >= 0 && this.lockedPaletteSlotIndex < this.paletteList.getPalette(0).getColours().length) {
+            const list = PaletteListFactory.clone(this.paletteList);
+            const lockColour = this.paletteList.getPalette(0).getColour(this.lockedPaletteSlotIndex);
+            for (let i = 1; i < list.getPalettes().length; i++) {
+                const colour = list.getPalette(i).getColour(this.lockedPaletteSlotIndex);
+                colour.r = lockColour.r;
+                colour.g = lockColour.g;
+                colour.b = lockColour.b;
+            }
+            list.getPalettes().forEach((p) => {
+                p.paletteId = `${p.paletteId}[lock:${this.lockedPaletteSlotIndex}]`;
+                this.#tileImageManager.clearByPalette(p.paletteId);
+            });
+            this.#renderPaletteList = list;
+        } else {
+            this.#renderPaletteList = this.paletteList;
         }
     }
 
@@ -1301,7 +1340,7 @@ function isInBounds(tileGrid, row, column) {
  * @returns {CanvasPattern}
  */
 function createGridPatternCanvas(scale) {
-    const gridColour1 = 'rgba(255,255,255,0.25)';
+    const gridColour1 = 'rgba(255,255,255,0.15)';
     const gridColour2 = 'rgba(0,0,0,0.25)';
     const gridSizePx = 2;
     const gridCanvas = document.createElement('canvas');

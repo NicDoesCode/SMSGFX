@@ -66,6 +66,7 @@ import ProjectJsonSerialiser from "./serialisers/projectJsonSerialiser.js";
 import KeyboardManager, { KeyDownHandler, KeyUpHandler } from "./components/keyboardManager.js";
 import TileImageManager from "./components/tileImageManager.js";
 import ProjectList from "./models/projectList.js";
+import TileMapUtil from "./util/tileMapUtil.js";
 
 
 /* ****************************************************************************************************
@@ -2102,14 +2103,30 @@ function getPaletteList() {
     return getProject()?.paletteList ?? null;
 }
 /**
- * Gets the palette list for the tile editor based on whether the selected tile grid is a tile set or tile map.
+ * Gets the palette list for the tile editor to used which is based on selected console limitations, as well as
+ * tile map settings, like locking in a colour
  * @returns {PaletteList}
  */
 function getTileEditorPaletteList() {
     if (isTileMap()) {
-        const palettes = getTileMap().getPalettes().map((paletteId) => getPaletteList().getPaletteById(paletteId));
+        // Tile map, return a palette list of length 16, fill it with selected palettes sequentially
+        // when we exceed the amount of allowed palettes in the tile map, instead just repeat
+        // the last selected palette.
+        const attr = TileMapUtil.getTileMapAttributes(getTileMap(), getProject());
+        const tileMap = getTileMap();
+        const palettes = new Array(16);
+        for (let i = 0; i < palettes.length; i++) {
+            if (i < attr.paletteSlots) {
+                // Within allowance, add selected palette
+                palettes[i] = getPaletteList().getPaletteById(tileMap.getPalette(i)); 
+            } else {
+                // Exceeds limit, repeat last selected palette
+                palettes[i] = getPaletteList().getPaletteById(tileMap.getPalette(attr.paletteSlots - 1)); 
+            }
+        }
         return PaletteListFactory.create(palettes);
     } else {
+        // With a tile set, just select the palette that is selected in the palette list on the left
         const palette = getPaletteList().getPalette(getProjectUIState().paletteIndex);
         return PaletteListFactory.create([palette]);
     }
@@ -2266,6 +2283,8 @@ function refreshProjectUI() {
         selectedColourIndex: instanceState.colourIndex
     });
 
+    const tileMapAttributes = TileMapUtil.getTileMapAttributes(getTileMap(), getProject().systemType);
+
     tileEditor.setState({
         forceRefresh: true,
         paletteList: getTileEditorPaletteList(),
@@ -2273,11 +2292,13 @@ function refreshProjectUI() {
         tileGrid: getTileGrid(),
         tilesPerBlock: getTilesPerBlock(),
         displayNative: getUIState().displayNativeColour,
+        transparencyIndex: tileMapAttributes.transparencyIndex,
+        lockedPaletteSlotIndex: tileMapAttributes.lockedIndex,
         selectedTileIndex: instanceState.tileIndex,
         cursorSize: instanceState.pencilSize,
         scale: getUIState().scale,
         showTileGrid: getUIState().showTileGrid,
-        showPixelGrid: getUIState().showPixelGrid,
+        showPixelGrid: getUIState().showPixelGrid
     });
 
     tileManager.setState({
@@ -2287,7 +2308,8 @@ function refreshProjectUI() {
         tileSet: getTileSet(),
         selectedTileMapId: getProjectUIState().tileMapId,
         selectedTileId: getProjectUIState().tileId,
-        numberOfPaletteSlots: getNumberOfPaletteSlots()
+        numberOfPaletteSlots: tileMapAttributes.paletteSlots,
+        lockedPaletteSlotIndex: tileMapAttributes.lockedIndex
     });
 
     const toolStrips = TileEditorToolbar.ToolStrips;
@@ -2398,16 +2420,6 @@ function formatForProject() {
         enabled: true
     });
     tileEditor.setState({
-        // palette: palette,
-        // paletteList: getTileEditorPaletteList(),
-        // tileGrid: getTileGrid(),
-        // tileSet: tileSet,
-        // scale: getUIState().scale,
-        // tilesPerBlock: getTilesPerBlock(),
-        // displayNative: getUIState().displayNativeColour,
-        // cursorSize: instanceState.pencilSize,
-        // showTileGrid: getUIState().showTileGrid,
-        // showPixelGrid: getUIState().showPixelGrid,
         enabled: true
     });
     tileContextToolbar.setState({
@@ -4481,6 +4493,9 @@ function updateTileMap(tileMapId, args) {
     if (typeof args.optimise === 'boolean') {
         tileMap.optimise = args.optimise;
     }
+    if (typeof args.isSprite === 'boolean') {
+        tileMap.isSprite = args.isSprite;
+    }
     if (Array.isArray(args.paletteSlots) && args.paletteSlots.length > 0) {
         args.paletteSlots.forEach((paletteId, index) => {
             tileMap.setPalette(index, paletteId);
@@ -4491,15 +4506,22 @@ function updateTileMap(tileMapId, args) {
     state.setProject(getProject());
     state.saveToLocalStorage();
 
+    const tileMapAttributes = TileMapUtil.getTileMapAttributes(tileMap, getProject());
+
     // Reset UI
     tileManager.setState({
         tileMapList: getTileMapList(),
-        selectedTileMapId: getProjectUIState().tileMapId
+        selectedTileMapId: getProjectUIState().tileMapId,
+        numberOfPaletteSlots: tileMapAttributes.paletteSlots,
+        lockedPaletteSlotIndex: tileMapAttributes.lockedIndex
     });
     tileEditor.setState({
         selectedTileIndex: -1,
         tileGrid: getTileGrid(),
-        tileSet: getTileSet()
+        tileSet: getTileSet(),
+        transparencyIndex: tileMapAttributes.transparencyIndex,
+        lockedPaletteSlotIndex: tileMapAttributes.lockedIndex,
+        forceRefresh: true
     });
 }
 

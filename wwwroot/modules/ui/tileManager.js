@@ -28,6 +28,7 @@ const commands = {
 const fields = {
     tileMapTitle: 'tileMapTitle',
     tileMapOptimise: 'tileMapOptimise',
+    tileMapIsSprite: 'tileMapIsSprite',
     tileMapPaletteId: 'tileMapPaletteId',
     tileWidth: 'tileWidth'
 }
@@ -63,6 +64,8 @@ export default class TileManager extends ComponentBase {
     #uiTileMapTitle;
     /** @type {HTMLInputElement} */
     #uiTileSetOptimise;
+    /** @type {HTMLInputElement} */
+    #uiTileSetIsSprite;
     /** @type {HTMLButtonElement} */
     #btnTileSetSelect;
     /** @type {HTMLButtonElement} */
@@ -75,6 +78,8 @@ export default class TileManager extends ComponentBase {
     #paletteSelectorElement;
     /** @type {number} */
     #numberOfPaletteSlots = 0;
+    /** @type {number?} */
+    #lockedPaletteSlotIndex = null;
     /** @type {string?} */
     #selectedTileMapId = null;
     /** @type {PaletteList?} */
@@ -96,6 +101,7 @@ export default class TileManager extends ComponentBase {
 
         this.#uiTileSetTileWidth = this.#element.querySelector('[data-command=tileSetChange][data-field=tileWidth]');
         this.#uiTileSetOptimise = this.#element.querySelector('[data-command=tileMapChange][data-field=optimise]');
+        this.#uiTileSetIsSprite = this.#element.querySelector('[data-command=tileMapChange][data-field=isSprite]');
 
         this.#uiTileMapTitle = this.#element.querySelector('[data-command=tileMapChange][data-field=title]');
         this.#uiTileMapTitle.addEventListener('blur', () => this.#handleTileMapTitleEditBlur());
@@ -191,6 +197,11 @@ export default class TileManager extends ComponentBase {
             paletteSlotsDirty = true;
         }
 
+        if (typeof state?.lockedPaletteSlotIndex === 'number' || state?.lockedPaletteSlotIndex === null) {
+            this.#lockedPaletteSlotIndex = state.lockedPaletteSlotIndex;
+            paletteSlotsDirty = true;
+        }
+
         if (state?.paletteList instanceof PaletteList) {
             this.#paletteList = state.paletteList;
             paletteSlotsDirty = true;
@@ -249,6 +260,7 @@ export default class TileManager extends ComponentBase {
             result.tileMapId = this.#selectedTileMapId;
             result.title = this.#uiTileMapTitle.value;
             result.optimise = this.#uiTileSetOptimise.checked;
+            result.isSprite = this.#uiTileSetIsSprite.checked;
             result.paletteSlots = [];
             for (let i = 0; i < this.#numberOfPaletteSlots; i++) {
                 const select = this.#element.querySelector(`[data-command='tileMapChange'][data-field='paletteId'][data-palette-slot='${i}']`);
@@ -344,6 +356,8 @@ export default class TileManager extends ComponentBase {
             this.#uiTileMapTitle.disabled = false;
             this.#uiTileMapTitle.value = tileMap.title;
             this.#btnTileMapTitle.querySelector('label').innerText = tileMap.title;
+            this.#uiTileSetOptimise.checked = tileMap.optimise;
+            this.#uiTileSetIsSprite.checked = tileMap.isSprite;
         } else {
             this.#element.querySelector('[data-smsgfx-id=tileSetProperties]').classList.remove('visually-hidden');
             this.#element.querySelector('[data-smsgfx-id=tileMapProperties]').classList.add('visually-hidden');
@@ -395,15 +409,44 @@ export default class TileManager extends ComponentBase {
 
     #populatePaletteColours() {
         const paletteList = this.#paletteList;
-        this.#paletteSelectorElement.querySelectorAll('[data-smsgfx-id=palette-selector]').forEach((/** @type {HTMLElement} */ elm) => {
-            const selectedPaletteId = elm.querySelector('select').value;
-            const palette = paletteList.getPaletteById(selectedPaletteId);
+        const tileMap = this.#tileMapList.getTileMapById(this.#selectedTileMapId);
+
+        // Build a list of palettes based on whats selected for the tile map
+        const renderPalettes = tileMap.getPalettes().map((paletteId) => {
+            const palette = paletteList.getPaletteById(paletteId);
+            const colours = [];
+            for (let i = 0; i < palette.getColours().length; i++) {
+                const colour = palette.getColour(i);
+                colours.push({ title: palette.title, r: colour.r, g: colour.g, b: colour.b});
+            }
+            return colours;
+        });
+
+        // If there is a locked colour, then take the locked colour index from the first palette and
+        // apply that colour to all other colours
+        if (this.#lockedPaletteSlotIndex !== null && this.#lockedPaletteSlotIndex >= 0 && this.#lockedPaletteSlotIndex < paletteList.getPalette(0).getColours().length) {
+            const firstPalette = renderPalettes[0];
+            const lockedColour = firstPalette[this.#lockedPaletteSlotIndex];
+            for (let i = 1; i < renderPalettes.length; i++) {
+                const slot = renderPalettes[i][this.#lockedPaletteSlotIndex];
+                slot.r = lockedColour.r;
+                slot.g = lockedColour.g;
+                slot.b = lockedColour.b;
+            }
+        }
+
+        // Display the palette colours
+        this.#paletteSelectorElement.querySelectorAll('[data-smsgfx-id=palette-selector]').forEach((/** @type {HTMLElement} */ elm, i) => {
 
             const colourElm = elm.querySelector('[data-smsgfx-id=palette-colours]');
+            const slotNum = parseInt(colourElm.getAttribute('data-palette-slot'));
+            const palette = renderPalettes[slotNum];
+
             while (colourElm.hasChildNodes()) {
                 colourElm.firstChild.remove();
             }
-            palette.getColours().forEach((colour) => {
+            
+            palette.forEach((colour) => {
                 const colourSampleElm = document.createElement('div');
                 colourSampleElm.style.backgroundColor = `rgb(${colour.r}, ${colour.g}, ${colour.b})`;
                 colourElm.appendChild(colourSampleElm);
@@ -497,6 +540,7 @@ export default class TileManager extends ComponentBase {
  * @property {string?} [selectedTileId] - Unique ID of the selected tile.
  * @property {string[]?} [updatedTileIds] - Array of unique tile IDs that were updated.
  * @property {number?} [numberOfPaletteSlots] - Amount of palette slots that the tile map provides.
+ * @property {number?} [lockedPaletteSlotIndex] - When not null, the palette slot index specified here will be repeated from palette 0 across all palettes.
  * @property {number?} [tileWidth] - Display tile width for the tile set.
  * @property {TileImageManager?} [tileImageManager] - Tile image manager to use for rendering tiles.
  */
@@ -516,6 +560,7 @@ export default class TileManager extends ComponentBase {
  * @property {number?} [paletteSlotNumber] - Slot number for the palette.
  * @property {string[]?} [paletteSlots] - Unique ID of the palette.
  * @property {boolean?} [optimise] - Optimise the tile map?
+ * @property {boolean?} [isSprite] - Is this tile map a sprite?
  * @property {number?} [tileWidth] - Display tile width for the tile set.
  * @exports
  */

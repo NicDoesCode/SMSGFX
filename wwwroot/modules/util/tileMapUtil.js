@@ -1,6 +1,5 @@
 import TileMapListFactory from "../factory/tileMapListFactory.js";
 import PaletteList from "../models/paletteList.js";
-import Tile from "../models/tile.js";
 import TileMap from "../models/tileMap.js";
 import TileMapList from "../models/tileMapList.js";
 import TileSet from "../models/tileSet.js";
@@ -13,6 +12,10 @@ import Project from "../models/project.js";
 import TileMapFactory from "../factory/tileMapFactory.js";
 import TileMapTileFactory from "../factory/tileMapTileFactory.js";
 
+
+/**
+ * Provides tile map related utility functions.
+ */
 export default class TileMapUtil {
 
 
@@ -153,6 +156,36 @@ export default class TileMapUtil {
             tileSet: optimisedTileSet,
             tileMaps: optimisedTileMapList
         };
+    }
+
+
+    /**
+     * Gets attributes relating to a given tile map.
+     * @param {TileMap|null} tileMap - Tile map to provide attributes for, or null to accept default system values.
+     * @param {Project|string} projectOrSystemType - Either a project or the system type that the tile map belongs to.
+     * @returns {import('./../types.js').TileMapAttributes}
+     */
+    static getTileMapAttributes(tileMap, projectOrSystemType) {
+        const systemType = projectOrSystemType instanceof Project ? projectOrSystemType.systemType : projectOrSystemType;
+        if (systemType === 'smsgg' && tileMap === null) {
+            return { paletteSlots: 2, transparencyIndex: null, lockedIndex: null };
+        } else if (systemType === 'smsgg' && tileMap.isSprite) {
+            return { paletteSlots: 1, transparencyIndex: 0, lockedIndex: null };
+        } else if (systemType === 'smsgg' && !tileMap.isSprite) {
+            return { paletteSlots: 2, transparencyIndex: null, lockedIndex: null };
+        } else if (systemType === 'gb' && tileMap === null) {
+            return { paletteSlots: 1, transparencyIndex: null, lockedIndex: null };
+        } else if (systemType === 'gb' && tileMap.isSprite) {
+            return { paletteSlots: 1, transparencyIndex: 0, lockedIndex: null };
+        } else if (systemType === 'gb' && !tileMap.isSprite) {
+            return { paletteSlots: 1, transparencyIndex: null, lockedIndex: null };
+        } else if (systemType === 'nes' && tileMap === null) {
+            return { paletteSlots: 4, transparencyIndex: null, lockedIndex: 0 };
+        } else if (systemType === 'nes' && tileMap.isSprite) {
+            return { paletteSlots: 4, transparencyIndex: 0, lockedIndex: 0 };
+        } else if (systemType === 'nes' && !tileMap.isSprite) {
+            return { paletteSlots: 4, transparencyIndex: null, lockedIndex: 0 };
+        } throw new Error('Unknown project system type.');
     }
 
 
