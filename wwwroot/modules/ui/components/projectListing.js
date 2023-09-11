@@ -60,23 +60,24 @@ export default class ProjectListing extends ComponentBase {
 
         this.#element.addEventListener('mousemove', () => {
             if (this.#showSortButton) {
-                this.#toolsElement.style.display = 'block';
+                this.#toolsElement.style.opacity = '1';
             }
         });
 
         this.#element.addEventListener('mouseenter', () => {
             if (this.#showSortButton) {
                 this.#dropDown.hide();
-                this.#toolsElement.style.display = 'block';
+                this.#toolsElement.style.opacity = '1';
             }
         });
 
         this.#element.addEventListener('mouseout', () => {
-            this.#toolsElement.style.display = 'none';
+            this.#toolsElement.style.opacity = '0';
         });
 
         this.#toolsElement.querySelectorAll(`a[data-command=${commands.sort}]`).forEach((sortElm) => {
             sortElm.addEventListener('click', (ev) => {
+                this.#dropDown.hide();
                 const args = this.#createArgs(sortElm.getAttribute('data-command'));
                 args.field = sortElm.getAttribute('data-field');
                 this.#dispatcher.dispatch(EVENT_OnCommand, args);
