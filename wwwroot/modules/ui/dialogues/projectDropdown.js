@@ -14,6 +14,7 @@ const commands = {
     projectLoadById: 'projectLoadById',
     projectSaveToFile: 'projectSaveToFile',
     projectDelete: 'projectDelete',
+    projectSort: 'projectSort',
     sampleProjectSelect: 'sampleProjectSelect',
     showWelcomeScreen: 'showWelcomeScreen'
 }
@@ -100,7 +101,7 @@ export default class ProjectDropdown extends ModalDialogue {
             });
         }
 
-        if (state.projects instanceof ProjectList) {
+        if (state.projects instanceof ProjectList || Array.isArray(state.projects)) {
             await this.#displayProjects(state.projects);
         }
 
@@ -176,7 +177,7 @@ export default class ProjectDropdown extends ModalDialogue {
 
 
     /**
-     * @param {ProjectList} projects
+     * @param {ProjectList|Project[]} projects
      */
     async #displayProjects(projects) {
 
@@ -196,6 +197,11 @@ export default class ProjectDropdown extends ModalDialogue {
                             const delArgs = this.#createArgs(commands.projectDelete);
                             delArgs.projectId = args.projectId;
                             this.#dispatcher.dispatch(EVENT_OnCommand, delArgs);
+                            break;
+                        case ProjectListing.Commands.sort:
+                            const sortArgs = this.#createArgs(commands.projectSort);
+                            sortArgs.sortField = args.field;
+                            this.#dispatcher.dispatch(EVENT_OnCommand, sortArgs);
                             break;
                     }
                 });
@@ -250,7 +256,7 @@ export default class ProjectDropdown extends ModalDialogue {
  * @property {string?} [projectTitle] - Project title to display.
  * @property {string[]?} [enabledCommands] - Array of commands that should be enabled, overrided enabled state.
  * @property {string[]?} [disabledCommands] - Array of commands that should be disabled, overrided enabled state.
- * @property {ProjectList} [projects] - List of projects to display in the menu.
+ * @property {ProjectList|Project[]} [projects] - List of projects to display in the menu.
  * @property {string?} [systemType] - System type to target, either 'smsgg', 'gb' or 'nes'.
  * @property {SampleProject[]?} [sampleProjects] - List of projects to include in samples menu.
  * @property {boolean?} [enabled] - Is the control enabled or disabled?
@@ -270,6 +276,7 @@ export default class ProjectDropdown extends ModalDialogue {
  * @property {string?} projectId - Project ID.
  * @property {string?} systemType - Type of system to target, either 'smsgg', 'gb' or 'nes'.
  * @property {string?} [sampleProjectId] - URL of the sample project to load.
+ * @property {string?} [sortField] - Name of the field to be sorted.
  * @exports
  */
 

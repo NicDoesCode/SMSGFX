@@ -9,6 +9,7 @@ import GeneralUtil from "../../util/generalUtil.js";
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
 const commands = {
+    sort: 'sort',
     projectSelect: 'projectSelect',
     projectDelete: 'projectDelete'
 }
@@ -32,11 +33,14 @@ export default class ProjectListing extends ComponentBase {
     #element;
     /** @type {HTMLElement} */
     #listElmement;
+    /** @type {HTMLElement} */
+    #toolsElement;
     /** @type {EventDispatcher} */
     #dispatcher;
     #enabled = true;
     #showDeleteButton = false;
     #showLastModifiedColumn = true;
+    #dropDown;
 
 
     /**
@@ -48,8 +52,33 @@ export default class ProjectListing extends ComponentBase {
 
         this.#element = element;
         this.#listElmement = this.#element.querySelector('[data-smsgfx-id=project-list]');
+        this.#toolsElement = this.#element.querySelector('[data-smsgfx-id=tools]');
+        this.#dropDown = new bootstrap.Dropdown(this.#toolsElement.querySelector('.dropdown-toggle'));
 
         this.#dispatcher = new EventDispatcher();
+
+        this.#element.addEventListener('mousemove', () => {
+            this.#toolsElement.style.display = 'block';
+        });
+
+        this.#element.addEventListener('mouseenter', () => {
+            this.#dropDown.hide();
+            this.#toolsElement.style.display = 'block';
+        });
+
+        this.#element.addEventListener('mouseout', () => {
+            this.#toolsElement.style.display = 'none';
+        });
+
+        this.#toolsElement.querySelectorAll(`a[data-command=${commands.sort}]`).forEach((sortElm) => {
+            sortElm.addEventListener('click', (ev) => {
+                const args = this.#createArgs(sortElm.getAttribute('data-command'));
+                args.field = sortElm.getAttribute('data-field');
+                this.#dispatcher.dispatch(EVENT_OnCommand, args);
+                ev.stopImmediatePropagation();
+                ev.preventDefault();
+            });
+        });
     }
 
 
@@ -85,7 +114,7 @@ export default class ProjectListing extends ComponentBase {
             this.#listElmement.style.height = (state.height !== null) ? state.height : null;
         }
 
-        if (typeof state.projects?.getProjects === 'function') {
+        if (state.projects instanceof ProjectList || Array.isArray(state.projects)) {
             this.#displayProjects(state.projects);
         }
 
@@ -110,22 +139,22 @@ export default class ProjectListing extends ComponentBase {
 
 
     /**
-     * @param {ProjectList} projects
+     * @param {ProjectList|Project[]} projects
      */
     #displayProjects(projects) {
-        const renderList = projects.getProjects()
-            .map((p) => {
-                return {
-                    title: p.title,
-                    id: p.id,
-                    systemType: p.systemType,
-                    isSmsgg: p.systemType === 'smsgg',
-                    isNes: p.systemType === 'nes',
-                    isGb: p.systemType === 'gb',
-                    dateLastModifiedFuzzy: p.dateLastModified.getTime() === 0 ? '' : DateTimeUtil.getFuzzyDateTime(p.dateLastModified),
-                    tooltip: GeneralUtil.escapeHtmlAttribute(`${p.title}\r\nModified: ${moment(p.dateLastModified).format('L LT')}`)
-                };
-            });
+        const projectArray = projects instanceof ProjectList ? projects.getProjects() : projects;
+        const renderList = projectArray.map((p) => {
+            return {
+                title: p.title,
+                id: p.id,
+                systemType: p.systemType,
+                isSmsgg: p.systemType === 'smsgg',
+                isNes: p.systemType === 'nes',
+                isGb: p.systemType === 'gb',
+                dateLastModifiedFuzzy: p.dateLastModified.getTime() === 0 ? '' : DateTimeUtil.getFuzzyDateTime(p.dateLastModified),
+                tooltip: GeneralUtil.escapeHtmlAttribute(`${p.title}\r\nModified: ${moment(p.dateLastModified).format('L LT')}`)
+            };
+        });
 
         this.renderTemplateToElement(this.#listElmement, 'project-list-template', renderList);
 
@@ -185,7 +214,7 @@ export default class ProjectListing extends ComponentBase {
 /**
  * Project list state.
  * @typedef {object} ProjectListingState
- * @property {ProjectList?} projects - List of projects to display in the menu.
+ * @property {ProjectList|Project[]|null} [projects] - List of projects to display in the menu.
  * @property {boolean?} [showDateLastModified] - Show the date last modified column?
  * @property {boolean?} showDelete - Show the delete button?
  * @property {string?} width - List width CSS declaration.
@@ -200,10 +229,12 @@ export default class ProjectListing extends ComponentBase {
  * @param {ProjectListingCommandEventArgs} args - Arguments.
  * @exports
  */
+
 /**
  * @typedef {object} ProjectListingCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string?} projectId - Project ID.
+ * @property {string?} [field] - Name of the field that this command relates to.
  * @exports
  */
 

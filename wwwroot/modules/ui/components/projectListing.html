@@ -1,4 +1,16 @@
 <div data-smsgfx-component="components/projectListing" class="project-listing">
+    <div data-smsgfx-id="tools" class="sms-order-div">
+        <div class="btn-group">
+            <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Sort the project list."
+                aria-expanded="false">
+                <i class="bi bi-sort-down"></i>
+            </button>
+            <ul class="dropdown-menu sms-font-small">
+                <li><a class="dropdown-item" href="#" data-command="sort" data-field="title">Title</a></li>
+                <li><a class="dropdown-item" href="#" data-command="sort" data-field="dateLastModified">Date modified</a></li>
+            </ul>
+        </div>
+    </div>
     <ul data-smsgfx-id="project-list" class="sms-project-list-component list-group list-group-flush">
     </ul>
     <script data-smsgfx-template-id="project-list-template" type="text/x-handlebars-template">
@@ -26,6 +38,17 @@
         {{/each}}
     </script>
     <style data-css-scope="global">
+        .project-listing .sms-order-div {
+            display: none;
+            position: absolute;
+            z-index: 1;
+            margin-top: -60px;
+            margin-left: -25px;
+            padding: 25px;
+            padding-right: 50px;
+            padding-bottom: 5px;
+        }
+
         .sms-project-list-component li {
             font-size: 0.9em;
             cursor: pointer;
