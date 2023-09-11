@@ -1032,15 +1032,15 @@ function getSortedProjectArray(projects, sort) {
     if (!projects || !Array.isArray(projects)) return [];
     if (sort?.field === 'title') {
         if (sort.direction === 'asc') {
-            projects.sort((a, b) => a.title > b.title);
+            projects.sort((a, b) => a.title > b.title ? 1 : -1);
         } else {
-            projects.sort((a, b) => a.title < b.title);
+            projects.sort((a, b) => a.title < b.title ? 1 : -1);
         }
     } else if (sort?.field === 'dateLastModified') {
         if (sort.direction === 'asc') {
-            projects.sort((a, b) => a.dateLastModified > b.dateLastModified);
+            projects.sort((a, b) => a.dateLastModified > b.dateLastModified ? 1 : -1);
         } else {
-            projects.sort((a, b) => a.dateLastModified < b.dateLastModified);
+            projects.sort((a, b) => a.dateLastModified < b.dateLastModified ? 1 : -1);
         }
     }
     return projects;
@@ -2056,14 +2056,14 @@ function checkPersistentUIValues() {
         state.persistentUIState.importTileAssemblyCode = '';
         dirty = true;
     }
-    if (!state.persistentUIState.projectDropDownSort.field) {
+    if (!state.persistentUIState.projectDropDownSort?.field) {
         state.persistentUIState.projectDropDownSort = {
             field: 'title',
             direction: 'asc'
         };
         dirty = true;
     }
-    if (!state.persistentUIState.welcomeScreenProjectSort.field) {
+    if (!state.persistentUIState.welcomeScreenProjectSort?.field) {
         state.persistentUIState.welcomeScreenProjectSort = {
             field: 'title',
             direction: 'asc'
