@@ -1022,30 +1022,6 @@ async function handleProjectDropdownOnCommand(args) {
     }
 }
 
-/**
- * @param {ProjectList|Project[]} projects 
- * @param {import('./types.js').SortEntry} sort 
- * @returns {Project[]}
- */
-function getSortedProjectArray(projects, sort) {
-    projects = projects instanceof ProjectList ? projects.getProjects() : projects;
-    if (!projects || !Array.isArray(projects)) return [];
-    if (sort?.field === 'title') {
-        if (sort.direction === 'asc') {
-            projects.sort((a, b) => a.title > b.title ? 1 : -1);
-        } else {
-            projects.sort((a, b) => a.title < b.title ? 1 : -1);
-        }
-    } else if (sort?.field === 'dateLastModified') {
-        if (sort.direction === 'asc') {
-            projects.sort((a, b) => a.dateLastModified > b.dateLastModified ? 1 : -1);
-        } else {
-            projects.sort((a, b) => a.dateLastModified < b.dateLastModified ? 1 : -1);
-        }
-    }
-    return projects;
-}
-
 function handleProjectDropdownOnHidden() {
     if (getProject() instanceof Project === false) {
         welcomeScreen.setState({
@@ -2230,6 +2206,30 @@ function isTileSet() {
 }
 function isTileMap() {
     return getTileMap() !== null;
+}
+
+/**
+ * @param {ProjectList|Project[]} projects 
+ * @param {import('./types.js').SortEntry} sort 
+ * @returns {Project[]}
+ */
+function getSortedProjectArray(projects, sort) {
+    projects = projects instanceof ProjectList ? projects.getProjects() : projects;
+    if (!projects || !Array.isArray(projects)) return [];
+    if (sort?.field === 'title') {
+        if (sort.direction === 'asc') {
+            projects.sort((a, b) => a.title > b.title ? 1 : -1);
+        } else {
+            projects.sort((a, b) => a.title < b.title ? 1 : -1);
+        }
+    } else if (sort?.field === 'dateLastModified') {
+        if (sort.direction === 'asc') {
+            projects.sort((a, b) => a.dateLastModified > b.dateLastModified ? 1 : -1);
+        } else {
+            projects.sort((a, b) => a.dateLastModified < b.dateLastModified ? 1 : -1);
+        }
+    }
+    return projects;
 }
 
 function refreshProjectUI() {
