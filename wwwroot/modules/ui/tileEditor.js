@@ -11,6 +11,7 @@ import PaletteList from "../models/paletteList.js";
 import TileGridProvider from "../models/tileGridProvider.js";
 import TileImageManager from "../components/tileImageManager.js";
 
+
 const EVENT_OnCommand = 'EVENT_OnCommand';
 const EVENT_OnEvent = 'EVENT_OnEvent';
 
@@ -29,17 +30,30 @@ const events = {
     pixelMouseUp: 'pixelMouseUp'
 }
 
+
+/**
+ * Manages and renders the tile editor including rendered tile image and toolbars.
+ */
 export default class TileEditor extends ComponentBase {
 
 
+    /**
+     * Gets a list of commands this component can invoke.
+     */
     static get Commands() {
         return commands;
     }
 
+    /**
+     * Gets a list of events this component can raise.
+     */
     static get Events() {
         return events;
     }
 
+    /**
+     * Gets a list of canvas highlight modes that this object can accept.
+     */
     static get CanvasHighlightModes() {
         return CanvasManager.HighlightModes;
     }
@@ -76,7 +90,7 @@ export default class TileEditor extends ComponentBase {
 
 
     /**
-     * Initialises a new instance of this class.
+     * Constructor for the class.
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {

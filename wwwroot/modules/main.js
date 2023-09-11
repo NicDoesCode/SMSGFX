@@ -4485,6 +4485,9 @@ function updateTileMap(tileMapId, args) {
     if (typeof args.optimise === 'boolean') {
         tileMap.optimise = args.optimise;
     }
+    if (typeof args.isSprite === 'boolean') {
+        tileMap.isSprite = args.isSprite;
+    }
     if (Array.isArray(args.paletteSlots) && args.paletteSlots.length > 0) {
         args.paletteSlots.forEach((paletteId, index) => {
             tileMap.setPalette(index, paletteId);
@@ -4495,15 +4498,19 @@ function updateTileMap(tileMapId, args) {
     state.setProject(getProject());
     state.saveToLocalStorage();
 
+    const tileMapAttributes = TileMapUtil.getTileMapAttributes(tileMap, getProject());
+
     // Reset UI
     tileManager.setState({
         tileMapList: getTileMapList(),
-        selectedTileMapId: getProjectUIState().tileMapId
+        selectedTileMapId: getProjectUIState().tileMapId,
+        numberOfPaletteSlots: tileMapAttributes.paletteSlots
     });
     tileEditor.setState({
         selectedTileIndex: -1,
         tileGrid: getTileGrid(),
-        tileSet: getTileSet()
+        tileSet: getTileSet(),
+        transparencyIndex: tileMapAttributes.transparencyIndex
     });
 }
 

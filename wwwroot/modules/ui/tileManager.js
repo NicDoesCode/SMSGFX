@@ -28,6 +28,7 @@ const commands = {
 const fields = {
     tileMapTitle: 'tileMapTitle',
     tileMapOptimise: 'tileMapOptimise',
+    tileMapIsSprite: 'tileMapIsSprite',
     tileMapPaletteId: 'tileMapPaletteId',
     tileWidth: 'tileWidth'
 }
@@ -63,6 +64,8 @@ export default class TileManager extends ComponentBase {
     #uiTileMapTitle;
     /** @type {HTMLInputElement} */
     #uiTileSetOptimise;
+    /** @type {HTMLInputElement} */
+    #uiTileSetIsSprite;
     /** @type {HTMLButtonElement} */
     #btnTileSetSelect;
     /** @type {HTMLButtonElement} */
@@ -96,6 +99,7 @@ export default class TileManager extends ComponentBase {
 
         this.#uiTileSetTileWidth = this.#element.querySelector('[data-command=tileSetChange][data-field=tileWidth]');
         this.#uiTileSetOptimise = this.#element.querySelector('[data-command=tileMapChange][data-field=optimise]');
+        this.#uiTileSetIsSprite = this.#element.querySelector('[data-command=tileMapChange][data-field=isSprite]');
 
         this.#uiTileMapTitle = this.#element.querySelector('[data-command=tileMapChange][data-field=title]');
         this.#uiTileMapTitle.addEventListener('blur', () => this.#handleTileMapTitleEditBlur());
@@ -249,6 +253,7 @@ export default class TileManager extends ComponentBase {
             result.tileMapId = this.#selectedTileMapId;
             result.title = this.#uiTileMapTitle.value;
             result.optimise = this.#uiTileSetOptimise.checked;
+            result.isSprite = this.#uiTileSetIsSprite.checked;
             result.paletteSlots = [];
             for (let i = 0; i < this.#numberOfPaletteSlots; i++) {
                 const select = this.#element.querySelector(`[data-command='tileMapChange'][data-field='paletteId'][data-palette-slot='${i}']`);
@@ -516,6 +521,7 @@ export default class TileManager extends ComponentBase {
  * @property {number?} [paletteSlotNumber] - Slot number for the palette.
  * @property {string[]?} [paletteSlots] - Unique ID of the palette.
  * @property {boolean?} [optimise] - Optimise the tile map?
+ * @property {boolean?} [isSprite] - Is this tile map a sprite?
  * @property {number?} [tileWidth] - Display tile width for the tile set.
  * @exports
  */
