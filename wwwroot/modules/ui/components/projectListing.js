@@ -40,6 +40,7 @@ export default class ProjectListing extends ComponentBase {
     #enabled = true;
     #showDeleteButton = false;
     #showLastModifiedColumn = true;
+    #showSortButton = true;
     #dropDown;
 
 
@@ -58,12 +59,16 @@ export default class ProjectListing extends ComponentBase {
         this.#dispatcher = new EventDispatcher();
 
         this.#element.addEventListener('mousemove', () => {
-            this.#toolsElement.style.display = 'block';
+            if (this.#showSortButton) {
+                this.#toolsElement.style.display = 'block';
+            }
         });
 
         this.#element.addEventListener('mouseenter', () => {
-            this.#dropDown.hide();
-            this.#toolsElement.style.display = 'block';
+            if (this.#showSortButton) {
+                this.#dropDown.hide();
+                this.#toolsElement.style.display = 'block';
+            }
         });
 
         this.#element.addEventListener('mouseout', () => {
@@ -98,12 +103,16 @@ export default class ProjectListing extends ComponentBase {
      * @param {ProjectListingState} state - State to set.
      */
     setState(state) {
+        if (typeof state.showDelete === 'boolean' || state.showDateLastModified === null) {
+            this.#showDeleteButton = state.showDelete ?? false;
+        }
+
         if (typeof state.showDateLastModified === 'boolean' || state.showDateLastModified === null) {
             this.#showLastModifiedColumn = state.showDateLastModified ?? true;
         }
 
-        if (typeof state.showDelete !== 'undefined') {
-            this.#showDeleteButton = state.showDelete;
+        if (typeof state.showSort === 'boolean' || state.showDateLastModified === null) {
+            this.#showSortButton = state.showSort ?? true;
         }
 
         if (typeof state.width !== 'undefined') {
@@ -216,7 +225,8 @@ export default class ProjectListing extends ComponentBase {
  * @typedef {object} ProjectListingState
  * @property {ProjectList|Project[]|null} [projects] - List of projects to display in the menu.
  * @property {boolean?} [showDateLastModified] - Show the date last modified column?
- * @property {boolean?} showDelete - Show the delete button?
+ * @property {boolean?} [showDelete] - Show the delete button?
+ * @property {boolean?} [showSort] - Show the sort button?
  * @property {string?} width - List width CSS declaration.
  * @property {string?} height - List height CSS declaration.
  * @property {boolean?} enabled - Is the control enabled or disabled?
