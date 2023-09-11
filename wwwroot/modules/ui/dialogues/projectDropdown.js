@@ -4,6 +4,7 @@ import TemplateUtil from "../../util/templateUtil.js";
 import ModalDialogue from "./../modalDialogue.js";
 import ProjectListing from "../components/projectListing.js";
 
+
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
 const commands = {
@@ -17,9 +18,16 @@ const commands = {
     showWelcomeScreen: 'showWelcomeScreen'
 }
 
+
+/**
+ * UI component that displays a menu of project related options, such as projects to load, or to create a new project.
+ */
 export default class ProjectDropdown extends ModalDialogue {
 
 
+    /**
+     * Gets an enumeration of all the commands that may be invoked by this class.
+     */
     static get Commands() {
         return commands;
     }
@@ -35,7 +43,7 @@ export default class ProjectDropdown extends ModalDialogue {
 
 
     /**
-     * Initialises a new instance of this class.
+     * Constructor for the class.
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {

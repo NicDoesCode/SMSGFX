@@ -2,6 +2,9 @@ import ComponentBase from "../componentBase.js";
 import EventDispatcher from "../../components/eventDispatcher.js";
 import ProjectList from "../../models/projectList.js";
 import TemplateUtil from "../../util/templateUtil.js";
+import DateTimeUtil from "../../util/dateTimeUtil.js";
+import GeneralUtil from "../../util/generalUtil.js";
+
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -10,9 +13,16 @@ const commands = {
     projectDelete: 'projectDelete'
 }
 
+
+/**
+ * UI component that displays a list of projects.
+ */
 export default class ProjectListing extends ComponentBase {
 
 
+    /**
+     * Gets an enumeration of all the commands that may be invoked by this class.
+     */
     static get Commands() {
         return commands;
     }
@@ -29,12 +39,12 @@ export default class ProjectListing extends ComponentBase {
 
 
     /**
-     * Initialises a new instance of this class.
+     * Constructor for the class.
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
         super(element);
-        
+
         this.#element = element;
         this.#listElmement = this.#element.querySelector('[data-smsgfx-id=project-list]');
 
@@ -99,16 +109,19 @@ export default class ProjectListing extends ComponentBase {
      * @param {ProjectList} projects
      */
     #displayProjects(projects) {
-        const renderList = projects.getProjects().map((p) => {
-            return {
-                title: p.title,
-                id: p.id,
-                systemType: p.systemType,
-                isSmsgg: p.systemType === 'smsgg',
-                isNes: p.systemType === 'nes',
-                isGb: p.systemType === 'gb'
-            };
-        });
+        const renderList = projects.getProjects()
+            .map((p) => {
+                return {
+                    title: p.title,
+                    id: p.id,
+                    systemType: p.systemType,
+                    isSmsgg: p.systemType === 'smsgg',
+                    isNes: p.systemType === 'nes',
+                    isGb: p.systemType === 'gb',
+                    dateLastModifiedFuzzy: p.dateLastModified.getTime() === 0 ? '' : DateTimeUtil.getFuzzyDateTime(p.dateLastModified),
+                    tooltip: GeneralUtil.escapeHtmlAttribute(`${p.title}\r\nModified: ${moment(p.dateLastModified).format('L LT')}`)
+                };
+            });
 
         this.renderTemplateToElement(this.#listElmement, 'project-list-template', renderList);
 
