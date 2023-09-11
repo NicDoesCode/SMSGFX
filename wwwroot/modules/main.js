@@ -2108,9 +2108,23 @@ function getPaletteList() {
  */
 function getTileEditorPaletteList() {
     if (isTileMap()) {
-        const palettes = getTileMap().getPalettes().map((paletteId) => getPaletteList().getPaletteById(paletteId));
+        // Tile map, return a palette list of length 16, fill it with selected palettes sequentially
+        // when we exceed the amount of allowed palettes in the tile map, instead just repeat
+        // the last selected palette.
+        const attr = TileMapUtil.getTileMapAttributes(getTileMap(), getProject());
+        const palettes = new Array(16);
+        for (let i = 0; i < palettes.length; i++) {
+            if (i < attr.paletteSlots) {
+                // Within allowance, add selected palette
+                palettes[i] = getPaletteList().getPalette(i); 
+            } else {
+                // Exceeds limit, repeat last selected palette
+                palettes[i] = getPaletteList().getPalette(attr.paletteSlots - 1); 
+            }
+        }
         return PaletteListFactory.create(palettes);
     } else {
+        // With a tile set, just select the palette that is selected in the palette list on the left
         const palette = getPaletteList().getPalette(getProjectUIState().paletteIndex);
         return PaletteListFactory.create([palette]);
     }
@@ -2281,7 +2295,7 @@ function refreshProjectUI() {
         cursorSize: instanceState.pencilSize,
         scale: getUIState().scale,
         showTileGrid: getUIState().showTileGrid,
-        showPixelGrid: getUIState().showPixelGrid,
+        showPixelGrid: getUIState().showPixelGrid
     });
 
     tileManager.setState({
@@ -4510,7 +4524,8 @@ function updateTileMap(tileMapId, args) {
         selectedTileIndex: -1,
         tileGrid: getTileGrid(),
         tileSet: getTileSet(),
-        transparencyIndex: tileMapAttributes.transparencyIndex
+        transparencyIndex: tileMapAttributes.transparencyIndex,
+        forceRefresh: true
     });
 }
 

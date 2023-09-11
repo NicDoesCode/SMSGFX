@@ -603,9 +603,10 @@ export default class CanvasManager {
      * Refreshes the entire tile image.
      */
     #refreshTileImage() {
-        const transColour = this.#referenceImages.filter(r => r.image !== null).length > 0 ? this.#transparencyIndex : -1;
+        // const transColour = this.#referenceImages.filter(r => r.image !== null).length > 0 ? this.#transparencyIndex : -1;
         this.#gridPatternCanvas = createGridPatternCanvas(this.scale);
-        this.#drawTileImage(this.#tileCanvas, transColour);
+        // this.#drawTileImage(this.#tileCanvas, transColour);
+        this.#drawTileImage(this.#tileCanvas, this.#transparencyIndex);
     }
 
     /**
@@ -673,8 +674,13 @@ export default class CanvasManager {
 
         context.imageSmoothingEnabled = false;
 
+        if (!tile || transparencyColour >= 0) {
+            // Draw in transparency pixel mesh when the tile doesn't exist
+            const originX = (tileGridCol * 8) * pxSize;
+            const originY = (tileGridRow * 8) * pxSize;
+            context.drawImage(this.#gridPatternCanvas, originX, originY);
+        }
         if (tile) {
-
             const tileCanvas = this.#tileImageManager.getTileImage(tile, palette, transparencyColour);
 
             // Tile exists 
@@ -698,10 +704,6 @@ export default class CanvasManager {
             }
         } else {
             this.#tileImageManager.clearByTile(tileInfo.tileId);
-            // Draw in pixel mesh when the tile doesn't exist
-            const originX = (tileGridCol * 8) * pxSize;
-            const originY = (tileGridRow * 8) * pxSize;
-            context.drawImage(this.#gridPatternCanvas, originX, originY);
         }
     }
 
@@ -1301,7 +1303,7 @@ function isInBounds(tileGrid, row, column) {
  * @returns {CanvasPattern}
  */
 function createGridPatternCanvas(scale) {
-    const gridColour1 = 'rgba(255,255,255,0.25)';
+    const gridColour1 = 'rgba(255,255,255,0.15)';
     const gridColour2 = 'rgba(0,0,0,0.25)';
     const gridSizePx = 2;
     const gridCanvas = document.createElement('canvas');

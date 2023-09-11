@@ -28,5 +28,6 @@ export const Types = {};
  * @typedef {Object} TileMapAttributes
  * @property {number?} transparencyIndex - Colour index that is to be rendered as transparent.
  * @property {number?} paletteSlots - Number of palette slots available to the tile map.
+ * @property {number?} lockedIndex - Locked palette index, if this is set, this colour index will be repeated across all palettes.
  * @exports
  */

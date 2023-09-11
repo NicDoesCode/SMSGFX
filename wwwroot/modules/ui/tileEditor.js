@@ -264,8 +264,8 @@ export default class TileEditor extends ComponentBase {
             refreshTiles = true;
         }
         // Transparency index
-        if (typeof state?.transparencyIndex === 'number') {
-            this.#canvasManager.transparencyIndex = state.transparencyIndex;
+        if (typeof state.transparencyIndex === 'number' || state.transparencyIndex === null) {
+            this.#canvasManager.transparencyIndex = state.transparencyIndex ?? -1;
             this.#canvasManager.invalidateImage();
             refreshTiles = true;
         }
@@ -313,6 +313,7 @@ export default class TileEditor extends ComponentBase {
         // Force refresh?
         if (typeof state.forceRefresh === 'boolean' && state.forceRefresh === true) {
             refreshTiles = true;
+            this.#canvasManager.invalidateImage();
         }
         // Refresh image?
         if ((refreshTiles || redrawUI) && this.#tileGrid && this.#tileSet && this.#paletteList && this.#paletteList.length > 0) {

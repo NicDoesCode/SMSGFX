@@ -168,23 +168,23 @@ export default class TileMapUtil {
     static getTileMapAttributes(tileMap, projectOrSystemType) {
         const systemType = projectOrSystemType instanceof Project ? projectOrSystemType.systemType : projectOrSystemType;
         if (systemType === 'smsgg' && tileMap === null) {
-            return { paletteSlots: 2, transparencyIndex: null };
+            return { paletteSlots: 2, transparencyIndex: null, lockedIndex: null };
         } else if (systemType === 'smsgg' && tileMap.isSprite) {
-            return { paletteSlots: 1, transparencyIndex: 0 };
+            return { paletteSlots: 1, transparencyIndex: 0, lockedIndex: null };
         } else if (systemType === 'smsgg' && !tileMap.isSprite) {
-            return { paletteSlots: 2, transparencyIndex: null };
+            return { paletteSlots: 2, transparencyIndex: null, lockedIndex: null };
         } else if (systemType === 'gb' && tileMap === null) {
-            return { paletteSlots: 1, transparencyIndex: null };
+            return { paletteSlots: 1, transparencyIndex: null, lockedIndex: null };
         } else if (systemType === 'gb' && tileMap.isSprite) {
-            return { paletteSlots: 1, transparencyIndex: 0 };
+            return { paletteSlots: 1, transparencyIndex: 0, lockedIndex: null };
         } else if (systemType === 'gb' && !tileMap.isSprite) {
-            return { paletteSlots: 1, transparencyIndex: null };
+            return { paletteSlots: 1, transparencyIndex: null, lockedIndex: null };
         } else if (systemType === 'nes' && tileMap === null) {
-            return { paletteSlots: 4, transparencyIndex: null };
+            return { paletteSlots: 4, transparencyIndex: null, lockedIndex: 0 };
         } else if (systemType === 'nes' && tileMap.isSprite) {
-            return { paletteSlots: 4, transparencyIndex: 0 };
+            return { paletteSlots: 4, transparencyIndex: 0, lockedIndex: 0 };
         } else if (systemType === 'nes' && !tileMap.isSprite) {
-            return { paletteSlots: 4, transparencyIndex: null };
+            return { paletteSlots: 4, transparencyIndex: null, lockedIndex: 0 };
         } throw new Error('Unknown project system type.');
     }
 
