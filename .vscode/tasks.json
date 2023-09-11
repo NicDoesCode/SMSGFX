@@ -1,0 +1,23 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "launch-server",
+			"command": "node ./app.js",
+			"type": "shell",
+			"isBackground": true
+		},
+		{
+			"label": "launch-prod-server",
+			"command": "node ./app.js -p dist",
+			"type": "shell",
+			"isBackground": true,
+			"dependsOn": ["build-prod"]
+		},
+		{
+			"label": "build-prod",
+			"command": "webpack && node ./build/post-build.js",
+			"type": "shell"
+		}
+	]
+}
