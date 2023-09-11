@@ -127,6 +127,14 @@ body.sms-app .sms-application {
     background-image: url(/assets/image/background/theme-08-dark.png), linear-gradient(180deg, #2a3239 50%, #21272c 50%);
 }
 
+/* Utility classes */
+.sms-font-small,
+.sms-font-small.input-group-text,
+.sms-font-small input,
+.sms-font-small select {
+    font-size: 10pt;
+}
+
 
 /* Toolstrip button colours */
 .sms-toolstrip button.btn-ui:not([disabled]):not(.btn-link):not(.active),

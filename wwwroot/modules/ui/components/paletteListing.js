@@ -4,15 +4,23 @@ import TemplateUtil from "./../../util/templateUtil.js";
 import PaletteList from './../../models/paletteList.js';
 import Palette from "./../../models/palette.js";
 
+
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
 const commands = {
     paletteSelect: 'paletteSelect'
 }
 
+
+/**
+ * UI component that displays a list of palettes.
+ */
 export default class PaletteListing extends ComponentBase {
 
 
+    /**
+     * Gets an enumeration of all the commands that may be invoked by this class.
+     */
     static get Commands() {
         return commands;
     }
@@ -29,7 +37,7 @@ export default class PaletteListing extends ComponentBase {
 
 
     /**
-     * Initialises a new instance of this class.
+     * Constructor for the class.
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {

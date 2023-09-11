@@ -6,15 +6,23 @@ import TileSet from './../../models/tileSet.js';
 import Palette from "./../../models/palette.js";
 import TileImageManager from "../../components/tileImageManager.js";
 
+
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
 const commands = {
     tileSelect: 'tileSelect'
 }
 
+
+/**
+ * UI component that displays a list of tiles.
+ */
 export default class TileListing extends ComponentBase {
 
 
+    /**
+     * Gets an enumeration of all the commands that may be invoked by this class.
+     */
     static get Commands() {
         return commands;
     }
@@ -39,7 +47,7 @@ export default class TileListing extends ComponentBase {
 
 
     /**
-     * Initialises a new instance of this class.
+     * Constructor for the class.
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
