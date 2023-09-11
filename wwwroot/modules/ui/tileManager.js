@@ -409,28 +409,44 @@ export default class TileManager extends ComponentBase {
 
     #populatePaletteColours() {
         const paletteList = this.#paletteList;
+        const tileMap = this.#tileMapList.getTileMapById(this.#selectedTileMapId);
 
-        const renderPalettes = paletteList.getPalettes().map((palette) => {
-            return palette.getColours().map((c, idx) => { return { index: idx, r: c.r, g: c.g, b: c.b } });
+        // Build a list of palettes based on whats selected for the tile map
+        const renderPalettes = tileMap.getPalettes().map((paletteId) => {
+            const palette = paletteList.getPaletteById(paletteId);
+            const colours = [];
+            for (let i = 0; i < palette.getColours().length; i++) {
+                const colour = palette.getColour(i);
+                colours.push({ title: palette.title, r: colour.r, g: colour.g, b: colour.b});
+            }
+            return colours;
         });
-        if (this.#lockedPaletteSlotIndex !== null && this.#lockedPaletteSlotIndex < paletteList.getPalette(0).getColours().length) {
-            const renderColour = renderPalettes[0][this.#lockedPaletteSlotIndex];
-            renderPalettes.forEach((p) => {
-                p[this.#lockedPaletteSlotIndex].r = renderColour.r;
-                p[this.#lockedPaletteSlotIndex].g = renderColour.g;
-                p[this.#lockedPaletteSlotIndex].b = renderColour.b;
-            })
+
+        // If there is a locked colour, then take the locked colour index from the first palette and
+        // apply that colour to all other colours
+        if (this.#lockedPaletteSlotIndex !== null && this.#lockedPaletteSlotIndex >= 0 && this.#lockedPaletteSlotIndex < paletteList.getPalette(0).getColours().length) {
+            const firstPalette = renderPalettes[0];
+            const lockedColour = firstPalette[this.#lockedPaletteSlotIndex];
+            for (let i = 1; i < renderPalettes.length; i++) {
+                const slot = renderPalettes[i][this.#lockedPaletteSlotIndex];
+                slot.r = lockedColour.r;
+                slot.g = lockedColour.g;
+                slot.b = lockedColour.b;
+            }
         }
 
-        this.#paletteSelectorElement.querySelectorAll('[data-smsgfx-id=palette-selector]').forEach((/** @type {HTMLElement} */ elm) => {
-            const selectedPaletteId = elm.querySelector('select').value;
-            const palette = paletteList.getPaletteById(selectedPaletteId);
+        // Display the palette colours
+        this.#paletteSelectorElement.querySelectorAll('[data-smsgfx-id=palette-selector]').forEach((/** @type {HTMLElement} */ elm, i) => {
 
             const colourElm = elm.querySelector('[data-smsgfx-id=palette-colours]');
+            const slotNum = parseInt(colourElm.getAttribute('data-palette-slot'));
+            const palette = renderPalettes[slotNum];
+
             while (colourElm.hasChildNodes()) {
                 colourElm.firstChild.remove();
             }
-            palette.getColours().forEach((colour) => {
+            
+            palette.forEach((colour) => {
                 const colourSampleElm = document.createElement('div');
                 colourSampleElm.style.backgroundColor = `rgb(${colour.r}, ${colour.g}, ${colour.b})`;
                 colourElm.appendChild(colourSampleElm);

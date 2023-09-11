@@ -1,5 +1,6 @@
 import PaletteList from "../models/paletteList.js";
 import Palette from "../models/palette.js";
+import PaletteFactory from "./paletteFactory.js";
 
 export default class PaletteListFactory {
 
@@ -10,6 +11,19 @@ export default class PaletteListFactory {
      */
      static create(palettes) {
         return new PaletteList(palettes);
+    }
+
+    /**
+     * Creates a deep clone of the given palette list.
+     * @param {PaletteList} paletteList - Palette list object to create a deep clone of.
+     * @returns {PaletteList}
+     */
+    static clone(paletteList) {
+        const result = new PaletteList();
+        paletteList.getPalettes().forEach((p) => {
+            result.addPalette(PaletteFactory.clone(p));
+        });
+        return result;
     }
 
 

@@ -29,7 +29,7 @@ export default class TileMapFactory {
         result.title = (typeof args.title === 'string' && args.title.length > 0) ? args.title : 'Tile map';
         result.vramOffset = (typeof args.vramOffset === 'number') ? args.vramOffset : 0;
         result.optimise = (typeof args.optimise === 'boolean') ? args.optimise : true;
-        result.isSprite = (typeof args.isSprite === 'boolean') ? args.isSprite : true;
+        result.isSprite = (typeof args.isSprite === 'boolean') ? args.isSprite : false;
 
         if (Array.isArray(args.paletteSlots)) {
             args.paletteSlots.forEach((paletteId, index) => {

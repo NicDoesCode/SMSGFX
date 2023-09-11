@@ -269,6 +269,12 @@ export default class TileEditor extends ComponentBase {
             this.#canvasManager.invalidateImage();
             refreshTiles = true;
         }
+        // Locked palette slot index
+        if (typeof state.lockedPaletteSlotIndex === 'number' || state.lockedPaletteSlotIndex === null) {
+            this.#canvasManager.lockedPaletteSlotIndex = state.lockedPaletteSlotIndex ?? -1;
+            this.#canvasManager.invalidateImage();
+            refreshTiles = true;
+        }
         // Theme
         if (typeof state?.theme === 'string') {
             if (state.theme === 'light') {
@@ -668,6 +674,7 @@ export default class TileEditor extends ComponentBase {
  * @property {number?} [viewportPanVertical] - Pan the viewport vertically.
  * @property {ReferenceImage?} referenceImage - Reference image to draw.
  * @property {number?} transparencyIndex - 0 to 15 of which colour index to make transparent.
+ * @property {number?} [lockedPaletteSlotIndex] - When not null, the palette slot index specified here will be repeated from palette 0 across all palettes.
  * @property {boolean?} showTileGrid - Should the tile grid be drawn?
  * @property {boolean?} showPixelGrid - Should the pixel grid be drawn?
  * @property {boolean?} enabled - Is the control enabled or disabled?
