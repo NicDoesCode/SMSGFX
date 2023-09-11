@@ -36,6 +36,7 @@ export default class ProjectListing extends ComponentBase {
     #dispatcher;
     #enabled = true;
     #showDeleteButton = false;
+    #showLastModifiedColumn = true;
 
 
     /**
@@ -68,11 +69,12 @@ export default class ProjectListing extends ComponentBase {
      * @param {ProjectListingState} state - State to set.
      */
     setState(state) {
+        if (typeof state.showDateLastModified === 'boolean' || state.showDateLastModified === null) {
+            this.#showLastModifiedColumn = state.showDateLastModified ?? true;
+        }
+
         if (typeof state.showDelete !== 'undefined') {
             this.#showDeleteButton = state.showDelete;
-            this.#listElmement.querySelectorAll('[data-command=projectDelete]').forEach((elm) => {
-                elm.style.display = this.#showDeleteButton ? null : 'none';
-            });
         }
 
         if (typeof state.width !== 'undefined') {
@@ -93,6 +95,8 @@ export default class ProjectListing extends ComponentBase {
                 element.disabled = !this.#enabled;
             });
         }
+
+        this.#updateFieldVisibility();
     }
 
 
@@ -137,9 +141,8 @@ export default class ProjectListing extends ComponentBase {
                 }
             }
         });
-        this.#listElmement.querySelectorAll('[data-command=projectDelete]').forEach((elm) => {
-            elm.style.display = this.#showDeleteButton ? null : 'none';
-        });
+
+        this.#updateFieldVisibility();
     }
 
 
@@ -166,6 +169,16 @@ export default class ProjectListing extends ComponentBase {
     }
 
 
+    #updateFieldVisibility() {
+        this.#listElmement.querySelectorAll('[data-field=dateModified]').forEach((elm) => {
+            elm.style.display = this.#showLastModifiedColumn ? null : 'none';
+        });
+        this.#listElmement.querySelectorAll('[data-command=projectDelete]').forEach((elm) => {
+            elm.style.display = this.#showDeleteButton ? null : 'none';
+        });
+    }
+
+
 }
 
 
@@ -173,6 +186,7 @@ export default class ProjectListing extends ComponentBase {
  * Project list state.
  * @typedef {object} ProjectListingState
  * @property {ProjectList?} projects - List of projects to display in the menu.
+ * @property {boolean?} [showDateLastModified] - Show the date last modified column?
  * @property {boolean?} showDelete - Show the delete button?
  * @property {string?} width - List width CSS declaration.
  * @property {string?} height - List height CSS declaration.
