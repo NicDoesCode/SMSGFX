@@ -4919,6 +4919,6 @@ window.addEventListener('load', async () => {
                 }
             });
             appContainer.style.opacity = '1';
-        }, 100);
+        }, 250);
     });
 });
