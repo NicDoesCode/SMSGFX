@@ -5,19 +5,34 @@
 			"label": "launch-server",
 			"command": "node ./app.js",
 			"type": "shell",
-			"isBackground": true
+			"isBackground": true,
+			"problemMatcher": []
 		},
 		{
 			"label": "launch-prod-server",
 			"command": "node ./app.js -p dist",
 			"type": "shell",
 			"isBackground": true,
+			"problemMatcher": [],
 			"dependsOn": ["build-prod"]
 		},
 		{
 			"label": "build-prod",
 			"command": "webpack && node ./build/post-build.js",
 			"type": "shell"
+		},
+		{
+			"label": "stop-server",
+			"command": "echo ${input:terminate}",
+			"type": "shell"
+		}
+	],
+	"inputs": [
+		{
+			"id": "terminate",
+			"type": "command",
+			"command": "workbench.action.tasks.terminate",
+			"args": "terminateAll"
 		}
 	]
 }

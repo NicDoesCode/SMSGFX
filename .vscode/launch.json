@@ -19,7 +19,8 @@
                     "path": "${workspaceFolder}/wwwroot"
                 }
             ],
-            "preLaunchTask": "launch-server"
+            "preLaunchTask": "launch-server",
+            "postDebugTask": "stop-server"
         },
         {
             "name": "Launch Firefox (HTTPS)",
@@ -36,7 +37,8 @@
                     "path": "${workspaceFolder}/wwwroot"
                 }
             ],
-            "preLaunchTask": "launch-server"
+            "preLaunchTask": "launch-server",
+            "postDebugTask": "stop-server"
         },
         {
             "name": "Launch Chrome (HTTPS)",
@@ -44,7 +46,8 @@
             "type": "chrome",
             "url": "https://localhost:8443",
             "webRoot": "${workspaceFolder}/wwwroot",
-            "preLaunchTask": "launch-server"
+            "preLaunchTask": "launch-server",
+            "postDebugTask": "stop-server"
         },
         {
             "name": "Launch Firefox (HTTPS) (prod)",
@@ -55,7 +58,8 @@
             "webRoot": "${workspaceFolder}/dist",
             "profile": "debug",
             "keepProfileChanges": true,
-            "preLaunchTask": "launch-prod-server"
+            "preLaunchTask": "launch-prod-server",
+            "postDebugTask": "stop-server"
         }
     ]
 }
