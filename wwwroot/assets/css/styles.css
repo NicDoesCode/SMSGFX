@@ -1,6 +1,23 @@
-body.sms-app {}
+body.sms-app .sms-loading {
+    transition: opacity 0.25s;
+    top: 0; 
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
 
-[data-bs-theme=dark] body.sms-app {}
+body.sms-app .sms-loading div img {
+    box-shadow: 1px 1px 5px 1px rgba(0, 0, 0, 0.5);
+}
+
+body.sms-app .sms-loading div h1 {
+    text-shadow: 1px 1px 5px #000000;
+}
+
+body.sms-app .sms-application {
+    opacity: 0;
+    transition: opacity 1s;
+}
 
 .sms-hidden-system {
     display: none;

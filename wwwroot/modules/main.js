@@ -4906,5 +4906,19 @@ window.addEventListener('load', async () => {
                 link.style.display = 'none';
             }
         }
+
+        // Hide the loading screen and show the main content
+        setTimeout(() => {
+            const loadingContainer = document.querySelector('.sms-loading');
+            loadingContainer.style.opacity = '0';
+
+            const appContainer = document.querySelector('.sms-application');
+            appContainer.addEventListener('transitionend', (ev) => {
+                if (ev.target === appContainer) {
+                    loadingContainer.remove();
+                }
+            });
+            appContainer.style.opacity = '1';
+        }, 100);
     });
 });

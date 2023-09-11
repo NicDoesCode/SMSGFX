@@ -166,16 +166,21 @@ export default class PaletteEditor extends ComponentBase {
                 index = this.#paletteList.indexOf(state?.selectedPaletteId);
             }
 
-            if (index < 0 || index >= this.#paletteList.length) index = 0;
+            if (this.#paletteList) {
+                if (index < 0 || index >= this.#paletteList.length) index = 0;
 
-            const palette = this.#paletteList.getPalette(state.selectedPaletteIndex);
-            this.#selectedPaletteId = palette.paletteId;
-
-            this.#element.querySelectorAll(`[data-command=${commands.paletteSelect}]`).forEach((element) => {
-                element.selectedIndex = state.selectedPaletteIndex;
-            });
-
-            this.#setPalette(palette);
+                const palette = this.#paletteList.getPalette(state.selectedPaletteIndex);
+                this.#selectedPaletteId = palette.paletteId;
+    
+                this.#element.querySelectorAll(`[data-command=${commands.paletteSelect}]`).forEach((element) => {
+                    element.selectedIndex = state.selectedPaletteIndex;
+                });
+    
+                this.#setPalette(palette);
+            } else {
+                index = 0;
+                this.#setPalette(null);
+            }
 
             updateVirtualList = true;
         }
