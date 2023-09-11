@@ -163,9 +163,9 @@ function groupSimilarColours(coloursToGroup, matchRangeFactor) {
     const result = { hexLookup: {}, matches: [] };
 
     /** @type {ColourMatch[]} */
-    const baseColours = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => b.count > a.count);
+    const baseColours = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => b.count > a.count ? 1 : -1);
     /** @type {ColourMatch[]} */
-    let coloursToMatch = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => a.count < b.count);
+    let coloursToMatch = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => a.count < b.count ? 1 : -1);
 
     baseColours.forEach(baseColour => {
 

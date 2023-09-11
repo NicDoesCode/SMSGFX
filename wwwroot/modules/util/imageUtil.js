@@ -341,7 +341,7 @@ export default class ImageUtil {
         });
 
         const foundImageColoursDict = extractUniqueColours(image);
-        const foundImageColours = Object.values(foundImageColoursDict).sort((a, b) => a.count > b.count);
+        const foundImageColours = Object.values(foundImageColoursDict).sort((a, b) => a.count > b.count ? 1 : -1);
 
         const matchedColours = matchColours(targetColours, foundImageColours);
         return matchedColours.matches;
@@ -379,14 +379,14 @@ export default class ImageUtil {
         }
 
         const foundImageColoursDict = extractUniqueColours(image);
-        let foundImageColours = Object.values(foundImageColoursDict).sort((a, b) => a.count < b.count);
+        let foundImageColours = Object.values(foundImageColoursDict).sort((a, b) => a.count < b.count ? 1 : -1);
         let shortenedColours = groupSimilarColours(foundImageColours, 64);
         let matchedColours = matchColours(targetSystemPalette, shortenedColours.matches);
 
         if (system === 'ms') {
             // When matching for the Master System, create the palette using the most used colours
             if (matchedColours.matches.length > 16) {
-                const mostUsedColours = matchedColours.matches.sort((a, b) => b.count > a.count).slice(0, 16);
+                const mostUsedColours = matchedColours.matches.sort((a, b) => b.count > a.count ? 1 : -1).slice(0, 16);
                 matchedColours = matchColours(mostUsedColours, matchedColours.matches);
             }
         } else {
@@ -412,7 +412,7 @@ export default class ImageUtil {
     static reduceImageColoursToList(image, colours) {
 
         const foundImageColoursDict = extractUniqueColours(image);
-        const foundImageColours = Object.values(foundImageColoursDict).sort((a, b) => a.count < b.count);
+        const foundImageColours = Object.values(foundImageColoursDict).sort((a, b) => a.count < b.count ? 1 : -1);
         let matchedColours = matchColours(colours, foundImageColours);
 
         // Reduce the matched colours to a 16 colour palette
@@ -608,7 +608,7 @@ function matchColours(desiredColours, coloursToMatch) {
 //     const result = { hexLookup: {}, matches: [] };
 
 //     /** @type {ColourMatch[]} */
-//     const coloursMostUsedToLeast = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => b.count > a.count);
+//     const coloursMostUsedToLeast = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => b.count > a.count ? 1 : -1);
 
 //     for (let a = coloursMostUsedToLeast.length; a > 0; a--) {
 //         const lessPopularColour = coloursMostUsedToLeast[a - 1];
@@ -665,9 +665,9 @@ function groupSimilarColours(coloursToGroup, matchRangeFactor) {
     const result = { hexLookup: {}, matches: [] };
 
     /** @type {ColourMatch[]} */
-    const baseColours = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => b.count > a.count);
+    const baseColours = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => b.count > a.count ? 1 : -1);
     /** @type {ColourMatch[]} */
-    let coloursToMatch = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => a.count < b.count);
+    let coloursToMatch = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => a.count < b.count ? 1 : -1);
 
     baseColours.forEach(baseColour => {
 
