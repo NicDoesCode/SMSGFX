@@ -1,13 +1,13 @@
 import TileMap from "../models/tileMap.js";
-import TileMapList from "../models/tileMapList.js";
 import TileMapTile from "../models/tileMapTile.js";
-import TileSet from "../models/tileSet.js";
 import GeneralUtil from "../util/generalUtil.js";
-import TileUtil from "../util/tileUtil.js";
-import TileMapListFactory from "../factory/tileMapListFactory.js";
 import TileMapTileFactory from "../factory/tileMapTileFactory.js";
 import TileMapJsonSerialiser from "../serialisers/tileMapJsonSerialiser.js";
 
+
+/**
+ * Provides factory methods for constructing tile map objects.
+ */
 export default class TileMapFactory {
 
 
@@ -29,6 +29,7 @@ export default class TileMapFactory {
         result.title = (typeof args.title === 'string' && args.title.length > 0) ? args.title : 'Tile map';
         result.vramOffset = (typeof args.vramOffset === 'number') ? args.vramOffset : 0;
         result.optimise = (typeof args.optimise === 'boolean') ? args.optimise : true;
+        result.isSprite = (typeof args.isSprite === 'boolean') ? args.isSprite : true;
 
         if (Array.isArray(args.paletteSlots)) {
             args.paletteSlots.forEach((paletteId, index) => {
@@ -67,17 +68,19 @@ export default class TileMapFactory {
 
 }
 /**
+ * Arguments for creating a tile map.
  * @typedef TileMapFactoryCreateArgs
  * @type {object}
- * @property {string?} tileMapId
- * @property {string?} title
- * @property {number?} vramOffset
- * @property {number?} rows
- * @property {number?} columns
- * @property {boolean?} optimise
- * @property {string[]?} paletteSlots
- * @property {TileMapTile[]} tiles
- * @property {string?} defaultTileId
+ * @property {string?} tileMapId - Unique ID of the tile map object.
+ * @property {string?} title - Title of the tile map object.
+ * @property {number?} vramOffset - Offset in VRAM for where the tiles for the tile map begin.
+ * @property {number?} rows - Number of rows in the tile map.
+ * @property {number?} columns - Number of columns in the tile map.
+ * @property {boolean?} optimise - When exporting to code, will the tile map be optimised?
+ * @property {boolean?} isSprite - This tile map is a sprite, which will affect the result of export to code operations.
+ * @property {string[]?} paletteSlots - Array of palette IDs for each palette slot.
+ * @property {TileMapTile[]} tiles - Tile map tiles that comprise the tile map.
+ * @property {string?} [defaultTileId] - Tile ID to use when initially populating the tile map tile list.
  * @exports
  */
 
