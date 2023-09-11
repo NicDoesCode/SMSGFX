@@ -4046,6 +4046,8 @@ function undoOrRedo(undoOrRedo) {
 
         state.saveProjectToLocalStorage();
 
+        tileImageManager.clear();
+
         // Set UI state
         refreshProjectUI();
     }
