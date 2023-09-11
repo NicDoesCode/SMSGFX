@@ -16,3 +16,10 @@ export const Types = {};
  * @property {number} y - Y coordinate.
  * @exports
  */
+
+/**
+ * @typedef {Object} SortEntry
+ * @property {string} field - Name of the field.
+ * @property {string} direction - Either 'asc' or 'desc'.
+ * @exports
+ */

@@ -65,6 +65,7 @@ import SampleProjectManager from "./components/sampleProjectManager.js";
 import ProjectJsonSerialiser from "./serialisers/projectJsonSerialiser.js";
 import KeyboardManager, { KeyDownHandler, KeyUpHandler } from "./components/keyboardManager.js";
 import TileImageManager from "./components/tileImageManager.js";
+import ProjectList from "./models/projectList.js";
 
 
 /* ****************************************************************************************************
@@ -947,7 +948,7 @@ function handleProjectToolbarOnCommand(args) {
 
 /** @param {import('./ui/dialogues/projectDropdown.js').ProjectDropdownCommandEventArgs} args */
 async function handleProjectDropdownOnCommand(args) {
-    const projects = state.getProjectsFromLocalStorage();
+    const projectList = state.getProjectsFromLocalStorage();
     switch (args.command) {
 
         case ProjectDropdown.Commands.title:
@@ -975,13 +976,31 @@ async function handleProjectDropdownOnCommand(args) {
             break;
 
         case ProjectDropdown.Commands.projectLoadById:
-            const project = projects.getProjectById(args.projectId);
+            const project = projectList.getProjectById(args.projectId);
             state.setProject(project);
             projectDropdown.setState({ visible: false });
             break;
 
         case ProjectDropdown.Commands.projectDelete:
             state.deleteProjectFromStorage(args.projectId);
+            break;
+
+        case ProjectDropdown.Commands.projectSort:
+            const sort = getUIState().projectDropDownSort ?? {};
+            if (args.sortField === 'dateLastModified') {
+                sort.direction = sort.field !== args.sortField || !sort.direction || sort.direction === 'asc' ? 'desc' : 'asc';
+                sort.field = args.sortField;
+            } else if (args.sortField === 'title') {
+                sort.direction = sort.field !== args.sortField || !sort.direction || sort.direction === 'desc' ? 'asc' : 'desc';
+                sort.field = args.sortField;
+            } else {
+                sort = {};
+            }
+            getUIState().projectDropDownSort = sort;
+            state.savePersistentUIStateToLocalStorage();
+            projectDropdown.setState({
+                projects: getSortedProjectArray(projectList, sort)
+            });
             break;
 
         case ProjectDropdown.Commands.sampleProjectSelect:
@@ -994,7 +1013,7 @@ async function handleProjectDropdownOnCommand(args) {
         case ProjectDropdown.Commands.showWelcomeScreen:
             welcomeScreen.setState({
                 visible: true,
-                projects: projects,
+                projects: getSortedProjectArray(projectList, getUIState().projectDropDownSort),
                 visibleCommands: ['dismiss']
             });
             projectDropdown.setState({ visible: false });
@@ -1891,6 +1910,24 @@ function welcomeScreenOnCommand(args) {
             importProjectFromJson();
             break;
 
+        case WelcomeScreen.Commands.projectSort:
+            const sort = getUIState().welcomeScreenProjectSort ?? {};
+            if (args.sortField === 'dateLastModified') {
+                sort.direction = sort.field !== args.sortField || !sort.direction || sort.direction === 'asc' ? 'desc' : 'asc';
+                sort.field = args.sortField;
+            } else if (args.sortField === 'title') {
+                sort.direction = sort.field !== args.sortField || !sort.direction || sort.direction === 'desc' ? 'asc' : 'desc';
+                sort.field = args.sortField;
+            } else {
+                sort = {};
+            }
+            getUIState().welcomeScreenProjectSort = sort;
+            state.savePersistentUIStateToLocalStorage();
+            welcomeScreen.setState({
+                projects: getSortedProjectArray(state.getProjectsFromLocalStorage(), sort)
+            });
+            break;
+
         case WelcomeScreen.Commands.tileImageImport:
             tilesImportFromImage();
             break;
@@ -1993,6 +2030,20 @@ function checkPersistentUIValues() {
     }
     if (!state.persistentUIState.importTileAssemblyCode) {
         state.persistentUIState.importTileAssemblyCode = '';
+        dirty = true;
+    }
+    if (!state.persistentUIState.projectDropDownSort?.field) {
+        state.persistentUIState.projectDropDownSort = {
+            field: 'title',
+            direction: 'asc'
+        };
+        dirty = true;
+    }
+    if (!state.persistentUIState.welcomeScreenProjectSort?.field) {
+        state.persistentUIState.welcomeScreenProjectSort = {
+            field: 'title',
+            direction: 'asc'
+        };
         dirty = true;
     }
     if (dirty) {
@@ -2155,6 +2206,30 @@ function isTileSet() {
 }
 function isTileMap() {
     return getTileMap() !== null;
+}
+
+/**
+ * @param {ProjectList|Project[]} projects 
+ * @param {import('./types.js').SortEntry} sort 
+ * @returns {Project[]}
+ */
+function getSortedProjectArray(projects, sort) {
+    projects = projects instanceof ProjectList ? projects.getProjects() : projects;
+    if (!projects || !Array.isArray(projects)) return [];
+    if (sort?.field === 'title') {
+        if (sort.direction === 'asc') {
+            projects.sort((a, b) => a.title > b.title ? 1 : -1);
+        } else {
+            projects.sort((a, b) => a.title < b.title ? 1 : -1);
+        }
+    } else if (sort?.field === 'dateLastModified') {
+        if (sort.direction === 'asc') {
+            projects.sort((a, b) => a.dateLastModified > b.dateLastModified ? 1 : -1);
+        } else {
+            projects.sort((a, b) => a.dateLastModified < b.dateLastModified ? 1 : -1);
+        }
+    }
+    return projects;
 }
 
 function refreshProjectUI() {
@@ -2516,15 +2591,15 @@ function displaySelectedProject() {
 }
 
 function refreshProjectLists() {
-    const projects = state.getProjectsFromLocalStorage();
+    const projectList = state.getProjectsFromLocalStorage();
     projectToolbar.setState({
-        projects: projects
+        projects: projectList
     });
     projectDropdown.setState({
-        projects: projects
+        projects: getSortedProjectArray(projectList, getUIState().projectDropDownSort)
     });
     welcomeScreen.setState({
-        projects: projects
+        projects: getSortedProjectArray(projectList, getUIState().welcomeScreenProjectSort)
     });
 }
 
@@ -4788,17 +4863,17 @@ window.addEventListener('load', async () => {
     checkPersistentUIValues();
 
     // Load initial projects
-    const projects = state.getProjectsFromLocalStorage();
+    const projectList = state.getProjectsFromLocalStorage();
     const sampleManager = await SampleProjectManager.getInstanceAsync();
     instanceState.sampleProjects = await sampleManager.getSampleProjectsAsync();
 
     const sampleProjects = instanceState.sampleProjects;
-    if (projects.length === 0) {
+    if (projectList.length === 0) {
         for (let i = 0; i < sampleProjects.length; i++) {
             const sampleProject = sampleProjects[i];
             const loadedProject = await sampleManager.loadSampleProjectAsync(sampleProject.url);
             // Add to storage
-            projects.addProject(loadedProject);
+            projectList.addProject(loadedProject);
             state.saveProjectToLocalStorage(loadedProject, false);
             // Default tile map ID
             const defaultTileMap = loadedProject.tileMapList.getTileMapById(sampleProject.defaultTileMapId);
@@ -4810,20 +4885,20 @@ window.addEventListener('load', async () => {
     tileEditor.setState({ tileImageManager: tileImageManager });
     tileManager.setState({ tileImageManager: tileImageManager });
 
-    const project = projects.getProjectById(getUIState().lastProjectId);
+    const project = projectList.getProjectById(getUIState().lastProjectId);
     state.setProject(project);
 
     projectToolbar.setState({
-        projects: projects
+        projects: projectList
     });
     projectDropdown.setState({
-        projects: projects,
+        projects: getSortedProjectArray(projectList, getUIState().projectDropDownSort),
         sampleProjects: sampleProjects
     });
 
     // Clean up unused project states
     Object.keys(getUIState().projectStates).forEach((projectId) => {
-        if (!projects.containsProjectById(projectId)) {
+        if (!projectList.containsProjectById(projectId)) {
             delete getUIState().projectStates[projectId];
         }
     });
@@ -4856,7 +4931,7 @@ window.addEventListener('load', async () => {
         showWelcomeScreenOnStartUpChecked: getUIState().welcomeVisibleOnStartup,
         visibleCommands: getProject() instanceof Project === true ? ['dismiss'] : [],
         invisibleCommands: getProject() instanceof Project === false ? ['dismiss'] : [],
-        projects: projects
+        projects: getSortedProjectArray(projectList, getUIState().welcomeScreenProjectSort)
     });
 
     optionsToolbar.setState({

@@ -25,6 +25,8 @@ export default class PersistentUIStateJsonSerialiser {
             welcomeVisibleOnStartup: appUI.welcomeVisibleOnStartup,
             theme: appUI.theme,
             backgroundTheme: appUI.backgroundTheme,
+            projectDropDownSort: appUI.projectDropDownSort,
+            welcomeScreenProjectSort: appUI.welcomeScreenProjectSort,
             projectStates: appUI.projectStates
         };
         return JSON.stringify(result);
@@ -81,12 +83,18 @@ export default class PersistentUIStateJsonSerialiser {
             } else if (deserialised.backgroundTheme === null) {
                 result.backgroundTheme = null;
             }
+            if (deserialised.projectDropDownSort && deserialised.projectDropDownSort.field && deserialised.projectDropDownSort.direction) {
+                result.projectDropDownSort = deserialised.projectDropDownSort;
+            }
+            if (deserialised.welcomeScreenProjectSort && deserialised.welcomeScreenProjectSort.field && deserialised.welcomeScreenProjectSort.direction) {
+                result.welcomeScreenProjectSort = deserialised.welcomeScreenProjectSort;
+            }
             if (deserialised.projectStates) {
                 result.projectStates = deserialised.projectStates;
             } else {
                 result.projectStates = {};
             }
-      }
+        }
         return result;
     }
 
@@ -109,5 +117,7 @@ export default class PersistentUIStateJsonSerialiser {
  * @property {boolean} welcomeVisibleOnStartup
  * @property {string} theme
  * @property {string?} backgroundTheme
+ * @property {import('./../types.js').SortEntry} projectDropDownSort
+ * @property {import('./../types.js').SortEntry} welcomeScreenProjectSort
  * @property {Object.<string, object>} projectStates
- */
+*/

@@ -143,6 +143,26 @@ export default class PersistentUIState {
         this.#projectStates = value;
     }
 
+    /**
+     * Gets or sets the project list drop down sort.
+     */
+    get projectDropDownSort() {
+        return this.#projectDropDownSort;
+    }
+    set projectDropDownSort(value) {
+        this.#projectDropDownSort = value;
+    }
+
+    /**
+     * Gets or sets the welcome screen project list sort.
+     */
+    get welcomeScreenProjectSort() {
+        return this.#welcomeScreenProjectSort;
+    }
+    set welcomeScreenProjectSort(value) {
+        this.#welcomeScreenProjectSort = value;
+    }
+
 
     /** @type {string} */
     #lastProjectId = null;
@@ -172,6 +192,10 @@ export default class PersistentUIState {
     #backgroundTheme = null;
     /** @type {Object.<string, ProjectState>} */
     #projectStates = {};
+    /** @type {import('./../types.js').SortEntry} */
+    #projectDropDownSort = null;
+    /** @type {import('./../types.js').SortEntry} */
+    #welcomeScreenProjectSort = null;
 
 
     constructor() {

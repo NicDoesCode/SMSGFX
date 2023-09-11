@@ -303,7 +303,7 @@ function getNearestNESColour(r, g, b) {
             { channel: 'r', value: Math.abs(r - nesRGB.r) },
             { channel: 'g', value: Math.abs(g - nesRGB.g) },
             { channel: 'b', value: Math.abs(b - nesRGB.b) }
-        ].sort((c1, c2) => c1.value > c2.value);
+        ].sort((c1, c2) => c1.value > c2.value ? 1 : -1);
 
         return {
             r: nesRGB.r, g: nesRGB.g, b: nesRGB.b,

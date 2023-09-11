@@ -26,7 +26,7 @@ export default class OptimisationUtil {
 
         /** @type {Object.<string, number>} */
         const hexToTileIndex = {};
-        const tileIndexesInOrder = Object.keys(tileIndexToHex).sort((a, b) => a > b);
+        const tileIndexesInOrder = Object.keys(tileIndexToHex).sort((a, b) => a > b ? 1 : -1);
         tileIndexesInOrder.forEach((idx) => {
             const tileHex = tileIndexToHex[idx];
             if (!hexToTileIndex[tileHex]) {
