@@ -66,6 +66,7 @@ import ProjectJsonSerialiser from "./serialisers/projectJsonSerialiser.js";
 import KeyboardManager, { KeyDownHandler, KeyUpHandler } from "./components/keyboardManager.js";
 import TileImageManager from "./components/tileImageManager.js";
 import ProjectList from "./models/projectList.js";
+import TileMapUtil from "./util/tileMapUtil.js";
 
 
 /* ****************************************************************************************************
@@ -2266,6 +2267,8 @@ function refreshProjectUI() {
         selectedColourIndex: instanceState.colourIndex
     });
 
+    const tileMapAttributes = TileMapUtil.getTileMapAttributes(getTileMap(), getProject().systemType);
+
     tileEditor.setState({
         forceRefresh: true,
         paletteList: getTileEditorPaletteList(),
@@ -2273,6 +2276,7 @@ function refreshProjectUI() {
         tileGrid: getTileGrid(),
         tilesPerBlock: getTilesPerBlock(),
         displayNative: getUIState().displayNativeColour,
+        transparencyIndex: tileMapAttributes.transparencyIndex,
         selectedTileIndex: instanceState.tileIndex,
         cursorSize: instanceState.pencilSize,
         scale: getUIState().scale,
@@ -2287,7 +2291,7 @@ function refreshProjectUI() {
         tileSet: getTileSet(),
         selectedTileMapId: getProjectUIState().tileMapId,
         selectedTileId: getProjectUIState().tileId,
-        numberOfPaletteSlots: getNumberOfPaletteSlots()
+        numberOfPaletteSlots: tileMapAttributes.paletteSlots
     });
 
     const toolStrips = TileEditorToolbar.ToolStrips;
