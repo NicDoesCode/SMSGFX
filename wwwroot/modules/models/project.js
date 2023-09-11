@@ -60,6 +60,14 @@ export default class Project {
         this.#paletteList = value;
     }
 
+    /** Gets or sets the date that this project was last modified. */
+    get dateLastModified() {
+        return this.#dateLastModified;
+    }
+    set dateLastModified(value) {
+        this.#dateLastModified = value;
+    }
+
 
     /** @type {string} */
     #id = null;
@@ -73,6 +81,8 @@ export default class Project {
     #tileMapList;
     /** @type {PaletteList} */
     #paletteList;
+    /** @type {Date} */
+    #dateLastModified = new Date();
 
 
     /**

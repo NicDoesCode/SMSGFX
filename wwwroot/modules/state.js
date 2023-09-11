@@ -201,6 +201,7 @@ export default class State {
         const raise = typeof raiseEvent === 'boolean' ? raiseEvent : true;
         if (project instanceof Project) {
             ensureProjectHasId(project);
+            project.dateLastModified = new Date();
             const storageId = `${LOCAL_STORAGE_PROJECTS}${project.id}`;
             const serialised = ProjectJsonSerialiser.serialise(project);
             localStorage.setItem(storageId, serialised);

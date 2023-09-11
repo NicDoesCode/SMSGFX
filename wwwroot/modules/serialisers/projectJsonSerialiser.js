@@ -46,6 +46,7 @@ export default class ProjectJsonSerialiser {
             version: 1,
             title: project.title,
             systemType: project.systemType,
+            dateLastModified: project.dateLastModified?.getTime() ?? Date.now(),
             tileSet: TileSetJsonSerialiser.toSerialisable(project.tileSet),
             tileMapList: TileMapListJsonSerialiser.toSerialisable(project.tileMapList),
             paletteList: PaletteListJsonSerialiser.toSerialisable(project.paletteList)
@@ -62,6 +63,7 @@ export default class ProjectJsonSerialiser {
             id: projectSerialisable.id ?? null,
             title: projectSerialisable.title,
             systemType: projectSerialisable.systemType,
+            dateLastModified: new Date(projectSerialisable.dateLastModified ?? 0),
             tileSet: TileSetJsonSerialiser.fromSerialisable(projectSerialisable.tileSet),
             tileMapList: TileMapListJsonSerialiser.fromSerialisable(projectSerialisable.tileMapList ?? []),
             paletteList: PaletteListJsonSerialiser.fromSerialisable(projectSerialisable.paletteList ?? [])
@@ -78,6 +80,7 @@ export default class ProjectJsonSerialiser {
  * @property {string} id
  * @property {string} title
  * @property {string} systemType
+ * @property {number} dateLastModified
  * @property {import('./tileSetJsonSerialiser').TileSetSerialisable} tileSet
  * @property {import('./tileMapJsonSerialiser.js').TileMapSerialisable} tileMapList
  * @property {import('./paletteJsonSerialiser').PaletteSerialisable} paletteList
