@@ -214,7 +214,7 @@ export default class CanvasManager {
         return this.#offsetX;
     }
     set offsetX(value) {
-        this.#offsetX = value;
+        this.#offsetX = Math.round(value);
     }
 
     /**
@@ -224,7 +224,7 @@ export default class CanvasManager {
         return this.#offsetY;
     }
     set offsetY(value) {
-        this.#offsetY = value;
+        this.#offsetY = Math.round(value);
     }
 
     /**
