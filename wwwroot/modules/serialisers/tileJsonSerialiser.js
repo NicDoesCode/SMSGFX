@@ -34,7 +34,7 @@ export default class TileJsonSerialiser {
      * @returns {TileSerialisable} 
      */
      static toSerialisable(tile) {
-        if (!tile || typeof tile.readAll !== 'function') throw new Error('Please pass a tile.');
+        if (!tile instanceof Tile) throw new Error('Please pass a tile.');
         return {
             tileId: tile.tileId,
             alwaysKeep: tile.alwaysKeep,
