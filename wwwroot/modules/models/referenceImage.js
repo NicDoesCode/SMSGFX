@@ -58,6 +58,13 @@ export default class ReferenceImage {
     }
 
     /**
+     * Gets whether or not an image is set.
+     */
+    hasImage() {
+        return this.#image !== null;
+    }
+
+    /**
    * Clears the image.
    */
     clearImage() {
