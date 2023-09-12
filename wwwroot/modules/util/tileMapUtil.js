@@ -11,6 +11,7 @@ import PaletteListFactory from "../factory/paletteListFactory.js";
 import Project from "../models/project.js";
 import TileMapFactory from "../factory/tileMapFactory.js";
 import TileMapTileFactory from "../factory/tileMapTileFactory.js";
+import TileFactory from "../factory/tileFactory.js";
 
 
 /**
@@ -85,39 +86,67 @@ export default class TileMapUtil {
         // - Re-wire ID in tile set to matching same ID
         // - Build table with only used IDs
 
+        const clonedTileSet = TileSetFactory.clone(tileSet);
+
+        // Add a blank tile to catch broken tile referenves
+        const blankTile = TileFactory.create({ defaultColourIndex: 0 });
+        clonedTileSet.addTile(blankTile);
+
         /** @type {Object.<string, string>} */
-        const tileHexToId = {};
-        tileSet.getTiles().forEach((tile) => {
-            const asHex = TileUtil.toHex(tile);
-            if (!tileHexToId[asHex]) {
-                tileHexToId[asHex] = tile.tileId;
+        const tileHexToTileIdMapping = {};
+        clonedTileSet.getTiles().forEach((tile) => {
+            const tileAsHex = TileUtil.toHex(tile);
+            if (!tileHexToTileIdMapping[tileAsHex]) {
+                tileHexToTileIdMapping[tileAsHex] = tile.tileId;
             }
         });
 
+        const optimisedTileMapList = TileMapListJsonSerialiser.deserialise(TileMapListJsonSerialiser.serialise(tileMapList));
+
+        // Eliminate orphaned tiles from the tile maps
+        optimisedTileMapList.getTileMaps().forEach((cloneTileMap) => {
+            cloneTileMap.getTiles().forEach((tileMapTile) => {
+                const tile = clonedTileSet.getTileById(tileMapTile.tileId);
+                if (!tile) {
+                    tileMapTile.tileId = blankTile.tileId;
+                }
+            });
+        });
+
+        // Scan each tile map, build a list of used tile map IDs to include in the final export
+        // - If the tile map not to be optimised, then all tile IDs will be added to the list regardless
+        // - When we encounter a tile with the 'alwaysKeep' flag, we'll also just add it to the list
+        // - If the tile can be optimised away, compare it's hex with the tileHexToId dictionary, use a match from that instead of the original tile ID
         /** @type {Object.<string, string>} */
         const usedTileMapIds = {};
-        const optimisedTileMapList = TileMapListJsonSerialiser.deserialise(TileMapListJsonSerialiser.serialise(tileMapList));
-        optimisedTileMapList.getTileMaps().forEach((tileMap) => {
-            if (tileMap.optimise) {
-                tileMap.getTiles().forEach((tileMapTile) => {
-                    const tile = tileSet.getTileById(tileMapTile.tileId);
-                    const asHex = TileUtil.toHex(tile);
-                    const matchedTileId = tileHexToId[asHex];
-                    tileMapTile.tileId = matchedTileId;
-                    usedTileMapIds[matchedTileId] = matchedTileId;
-                });
-            } else {
-                tileMap.getTiles().forEach((tileMapTile) => {
-                    usedTileMapIds[tileMapTile.tileId] = tileMapTile.tileId;
+        optimisedTileMapList.getTileMaps().forEach((cloneTileMap) => {
+            const skipOptimisation = !cloneTileMap.optimise;
+            cloneTileMap.getTiles().forEach((tileMapTile) => {
 
-                });
-            }
+                // Get the underlying tile from the tile set
+                const tile = clonedTileSet.getTileById(tileMapTile.tileId);
+
+                //If we're not optimising, or the tile is to be kept
+                if (skipOptimisation || tile.alwaysKeep) {
+                    // Just add it to the used tile list
+                    usedTileMapIds[tile.tileId] = tile.tileId;
+                } else  {
+                    // Otherwise find a matching tile with the same hex, and use that tile instead
+                    const tileHex = TileUtil.toHex(tile);
+                    const tileIdMatchedFromHex = tileHexToTileIdMapping[tileHex];
+                    tileMapTile.tileId = tileIdMatchedFromHex;
+                    usedTileMapIds[tileIdMatchedFromHex] = tileIdMatchedFromHex;
+                }
+
+            });
         });
 
+        // Now create an optimised tile set from the list of used tile IDs that we just created
+
         const optimisedTileSet = TileSetFactory.create();
-        optimisedTileSet.tileWidth = tileSet.tileWidth;
+        optimisedTileSet.tileWidth = clonedTileSet.tileWidth;
         Object.keys(usedTileMapIds).forEach((tileId) => {
-            const tile = tileSet.getTileById(tileId);
+            const tile = clonedTileSet.getTileById(tileId);
             const tileCopy = TileJsonSerialiser.deserialise(TileJsonSerialiser.serialise(tile));
             optimisedTileSet.addTile(tileCopy);
         });
