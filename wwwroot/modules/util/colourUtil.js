@@ -1,6 +1,5 @@
-import PaletteColour from './../models/paletteColour.js';
-
 const hexRegex = /^#([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})$/i;
+
 
 export default class ColourUtil {
 
@@ -311,8 +310,8 @@ function getNearestNESColour(r, g, b) {
             diff: (rgbDiff[0].value + rgbDiff[1].value + rgbDiff[2].value) / 3
         }
     }).sort((c1, c2) => {
-        if(c1.diff > c2.diff) return 1;
-        if(c1.diff < c2.diff) return -1;
+        if (c1.diff > c2.diff) return 1;
+        if (c1.diff < c2.diff) return -1;
         return 0;
     });
 
