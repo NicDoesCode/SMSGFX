@@ -1,4 +1,5 @@
 body.sms-app .sms-loading {
+    background: radial-gradient(circle, var(--bs-dark-bg-subtle) 15%, rgba(0, 0, 0, 0) 50%); 
     transition: opacity 0.25s;
     top: 0; 
     bottom: 0;
