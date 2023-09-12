@@ -7,6 +7,7 @@ import PaletteList from "../models/paletteList.js";
 import PaletteEditorContextMenu from "./paletteEditorContextMenu.js";
 import TemplateUtil from "../util/templateUtil.js";
 
+
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
 const commands = {
@@ -23,6 +24,7 @@ const commands = {
     colourIndexSwap: 'colourIndexSwap',
     colourIndexReplace: 'colourIndexReplace'
 }
+
 
 export default class PaletteEditor extends ComponentBase {
 
@@ -224,6 +226,10 @@ export default class PaletteEditor extends ComponentBase {
                 selectedPaletteId: this.#selectedPaletteId
             });
             this.#shufflePaletteList();
+            const palette = this.#paletteList.getPaletteById(this.#selectedPaletteId);
+            if (palette) {
+                this.#updatePaletteColourIndexButtons(palette);
+            }
         }
 
         if (typeof state?.enabled === 'boolean') {
@@ -526,6 +532,25 @@ export default class PaletteEditor extends ComponentBase {
             }
         });
 
+    }
+
+    /**
+     * @param {Palette} palette
+     */
+    #updatePaletteColourIndexButtons(palette) {
+        const element = this.#element.querySelector('[data-smsgfx-id=palette-colours]');
+        element.querySelectorAll('button[data-colour-index]').forEach((/** @type {HTMLButtonElement} */ button) => {
+            const colourIndex = parseInt(button.getAttribute('data-colour-index'));
+            const paletteColour = palette.getColour(colourIndex);
+            const colourHex = ColourUtil.toHex(paletteColour.r, paletteColour.g, paletteColour.b);
+            button.setAttribute('data-colour-hex', colourHex);
+            button.style.backgroundColor = colourHex
+            if (colourIndex === this.#currentColourIndex) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        });
     }
 
     /**
