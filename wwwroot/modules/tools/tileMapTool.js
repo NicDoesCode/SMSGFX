@@ -92,7 +92,7 @@ export default class TileMapTool {
             title: args.title ?? 'New tile map',
             columns: args.columnCount,
             rows: args.rowCount,
-            optimise: args.optimise ?? false
+            optimise: args.optimise ?? true
         });
         result.getPalettes().forEach((palette, index) => {
             result.setPalette(index, args.defaultPaletteId);
