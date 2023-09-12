@@ -37,7 +37,8 @@ export default class NesAssemblySerialiser extends ProjectAssemblySerialiser {
             });
         }
 
-        const bundle = TileMapUtil.createOptimisedBundle(tileMapList, project.tileSet, project.paletteList);
+        const capabilities = SystemUtil.getSystemCapabilities(project.systemType);
+        const bundle = TileMapUtil.createOptimisedBundle(tileMapList, project.tileSet, project.paletteList, capabilities);
 
         const result = ['; NINTENDO ENTERTAINMENT SYSTEM ASSEMBLY FOR WLA-DX'];
         result.push('');

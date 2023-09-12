@@ -3,6 +3,8 @@ import TileMapFactory from "../factory/tileMapFactory.js";
 import TileMapTileFactory from "../factory/tileMapTileFactory.js";
 import TileMap from "../models/tileMap.js";
 import TileSet from "../models/tileSet.js";
+import Tile from "../models/tile.js";
+import GeneralUtil from "../util/generalUtil.js";
 
 export default class TileMapTool {
 
@@ -137,6 +139,7 @@ export default class TileMapTool {
                 tile = tileSet.getTileById(idMapping[existingTileId] ?? null);
                 if (!tile) {
                     tile = TileFactory.clone(tileSet.getTileById(existingTileId));
+                    tile.tileId = GeneralUtil.generateRandomString(16);
                     tileSet.addTile(tile);
                     idMapping[existingTileId] = tile.tileId;
                 }

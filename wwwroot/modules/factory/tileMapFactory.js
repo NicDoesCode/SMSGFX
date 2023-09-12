@@ -69,8 +69,7 @@ export default class TileMapFactory {
 }
 /**
  * Arguments for creating a tile map.
- * @typedef TileMapFactoryCreateArgs
- * @type {object}
+ * @typedef {Object} TileMapFactoryCreateArgs
  * @property {string?} tileMapId - Unique ID of the tile map object.
  * @property {string?} title - Title of the tile map object.
  * @property {number?} vramOffset - Offset in VRAM for where the tiles for the tile map begin.

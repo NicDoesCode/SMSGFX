@@ -82,7 +82,10 @@ export default class TileFactory {
      */
     static clone(tile) {
         const hex = TileUtil.toHex(tile);
-        return TileFactory.fromHex(hex);
+        const cloned = TileFactory.fromHex(hex);
+        cloned.tileId = tile.tileId;
+        cloned.alwaysKeep = tile.alwaysKeep;
+        return cloned;
     }
 
 

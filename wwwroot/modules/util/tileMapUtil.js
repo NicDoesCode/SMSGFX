@@ -4,6 +4,7 @@ import TileMap from "../models/tileMap.js";
 import TileMapList from "../models/tileMapList.js";
 import TileSet from "../models/tileSet.js";
 import TileUtil from "./tileUtil.js";
+import SystemUtil from "./systemUtil.js";
 import TileMapListJsonSerialiser from "./../serialisers/tileMapListJsonSerialiser.js";
 import TileJsonSerialiser from "./../serialisers/tileJsonSerialiser.js";
 import TileSetFactory from "../factory/tileSetFactory.js";
@@ -57,7 +58,8 @@ export default class TileMapUtil {
      * @returns {TileMapBundle}
      */
     static createOptimisedBundleFromProject(project) {
-        return TileMapUtil.createOptimisedBundle(project.tileMapList, project.tileSet, project.paletteList);
+        const capabilities = SystemUtil.getSystemCapabilities(project.systemType);
+        return TileMapUtil.createOptimisedBundle(project.tileMapList, project.tileSet, project.paletteList, capabilities);
     }
 
     /**
@@ -65,10 +67,11 @@ export default class TileMapUtil {
      * @param {TileMap | TileMapList} tileMapOrList - Tile map or list of tile maps.
      * @param {TileSet} tileSet - Tile set containing the source tiles.
      * @param {PaletteList} paletteList - List of palettes.
+     * @param {import("./systemUtil.js").SystemCapabilities} capabilities - System capabilities.
      * @returns {TileMapBundle}
      */
-    static createOptimisedBundle(tileMapOrList, tileSet, paletteList) {
-        /** @type {TileMapList} */
+    static createOptimisedBundle(tileMapOrList, tileSet, paletteList, capabilities) {
+        /** @type {TileMapList} */capabilities
         let tileMapList;
         if (tileMapOrList && tileMapOrList instanceof TileMapList) {
             tileMapList = tileMapOrList;
@@ -81,98 +84,34 @@ export default class TileMapUtil {
         if (!tileSet || !tileSet instanceof TileSet) throw new Error('Please supply a valid tile set.');
         if (!paletteList || !paletteList instanceof PaletteList) throw new Error('Please supply a valid palette list.');
 
-        // Build a list of used tiles
-        // - Build optimised table
-        // - Re-wire ID in tile set to matching same ID
-        // - Build table with only used IDs
+        const optimised = createOptimisedTileMapsAndTileSet(tileMapList.getTileMaps(), tileSet, capabilities);
 
-        const clonedTileSet = TileSetFactory.clone(tileSet);
-
-        // Add a blank tile to catch broken tile referenves
-        const blankTile = TileFactory.create({ defaultColourIndex: 0 });
-        clonedTileSet.addTile(blankTile);
-
-        /** @type {Object.<string, string>} */
-        const tileHexToTileIdMapping = {};
-        clonedTileSet.getTiles().forEach((tile) => {
-            const tileAsHex = TileUtil.toHex(tile);
-            if (!tileHexToTileIdMapping[tileAsHex]) {
-                tileHexToTileIdMapping[tileAsHex] = tile.tileId;
-            }
-        });
-
-        const optimisedTileMapList = TileMapListJsonSerialiser.deserialise(TileMapListJsonSerialiser.serialise(tileMapList));
-
-        // Eliminate orphaned tiles from the tile maps
-        optimisedTileMapList.getTileMaps().forEach((cloneTileMap) => {
-            cloneTileMap.getTiles().forEach((tileMapTile) => {
-                const tile = clonedTileSet.getTileById(tileMapTile.tileId);
-                if (!tile) {
-                    tileMapTile.tileId = blankTile.tileId;
-                }
-            });
-        });
-
-        // Scan each tile map, build a list of used tile map IDs to include in the final export
-        // - If the tile map not to be optimised, then all tile IDs will be added to the list regardless
-        // - When we encounter a tile with the 'alwaysKeep' flag, we'll also just add it to the list
-        // - If the tile can be optimised away, compare it's hex with the tileHexToId dictionary, use a match from that instead of the original tile ID
-        /** @type {Object.<string, string>} */
-        const usedTileMapIds = {};
-        optimisedTileMapList.getTileMaps().forEach((cloneTileMap) => {
-            const skipOptimisation = !cloneTileMap.optimise;
-            cloneTileMap.getTiles().forEach((tileMapTile) => {
-
-                // Get the underlying tile from the tile set
-                const tile = clonedTileSet.getTileById(tileMapTile.tileId);
-
-                //If we're not optimising, or the tile is to be kept
-                if (skipOptimisation || tile.alwaysKeep) {
-                    // Just add it to the used tile list
-                    usedTileMapIds[tile.tileId] = tile.tileId;
-                } else  {
-                    // Otherwise find a matching tile with the same hex, and use that tile instead
-                    const tileHex = TileUtil.toHex(tile);
-                    const tileIdMatchedFromHex = tileHexToTileIdMapping[tileHex];
-                    tileMapTile.tileId = tileIdMatchedFromHex;
-                    usedTileMapIds[tileIdMatchedFromHex] = tileIdMatchedFromHex;
-                }
-
-            });
-        });
-
-        // Now create an optimised tile set from the list of used tile IDs that we just created
-
-        const optimisedTileSet = TileSetFactory.create();
-        optimisedTileSet.tileWidth = clonedTileSet.tileWidth;
-        Object.keys(usedTileMapIds).forEach((tileId) => {
-            const tile = clonedTileSet.getTileById(tileId);
-            const tileCopy = TileJsonSerialiser.deserialise(TileJsonSerialiser.serialise(tile));
-            optimisedTileSet.addTile(tileCopy);
-        });
-
-        // Now we have an optimised tile set and tile map, correlate the IDs
-
-        /** @type {Object.<string, number>} */
+        // Set the tile index in the tile maps
         const tileIdToIndex = {};
-        optimisedTileSet.getTiles().forEach((tile, index) => {
-            tileIdToIndex[tile.tileId] = index;
-        });
-
-        optimisedTileMapList.getTileMaps().forEach((tileMap) => {
+        optimised.tileSet.getTiles().forEach((tile, index) => tileIdToIndex[tile.tileId] = index);
+        optimised.tileMapList.getTileMaps().forEach((tileMap) => {
             tileMap.getTiles().forEach((tileMapTile) => {
                 tileMapTile.tileIndex = tileIdToIndex[tileMapTile.tileId] + tileMap.vramOffset;
             });
         });
-        paletteList.getPalettes().forEach((p, pIndex) => {
-            optimisedTileMapList.getTileMaps().forEach((t) => {
-                t.setPalette(pIndex, p.paletteId);
+
+        // TODO - This preserves each palette, do we actually need this?
+
+        // With each palette
+        paletteList.getPalettes().forEach((palette, paletteIndex) => {
+            // With each tile map
+            optimised.tileMapList.getTileMaps().forEach((tileMap) => {
+                // Add the palette to the tile map
+                tileMap.setPalette(paletteIndex, palette.paletteId);
             });
         });
 
         const optimisedPaletteList = PaletteListFactory.create();
-        optimisedTileMapList.getTileMaps().forEach((tileMap) => {
+        // With each tile map
+        optimised.tileMapList.getTileMaps().forEach((tileMap) => {
+            // With each palette ID in tile map
             tileMap.getPalettes().forEach((paletteId) => {
+                // Ensure the optimised list of palettes has the given palette
                 if (paletteId && !optimisedPaletteList.containsPaletteById(paletteId)) {
                     const palette = paletteList.getPaletteById(paletteId);
                     optimisedPaletteList.addPalette(palette);
@@ -182,8 +121,8 @@ export default class TileMapUtil {
 
         return {
             paletteList: optimisedPaletteList,
-            tileSet: optimisedTileSet,
-            tileMaps: optimisedTileMapList
+            tileSet: optimised.tileSet,
+            tileMaps: optimised.tileMapList
         };
     }
 
@@ -228,3 +167,138 @@ export default class TileMapUtil {
  * @property {TileMapList} tileMaps - All tile maps.
  * @exports
  */
+
+/**
+ * @typedef {object} HexLookupBundle
+ * @property {string} tileId
+ * @property {boolean} hFlip
+ * @property {boolean} vFlip
+ */
+
+// Take the tile maps, and tile set, and capabilities
+// Manipulate the tile sets so that they use h and v flip where possible, first hv, then h, then v
+// We want to respect the capabilities of the system, if it doesn't support it, then don't do it
+// At the end we will have a tileMap with optimised tiles, as well as a tile map containing only the needed tiles
+
+/**
+ * Take a list of tile maps and a tile set, and 
+ * @param {TileMap[]} tileMaps
+ * @param {TileSet} tileSet
+ * @param {import("./systemUtil.js").SystemCapabilities} capabilities 
+ * @returns {{tileMapList: TileMapList, tileSet: TileSet}}
+ */
+function createOptimisedTileMapsAndTileSet(tileMaps, tileSet, capabilities) {
+
+    const blankTile = TileFactory.create({ defaultColourIndex: 0 });
+
+    /** @type {Object.<string, { tileId: string, horizontalFlip: boolean, verticalFlip: boolean }>} */
+    const usedTiles = {};
+
+    // CHECK EACH TILE MAP, IF THERE IS ANY TILE THAT DOESN'T CONFORM TO CAPABILITIES, MAKE SURE IT DOES CONFIRM
+
+    const conformingTileSet = TileSetFactory.clone(tileSet);
+    const conformingTileMaps = tileMaps.map((tileMap) => {
+
+        const capability = tileMap.isSprite ? capabilities.sprite : capabilities.tileMap;
+
+        const conformingTileMap = TileMapFactory.clone(tileMap);
+        conformingTileMap.getTiles().forEach((tileMapTile) => {
+
+            // Get matched tile set tile or blank if not found
+            const tile = tileSet.getTileById(tileMapTile.tileId) ?? blankTile;
+
+            if ((tileMapTile.horizontalFlip && tileMapTile.verticalFlip) && (!capability.horizontalFlip || !capability.verticalFlip)) {
+                // Tile is both horizontal and vertical flipped, but capabilities don't allow
+                const conformingTile = TileUtil.createHorizontallyMirroredClone(TileUtil.createVerticallyMirroredClone(tile));
+                conformingTile.tileId += '(flipHV)';
+                tileMapTile.tileId = conformingTile.tileId;
+                tileMapTile.horizontalFlip = false;
+                tileMapTile.verticalFlip = false;
+                conformingTileSet.addTile(conformingTile);
+            } else if (tileMapTile.horizontalFlip && !capability.horizontalFlip) {
+                // Tile is horizontal flipped, but capabilities don't allow
+                const conformingTile = TileUtil.createHorizontallyMirroredClone(tile);
+                conformingTile.tileId += '(flipH)';
+                tileMapTile.tileId = conformingTile.tileId;
+                tileMapTile.horizontalFlip = false;
+                conformingTileSet.addTile(conformingTile);
+            } else if (tileMapTile.verticalFlip && !capability.verticalFlip) {
+                // Tile is horizontal flipped, but capabilities don't allow
+                const conformingTile = TileUtil.createVerticallyMirroredClone(tile);
+                conformingTile.tileId += '(flipV)';
+                tileMapTile.tileId = conformingTile.tileId;
+                tileMapTile.verticalFlip = false;
+                conformingTileSet.addTile(conformingTile);
+            }
+
+        });
+        return conformingTileMap;
+
+    });
+
+    // ITERATE TILE MAPS, BUILD A MINIMAL LIST OF USED TILES AND RETURN OPTIMISED TILE MAPS THAT USE THAT LIST
+
+    const optimisedTileMaps = conformingTileMaps.map((tileMap) => {
+
+        const capability = tileMap.isSprite ? capabilities.sprite : capabilities.tileMap;
+
+        const optimisedTileMap = TileMapFactory.clone(tileMap);
+        optimisedTileMap.getTiles().forEach((tileMapTile) => {
+
+            // Get matched tile set tile or blank if not found
+            const tile = conformingTileSet.getTileById(tileMapTile.tileId) ?? blankTile;
+
+            // Apply transformations to the tile
+            let transformedTile = TileFactory.clone(tile);
+            if (tileMapTile.horizontalFlip) transformedTile = TileUtil.createHorizontallyMirroredClone(transformedTile);
+            if (tileMapTile.verticalFlip) transformedTile = TileUtil.createVerticallyMirroredClone(transformedTile);
+            const transformedTileHex = TileUtil.toHex(transformedTile);
+
+            // Check for tile in used tiles collection
+            const usedTile = usedTiles[transformedTileHex];
+            if (usedTile) {
+                // Appears in used tiles, set tile map tile accordingly
+                tileMapTile.tileId = usedTile.tileId;
+                tileMapTile.horizontalFlip = usedTile.horizontalFlip;
+                tileMapTile.verticalFlip = usedTile.verticalFlip;
+            } else {
+                // Doesn't appear in used tiles, add this tile into used tiles as well as HEX for all it's supported variations
+                const hex = TileUtil.toHex(tile);
+                usedTiles[hex] = { tileId: tileMapTile.tileId, horizontalFlip: false, verticalFlip: false };
+                const hexHV = (capability.horizontalFlip && capability.verticalFlip) ? TileUtil.toHex(TileUtil.createHorizontallyMirroredClone(TileUtil.createVerticallyMirroredClone(tile))) : null;
+                if (!usedTiles[hexHV] && capability.horizontalFlip && capability.verticalFlip) usedTiles[hexHV] = { tileId: tileMapTile.tileId, hFlip: true, vFlip: true };
+                const hexH = (capability.horizontalFlip) ? TileUtil.toHex(TileUtil.createHorizontallyMirroredClone(tile)) : null;
+                if (!usedTiles[hexH] && capability.horizontalFlip) usedTiles[hexH] = { tileId: tileMapTile.tileId, hFlip: true, vFlip: false };
+                const hexV = (capability.verticalFlip) ? TileUtil.toHex(TileUtil.createVerticallyMirroredClone(tile)) : null;
+                if (!usedTiles[hexV] && capability.verticalFlip) usedTiles[hexV] = { tileId: tileMapTile.tileId, hFlip: false, vFlip: true };
+            }
+
+        });
+        return optimisedTileMap;
+
+    });
+
+    // GET OPTIMISED TILE MAP
+
+    const usedTileIdDictionary = {};
+    Object.values(usedTiles).forEach((usedTile) => usedTileIdDictionary[usedTile.tileId] = usedTile.tileId);
+
+    // Create the optimised tile set with only the used tiles
+    const optimisedTileSet = TileSetFactory.create({ tileWidth: conformingTileSet.tileWidth });
+    conformingTileSet.getTiles().forEach((tile) => {
+        if (tile.alwaysKeep || usedTileIdDictionary[tile.tileId]) {
+            const clonedTile = TileFactory.clone(tile);
+            optimisedTileSet.addTile(clonedTile);
+        }
+    });
+    if (usedTileIdDictionary[blankTile.tileId] && !conformingTileSet.getTileById(blankTile)) {
+        optimisedTileSet.addTile(blankTile);
+    }
+
+    // RETURN OPTIMISED TILE MAPS AND TILE SET
+
+    return {
+        tileMapList: TileMapListFactory.create(optimisedTileMaps),
+        tileSet: optimisedTileSet
+    }
+}
