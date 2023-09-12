@@ -10,6 +10,7 @@ import NesTileMapTileBinarySerialiser from "./nesTileMapTileBinarySerialiser.js"
 import NesTileAttributeBinarySerialiser from "./nesTileAttributeBinarySerialiser.js";
 import TileMapListFactory from "../../factory/tileMapListFactory.js";
 import TileMapFactory from "../../factory/tileMapFactory.js";
+import SystemUtil from "../../util/systemUtil.js";
 
 export default class NesAssemblySerialiser extends ProjectAssemblySerialiser {
 
