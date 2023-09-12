@@ -56,6 +56,8 @@ export default class TileManager extends ComponentBase {
     #dispatcher;
     /** @type {Palette} */
     #palette = null;
+    /** @type {Palette} */
+    #renderPalette = null;
     /** @type {TileMapList} */
     #tileMapList = null;
     /** @type {TileSet} */
@@ -155,6 +157,7 @@ export default class TileManager extends ComponentBase {
         let tileMapListingDirty = false;
         let tileListDirty = false;
         let paletteSlotsDirty = false;
+        let paletteDirty = false;
         let updateRenderPalette = false;
         let updatedTileIds = null;
 
@@ -177,6 +180,7 @@ export default class TileManager extends ComponentBase {
 
         if (state?.palette && state.palette instanceof Palette) {
             this.#palette = state.palette;
+            paletteDirty = true;
             tileListDirty = true;
         }
 
@@ -226,10 +230,22 @@ export default class TileManager extends ComponentBase {
         }
 
         if (updateRenderPalette) {
-            if (this.#paletteList) {
+            if (this.#paletteList && this.#displayNative) {
                 this.#renderPaletteList = PaletteUtil.clonePaletteListWithNativeColours(this.#paletteList);
+            } else if (this.#paletteList && !this.#displayNative) {
+                this.#renderPaletteList = this.#paletteList;
             } else {
                 this.#renderPaletteList = null;
+            }
+        }
+
+        if (paletteDirty) {
+            if (this.#palette && this.#displayNative) {
+                this.#renderPalette = PaletteUtil.clonePaletteWithNativeColours(this.#palette);
+            } else if (this.#palette && !this.#displayNative) {
+                this.#renderPalette = this.#palette;
+            } else {
+                this.#renderPalette = null;
             }
         }
 
@@ -257,6 +273,7 @@ export default class TileManager extends ComponentBase {
 
         if (paletteSlotsDirty) {
             this.#populatePaletteSelectors();
+            this.#populatePaletteColours();
         }
     }
 
@@ -393,7 +410,7 @@ export default class TileManager extends ComponentBase {
     #populatePaletteSelectors() {
         const paletteList = this.#renderPaletteList;
         const numberOfPaletteSlots = this.#numberOfPaletteSlots;
-        const tileMap = this.#tileMapList.getTileMapById(this.#selectedTileMapId);
+        const tileMap = this.#tileMapList?.getTileMapById(this.#selectedTileMapId);
 
         while (this.#paletteSelectorElement.hasChildNodes()) {
             this.#paletteSelectorElement.firstChild.remove();
@@ -431,6 +448,8 @@ export default class TileManager extends ComponentBase {
     }
 
     #populatePaletteColours() {
+        if (!this.#tileMapList || !this.#renderPaletteList) return;
+
         const paletteList = this.#renderPaletteList;
         const tileMap = this.#tileMapList.getTileMapById(this.#selectedTileMapId);
 
@@ -517,22 +536,24 @@ export default class TileManager extends ComponentBase {
         dropList.appendChild(li);
 
         // Add tile maps to list
-        tileMapList.getTileMaps().forEach((tileMap) => {
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-            a.classList.add('dropdown-item');
-            a.href = '#';
-            a.innerText = tileMap.title;
-            a.setAttribute('data-tile-map-id', tileMap.tileMapId);
-            a.addEventListener('click', (ev) => {
-                // Fire tile selected event on click
-                const args = this.#createArgs(TileManager.Commands.tileMapSelect);
-                args.tileMapId = tileMap.tileMapId;
-                this.#dispatcher.dispatch(EVENT_OnCommand, args);
+        if (tileMapList) {
+            tileMapList.getTileMaps().forEach((tileMap) => {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.classList.add('dropdown-item');
+                a.href = '#';
+                a.innerText = tileMap.title;
+                a.setAttribute('data-tile-map-id', tileMap.tileMapId);
+                a.addEventListener('click', (ev) => {
+                    // Fire tile selected event on click
+                    const args = this.#createArgs(TileManager.Commands.tileMapSelect);
+                    args.tileMapId = tileMap.tileMapId;
+                    this.#dispatcher.dispatch(EVENT_OnCommand, args);
+                });
+                li.appendChild(a);
+                dropList.appendChild(li);
             });
-            li.appendChild(a);
-            dropList.appendChild(li);
-        });
+        }
     }
 
 

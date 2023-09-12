@@ -92,11 +92,16 @@ export default class ColourUtil {
         } else if (system === 'nes') {
             return getNearestNESColour(r, g, b);
         } else if (system === 'gb') {
-            const colour = Math.round(getNearestGBColour((r + g + b) / 3));
-            return { r: colour, g: colour, b: colour };
+            // const colour = Math.round(getNearestGBColour((r + g + b) / 3));
+            // return { r: colour, g: colour, b: colour };
+            const averageColour = Math.min(255, Math.max(0, (r + g + b) / 3));
+            const nearest = averageColour - (averageColour % 85);
+            const nativeIndex = nearest / 85;
+            return gbNativePalette[nativeIndex];
         } else throw new Error('System was not valid.');
 
     }
+
 
     /**
      * Converts a RGB value to a native colour value as a byte.
@@ -108,98 +113,98 @@ export default class ColourUtil {
      * @returns {string}
      */
     static encodeColourInNativeFormat(system, r, g, b, format) {
-        if (r < 0 || r > 255) throw new Error('Invalid value for red.');
-        if (g < 0 || g > 255) throw new Error('Invalid value for green.');
-        if (b < 0 || b > 255) throw new Error('Invalid value for blue.');
-        if (!format) format = 'hex';
-        if (format !== 'hex' && format !== 'binary') throw new Error('Format must be null, "hex" or "binary".');
-        if (system === 'ms') {
-            // Master System will return a 6-bit RGB value
-            r = Math.round(3 / 255 * r);
-            g = Math.round(3 / 255 * g) << 2;
-            b = Math.round(3 / 255 * b) << 4;
-            if (format === 'binary') return (r | g | b).toString(2).padStart(6, 0);
-            else return (r | g | b).toString(16).padStart(2, '0');
-        } else if (system === 'gg') {
-            // Game gear will return a 12-bit RGB value 
-            r = Math.round(15 / 255 * r);
-            g = Math.round(15 / 255 * g) << 4;
-            b = Math.round(15 / 255 * b) << 8;
-            if (format === 'binary') return (r | g | b).toString(2).padStart(12, 0);
-            else return (r | g | b).toString(16).padStart(3, '0');
-        } else if (system === 'nes') {
-            // NES will return the index of the closest colour index from the hand-picked colour palette.
-            const colour = getNearestNESColourIndex(r, g, b);
-            if (format === 'binary') return colour.toString(2).padStart(8, 0);
-            else return (colour).toString(16).padStart(2, '0');
-        } else if (system === 'gb') {
-            // Game Boy will return a grey index between 0 and 4
-            const colour = Math.round(getNearestGBColour((r + g + b) / 3) / 85);
-            if (format === 'binary') return colour.toString(2).padStart(2, 0);
-            else return (colour).toString(16);
-        } else throw new Error('System was not valid.');
-    }
+    if (r < 0 || r > 255) throw new Error('Invalid value for red.');
+    if (g < 0 || g > 255) throw new Error('Invalid value for green.');
+    if (b < 0 || b > 255) throw new Error('Invalid value for blue.');
+    if (!format) format = 'hex';
+    if (format !== 'hex' && format !== 'binary') throw new Error('Format must be null, "hex" or "binary".');
+    if (system === 'ms') {
+        // Master System will return a 6-bit RGB value
+        r = Math.round(3 / 255 * r);
+        g = Math.round(3 / 255 * g) << 2;
+        b = Math.round(3 / 255 * b) << 4;
+        if (format === 'binary') return (r | g | b).toString(2).padStart(6, 0);
+        else return (r | g | b).toString(16).padStart(2, '0');
+    } else if (system === 'gg') {
+        // Game gear will return a 12-bit RGB value 
+        r = Math.round(15 / 255 * r);
+        g = Math.round(15 / 255 * g) << 4;
+        b = Math.round(15 / 255 * b) << 8;
+        if (format === 'binary') return (r | g | b).toString(2).padStart(12, 0);
+        else return (r | g | b).toString(16).padStart(3, '0');
+    } else if (system === 'nes') {
+        // NES will return the index of the closest colour index from the hand-picked colour palette.
+        const colour = getNearestNESColourIndex(r, g, b);
+        if (format === 'binary') return colour.toString(2).padStart(8, 0);
+        else return (colour).toString(16).padStart(2, '0');
+    } else if (system === 'gb') {
+        // Game Boy will return a grey index between 0 and 4
+        const colour = Math.round(getNearestGBColour((r + g + b) / 3) / 85);
+        if (format === 'binary') return colour.toString(2).padStart(2, 0);
+        else return (colour).toString(16);
+    } else throw new Error('System was not valid.');
+}
 
     /**
      * Gets a Master System colour palette.
      * @returns {ColourInformation[]}
      */
     static getFullMasterSystemPalette() {
-        if (!masterSystemPalette) {
-            masterSystemPalette = [];
-            const colourShades = [0, 85, 170, 255];
-            colourShades.forEach(b => {
-                colourShades.forEach(g => {
-                    colourShades.forEach(r => {
-                        masterSystemPalette.push({ r, g, b });
-                    });
+    if (!masterSystemPalette) {
+        masterSystemPalette = [];
+        const colourShades = [0, 85, 170, 255];
+        colourShades.forEach(b => {
+            colourShades.forEach(g => {
+                colourShades.forEach(r => {
+                    masterSystemPalette.push({ r, g, b });
                 });
             });
-        }
-        return masterSystemPalette;
+        });
     }
+    return masterSystemPalette;
+}
 
     /**
      * Gets a Game Gear colour palette.
      * @returns {ColourInformation[]}
      */
     static getFullGameGearPalette() {
-        if (!gameGearPalette) {
-            gameGearPalette = [];
-            const colourShades = [0, 15, 31, 47, 63, 79, 95, 111, 127, 143, 159, 175, 191, 207, 223, 239, 255];
-            colourShades.forEach(b => {
-                colourShades.forEach(g => {
-                    colourShades.forEach(r => {
-                        gameGearPalette.push({ r, g, b });
-                    });
+    if (!gameGearPalette) {
+        gameGearPalette = [];
+        const colourShades = [0, 15, 31, 47, 63, 79, 95, 111, 127, 143, 159, 175, 191, 207, 223, 239, 255];
+        colourShades.forEach(b => {
+            colourShades.forEach(g => {
+                colourShades.forEach(r => {
+                    gameGearPalette.push({ r, g, b });
                 });
             });
-        }
-        return gameGearPalette;
+        });
     }
+    return gameGearPalette;
+}
 
     /**
      * Gets a Nintendo Entertainment System colour palette.
      * @returns {ColourInformation[]}
      */
     static getFullNESPalette() {
-        return nesPalette;
-    }
+    return nesPalette;
+}
 
     /**
      * Gets a Game Boy colour palette.
      * @returns {ColourInformation[]}
      */
     static getFullGameBoyPalette() {
-        if (!gameBoyPalette) {
-            gameBoyPalette = [];
-            const colourShades = [0, 85, 170, 255];
-            colourShades.forEach(c => {
-                gameBoyPalette.push({ r: c, g: c, b: c });
-            });
-        }
-        return gameBoyPalette;
+    if (!gameBoyPalette) {
+        gameBoyPalette = [];
+        const colourShades = [0, 85, 170, 255];
+        colourShades.forEach(c => {
+            gameBoyPalette.push({ r: c, g: c, b: c });
+        });
     }
+    return gameBoyPalette;
+}
 
 
 }
@@ -276,7 +281,14 @@ const nesPalette = [
 let gameBoyPalette = null;
 
 let gbColours = [0, 85, 170, 255];
-let gbColourValues = [0, 1, 2, 3];
+
+/** @type {ColourInformation[]} */
+const gbNativePalette = [
+    { r: 22, g: 72, b: 2 },
+    { r: 44, g: 84, b: 2 },
+    { r: 88, g: 115, b: 3 },
+    { r: 140, g: 153, b: 2 }
+];
 
 /**
  * Gets the nearest GB colour.

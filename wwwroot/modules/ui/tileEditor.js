@@ -326,7 +326,11 @@ export default class TileEditor extends ComponentBase {
         }
         // Refresh native palette?
         if (refreshNativePalette) {
-            this.#nativePaletteList = PaletteUtil.clonePaletteListWithNativeColours(this.#paletteList);
+            if (this.#paletteList) {
+                this.#nativePaletteList = PaletteUtil.clonePaletteListWithNativeColours(this.#paletteList);
+            } else {
+                this.#nativePaletteList = null;
+            }
             refreshTiles = true;
         }
         // Force refresh?

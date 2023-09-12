@@ -230,6 +230,7 @@ export default class PaletteEditor extends ComponentBase {
             this.#shufflePaletteList();
             const palette = this.#paletteList.getPaletteById(this.#selectedPaletteId);
             if (palette) {
+                this.#setPalette(palette);
                 this.#updatePaletteColourIndexButtonColour(palette);
             }
         }
