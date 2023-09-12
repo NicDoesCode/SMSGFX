@@ -17,9 +17,19 @@ export default class TileSetFactory {
             result.tileWidth = args.tileWidth;
         }
 
-        if (args?.tiles) {
-            if (Array.isArray(args.tiles)) args.tiles.forEach((tile) => result.addTile(tile));
-            if (args.tiles instanceof TileSet) args.tiles.getTiles().forEach((tile) => result.addTile(tile));
+        if (args?.tiles instanceof TileSet) {
+            args.tiles.getTiles().forEach((tile) => result.addTile(tile));
+
+        } else if (Array.isArray(args?.tiles)) {
+            args.tiles.forEach((tile) => result.addTile(tile));
+
+        } else if (typeof args?.numberOfTiles === 'number' && args?.numberOfTiles > 0) {
+            const defaultColourIndex = Math.max(typeof args?.defaultColourIndex === 'number' ? args?.defaultColourIndex : 0, 0);
+            for (let i = 0; i < args.numberOfTiles; i++) {
+                result.addTile(TileFactory.create({
+                    defaultColourIndex: defaultColourIndex
+                }));
+            }
         }
 
         return result;
@@ -75,6 +85,8 @@ export default class TileSetFactory {
  * Arguments for creating a tile set.
  * @typedef {Object} TileSetFactoryCreateArgs
  * @property {number?} [tileWidth] - Display tile width.
+ * @property {number?} [numberOfTiles] - Populate with a number of tiles.
+ * @property {number?} [defaultColourIndex] - Colour index to set as the initial colour of the tile, defaults to 15 when not supplied.
  * @property {Tile[]|TileSet|null} [tiles] - List of tiles to be added, or tile set containing the tiles.
  * @exports
  */

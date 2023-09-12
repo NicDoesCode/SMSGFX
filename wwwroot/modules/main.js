@@ -1971,16 +1971,15 @@ function createEmptyProject(args) {
 
     const title = args?.title ?? 'New project';
     const systemType = args?.systemType ?? 'smsgg';
-    const defaultTileColourIndex = systemType === 'smsgg' ? 15 : 3;
+    const defaultTileColourIndex = 0;
     const project = ProjectFactory.create({ title: title, systemType: systemType });
 
     // Create a default tile set
-    project.tileSet = TileSetFactory.create();
-    project.tileSet.tileWidth = 8;
-    const numTiles = args.createTileMap ? args.tileWidth * args.tileHeight : 64;
-    for (let i = 0; i < numTiles; i++) {
-        project.tileSet.addTile(TileFactory.create({ defaultColourIndex: defaultTileColourIndex }));
-    }
+    project.tileSet = TileSetFactory.create({
+        tileWidth: args.tileWidth ?? 8,
+        numberOfTiles: args.createTileMap ? args.tileWidth * args.tileHeight : 64,
+        defaultColourIndex: defaultTileColourIndex
+    });
 
     // Create a default palette 
     project.paletteList = PaletteListFactory.create();
