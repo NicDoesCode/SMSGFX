@@ -62,7 +62,6 @@ import Tile from "./models/tile.js";
 import TileMapTool from "./tools/tileMapTool.js";
 import TileSet from "./models/tileSet.js";
 import SampleProjectManager from "./components/sampleProjectManager.js";
-import ProjectJsonSerialiser from "./serialisers/projectJsonSerialiser.js";
 import KeyboardManager, { KeyDownHandler, KeyUpHandler } from "./components/keyboardManager.js";
 import TileImageManager from "./components/tileImageManager.js";
 import ProjectList from "./models/projectList.js";
@@ -1753,12 +1752,19 @@ function changeColourIndex(paletteIndex, colourIndex, colour) {
 
     state.saveProjectToLocalStorage();
 
+    tileImageManager.clearByPalette(palette.paletteId);
+
     paletteEditor.setState({
         paletteList: getPaletteList()
     });
+    tileManager.setState({
+        paletteList: getTileEditorPaletteList(),
+        tileSet: getTileSet()
+    });
     tileEditor.setState({
         palette: getPalette(),
-        paletteList: getTileEditorPaletteList()
+        paletteList: getTileEditorPaletteList(),
+        forceRefresh: true
     });
 }
 
