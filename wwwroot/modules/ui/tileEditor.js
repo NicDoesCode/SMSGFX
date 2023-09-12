@@ -102,6 +102,7 @@ export default class TileEditor extends ComponentBase {
         this.#canvasManager = new CanvasManager();
         // this.#canvasManager.backgroundColour = window.getComputedStyle(this.#element).backgroundColor;
         this.#canvasManager.backgroundColour = null;
+        this.#canvasManager.transparencyGridOpacity = 0.15;
 
         document.addEventListener('mousedown', (ev) => this.#handleCanvasMouseDown(ev));
         document.addEventListener('mouseup', (ev) => this.#handleCanvasMouseUp(ev));
@@ -257,34 +258,38 @@ export default class TileEditor extends ComponentBase {
             this.#tbCanvas.style.cursor = state.cursor;
         }
         // Reference image
-        if (state.referenceImage) {
+        if (state?.referenceImage instanceof ReferenceImage || state?.referenceImage === null) {
             this.#canvasManager.clearReferenceImages();
-            this.#canvasManager.addReferenceImage(state.referenceImage);
+            if (state?.referenceImage && state.referenceImage.hasImage()) {
+                this.#canvasManager.addReferenceImage(state.referenceImage);
+                this.#canvasManager.transparencyGridOpacity = 0;
+            } else {
+                this.#canvasManager.transparencyGridOpacity = 0.15;
+            }
+            this.#canvasManager.invalidateImage();
+            refreshTiles = true;
+        } 
+        // Transparency indicies index
+        if (Array.isArray(state?.transparencyIndicies)) {
+            this.#canvasManager.transparencyIndicies = state.transparencyIndicies.filter((i) => typeof i === 'number');
+            this.#canvasManager.invalidateImage();
+            refreshTiles = true;
+        } else if (state.transparencyIndicies === null) {
+            this.#canvasManager.transparencyIndicies = [];
             this.#canvasManager.invalidateImage();
             refreshTiles = true;
         }
-        // Transparency index
-        if (typeof state.transparencyIndex === 'number' || state.transparencyIndex === null) {
-            this.#canvasManager.transparencyIndex = state.transparencyIndex ?? -1;
-            this.#canvasManager.invalidateImage();
-            refreshTiles = true;
+        // Reference image draw mode
+        if (typeof state?.referenceImageDrawMode === 'string') {
+            this.#canvasManager.referenceImageDrawMode = state?.referenceImageDrawMode;
+        } else if (state.referenceImageDrawMode === null) {
+            this.#canvasManager.referenceImageDrawMode = 'overIndex';
         }
         // Locked palette slot index
         if (typeof state.lockedPaletteSlotIndex === 'number' || state.lockedPaletteSlotIndex === null) {
             this.#canvasManager.lockedPaletteSlotIndex = state.lockedPaletteSlotIndex ?? -1;
             this.#canvasManager.invalidateImage();
             refreshTiles = true;
-        }
-        // Theme
-        if (typeof state?.theme === 'string') {
-            if (state.theme === 'light') {
-                // this.#canvasManager.backgroundColour = '#e9ecef';
-                // dirty = true;
-            }
-            if (state.theme === 'dark') {
-                // this.#canvasManager.backgroundColour = '#151719';
-                // dirty = true;
-            }
         }
         // Canvas highlight mode
         if (typeof state?.canvasHighlightMode === 'string') {
@@ -394,6 +399,8 @@ export default class TileEditor extends ComponentBase {
 
     /** @param {MouseEvent} ev */
     #handleCanvasMouseMove(ev) {
+        if (!this.#tileGrid) return;
+    
         if (this.#enabled && this.#tileSet) {
             if (ev.target === this.#tbCanvas) {
                 const coords = this.#canvasManager.convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
@@ -438,6 +445,8 @@ export default class TileEditor extends ComponentBase {
 
     /** @param {MouseEvent} ev */
     #handleCanvasMouseDown(ev) {
+        if (!this.#tileGrid) return;
+      
         if (!this.#enabled || ev.target !== this.#tbCanvas) return;
 
         if (ev.target === this.#tbCanvas) {
@@ -483,6 +492,8 @@ export default class TileEditor extends ComponentBase {
 
     /** @param {MouseEvent} ev */
     #handleCanvasMouseUp(ev) {
+        if (!this.#tileGrid) return;
+
         this.#panCanvasOnMouseMove = false;
 
         if (!this.#enabled) return;
@@ -672,8 +683,9 @@ export default class TileEditor extends ComponentBase {
  * @property {string?} cursor - Cursor to use when the mouse hovers over the image editor.
  * @property {number?} [viewportPanHorizontal] - Pan the viewport horizontally.
  * @property {number?} [viewportPanVertical] - Pan the viewport vertically.
- * @property {ReferenceImage?} referenceImage - Reference image to draw.
- * @property {number?} transparencyIndex - 0 to 15 of which colour index to make transparent.
+ * @property {ReferenceImage?} [referenceImage] - Reference image to draw.
+ * @property {string?} [referenceImageDrawMode] - Draw mode for the reference image.
+ * @property {number[]?} [transparencyIndicies] - Palette indicies that should be rendered as transparent.
  * @property {number?} [lockedPaletteSlotIndex] - When not null, the palette slot index specified here will be repeated from palette 0 across all palettes.
  * @property {boolean?} showTileGrid - Should the tile grid be drawn?
  * @property {boolean?} showPixelGrid - Should the pixel grid be drawn?
@@ -681,7 +693,6 @@ export default class TileEditor extends ComponentBase {
  * @property {number?} focusedTile - Will ensure that this tile is shown on the screen.
  * @property {number[]?} updatedTiles - When passing updated tiles, the entire image will not be updated and instead only these tiles will be updated.
  * @property {string[]?} [updatedTileIds] - Array of unique tile IDs that were updated.
- * @property {string?} theme - Name of the theme being used.
  * @property {string?} [canvasHighlightMode] - The highlight mode that the canvas should use.
  * @property {string|Tile|TileGridProvider|null} [tileStampPreview] - Either a tile ID, individual tile object or tile grid object with the tile stamp preview.
  * @property {import("../models/tileGridProvider.js").TileGridRegion} [selectedRegion] - Selected region to highlight.

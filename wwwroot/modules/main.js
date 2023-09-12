@@ -66,6 +66,7 @@ import KeyboardManager, { KeyDownHandler, KeyUpHandler } from "./components/keyb
 import TileImageManager from "./components/tileImageManager.js";
 import ProjectList from "./models/projectList.js";
 import TileMapUtil from "./util/tileMapUtil.js";
+import SystemUtil from "./util/systemUtil.js";
 
 
 /* ****************************************************************************************************
@@ -123,6 +124,8 @@ const instanceState = {
     sessionId: GeneralUtil.generateRandomString(32),
     /** @type {ReferenceImage} */
     referenceImage: null,
+    /** @type {number} */
+    referenceImageTransparencyIndex: 0,
     /** @type {HTMLImageElement} */
     referenceImageOriginal: null,
     /** @type {DOMRect} */
@@ -1971,16 +1974,15 @@ function createEmptyProject(args) {
 
     const title = args?.title ?? 'New project';
     const systemType = args?.systemType ?? 'smsgg';
-    const defaultTileColourIndex = systemType === 'smsgg' ? 15 : 3;
+    const defaultTileColourIndex = 0;
     const project = ProjectFactory.create({ title: title, systemType: systemType });
 
     // Create a default tile set
-    project.tileSet = TileSetFactory.create();
-    project.tileSet.tileWidth = 8;
-    const numTiles = args.createTileMap ? args.tileWidth * args.tileHeight : 64;
-    for (let i = 0; i < numTiles; i++) {
-        project.tileSet.addTile(TileFactory.create({ defaultColourIndex: defaultTileColourIndex }));
-    }
+    project.tileSet = TileSetFactory.create({
+        tileWidth: args.tileWidth ?? 8,
+        numberOfTiles: args.createTileMap ? args.tileWidth * args.tileHeight : 64,
+        defaultColourIndex: defaultTileColourIndex
+    });
 
     // Create a default palette 
     project.paletteList = PaletteListFactory.create();
@@ -2301,7 +2303,7 @@ function refreshProjectUI() {
         tileGrid: getTileGrid(),
         tilesPerBlock: getTilesPerBlock(),
         displayNative: getUIState().displayNativeColour,
-        transparencyIndex: tileMapAttributes.transparencyIndex,
+        transparencyIndicies: getTransparencyIndicies(),
         lockedPaletteSlotIndex: tileMapAttributes.lockedIndex,
         selectedTileIndex: instanceState.tileIndex,
         cursorSize: instanceState.pencilSize,
@@ -3253,13 +3255,13 @@ function selectReferenceImage() {
         instanceState.referenceImage.setImage(resizedImg);
         instanceState.referenceImage.setBounds(0, 0, drawDimensions.width, drawDimensions.height);
 
-
         tileContextToolbar.setState({
             referenceBounds: instanceState.referenceImage.getBounds(),
             referenceTransparency: instanceState.transparencyIndex
         });
         tileEditor.setState({
-            referenceImage: instanceState.referenceImage
+            referenceImage: instanceState.referenceImage,
+            transparencyIndicies: getTransparencyIndicies()
         });
     };
     fileInput.click();
@@ -3274,7 +3276,8 @@ function clearReferenceImage() {
         referenceBounds: instanceState.referenceImage.getBounds()
     });
     tileEditor.setState({
-        referenceImage: instanceState.referenceImage
+        referenceImage: instanceState.referenceImage,
+        transparencyIndicies: getTransparencyIndicies()
     });
 
     toast.show('Reference image cleared.');
@@ -3290,16 +3293,18 @@ function updateReferenceImage(bounds, transparencyIndex) {
         instanceState.referenceImage = new ReferenceImage();
     }
     instanceState.referenceImage.setBounds(bounds.x, bounds.y, bounds.width, bounds.height);
+    instanceState.referenceImageTransparencyIndex = transparencyIndex;
 
     const refImage = instanceState.referenceImage;
 
     tileEditor.setState({
         referenceImage: refImage,
-        transparencyIndex: transparencyIndex
+        referenceImageDrawMode: (transparencyIndex === -2) ? 'overlay' : (transparencyIndex === -1) ? 'underlay' : 'overIndex',
+        transparencyIndicies: getTransparencyIndicies()
     });
     tileContextToolbar.setState({
         referenceBounds: refImage.getBounds(),
-        referenceTransparency: refImage.transparencyIndex
+        referenceTransparency: instanceState.referenceImageTransparencyIndex
     });
 }
 
@@ -4575,7 +4580,7 @@ function updateTileMap(tileMapId, args) {
         selectedTileIndex: -1,
         tileGrid: getTileGrid(),
         tileSet: getTileSet(),
-        transparencyIndex: tileMapAttributes.transparencyIndex,
+        transparencyIndicies: getTransparencyIndicies(),
         lockedPaletteSlotIndex: tileMapAttributes.lockedIndex,
         forceRefresh: true
     });
@@ -4837,6 +4842,21 @@ function changePaletteIndex(index) {
     refreshProjectUI();
 }
 
+function getTransparencyIndicies() {
+    const capabilities = SystemUtil.getSystemCapabilities(getProject().systemType);
+    const result = [];
+    if (instanceState.referenceImage?.hasImage() && instanceState.referenceImageTransparencyIndex >= 0) {
+        result.push(instanceState.referenceImageTransparencyIndex);
+    }
+    if (isTileMap()) {
+        const capability = getTileMap()?.isSprite ? capabilities.sprite : capabilities.tileMap;
+        if (capability.transparencyIndex !== null) {
+            result.push(capability.transparencyIndex);
+        }
+    }
+    return result.sort();
+}
+
 /**
  * Selects a given colour by index.
  * @param {number} index - Colour index, 0 to 15.
@@ -5041,7 +5061,7 @@ window.addEventListener('load', async () => {
 
     tileContextToolbar.setState({
         rowColumnMode: instanceState.rowColumnMode,
-        referenceTransparency: 15,
+        referenceTransparency: instanceState.referenceImageTransparencyIndex,
         referenceLockAspect: instanceState.referenceImageLockAspect
     });
 

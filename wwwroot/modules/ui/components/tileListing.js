@@ -151,7 +151,7 @@ export default class TileListing extends ComponentBase {
             const context = canvas.getContext('2d');
             context.imageSmoothingEnabled = false;
 
-            const tileCanvas = this.#tileImageManager.getTileImage(tile, palette, null);
+            const tileCanvas = this.#tileImageManager.getTileImage(tile, palette, []);
             context.drawImage(tileCanvas, 0, 0, 32, 32);
         });
     }

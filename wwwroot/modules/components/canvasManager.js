@@ -26,6 +26,12 @@ const highlightModes = {
     columnBlockIndex: 'columnBlockIndex'
 }
 
+const referenceImageDrawMode = {
+    overIndex: 'overIndex',
+    overlay: 'overlay',
+    underlay: 'underlay'
+};
+
 
 /**
  * The CanvasManager class renders a tile grid onto a HTMLCanvasElement, as well as other features
@@ -176,13 +182,19 @@ export default class CanvasManager {
     }
 
     /**
-     * Gets or sets the colour index for transparency, 0 to 15, -1 for none.
+     * Gets or sets the palette indicies for transparency.
      */
-    get transparencyIndex() {
-        return this.#transparencyIndex;
+    get transparencyIndicies() {
+        return this.#transparencyIndicies.slice();
     }
-    set transparencyIndex(value) {
-        this.#transparencyIndex = value;
+    set transparencyIndicies(value) {
+        if (Array.isArray(value)) {
+            this.#transparencyIndicies = value.filter((v) => typeof v === 'number');
+        } else if (typeof value === 'number') {
+            this.#transparencyIndicies = [value];
+        } else {
+            this.#transparencyIndicies = [];
+        }
     }
 
     /**
@@ -265,6 +277,30 @@ export default class CanvasManager {
         this.#tileGridOpacity = value;
     }
 
+    /**
+     * Gets or sets the opacity of transparency grid.
+     */
+    get transparencyGridOpacity() {
+        return this.#transparencyGridOpacity;
+    }
+    set transparencyGridOpacity(value) {
+        if (value !== this.#transparencyGridOpacity) {
+            this.#transparencyGridOpacity = value;
+            this.#refreshTileImage();
+            createGridPatternCanvas(this.scale, value);
+        }
+    }
+
+    /**
+     * Gets or sets the draw mode for the reference image.
+     */
+    get referenceImageDrawMode() {
+        return this.#referenceImageDrawMode;
+    }
+    set referenceImageDrawMode(value) {
+        this.#referenceImageDrawMode = value;
+    }
+
 
     /** @type {HTMLCanvasElement} */
     #tileCanvas;
@@ -295,13 +331,16 @@ export default class CanvasManager {
     /** @type {import("../models/tileGridProvider.js").TileGridRegion?} */
     #selectedRegion = null;
     #cursorSize = 1;
-    #transparencyIndex = 15;
+    /** @type {number[]} */
+    #transparencyIndicies = [];
     /** @type {number?} */
     #lockedPaletteSlotIndex = null;
     #drawTileGrid = false;
     #drawPixelGrid = false;
     /** @type {ReferenceImage[]} */
     #referenceImages = [];
+    /** @type {string} */
+    #referenceImageDrawMode = referenceImageDrawMode.overIndex;
     /** @type {number[]} */
     #redrawTiles = [];
     #offsetX = 0;
@@ -311,6 +350,7 @@ export default class CanvasManager {
     #pixelGridOpacity = 0.2;
     #tileGridColour = '#000000';
     #tileGridOpacity = 0.4;
+    #transparencyGridOpacity = 0.25;
     #highlightMode = CanvasManager.HighlightModes.pixel;
 
 
@@ -619,16 +659,18 @@ export default class CanvasManager {
      * Refreshes the entire tile image.
      */
     #refreshTileImage() {
-        this.#gridPatternCanvas = createGridPatternCanvas(this.scale);
-        this.#drawTileImage(this.#tileCanvas, this.#transparencyIndex);
+        this.#gridPatternCanvas = createGridPatternCanvas(this.scale, this.transparencyGridOpacity);
+        if (this.tileGrid) {
+            this.#drawTileImage(this.#tileCanvas, this.#transparencyIndicies);
+        }
     }
 
     /**
      * Draws the tile image onto a canvas element.
      * @param {HTMLCanvasElement} tileCanvas - Canvas element to draw onto.
-     * @param {number} transparencyColour - Render this colour as transparent.
+     * @param {number[]} transparencyIndicies - Render this colour as transparent.
      */
-    #drawTileImage(tileCanvas, transparencyColour) {
+    #drawTileImage(tileCanvas, transparencyIndicies) {
         if (!this.tileGrid) throw new Error('drawTileImage: No tile grid.');
         if (!this.tileSet) throw new Error('drawTileImage: No tile set.');
         if (!this.paletteList) throw new Error('drawTileImage: No palette list.');
@@ -644,7 +686,7 @@ export default class CanvasManager {
         tileCanvas.height = rows * 8 * pxSize;
 
         for (let tileIndex = 0; tileIndex < this.tileGrid.tileCount; tileIndex++) {
-            this.#drawTile(context, tileIndex, transparencyColour);
+            this.#drawTile(context, tileIndex, transparencyIndicies);
         }
     }
 
@@ -652,32 +694,31 @@ export default class CanvasManager {
      * Refreshes a single tile on the tile image.
      */
     #refreshSingleTile(tileIndex) {
-        const transColour = this.#referenceImages.filter(r => r.image !== null).length > 0 ? this.#transparencyIndex : -1;
-        this.#drawIndividualTile(this.#tileCanvas, tileIndex, transColour);
+        this.#drawIndividualTile(this.#tileCanvas, tileIndex, this.#transparencyIndicies);
     }
 
     /**
      * Updates a single tile on the main tile canvas.
      * @param {HTMLCanvasElement} canvas - Canvas element to draw onto.
      * @param {number} tileIndex - Index of the tile to update on the tile image.
-     * @param {number} transparencyColour - Render this colour as transparent.
+     * @param {number[]} transparencyIndicies - Render this colour as transparent.
      */
-    #drawIndividualTile(canvas, tileIndex, transparencyColour) {
+    #drawIndividualTile(canvas, tileIndex, transparencyIndicies) {
         if (!this.tileGrid) throw new Error('drawTileImage: No tile grid.');
         if (!this.tileSet) throw new Error('drawTileImage: No tile set.');
         if (!this.paletteList) throw new Error('drawTileImage: No palette list.');
 
         const context = canvas.getContext('2d');
-        this.#drawTile(context, tileIndex, transparencyColour);
+        this.#drawTile(context, tileIndex, transparencyIndicies);
     }
 
     /**
      * 
      * @param {CanvasRenderingContext2D} context 
      * @param {number} tileindex 
-     * @param {number} transparencyColour 
+     * @param {number} transparencyIndicies 
      */
-    #drawTile(context, tileindex, transparencyColour) {
+    #drawTile(context, tileindex, transparencyIndicies) {
         this.#buildRenderPaletteList();
 
         const pxSize = this.scale;
@@ -690,14 +731,16 @@ export default class CanvasManager {
 
         context.imageSmoothingEnabled = false;
 
-        if (!tile || transparencyColour >= 0) {
+        if (!tile || transparencyIndicies >= 0) {
             // Draw in transparency pixel mesh when the tile doesn't exist
             const originX = (tileGridCol * 8) * pxSize;
             const originY = (tileGridRow * 8) * pxSize;
+            const sizeXY = pxSize * 8;
+            context.clearRect(originX, originY, sizeXY, sizeXY);
             context.drawImage(this.#gridPatternCanvas, originX, originY);
         }
         if (tile) {
-            const tileCanvas = this.#tileImageManager.getTileImage(tile, palette, transparencyColour);
+            const tileCanvas = this.#tileImageManager.getTileImage(tile, palette, transparencyIndicies);
 
             // Tile exists 
             const x = tileGridCol * 8 * pxSize;
@@ -829,7 +872,9 @@ export default class CanvasManager {
         } : null;
 
         // Draw the reference image below
-        if (this.transparencyIndex >= 0 && this.transparencyIndex < 16) {
+        if (this.referenceImageDrawMode === referenceImageDrawMode.underlay) {
+            this.#drawReferenceImages(context, coords);
+        } else if (this.referenceImageDrawMode === referenceImageDrawMode.overIndex && this.transparencyIndicies.length > 0) {
             this.#drawReferenceImages(context, coords);
         }
 
@@ -856,7 +901,7 @@ export default class CanvasManager {
         context.moveTo(0, 0);
 
         // If drawing reference images above
-        if (this.transparencyIndex === -1) {
+        if (this.referenceImageDrawMode === referenceImageDrawMode.overlay) {
             this.#drawReferenceImages(context, coords);
         }
 
@@ -1137,7 +1182,7 @@ export default class CanvasManager {
             }
             // Redraw
             if (redraw) {
-                drawTileImage(this.#tilePreviewMap, this.tileSet, this.paletteList, this.#tilePreviewCanvas, this.transparencyIndex, this.scale);
+                drawTileImage(this.#tilePreviewMap, this.tileSet, this.paletteList, this.#tilePreviewCanvas, this.transparencyIndicies, this.scale);
             }
             // Place the preview image
             const tileX = 8 * coords.tile.col * coords.pxSize;
@@ -1339,9 +1384,9 @@ function isInBounds(tileGrid, row, column) {
  * @param {number} scale 
  * @returns {CanvasPattern}
  */
-function createGridPatternCanvas(scale) {
-    const gridColour1 = 'rgba(255,255,255,0.15)';
-    const gridColour2 = 'rgba(0,0,0,0.25)';
+function createGridPatternCanvas(scale, opacity) {
+    const gridColour1 = `rgba(255,255,255,${opacity})`;
+    const gridColour2 = `rgba(0,0,0,${opacity})`;
     const gridSizePx = 2;
     const gridCanvas = document.createElement('canvas');
     const gridCtx = gridCanvas.getContext('2d');

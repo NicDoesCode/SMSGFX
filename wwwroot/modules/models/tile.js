@@ -61,7 +61,7 @@ export default class Tile {
         }
 
         if (typeof alwaysKeep === 'boolean') {
-            this.alwaysKeep = tileId;
+            this.alwaysKeep = alwaysKeep;
         } else {
             this.alwaysKeep = false;
         }

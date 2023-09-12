@@ -24,14 +24,10 @@ export default class TileImageManager {
      * Gets the image for the tile.
      * @param {Tile} tile - Tile that we get the image for.
      * @param {Palette} palette - Colour palette to use.
-     * @param {number?} transparencyColour 
+     * @param {number[]} transparencyIndicies - Palette indicies to render as transparent.
      * @returns {HTMLCanvasElement}
      */
-    getTileImage(tile, palette, transparencyColour) {
-        if (typeof transparencyColour !== 'number' || transparencyColour < 0 || transparencyColour >= 16) {
-            transparencyColour = -1;
-        }
-
+    getTileImage(tile, palette, transparencyIndicies) {
         let tileRec = this.#tileCanvases[tile.tileId];
         if (!tileRec) {
             tileRec = {};
@@ -44,10 +40,10 @@ export default class TileImageManager {
             this.#tileCanvases[tile.tileId][palette.paletteId] = paletteRec;
         }
 
-        let transId = `${transparencyColour}`;
+        let transId = `${transparencyIndicies.join('|')}`;
         let transRec = paletteRec[transId]
         if (!transRec) {
-            transRec = PaintUtil.createTileCanvas(tile, palette, transparencyColour);
+            transRec = PaintUtil.createTileCanvas(tile, palette, transparencyIndicies);
             this.#tileCanvases[tile.tileId][palette.paletteId][transId] = transRec;
         }
 
