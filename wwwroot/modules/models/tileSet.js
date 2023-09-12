@@ -8,7 +8,7 @@ export default class TileSet extends TileGridProvider {
 
 
     // BEGIN: TileGridProvider implementation
-    
+
     get isTileSet() {
         return true;
     }
@@ -146,13 +146,29 @@ export default class TileSet extends TileGridProvider {
 
 
     /**
-     * Gets a tile from the tile map.
-     * @param {number} index Index in the tile map of the tile to get.
-     * @returns {Tile} Tile found at the given index.
+     * Gets a tile from the tile map, throws an exception if index out of range.
+     * @param {number} index - Index in the tile map of the tile to get.
+     * @throws Index out of range.
+     * @returns {Tile} 
      */
     getTile(index) {
-        if (index < 0 || index > this.#tiles.length) throw new Error(`getTile: Index must be between 0 and tile map count, tiles: ${this.#tiles.length}, index: ${index}.`);
+        if (index < 0 || index > this.#tiles.length) {
+            throw new Error(`getTile: Index must be between 0 and tile map count, tiles: ${this.#tiles.length}, index: ${index}.`);
+        }
         return this.#tiles[index];
+    }
+
+    /**
+     * Gets a tile from the tile map based on index, returns null if index out of range.
+     * @param {number} index - Index in the tile map of the tile to get.
+     * @returns {Tile?}
+     */
+    getTileByIndex(index) {
+        if (index >= 0 && index < this.#tiles.length) {
+            return this.#tiles[index];
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -166,7 +182,7 @@ export default class TileSet extends TileGridProvider {
     /**
      * Gets an item by ID.
      * @param {string} tileId - Unique tile ID.
-     * @returns {Tile|null}
+     * @returns {Tile?}
      */
     getTileById(tileId) {
         if (this.containsTileById(tileId)) {
