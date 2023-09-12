@@ -8,6 +8,7 @@ import GameBoyTileSetBinarySerialiser from "./gameBoyTileSetBinarySerialiser.js"
 import GameBoyTileMapTileBinarySerialiser from "./gameBoyTileMapTileBinarySerialiser.js";
 import TileMapListFactory from "../../factory/tileMapListFactory.js";
 import TileMapFactory from "../../factory/tileMapFactory.js";
+import SystemUtil from "../../util/systemUtil.js";
 
 export default class GameBoyAssemblySerialiser extends ProjectAssemblySerialiser {
 
@@ -35,7 +36,8 @@ export default class GameBoyAssemblySerialiser extends ProjectAssemblySerialiser
             });
         }
 
-        const bundle = TileMapUtil.createOptimisedBundle(tileMapList, project.tileSet, project.paletteList);
+        const capabilities = SystemUtil.getSystemCapabilities(project.systemType);
+        const bundle = TileMapUtil.createOptimisedBundle(tileMapList, project.tileSet, project.paletteList, capabilities);
 
         const result = ['; NINTENDO GAME BOY ASSEMBLY FOR WLA-DX'];
         result.push('');

@@ -7,10 +7,22 @@ export default class TileSetFactory {
 
     /**
      * Creates a new instance of a tile set object.
+     * @param {TileSetFactoryCreateArgs} [args] - Arguments for tile set creation.
      * @returns {TileSet}
      */
-    static create() {
-        return new TileSet();
+    static create(args) {
+        const result = new TileSet();
+
+        if (typeof args?.tileWidth === 'number') {
+            result.tileWidth = args.tileWidth;
+        }
+
+        if (args?.tiles) {
+            if (Array.isArray(args.tiles)) args.tiles.forEach((tile) => result.addTile(tile));
+            if (args.tiles instanceof TileSet) args.tiles.getTiles().forEach((tile) => result.addTile(tile));
+        }
+
+        return result;
     }
 
     /**
@@ -49,7 +61,7 @@ export default class TileSetFactory {
      * @returns {TileSet}
      */
     static clone(sourceTileSet) {
-        if (!sourceTileSet instanceof TileSet) 
+        if (!sourceTileSet instanceof TileSet)
             throw new Error('Clone source was not a tile set.');
 
         const json = TileSetJsonSerialiser.serialise(sourceTileSet);
@@ -59,3 +71,10 @@ export default class TileSetFactory {
 
 
 }
+/**
+ * Arguments for creating a tile set.
+ * @typedef {Object} TileSetFactoryCreateArgs
+ * @property {number?} [tileWidth] - Display tile width.
+ * @property {Tile[]|TileSet|null} [tiles] - List of tiles to be added, or tile set containing the tiles.
+ * @exports
+ */

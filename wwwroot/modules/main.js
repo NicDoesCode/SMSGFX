@@ -677,7 +677,7 @@ function createEventListeners() {
                 }
                 break;
             case keyboardCommands.toolSelect:
-                selectTool(isTileSet() ? TileEditorToolbar.Tools.select : TileEditorToolbar.Tools.tileMapTileAttributes);
+                selectTool(isTileSet() ? TileEditorToolbar.Tools.select : TileEditorToolbar.Tools.tileMapTileMapTileAttributes);
                 break;
             case keyboardCommands.toolPencil:
                 selectTool(TileEditorToolbar.Tools.pencil);
@@ -2339,9 +2339,6 @@ function refreshProjectUI() {
     if (isTileMap() && instanceState.tool === TileEditorToolbar.Tools.bucket) {
         instanceState.clampToTile = true;
         disabledCommands.push(TileContextToolbar.Commands.tileClamp);
-    }
-    if (isTileMap() && getProject().systemType === 'gb') {
-        disabledCommands.push(TileContextToolbar.Commands.tileMapTileAttributes);
     }
     tileContextToolbar.setState({
         disabledCommands: disabledCommands,

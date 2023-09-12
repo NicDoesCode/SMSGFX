@@ -9,6 +9,7 @@ import SmsggTileMapTileBinarySerialiser from "./smsggTileMapTileBinarySerialiser
 import TileMapList from "../../models/tileMapList.js";
 import TileMapListFactory from "../../factory/tileMapListFactory.js";
 import TileMapFactory from "../../factory/tileMapFactory.js";
+import SystemUtil from "../../util/systemUtil.js";
 
 export default class SmsggAssemblySerialiser extends ProjectAssemblySerialiser {
 
@@ -36,7 +37,8 @@ export default class SmsggAssemblySerialiser extends ProjectAssemblySerialiser {
             });
         }
 
-        const bundle = TileMapUtil.createOptimisedBundle(tileMapList, project.tileSet, project.paletteList);
+        const capabilities = SystemUtil.getSystemCapabilities(project.systemType);
+        const bundle = TileMapUtil.createOptimisedBundle(tileMapList, project.tileSet, project.paletteList, capabilities);
 
         const result = ['; SEGA MASTER SYSTEM AND SEGA GAME GEAR ASSEMBLY FOR WLA-DX'];
         result.push('');
