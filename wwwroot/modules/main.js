@@ -2337,9 +2337,6 @@ function refreshProjectUI() {
         instanceState.clampToTile = true;
         disabledCommands.push(TileContextToolbar.Commands.tileClamp);
     }
-    if (isTileMap() && getProject().systemType === 'gb') {
-        disabledCommands.push(TileContextToolbar.Commands.tileAttributes);
-    }
     tileContextToolbar.setState({
         disabledCommands: disabledCommands,
         clampToTile: instanceState.clampToTile,
