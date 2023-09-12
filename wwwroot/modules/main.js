@@ -677,7 +677,7 @@ function createEventListeners() {
                 }
                 break;
             case keyboardCommands.toolSelect:
-                selectTool(isTileSet() ? TileEditorToolbar.Tools.select : TileEditorToolbar.Tools.tileMapTileAttributes);
+                selectTool(isTileSet() ? TileEditorToolbar.Tools.select : TileEditorToolbar.Tools.tileMapTileMapTileAttributes);
                 break;
             case keyboardCommands.toolPencil:
                 selectTool(TileEditorToolbar.Tools.pencil);
