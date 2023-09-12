@@ -143,6 +143,15 @@
                 </button>
             </div>
         </div>
+        <div data-toolstrip="select" class="col-auto sms-toolstrip m-0 me-2 p-0">
+            <div class="input-group input-group-sm p-0 m-0">
+                <button class="sms-toolstrip-button btn btn-sm btn-outline-secondary btn-ui"
+                    title="When checked, the tile will be preserved through any tile set optimisation phase." data-command="tileSetTileAttributes" data-field="alwaysKeep"
+                    data-auto-event="click">
+                    <i class="bi bi-pin-angle-fill"></i> Always keep
+                </button>
+            </div>
+        </div>
         <!-- End: Select toolstrip -->
         <!-- Reference image toolstrip -->
         <div data-toolstrip="referenceImage" class="col-auto sms-toolstrip m-0 me-2 p-0">
@@ -325,39 +334,51 @@
             <p class="p-0 m-0"><small>Click a tile to break it's link and promote it to a new tile.</small></p>
         </div>
         <!-- End: Tile stamp toolstrip -->
-        <!-- Tile attributes toolstrip -->
-        <div data-toolstrip="tileAttributes" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <!-- Tile map tile attributes toolstrip -->
+        <div data-toolstrip="tileMapTileAttributes" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm">
                 <span class="input-group-text"><strong>Tile attributes</strong></span>
             </div>
         </div>
-        <div data-toolstrip="tileAttributes" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-toolstrip="tileMapTileAttributes" data-system-type="smsgg" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <span class="input-group-text">Mirror</span>
                 <button class="sms-toolstrip-button btn btn-outline-secondary btn-ui"
-                    title="Sets or reverts the mirror horizontal flag." data-command="tileAttributes"
+                    title="Sets or reverts the mirror horizontal flag." data-command="tileMapTileAttributes"
                     data-field="horizontalFlip" data-auto-event="click">
                     <i class="bi bi-vr"></i>
                 </button>
                 <button class="sms-toolstrip-button btn btn-outline-secondary btn-ui"
-                    title="Sets or reverts the mirror vertical flag." data-command="tileAttributes"
+                    title="Sets or reverts the mirror vertical flag." data-command="tileMapTileAttributes"
                     data-field="verticalFlip" data-auto-event="click">
                     <i class="bi bi-hr"></i>
                 </button>
             </div>
         </div>
-        <div data-toolstrip="tileAttributes" data-system-type="smsgg" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-toolstrip="tileMapTileAttributes" data-system-type="smsgg" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <button class="sms-toolstrip-button btn btn-sm btn-outline-secondary btn-ui"
-                    title="Sets the render priority of the tile." data-command="tileAttributes" data-field="priority"
+                    title="Sets the render priority of the tile." data-command="tileMapTileAttributes" data-field="priority"
                     data-auto-event="click">
                     <i class="bi bi-layers-fill"></i> Priority
                 </button>
             </div>
         </div>
-        <div data-toolstrip="tileAttributes" data-system-type="smsgg,nes" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-toolstrip="tileMapTileAttributes" data-system-type="smsgg,nes" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div data-smsgfx-id="tileAttributePaletteSlot" class="input-group input-group-sm">
                 <span class="input-group-text">Palette slot</span>
+            </div>
+        </div>
+        <div data-toolstrip="tileMapTileAttributes" data-system-type="gb" class="col-auto sms-toolstrip m-0 me-2 p-0">
+            <p class="p-0 m-0"><small>DMG Game Boy does not support tile attributes.</small></p>
+        </div>
+        <div data-toolstrip="tileMapTileAttributes" class="col-auto sms-toolstrip m-0 me-2 p-0">
+            <div class="input-group input-group-sm p-0 m-0">
+                <button class="sms-toolstrip-button btn btn-sm btn-outline-secondary btn-ui"
+                    title="When checked, the underlying tile will be preserved through any tile set optimisation phase." data-command="tileMapTileAttributes" data-field="alwaysKeep"
+                    data-auto-event="click">
+                    <i class="bi bi-pin-angle-fill"></i> Always keep tile
+                </button>
             </div>
         </div>
         <!-- End: Tile attributes toolstrip -->
