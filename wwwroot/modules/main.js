@@ -4940,7 +4940,34 @@ function resizeToolbox(toolboxElement) {
 
 Engine.init();
 
+function LoadingScreenManager() {
+
+    const appStartTime = Date.now();
+    const loadingContainer = document.querySelector('.sms-loading');
+    const appContainer = document.querySelector('.sms-application');
+
+    // Fade in the loading screen
+    loadingContainer.style.opacity = '1';
+
+    // Hide the loading screen and show the main content
+    this.switchToApp = (minimumTimeout) => {
+        const timeSinceLaunch = Date.now() - appStartTime;
+        const waitTime = Math.max(10, minimumTimeout - timeSinceLaunch);
+        setTimeout(() => {
+            loadingContainer.style.opacity = '0';
+            appContainer.addEventListener('transitionend', (ev) => {
+                if (ev.target === appContainer) {
+                    loadingContainer.remove();
+                }
+            });
+            appContainer.style.opacity = '1';
+        }, waitTime);
+    }
+}
+
 window.addEventListener('load', async () => {
+
+    const loadingScreenManager = new LoadingScreenManager();
 
     instanceState.tool = 'pencil';
     instanceState.colourToolboxTab = 'rgb';
@@ -5076,18 +5103,6 @@ window.addEventListener('load', async () => {
             }
         }
 
-        // Hide the loading screen and show the main content
-        setTimeout(() => {
-            const loadingContainer = document.querySelector('.sms-loading');
-            loadingContainer.style.opacity = '0';
-
-            const appContainer = document.querySelector('.sms-application');
-            appContainer.addEventListener('transitionend', (ev) => {
-                if (ev.target === appContainer) {
-                    loadingContainer.remove();
-                }
-            });
-            appContainer.style.opacity = '1';
-        }, 250);
+        loadingScreenManager.switchToApp(1500);
     });
 });
