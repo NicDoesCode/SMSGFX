@@ -8,6 +8,8 @@ import TileSet from "./../models/tileSet.js";
 import TileListing from "./components/tileListing.js";
 import TileMapListing from "./components/tileMapListing.js";
 import TileImageManager from "../components/tileImageManager.js";
+import PaletteUtil from "../util/paletteUtil.js";
+import PaletteFactory from "../factory/paletteFactory.js";
 
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
@@ -84,6 +86,10 @@ export default class TileManager extends ComponentBase {
     #selectedTileMapId = null;
     /** @type {PaletteList?} */
     #paletteList = null;
+    /** @type {PaletteList?} */
+    #renderPaletteList = null;
+    /** @type {boolean} */
+    #displayNative = false;
 
 
     /**
@@ -149,6 +155,7 @@ export default class TileManager extends ComponentBase {
         let tileMapListingDirty = false;
         let tileListDirty = false;
         let paletteSlotsDirty = false;
+        let updateRenderPalette = false;
         let updatedTileIds = null;
 
         if (state?.tileImageManager === null || state.tileImageManager instanceof TileImageManager) {
@@ -204,10 +211,26 @@ export default class TileManager extends ComponentBase {
 
         if (state?.paletteList instanceof PaletteList) {
             this.#paletteList = state.paletteList;
+            updateRenderPalette = true;
             paletteSlotsDirty = true;
         } else if (state?.paletteList === null) {
             this.#paletteList = null;
+            updateRenderPalette = true;
             paletteSlotsDirty = true;
+        }
+
+        if (typeof state?.displayNative === 'boolean' || state?.displayNative === null) {
+            updateRenderPalette = true;
+            this.#displayNative = state?.displayNative ?? false;
+            paletteSlotsDirty = true;
+        }
+
+        if (updateRenderPalette) {
+            if (this.#paletteList) {
+                this.#renderPaletteList = PaletteUtil.clonePaletteListWithNativeColours(this.#paletteList);
+            } else {
+                this.#renderPaletteList = null;
+            }
         }
 
         if (tileMapListingDirty) {
@@ -368,7 +391,7 @@ export default class TileManager extends ComponentBase {
 
 
     #populatePaletteSelectors() {
-        const paletteList = this.#paletteList;
+        const paletteList = this.#renderPaletteList;
         const numberOfPaletteSlots = this.#numberOfPaletteSlots;
         const tileMap = this.#tileMapList.getTileMapById(this.#selectedTileMapId);
 
@@ -408,30 +431,36 @@ export default class TileManager extends ComponentBase {
     }
 
     #populatePaletteColours() {
-        const paletteList = this.#paletteList;
+        const paletteList = this.#renderPaletteList;
         const tileMap = this.#tileMapList.getTileMapById(this.#selectedTileMapId);
 
         // Build a list of palettes based on whats selected for the tile map
-        const renderPalettes = tileMap.getPalettes().map((paletteId) => {
+        /** @type {Palette[]} */
+        const renderPalettes = new Array(this.#numberOfPaletteSlots);
+        for (let i = 0; i < this.#numberOfPaletteSlots; i++) {
+            const paletteId = tileMap.getPalette(i);
             const palette = paletteList.getPaletteById(paletteId);
-            const colours = [];
-            for (let i = 0; i < palette.getColours().length; i++) {
-                const colour = palette.getColour(i);
-                colours.push({ title: palette.title, r: colour.r, g: colour.g, b: colour.b});
+            if (paletteId && palette) {
+                renderPalettes[i] = PaletteFactory.clone(palette);
+            } else {
+                renderPalettes[i] = null;
             }
-            return colours;
-        });
+        }
 
         // If there is a locked colour, then take the locked colour index from the first palette and
         // apply that colour to all other colours
-        if (this.#lockedPaletteSlotIndex !== null && this.#lockedPaletteSlotIndex >= 0 && this.#lockedPaletteSlotIndex < paletteList.getPalette(0).getColours().length) {
-            const firstPalette = renderPalettes[0];
-            const lockedColour = firstPalette[this.#lockedPaletteSlotIndex];
-            for (let i = 1; i < renderPalettes.length; i++) {
-                const slot = renderPalettes[i][this.#lockedPaletteSlotIndex];
-                slot.r = lockedColour.r;
-                slot.g = lockedColour.g;
-                slot.b = lockedColour.b;
+        const firstPalette = renderPalettes[0];
+        if (firstPalette && this.#lockedPaletteSlotIndex !== null) {
+            if (this.#lockedPaletteSlotIndex >= 0 && this.#lockedPaletteSlotIndex < firstPalette.getColours().length) {
+                const lockedColour = firstPalette.getColour(this.#lockedPaletteSlotIndex);
+                renderPalettes.forEach((p, idx) => {
+                    if (p && idx > 0) {
+                        const colour = p.getColour(this.#lockedPaletteSlotIndex);
+                        colour.r = lockedColour.r;
+                        colour.g = lockedColour.g;
+                        colour.b = lockedColour.b;
+                    }
+                });
             }
         }
 
@@ -445,12 +474,14 @@ export default class TileManager extends ComponentBase {
             while (colourElm.hasChildNodes()) {
                 colourElm.firstChild.remove();
             }
-            
-            palette.forEach((colour) => {
-                const colourSampleElm = document.createElement('div');
-                colourSampleElm.style.backgroundColor = `rgb(${colour.r}, ${colour.g}, ${colour.b})`;
-                colourElm.appendChild(colourSampleElm);
-            });
+
+            if (palette) {
+                palette.getColours().forEach((colour) => {
+                    const colourSampleElm = document.createElement('div');
+                    colourSampleElm.style.backgroundColor = `rgb(${colour.r}, ${colour.g}, ${colour.b})`;
+                    colourElm.appendChild(colourSampleElm);
+                });
+            }
         });
     }
 
@@ -536,6 +567,7 @@ export default class TileManager extends ComponentBase {
  * @property {TileSet?} [tileSet] - Tile set to be displayed.
  * @property {Palette?} [palette] - Palette to use to render the tiles.
  * @property {PaletteList?} [paletteList] - Available palettes for the palette slots.
+ * @property {boolean?} [displayNative] - Should the palettes be displayed in native colours?
  * @property {string?} [selectedTileMapId] - Unique ID of the selected tile map.
  * @property {string?} [selectedTileId] - Unique ID of the selected tile.
  * @property {string[]?} [updatedTileIds] - Array of unique tile IDs that were updated.

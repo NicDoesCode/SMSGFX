@@ -1758,15 +1758,18 @@ function changeColourIndex(paletteIndex, colourIndex, colour) {
     tileImageManager.clearByPalette(palette.paletteId);
 
     paletteEditor.setState({
-        paletteList: getPaletteList()
+        paletteList: getPaletteList(),
+        displayNative: getUIState().displayNativeColour
     });
     tileManager.setState({
         paletteList: getTileEditorPaletteList(),
-        tileSet: getTileSet()
+        tileSet: getTileSet(),
+        displayNative: getUIState().displayNativeColour
     });
     tileEditor.setState({
         palette: getPalette(),
         paletteList: getTileEditorPaletteList(),
+        displayNative: getUIState().displayNativeColour,
         forceRefresh: true
     });
 }
@@ -2315,7 +2318,8 @@ function refreshProjectUI() {
         selectedTileMapId: getProjectUIState().tileMapId,
         selectedTileId: getProjectUIState().tileId,
         numberOfPaletteSlots: tileMapAttributes.paletteSlots,
-        lockedPaletteSlotIndex: tileMapAttributes.lockedIndex
+        lockedPaletteSlotIndex: tileMapAttributes.lockedIndex,
+        displayNative: getUIState().displayNativeColour
     });
 
     const toolStrips = TileEditorToolbar.ToolStrips;
@@ -3744,10 +3748,12 @@ function changePaletteTitle(paletteIndex, newTitle) {
     state.saveToLocalStorage();
 
     paletteEditor.setState({
-        paletteList: getPaletteList()
+        paletteList: getPaletteList(),
+        displayNative: getUIState().displayNativeColour
     });
     tileManager.setState({
-        paletteList: getPaletteList()
+        paletteList: getPaletteList(),
+        displayNative: getUIState().displayNativeColour
     });
 }
 
@@ -3759,6 +3765,8 @@ function changePaletteSystem(paletteIndex, system) {
 
     state.saveToLocalStorage();
 
+    tileImageManager.clear();
+
     paletteEditor.setState({
         paletteList: getPaletteList(),
         selectedSystem: system,
@@ -3766,10 +3774,12 @@ function changePaletteSystem(paletteIndex, system) {
     });
     tileEditor.setState({
         paletteList: getTileEditorPaletteList(),
-        displayNative: getUIState().displayNativeColour
+        displayNative: getUIState().displayNativeColour,
+        forceRefresh: true
     });
     tileManager.setState({
-        paletteList: getPaletteList()
+        paletteList: getPaletteList(),
+        displayNative: getUIState().displayNativeColour
     });
 }
 
@@ -3777,6 +3787,8 @@ function changePaletteEditorDisplayNativeColours(displayNative) {
 
     state.persistentUIState.displayNativeColour = displayNative;
     state.saveToLocalStorage();
+
+    tileImageManager.clear();
 
     paletteEditor.setState({
         paletteList: getPaletteList(),
@@ -3789,7 +3801,8 @@ function changePaletteEditorDisplayNativeColours(displayNative) {
         displayNative: getUIState().displayNativeColour
     });
     tileManager.setState({
-        paletteList: getPaletteList()
+        paletteList: getPaletteList(),
+        displayNative: getUIState().displayNativeColour
     });
 }
 
@@ -3826,6 +3839,8 @@ function swapColourIndex(sourceColourIndex, targetColourIndex) {
 
     state.saveToLocalStorage();
 
+    tileImageManager.clear();
+
     tileEditor.setState({
         paletteList: getTileEditorPaletteList(),
         tileGrid: getTileGrid(),
@@ -3835,7 +3850,8 @@ function swapColourIndex(sourceColourIndex, targetColourIndex) {
         paletteList: getPaletteList()
     });
     tileManager.setState({
-        paletteList: getPaletteList()
+        paletteList: getPaletteList(),
+        displayNative: getUIState().displayNativeColour
     });
 }
 
@@ -3845,6 +3861,8 @@ function replaceColourIndex(sourceColourIndex, targetColourIndex) {
     getTileSet().replaceColourIndex(sourceColourIndex, targetColourIndex);
 
     state.saveToLocalStorage();
+
+    tileImageManager.clear();
 
     tileEditor.setState({
         tileGrid: getTileGrid(),

@@ -10,6 +10,7 @@ import TemplateUtil from "../util/templateUtil.js";
 import PaletteList from "../models/paletteList.js";
 import TileGridProvider from "../models/tileGridProvider.js";
 import TileImageManager from "../components/tileImageManager.js";
+import PaletteUtil from "../util/paletteUtil.js";
 
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
@@ -153,6 +154,7 @@ export default class TileEditor extends ComponentBase {
     setState(state) {
         let refreshTiles = false;
         let redrawUI = false;
+        let refreshNativePalette = false;
         // Tile image manager
         if (state?.tileImageManager === null || state.tileImageManager instanceof TileImageManager) {
             this.#canvasManager.setTileImageManager(state.tileImageManager);
@@ -162,7 +164,7 @@ export default class TileEditor extends ComponentBase {
         if (paletteList && typeof paletteList.getPaletteById === 'function') {
             this.#canvasManager.invalidateImage();
             this.#paletteList = paletteList;
-            this.#nativePaletteList = PaletteListFactory.create(paletteList.getPalettes().map((p) => PaletteFactory.convertToNative(p)));
+            refreshNativePalette = true;
             refreshTiles = true;
         }
         // Changing tile grid
@@ -227,6 +229,7 @@ export default class TileEditor extends ComponentBase {
                 this.#canvasManager.tileGridColour = '#000000';
                 this.#canvasManager.tileGridOpacity = 0.4;
             }
+            refreshNativePalette = true;
             refreshTiles = true;
         }
         // Draw tile grid
@@ -320,6 +323,11 @@ export default class TileEditor extends ComponentBase {
         if (typeof state?.viewportPanVertical === 'number') {
             this.#canvasManager.offsetY += state?.viewportPanVertical;
             redrawUI = true;
+        }
+        // Refresh native palette?
+        if (refreshNativePalette) {
+            this.#nativePaletteList = PaletteUtil.clonePaletteListWithNativeColours(this.#paletteList);
+            refreshTiles = true;
         }
         // Force refresh?
         if (typeof state.forceRefresh === 'boolean' && state.forceRefresh === true) {
