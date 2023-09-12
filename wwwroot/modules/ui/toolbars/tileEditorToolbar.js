@@ -23,7 +23,7 @@ const tools = {
     bucket: 'bucket',
     eyedropper: 'eyedropper',
     referenceImage: 'referenceImage',
-    tileAttributes: 'tileAttributes',
+    tileMapTileAttributes: 'tileMapTileAttributes',
     palettePaint: 'palettePaint',
     tileEyedropper: 'tileEyedropper',
     tileStamp: 'tileStamp',

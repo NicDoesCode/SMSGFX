@@ -677,7 +677,7 @@ function createEventListeners() {
                 }
                 break;
             case keyboardCommands.toolSelect:
-                selectTool(isTileSet() ? TileEditorToolbar.Tools.select : TileEditorToolbar.Tools.tileAttributes);
+                selectTool(isTileSet() ? TileEditorToolbar.Tools.select : TileEditorToolbar.Tools.tileMapTileAttributes);
                 break;
             case keyboardCommands.toolPencil:
                 selectTool(TileEditorToolbar.Tools.pencil);
@@ -1293,8 +1293,11 @@ function handleTileContextToolbarCommand(args) {
     if (args.command === TileContextToolbar.Commands.paletteSlot) {
         setPaletteSlot(args.paletteSlot);
     }
-    if (args.command === TileContextToolbar.Commands.tileAttributes) {
-        setTileAttributes(args.tileAttributes);
+    if (args.command === TileContextToolbar.Commands.tileSetTileAttributes) {
+        setTileSetTileAttributes(args.tileSetTileAttributes);
+    }
+    if (args.command === TileContextToolbar.Commands.tileMapTileAttributes) {
+        setTileMapTileAttributes(args.tileMapTileAttributes);
     }
     if (args.command === TileContextToolbar.Commands.tileStampDefine) {
         setTileStampDefineMode();
@@ -2118,10 +2121,10 @@ function getTileEditorPaletteList() {
         for (let i = 0; i < palettes.length; i++) {
             if (i < attr.paletteSlots) {
                 // Within allowance, add selected palette
-                palettes[i] = getPaletteList().getPaletteById(tileMap.getPalette(i)); 
+                palettes[i] = getPaletteList().getPaletteById(tileMap.getPalette(i));
             } else {
                 // Exceeds limit, repeat last selected palette
-                palettes[i] = getPaletteList().getPaletteById(tileMap.getPalette(attr.paletteSlots - 1)); 
+                palettes[i] = getPaletteList().getPaletteById(tileMap.getPalette(attr.paletteSlots - 1));
             }
         }
         return PaletteListFactory.create(palettes);
@@ -2338,7 +2341,7 @@ function refreshProjectUI() {
         disabledCommands.push(TileContextToolbar.Commands.tileClamp);
     }
     if (isTileMap() && getProject().systemType === 'gb') {
-        disabledCommands.push(TileContextToolbar.Commands.tileAttributes);
+        disabledCommands.push(TileContextToolbar.Commands.tileMapTileAttributes);
     }
     tileContextToolbar.setState({
         disabledCommands: disabledCommands,
@@ -2560,8 +2563,8 @@ function getTileMapContextToolbarVisibleToolstrips(tool) {
             case tools.referenceImage:
                 visibleStrips.push(TileContextToolbar.Toolstrips.referenceImage);
                 break;
-            case tools.tileAttributes:
-                visibleStrips.push(TileContextToolbar.Toolstrips.tileAttributes);
+            case tools.tileMapTileAttributes:
+                visibleStrips.push(TileContextToolbar.Toolstrips.tileMapTileAttributes);
                 break;
             case tools.rowColumn:
                 visibleStrips.push(TileContextToolbar.Toolstrips.rowColumn);
@@ -2788,7 +2791,7 @@ function takeToolAction(args) {
             /** @type {string[]} */
             let updatedTileIds = [];
 
-            if (tool === TileEditorToolbar.Tools.tileAttributes && args.isInBounds) {
+            if (tool === TileEditorToolbar.Tools.tileMapTileAttributes && args.isInBounds) {
                 if (event === TileEditor.Events.pixelMouseDown) {
 
                     const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
@@ -3399,53 +3402,34 @@ function setPaletteSlot(paletteSlot) {
 }
 
 /**
- * Sets the attributes on the currently selected tile.
- * @param {import("./ui/toolbars/tileContextToolbar.js").TileContextToolbarTileAttributes} tileAttributes - Attributes to set.
+ * Sets the attributes on the currently selected tile set tile.
+ * @param {import("./ui/toolbars/tileContextToolbar.js").TileContextToolbarTileSetTileAttributes} attributes - Attributes to set.
  */
-function setTileAttributes(tileAttributes) {
-    if (!isTileMap()) return;
-    if (!tileAttributes) return;
+function setTileSetTileAttributes(attributes) {
+    if (!isTileSet()) return;
+    if (!attributes) return;
     if (instanceState.tileIndex < 0 || instanceState.tileIndex >= getTileGrid().tileCount) return;
 
     const tileIndex = instanceState.tileIndex;
-    const tileMapTile = getTileMap().getTileByIndex(tileIndex);
-    if (!tileMapTile) return;
+    const tileSetTile = getTileSet().getTileByIndex(tileIndex);
+    if (!tileSetTile) return;
 
     addUndoState();
     try {
 
         const updatedTileIds = [];
 
-        if (typeof tileAttributes.horizontalFlip === 'boolean') {
-            tileMapTile.horizontalFlip = tileAttributes.horizontalFlip;
-            updatedTileIds.push(tileMapTile.tileId);
-        }
-        if (typeof tileAttributes.verticalFlip === 'boolean') {
-            tileMapTile.verticalFlip = tileAttributes.verticalFlip;
-            updatedTileIds.push(tileMapTile.tileId);
-        }
-        if (typeof tileAttributes.priority === 'boolean') {
-            tileMapTile.priority = tileAttributes.priority;
-            updatedTileIds.push(tileMapTile.tileId);
-        }
-        if (typeof tileAttributes.palette === 'number') {
-            const result = PalettePaintTool.setPaletteIndexByTileIndex({
-                tileMap: getTileMap(),
-                paletteIndex: tileAttributes.palette,
-                tilesPerBlock: getTilesPerBlock(),
-                tileIndex: tileIndex
-            });
-            updatedTileIds.concat(result.updatedTileIds);
+        if (typeof attributes.alwaysKeep === 'boolean') {
+            tileSetTile.alwaysKeep = attributes.alwaysKeep;
+            updatedTileIds.push(tileSetTile.tileId);
         }
 
         if (updatedTileIds.length > 0) {
-
             state.setProject(getProject());
             state.saveToLocalStorage();
 
             updateTilesOnEditors(updatedTileIds);
             selectTileIndexIfNotSelected(tileIndex);
-
         } else {
             // Nothing changed, no reason to keep the undo in memory
             undoManager.removeLastUndo();
@@ -3455,8 +3439,68 @@ function setTileAttributes(tileAttributes) {
         undoManager.removeLastUndo();
         throw e;
     }
+}
 
+/**
+ * Sets the attributes on the currently selected tile map tile.
+ * @param {import("./ui/toolbars/tileContextToolbar.js").TileContextToolbarTileMapTileAttributes} attributes - Attributes to set.
+ */
+function setTileMapTileAttributes(attributes) {
+    if (!isTileMap()) return;
+    if (!attributes) return;
+    if (instanceState.tileIndex < 0 || instanceState.tileIndex >= getTileGrid().tileCount) return;
 
+    const tileIndex = instanceState.tileIndex;
+    const tileMapTile = getTileMap().getTileByIndex(tileIndex);
+    const tileSetTile = getTileSet().getTileById(tileMapTile.tileId);
+    if (!tileMapTile) return;
+
+    addUndoState();
+    try {
+
+        const updatedTileIds = [];
+
+        if (typeof attributes.horizontalFlip === 'boolean') {
+            tileMapTile.horizontalFlip = attributes.horizontalFlip;
+            updatedTileIds.push(tileMapTile.tileId);
+        }
+        if (typeof attributes.verticalFlip === 'boolean') {
+            tileMapTile.verticalFlip = attributes.verticalFlip;
+            updatedTileIds.push(tileMapTile.tileId);
+        }
+        if (typeof attributes.priority === 'boolean') {
+            tileMapTile.priority = attributes.priority;
+            updatedTileIds.push(tileMapTile.tileId);
+        }
+        if (typeof attributes.palette === 'number') {
+            const result = PalettePaintTool.setPaletteIndexByTileIndex({
+                tileMap: getTileMap(),
+                paletteIndex: attributes.palette,
+                tilesPerBlock: getTilesPerBlock(),
+                tileIndex: tileIndex
+            });
+            updatedTileIds.concat(result.updatedTileIds);
+        }
+        if (tileSetTile && typeof attributes.alwaysKeep === 'boolean') {
+            tileSetTile.alwaysKeep = attributes.alwaysKeep;
+            updatedTileIds.push(tileSetTile.tileId);
+        }
+
+        if (updatedTileIds.length > 0) {
+            state.setProject(getProject());
+            state.saveToLocalStorage();
+
+            updateTilesOnEditors(updatedTileIds);
+            selectTileIndexIfNotSelected(tileIndex);
+        } else {
+            // Nothing changed, no reason to keep the undo in memory
+            undoManager.removeLastUndo();
+        }
+
+    } catch (e) {
+        undoManager.removeLastUndo();
+        throw e;
+    }
 }
 
 function setTileStampDefineMode() {
@@ -3536,7 +3580,7 @@ function setTileSetTileIfTileMapTileSelected(tileId) {
     if (!isTileMap()) return;
     if (!tileId) return;
     if (instanceState.tileIndex < 0 || instanceState.tileIndex >= getTileGrid().tileCount) return;
-    if (instanceState.tool !== TileEditorToolbar.Tools.tileAttributes) return;
+    if (instanceState.tool !== TileEditorToolbar.Tools.tileMapTileAttributes) return;
 
     const tile = getTileSet().getTileById(tileId);
     if (!tile) return;
@@ -3586,14 +3630,23 @@ function selectTileIndexIfNotSelected(tileIndex) {
         });
     }
 
-    if (isTileMap() && instanceState.tool === TileEditorToolbar.Tools.tileAttributes) {
-        const tileSetTile = getTileMap().getTileByIndex(tileIndex);
+    if (isTileSet()) {
+        const tile = getTileSet().getTileByIndex(tileIndex);
         tileContextToolbar.setState({
-            tileAttributes: {
+            tileSetTileAttributes: {
+                alwaysKeep: tile?.alwaysKeep ?? false
+            }
+        });
+    } else if (isTileMap()) {
+        const tileSetTile = getTileMap().getTileByIndex(tileIndex);
+        const tile = getTileSet().getTileById(tileSetTile.tileId);
+        tileContextToolbar.setState({
+            tileMapTileAttributes: {
                 horizontalFlip: tileSetTile.horizontalFlip,
                 verticalFlip: tileSetTile.verticalFlip,
                 priority: tileSetTile.priority,
-                palette: tileSetTile.palette
+                palette: tileSetTile.palette,
+                alwaysKeep: tile?.alwaysKeep ?? false
             }
         });
     }
@@ -4288,7 +4341,7 @@ function selectTileSetOrMap(tileMapId) {
 
         // Don't allow tile set only tools to be selected
         if (instanceState.tool === TileEditorToolbar.Tools.select) {
-            selectTool(TileEditorToolbar.Tools.tileAttributes);
+            selectTool(TileEditorToolbar.Tools.tileMapTileAttributes);
         }
         if (instanceState.tool === TileEditorToolbar.Tools.bucket) {
             instanceState.clampToTile = true;
@@ -4297,7 +4350,7 @@ function selectTileSetOrMap(tileMapId) {
     } else if (isTileSet()) {
 
         // Don't allow tile map only tools to be selected
-        if (instanceState.tool === TileEditorToolbar.Tools.tileAttributes) {
+        if (instanceState.tool === TileEditorToolbar.Tools.tileMapTileAttributes) {
             selectTool(TileEditorToolbar.Tools.select);
         }
         if (instanceState.tool === TileEditorToolbar.Tools.rowColumn) {
@@ -4629,11 +4682,25 @@ function selectTool(tool) {
     if (TileEditorToolbar.Tools[tool]) {
         instanceState.tool = tool;
         instanceState.swapTool = null;
+
         if (tool !== TileEditorToolbar.Tools.select) {
-            instanceState.tileIndex = -1;
-            tileEditor.setState({
-                selectedTileIndex: instanceState.tileIndex
-            });
+            // Select tool
+            const tile = getTileSet().getTileByIndex(instanceState.tileIndex);
+            if (tile) {
+                tileContextToolbar.setState({
+                    tileSetTileAttributes: {
+                        alwaysKeep: tile.alwaysKeep
+                    }
+                });
+            }
+        } else {
+            // Was not select tool, de-select any tiles
+            if (tool !== TileEditorToolbar.Tools.select) {
+                instanceState.tileIndex = -1;
+                tileEditor.setState({
+                    selectedTileIndex: instanceState.tileIndex
+                });
+            }
         }
 
         // Set the stamp preview in the canvas
