@@ -99,7 +99,9 @@ export default class TileMapUtil {
             const capability = tileMap.isSprite ? capabilities.sprite : capabilities.tileMap;
             for (let i = 0; i < capability.paletteSlots; i++) {
                 const palette = paletteList.getPaletteById(tileMap.getPalette(i));
-                if (palette) optimisedPaletteList.addPalette(palette);
+                if (palette && !optimisedPaletteList.getPaletteById(palette.paletteId)) {
+                    optimisedPaletteList.addPalette(palette);
+                }
             }
         });
 
