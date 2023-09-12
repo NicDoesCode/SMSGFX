@@ -2125,17 +2125,12 @@ function getTileEditorPaletteList() {
         // the last selected palette.
         const attr = TileMapUtil.getTileMapAttributes(getTileMap(), getProject());
         const tileMap = getTileMap();
-        const palettes = new Array(16);
+        const palettes = new Array(attr.paletteSlots);
+        const paletteList = PaletteListFactory.create();
         for (let i = 0; i < palettes.length; i++) {
-            if (i < attr.paletteSlots) {
-                // Within allowance, add selected palette
-                palettes[i] = getPaletteList().getPaletteById(tileMap.getPalette(i));
-            } else {
-                // Exceeds limit, repeat last selected palette
-                palettes[i] = getPaletteList().getPaletteById(tileMap.getPalette(attr.paletteSlots - 1));
-            }
+            paletteList.addPalette(getPaletteList().getPaletteById(tileMap.getPalette(i)));
         }
-        return PaletteListFactory.create(palettes);
+        return paletteList;
     } else {
         // With a tile set, just select the palette that is selected in the palette list on the left
         const palette = getPaletteList().getPalette(getProjectUIState().paletteIndex);
