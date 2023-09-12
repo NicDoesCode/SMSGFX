@@ -1758,15 +1758,18 @@ function changeColourIndex(paletteIndex, colourIndex, colour) {
     tileImageManager.clearByPalette(palette.paletteId);
 
     paletteEditor.setState({
-        paletteList: getPaletteList()
+        paletteList: getPaletteList(),
+        displayNative: getUIState().displayNativeColour
     });
     tileManager.setState({
         paletteList: getTileEditorPaletteList(),
-        tileSet: getTileSet()
+        tileSet: getTileSet(),
+        displayNative: getUIState().displayNativeColour
     });
     tileEditor.setState({
         palette: getPalette(),
         paletteList: getTileEditorPaletteList(),
+        displayNative: getUIState().displayNativeColour,
         forceRefresh: true
     });
 }
@@ -2125,17 +2128,12 @@ function getTileEditorPaletteList() {
         // the last selected palette.
         const attr = TileMapUtil.getTileMapAttributes(getTileMap(), getProject());
         const tileMap = getTileMap();
-        const palettes = new Array(16);
+        const palettes = new Array(attr.paletteSlots);
+        const paletteList = PaletteListFactory.create();
         for (let i = 0; i < palettes.length; i++) {
-            if (i < attr.paletteSlots) {
-                // Within allowance, add selected palette
-                palettes[i] = getPaletteList().getPaletteById(tileMap.getPalette(i));
-            } else {
-                // Exceeds limit, repeat last selected palette
-                palettes[i] = getPaletteList().getPaletteById(tileMap.getPalette(attr.paletteSlots - 1));
-            }
+            paletteList.addPalette(getPaletteList().getPaletteById(tileMap.getPalette(i)));
         }
-        return PaletteListFactory.create(palettes);
+        return paletteList;
     } else {
         // With a tile set, just select the palette that is selected in the palette list on the left
         const palette = getPaletteList().getPalette(getProjectUIState().paletteIndex);
@@ -2290,8 +2288,10 @@ function refreshProjectUI() {
     paletteEditor.setState({
         paletteList: getPaletteList(),
         selectedPaletteId: getPalette().paletteId,
+        lastPaletteInputSystem: getUIState().importPaletteSystem,
         selectedPaletteIndex: getProjectUIState().paletteIndex,
-        selectedColourIndex: instanceState.colourIndex
+        selectedColourIndex: instanceState.colourIndex,
+        enabled: true
     });
 
     const tileMapAttributes = TileMapUtil.getTileMapAttributes(getTileMap(), getProject().systemType);
@@ -2309,7 +2309,8 @@ function refreshProjectUI() {
         cursorSize: instanceState.pencilSize,
         scale: getUIState().scale,
         showTileGrid: getUIState().showTileGrid,
-        showPixelGrid: getUIState().showPixelGrid
+        showPixelGrid: getUIState().showPixelGrid,
+        enabled: true
     });
 
     tileManager.setState({
@@ -2320,7 +2321,8 @@ function refreshProjectUI() {
         selectedTileMapId: getProjectUIState().tileMapId,
         selectedTileId: getProjectUIState().tileId,
         numberOfPaletteSlots: tileMapAttributes.paletteSlots,
-        lockedPaletteSlotIndex: tileMapAttributes.lockedIndex
+        lockedPaletteSlotIndex: tileMapAttributes.lockedIndex,
+        displayNative: getUIState().displayNativeColour
     });
 
     const toolStrips = TileEditorToolbar.ToolStrips;
@@ -2399,12 +2401,10 @@ function formatForProject() {
         enabled: true
     });
     paletteEditor.setState({
-        paletteList: getPaletteList(),
-        selectedPaletteIndex: getProjectUIState().paletteIndex,
-        lastPaletteInputSystem: getUIState().importPaletteSystem,
-        selectedColourIndex: instanceState.colourIndex,
+        paletteList: PaletteListFactory.create(),
+        selectedColourIndex: 0,
         displayNative: getUIState().displayNativeColour,
-        enabled: true
+        enabled: false
     });
     let colourPickerTab = instanceState.colourToolboxTab;
     if (getPalette().system === 'gb') colourPickerTab = 'gb';
@@ -2428,7 +2428,19 @@ function formatForProject() {
         enabled: true
     });
     tileEditor.setState({
-        enabled: true
+        paletteList: null,
+        tileSet: null,
+        displayNative: false,
+        lockedPaletteSlotIndex: null,
+        enabled: false
+    });
+    tileManager.setState({
+        paletteList: null,
+        palette: null,
+        tileSet: null,
+        selectedTileMapId: null,
+        selectedTileId: null,
+        displayNative: false
     });
     tileContextToolbar.setState({
         enabled: true,
@@ -3748,11 +3760,13 @@ function changePaletteTitle(paletteIndex, newTitle) {
 
     state.saveToLocalStorage();
 
-    paletteEditor.setState({
-        paletteList: getPaletteList()
+    paletteEditor.setSgameBoyPalette =tate({
+        paletteList: getPaletteList(),
+        displayNative: getUIState().displayNativeColour
     });
     tileManager.setState({
-        paletteList: getPaletteList()
+        paletteList: getPaletteList(),
+        displayNative: getUIState().displayNativeColour
     });
 }
 
@@ -3764,6 +3778,8 @@ function changePaletteSystem(paletteIndex, system) {
 
     state.saveToLocalStorage();
 
+    tileImageManager.clear();
+
     paletteEditor.setState({
         paletteList: getPaletteList(),
         selectedSystem: system,
@@ -3771,10 +3787,12 @@ function changePaletteSystem(paletteIndex, system) {
     });
     tileEditor.setState({
         paletteList: getTileEditorPaletteList(),
-        displayNative: getUIState().displayNativeColour
+        displayNative: getUIState().displayNativeColour,
+        forceRefresh: true
     });
     tileManager.setState({
-        paletteList: getPaletteList()
+        paletteList: getPaletteList(),
+        displayNative: getUIState().displayNativeColour
     });
 }
 
@@ -3782,6 +3800,8 @@ function changePaletteEditorDisplayNativeColours(displayNative) {
 
     state.persistentUIState.displayNativeColour = displayNative;
     state.saveToLocalStorage();
+
+    tileImageManager.clear();
 
     paletteEditor.setState({
         paletteList: getPaletteList(),
@@ -3794,7 +3814,9 @@ function changePaletteEditorDisplayNativeColours(displayNative) {
         displayNative: getUIState().displayNativeColour
     });
     tileManager.setState({
-        paletteList: getPaletteList()
+        paletteList: getPaletteList(),
+        palette: getPalette(),
+        displayNative: getUIState().displayNativeColour
     });
 }
 
@@ -3831,6 +3853,8 @@ function swapColourIndex(sourceColourIndex, targetColourIndex) {
 
     state.saveToLocalStorage();
 
+    tileImageManager.clear();
+
     tileEditor.setState({
         paletteList: getTileEditorPaletteList(),
         tileGrid: getTileGrid(),
@@ -3840,7 +3864,8 @@ function swapColourIndex(sourceColourIndex, targetColourIndex) {
         paletteList: getPaletteList()
     });
     tileManager.setState({
-        paletteList: getPaletteList()
+        paletteList: getPaletteList(),
+        displayNative: getUIState().displayNativeColour
     });
 }
 
@@ -3850,6 +3875,8 @@ function replaceColourIndex(sourceColourIndex, targetColourIndex) {
     getTileSet().replaceColourIndex(sourceColourIndex, targetColourIndex);
 
     state.saveToLocalStorage();
+
+    tileImageManager.clear();
 
     tileEditor.setState({
         tileGrid: getTileGrid(),
