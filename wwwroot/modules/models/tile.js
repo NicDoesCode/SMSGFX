@@ -7,7 +7,7 @@ export default class Tile {
 
 
     /**
-     * Unique ID of the tile.
+     * Gets or sets the unique ID of the tile.
      */
     get tileId() {
         return this.#tileId;
@@ -17,8 +17,18 @@ export default class Tile {
         this.#tileId = value;
     }
 
+    /**
+     * Gets or sets a value indicating whether this tile shoudl always be kept during the optimisation process.
+     */
+    get alwaysKeep() {
+        return this.#alwaysKeep;
+    }
+    set alwaysKeep(value) {
+        this.#alwaysKeep = value;
+    }
+
     /** 
-     * The length of the tile data. 
+     * Gets the length of the tile data. 
      */
     get length() {
         return this.#data.length;
@@ -27,24 +37,36 @@ export default class Tile {
 
     /** @type {string} */
     #tileId;
+    /** @type {boolean} */
+    #alwaysKeep;
     /** @type {Uint8ClampedArray} */
     #data;
 
 
     /**
      * Creates a new instance of a tile object.
-     * @param {string?} [tileId] - Unique ID of the palette.
-     * @argument {Uint8ClampedArray?} [tileData] - Initial data to fill the tile data array with.
+     * @param {string?} tileId - Unique ID of the palette.
+     * @param {string?} alwaysKeep - Unique ID of the palette.
+     * @argument {Uint8ClampedArray?} tileData - Initial data to fill the tile data array with.
      */
-    constructor(tileId, tileData) {
-        if (tileData && tileData instanceof Uint8ClampedArray && tileData.length !== 64) throw new Error('Initial tile data must be of length 64.');
+    constructor(tileId, alwaysKeep, tileData) {
+        if (tileData && (!tileData instanceof Uint8ClampedArray || tileData.length !== 64)) {
+            throw new Error('Initial tile data must be a Uint8ClampedArray of length 64.');
+        }
 
-        if (typeof tileId !== 'undefined' && tileId !== null) {
+        if (typeof tileId === 'string' && tileId !== null) {
             this.tileId = tileId;
         } else {
             this.tileId = GeneralUtil.generateRandomString(12);
         }
-        if (tileData && tileData instanceof Uint8ClampedArray) {
+
+        if (typeof alwaysKeep === 'boolean') {
+            this.alwaysKeep = tileId;
+        } else {
+            this.alwaysKeep = false;
+        }
+        
+        if (tileData instanceof Uint8ClampedArray) {
             this.#data = tileData;
         } else {
             this.#data = new Uint8ClampedArray(64);

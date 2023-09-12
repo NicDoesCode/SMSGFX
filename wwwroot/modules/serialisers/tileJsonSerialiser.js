@@ -37,6 +37,7 @@ export default class TileJsonSerialiser {
         if (!tile || typeof tile.readAll !== 'function') throw new Error('Please pass a tile.');
         return {
             tileId: tile.tileId,
+            alwaysKeep: tile.alwaysKeep,
             tileData: TileUtil.toHex(tile)
         };
     }
@@ -51,6 +52,7 @@ export default class TileJsonSerialiser {
 
         const result = TileFactory.fromHex(tileSerialisable.tileData);
         result.tileId = tileSerialisable.tileId;
+        result.alwaysKeep = tileSerialisable.alwaysKeep ?? false;
         return result;
     }
 
@@ -61,5 +63,6 @@ export default class TileJsonSerialiser {
  * @typedef TileSerialisable
  * @type {object}
  * @property {string} tileId
+ * @property {boolean?} [alwaysKeep]
  * @property {string} tileData
  */
