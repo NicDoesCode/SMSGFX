@@ -95,28 +95,14 @@ export default class TileMapUtil {
             });
         });
 
-        // TODO - This preserves each palette, do we actually need this?
-
-        // With each palette
-        paletteList.getPalettes().forEach((palette, paletteIndex) => {
-            // With each tile map
-            optimised.tileMapList.getTileMaps().forEach((tileMap) => {
-                // Add the palette to the tile map
-                tileMap.setPalette(paletteIndex, palette.paletteId);
-            });
-        });
-
+        // Create optimised list of palettes
         const optimisedPaletteList = PaletteListFactory.create();
-        // With each tile map
         optimised.tileMapList.getTileMaps().forEach((tileMap) => {
-            // With each palette ID in tile map
-            tileMap.getPalettes().forEach((paletteId) => {
-                // Ensure the optimised list of palettes has the given palette
-                if (paletteId && !optimisedPaletteList.containsPaletteById(paletteId)) {
-                    const palette = paletteList.getPaletteById(paletteId);
-                    optimisedPaletteList.addPalette(palette);
-                }
-            });
+            const capability = tileMap.isSprite ? capabilities.sprite : capabilities.tileMap;
+            for (let i = 0; i < capability.paletteSlots; i++) {
+                const palette = paletteList.getPaletteById(tileMap.getPalette(i));
+                if (palette) optimisedPaletteList.addPalette(palette);
+            }
         });
 
         return {
