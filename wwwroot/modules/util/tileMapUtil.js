@@ -5,14 +5,11 @@ import TileMapList from "../models/tileMapList.js";
 import TileSet from "../models/tileSet.js";
 import TileUtil from "./tileUtil.js";
 import SystemUtil from "./systemUtil.js";
-import TileMapListJsonSerialiser from "./../serialisers/tileMapListJsonSerialiser.js";
-import TileJsonSerialiser from "./../serialisers/tileJsonSerialiser.js";
 import TileSetFactory from "../factory/tileSetFactory.js";
 import PaletteListFactory from "../factory/paletteListFactory.js";
 import Project from "../models/project.js";
 import TileMapFactory from "../factory/tileMapFactory.js";
 import TileMapTileFactory from "../factory/tileMapTileFactory.js";
-import TileFactory from "../factory/tileFactory.js";
 import TileFactory from "../factory/tileFactory.js";
 
 
@@ -155,20 +152,8 @@ export default class TileMapUtil {
  * @exports
  */
 
-/**
- * @typedef {object} HexLookupBundle
- * @property {string} tileId
- * @property {boolean} hFlip
- * @property {boolean} vFlip
- */
-
-// Take the tile maps, and tile set, and capabilities
-// Manipulate the tile sets so that they use h and v flip where possible, first hv, then h, then v
-// We want to respect the capabilities of the system, if it doesn't support it, then don't do it
-// At the end we will have a tileMap with optimised tiles, as well as a tile map containing only the needed tiles
 
 /**
- * Take a list of tile maps and a tile set, and 
  * @param {TileMap[]} tileMaps
  * @param {TileSet} tileSet
  * @param {import("./systemUtil.js").SystemCapabilities} capabilities 
