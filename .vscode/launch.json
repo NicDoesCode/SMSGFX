@@ -54,13 +54,27 @@
             ]
         },
         {
-            "name": "Launch Chrome (HTTPS)",
+            "name": "Serve and launch Chrome (HTTPS)",
             "request": "launch",
             "type": "chrome",
             "url": "https://localhost:8443",
             "webRoot": "${workspaceFolder}/wwwroot",
             "preLaunchTask": "launch-server",
             "postDebugTask": "stop-server"
+        },
+        {
+            "name": "Launch Chrome (HTTPS)",
+            "request": "launch",
+            "type": "chrome",
+            "url": "https://localhost:8443",
+            "webRoot": "${workspaceFolder}/wwwroot"
+        },
+        {
+            "name": "Attach to Chrome",
+            "port": 9222,
+            "request": "attach",
+            "type": "chrome",
+            "webRoot": "${workspaceFolder}/wwwroot",
         },
         {
             "name": "Launch Firefox (HTTPS) (prod)",
