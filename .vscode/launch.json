@@ -41,6 +41,19 @@
             "postDebugTask": "stop-server"
         },
         {
+            "name": "Attach Firefox",
+            "type": "firefox",
+            "request": "attach",
+            "url": "https://localhost:8443/index.html",
+            "webRoot": "${workspaceFolder}/wwwroot",
+            "pathMappings": [
+                {
+                    "url": "https://localhost:8443",
+                    "path": "${workspaceFolder}/wwwroot"
+                }
+            ]
+        },
+        {
             "name": "Launch Chrome (HTTPS)",
             "request": "launch",
             "type": "chrome",

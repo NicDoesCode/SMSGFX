@@ -4,12 +4,27 @@ import CopyPlugin from "copy-webpack-plugin";
 import path from "path";
 import fs from "fs";
 import url from 'url';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+const environment = process.env[`ENVIRONMENT`]?.toLowerCase() ?? null;
+
+console.log(`Environment: ${(environment ?? '')}`);
+console.log(`(Configure using 'ENVIRONMENT' environment variable, eg. ENVIRONMENT=develop)`);
+
+const envSettings = {
+    mode: 'production'
+};
+if (environment === 'develop') {
+    envSettings.mode = 'development';
+    envSettings.devtool = 'source-map';
+}
 
 export default {
-    mode: 'production',
+    ...envSettings,
     entry: {
         main: './wwwroot/modules/main.js',
         pages: './wwwroot/pages/pages.js'
