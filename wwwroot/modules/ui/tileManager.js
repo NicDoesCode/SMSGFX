@@ -261,13 +261,14 @@ export default class TileManager extends ComponentBase {
         if (tileListDirty) {
             this.#tileListing.setState({
                 tileSet: this.#tileSet ?? undefined,
-                palette: this.#palette ?? undefined
+                palette: this.#renderPalette ?? undefined
             });
         }
 
         if (updatedTileIds) {
             this.#tileListing.setState({
-                updatedTileIds: updatedTileIds
+                updatedTileIds: updatedTileIds,
+                palette: this.#renderPalette ?? undefined
             });
         }
 

@@ -1141,11 +1141,11 @@ function handlePaletteEditorOnCommand(args) {
             break;
 
         case PaletteEditor.Commands.paletteClone:
-            clonePalette(args.paletteIndex);
+            paletteClone(args.paletteIndex);
             break;
 
         case PaletteEditor.Commands.paletteDelete:
-            deletePalette(args.paletteIndex);
+            paletteDelete(args.paletteIndex);
             break;
 
         case PaletteEditor.Commands.paletteTitle:
@@ -1349,7 +1349,6 @@ function handleTileManagerOnCommand(args) {
 
         case TileManager.Commands.tileSelect:
             selectTileSetTile(args.tileId);
-            setTileSetTileIfTileMapTileSelected(args.tileId);
             break;
 
         case TileManager.Commands.tileMapClone:
@@ -1598,7 +1597,6 @@ function handleNewTileMapDialogueOnConfirm(args) {
 
         getTileMapList().addTileMap(newTileMap);
 
-        state.setProject(getProject());
         state.saveToLocalStorage();
 
         selectTileSetOrMap(newTileMap.tileMapId);
@@ -1833,7 +1831,6 @@ function handleImageImportModalOnConfirm(args) {
 
     getProjectUIState().paletteIndex = getPaletteList().length - 1;
 
-    state.setProject(getProject());
     state.saveToLocalStorage();
 
     paletteEditor.setState({
@@ -3413,7 +3410,6 @@ function setPaletteSlot(paletteSlot) {
 
     instanceState.paletteSlot = paletteSlot;
 
-    state.setProject(getProject());
     state.saveToLocalStorage();
 
     tileContextToolbar.setState({
@@ -3445,7 +3441,6 @@ function setTileSetTileAttributes(attributes) {
         }
 
         if (updatedTileIds.length > 0) {
-            state.setProject(getProject());
             state.saveToLocalStorage();
 
             updateTilesOnEditors(updatedTileIds);
@@ -3507,7 +3502,6 @@ function setTileMapTileAttributes(attributes) {
         }
 
         if (updatedTileIds.length > 0) {
-            state.setProject(getProject());
             state.saveToLocalStorage();
 
             updateTilesOnEditors(updatedTileIds);
@@ -3593,37 +3587,6 @@ function clearTileStampRegion() {
 }
 
 /**
- * Sets the tile ID of a particular tile if a tile map tile is selected.
- * @param {string} tileId - Unique tile ID to set.
- */
-function setTileSetTileIfTileMapTileSelected(tileId) {
-    if (!isTileMap()) return;
-    if (!tileId) return;
-    if (instanceState.tileIndex < 0 || instanceState.tileIndex >= getTileGrid().tileCount) return;
-    if (instanceState.tool !== TileEditorToolbar.Tools.tileMapTileAttributes) return;
-
-    const tile = getTileSet().getTileById(tileId);
-    if (!tile) return;
-
-    const tileIndex = instanceState.tileIndex;
-    const tileMapTile = getTileMap().getTileByIndex(tileIndex);
-    if (!tileMapTile) return;
-
-    addUndoState();
-
-    tileMapTile.tileId = tile.tileId;
-
-    state.setProject(getProject());
-    state.saveToLocalStorage();
-
-    tileEditor.setState({
-        tileGrid: getTileGrid(),
-        tileSet: getTileSet()
-    });
-    toggleTileIndexSelectedState(tileIndex);
-}
-
-/**
  * Toggles the selected state of a tile by tile grid index.
  * @param {number} tileIndex - Tile index within the tile grid provider.
  */
@@ -3677,18 +3640,22 @@ function selectTileIndexIfNotSelected(tileIndex) {
  */
 function paletteNew() {
     addUndoState();
+    try {
+        const newPalette = PaletteFactory.createNewStandardColourPalette('New palette', getDefaultPaletteSystemType());
+        getPaletteList().addPalette(newPalette);
 
-    const newPalette = PaletteFactory.createNewStandardColourPalette('New palette', getDefaultPaletteSystemType());
-    getPaletteList().addPalette(newPalette);
+        state.saveToLocalStorage();
 
-    state.setProject(getProject());
-    state.saveToLocalStorage();
-
-    changePalette(newPalette.paletteId);
-    toast.show('Palette created.');
+        changePalette(newPalette.paletteId);
+        toast.show('Palette created.');
+    } catch (e) {
+        undoManager.removeLastUndo();
+        toast.show('Error creating palette.');
+        throw e;
+    }
 }
 
-function clonePalette(paletteIndex) {
+function paletteClone(paletteIndex) {
     if (paletteIndex >= 0 && paletteIndex < getPaletteList().length) {
 
         addUndoState();
@@ -3698,7 +3665,6 @@ function clonePalette(paletteIndex) {
             newPalette.title += ' (copy)';
             getPaletteList().insertAt(paletteIndex, newPalette);
 
-            state.setProject(getProject());
             state.saveToLocalStorage();
 
             changePalette(newPalette.paletteId);
@@ -3707,13 +3673,13 @@ function clonePalette(paletteIndex) {
 
         } catch (e) {
             undoManager.removeLastUndo();
-            toast.show('Error creating palette.');
+            toast.show('Error cloning palette.');
             throw e;
         }
     }
 }
 
-function deletePalette(paletteIndex) {
+function paletteDelete(paletteIndex) {
     if (paletteIndex >= 0 && paletteIndex < getPaletteList().length) {
         addUndoState();
         try {
@@ -3727,7 +3693,6 @@ function deletePalette(paletteIndex) {
                 paletteIndex = Math.max(0, Math.min(paletteIndex, getPaletteList().length - 1));
             }
 
-            state.setProject(getProject());
             state.saveToLocalStorage();
 
             const palette = getPaletteList().getPalette(paletteIndex);
@@ -3760,7 +3725,7 @@ function changePaletteTitle(paletteIndex, newTitle) {
 
     state.saveToLocalStorage();
 
-    paletteEditor.setSgameBoyPalette =tate({
+    paletteEditor.setSgameBoyPalette = tate({
         paletteList: getPaletteList(),
         displayNative: getUIState().displayNativeColour
     });
@@ -3891,7 +3856,6 @@ function tileNew() {
         const newTile = TileFactory.create();
         getTileSet().addTile(newTile);
 
-        state.setProject(getProject());
         state.saveToLocalStorage();
 
         tileEditor.setState({
@@ -4183,15 +4147,14 @@ function mirrorTileAt(way, index) {
     /** @type {Tile} */
     let mirroredTile;
     if (way === 'h') {
-        mirroredTile = TileUtil.mirrorHorizontal(tile);
+        mirroredTile = TileUtil.createHorizontallyMirroredClone(tile);
     } else {
-        mirroredTile = TileUtil.mirrorVertical(tile);
+        mirroredTile = TileUtil.createVerticallyMirroredClone(tile);
     }
 
     getTileSet().removeTile(index);
     getTileSet().insertTileAt(mirroredTile, index);
 
-    state.setProject(getProject());
     state.saveToLocalStorage();
 
     updateTilesOnEditors([tile.tileId]);
@@ -4216,7 +4179,6 @@ function insertTileAt(index) {
         getTileSet().addTile(newTile);
     }
 
-    state.setProject(getProject());
     state.saveToLocalStorage();
 
     // Increment to maintain the selected tile index if it is after the index where the tile was inserted
@@ -4249,7 +4211,6 @@ function cutTileToClipboardAt(index) {
         instanceState.tileIndex = getTileSet().length - 1;
     }
 
-    state.setProject(getProject());
     state.saveToLocalStorage();
 
     tileEditor.setState({
@@ -4271,7 +4232,6 @@ function copyTileToClipboardAt(index) {
 
     navigator.clipboard.writeText(TileUtil.toHex(tile));
 
-    state.setProject(getProject());
     state.saveToLocalStorage();
 
     tileEditor.setState({
@@ -4303,7 +4263,6 @@ function pasteTileAt(index) {
         instanceState.tileIndex++;
     }
 
-    state.setProject(getProject());
     state.saveToLocalStorage();
 
     tileEditor.setState({
@@ -4352,7 +4311,6 @@ function createNewTileMapFromTileSet() {
     }
     getTileMapList().addTileMap(newTileMap);
 
-    state.setProject(getProject());
     state.saveToLocalStorage();
 
     selectTileSetOrMap(newTileMap.tileMapId);
@@ -4405,7 +4363,6 @@ function selectTileSetOrMap(tileMapId) {
 
     instanceState.tileIndex = -1;
 
-    state.setProject(getProject());
     state.saveToLocalStorage();
 
     // Focus the centre tile
@@ -4482,7 +4439,6 @@ function updateTileSet(args) {
     }
 
     // Update project
-    state.setProject(getProject());
     state.saveToLocalStorage();
 
     // Reset UI
@@ -4548,7 +4504,6 @@ function deleteTileMap(tileMapId) {
             tileMapId = getTileMapList().getTileMap(tileMapIndex).tileMapId ?? null;
         }
 
-        state.setProject(getProject());
         state.saveToLocalStorage();
 
         selectTileSetOrMap(tileMapId);
@@ -4591,7 +4546,6 @@ function updateTileMap(tileMapId, args) {
     }
 
     // Update project
-    state.setProject(getProject());
     state.saveToLocalStorage();
 
     const tileMapAttributes = TileMapUtil.getTileMapAttributes(tileMap, getProject());
@@ -4607,6 +4561,7 @@ function updateTileMap(tileMapId, args) {
         selectedTileIndex: -1,
         tileGrid: getTileGrid(),
         tileSet: getTileSet(),
+        paletteList: getTileEditorPaletteList(),
         transparencyIndicies: getTransparencyIndicies(),
         lockedPaletteSlotIndex: tileMapAttributes.lockedIndex,
         forceRefresh: true
@@ -4632,7 +4587,6 @@ function cloneTileAt(index) {
         getTileSet().addTile(newTile);
     }
 
-    state.setProject(getProject());
     state.saveToLocalStorage();
 
     tileEditor.setState({
@@ -4653,7 +4607,6 @@ function removeTileAt(index) {
 
     getTileSet().removeTile(index);
 
-    state.setProject(getProject());
     state.saveToLocalStorage();
 
     // Maintain tile index
@@ -4692,7 +4645,6 @@ function swapTilesAt(tileAIndex, tileBIndex) {
     getTileSet().removeTile(higherIndex);
     getTileSet().insertTileAt(lowerTile, higherIndex);
 
-    state.setProject(getProject());
     state.saveToLocalStorage();
 
     // Maintain tile index
