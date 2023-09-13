@@ -262,16 +262,14 @@ export default class PaintUtil {
     }
 
     /**
-     * Generates a canvas object and renders a tile to it.
+     * Renders a 8x8 1:1 tile image to a canvas object.
+     * @param {OffscreenCanvas|HTMLCanvasElement} canvas - Canvas object that will do tre drawing.
      * @param {Tile} tileToDraw - Tile to draw to the canvas.
      * @param {Palette} paletteToUse - Colour palette to use.
      * @param {number[]} paletteIndiciesToRenderTransparent - Palette indicies to render as transparent.
-     * @returns {HTMLCanvasElement}
+     * @returns {ImageBitmap}
      */
-    static createTileCanvas(tileToDraw, paletteToUse, paletteIndiciesToRenderTransparent) {
-        const canvas = document.createElement('canvas');
-        canvas.width = 8;
-        canvas.height = 8;
+    static drawTileImageOntoCanvas(canvas, tileToDraw, paletteToUse, paletteIndiciesToRenderTransparent) {
         const context = canvas.getContext('2d');
 
         let pixelIndex = 0;
@@ -283,8 +281,7 @@ export default class PaintUtil {
                 // Set colour of the pixel
                 if (pixelPaletteIndex >= 0 && pixelPaletteIndex < paletteToUse.getColours().length) {
                     const colour = paletteToUse.getColour(pixelPaletteIndex);
-                    const hex = ColourUtil.toHex(colour.r, colour.g, colour.b);
-                    context.fillStyle = hex;
+                    context.fillStyle = `rgb(${colour.r}, ${colour.g}, ${colour.b})`;
                 }
 
                 if (paletteIndiciesToRenderTransparent.includes(pixelPaletteIndex)) {
@@ -299,8 +296,6 @@ export default class PaintUtil {
                 pixelIndex++;
             }
         }
-
-        return canvas;
     }
 
 
@@ -310,6 +305,7 @@ const pxToLeftOf = px => px - 1;
 const pxToRightOf = px => px + 1;
 const oneAbove = line => line - 1;
 const oneBelow = line => line + 1;
+
 
 /**
  * Performs a scan on a given horizontal line and adds one

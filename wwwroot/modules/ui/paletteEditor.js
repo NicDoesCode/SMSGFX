@@ -579,7 +579,7 @@ export default class PaletteEditor extends ComponentBase {
     #getPaletteInRegularOrNative(palette) {
         const displayNative = this.#getElement(commands.displayNativeColours)?.checked ?? false;
         if (displayNative) {
-            return PaletteUtil.clonePaletteWithNativeColours(palette);
+            return PaletteUtil.clonePaletteWithNativeColours(palette, { preserveIds: true });
         } else {
             return palette;
         }

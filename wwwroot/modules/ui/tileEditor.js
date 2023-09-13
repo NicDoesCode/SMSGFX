@@ -69,7 +69,7 @@ export default class TileEditor extends ComponentBase {
     /** @type {PaletteList} */
     #paletteList = null;
     /** @type {PaletteList} */
-    #nativePaletteList = null;
+    #renderPaletteList = null;
     /** @type {TileGridProvider} */
     #tileGrid = null;
     /** @type {TileSet} */
@@ -154,7 +154,7 @@ export default class TileEditor extends ComponentBase {
     setState(state) {
         let refreshTiles = false;
         let redrawUI = false;
-        let refreshNativePalette = false;
+        let updateRenderPaletteList = false;
         // Tile image manager
         if (state?.tileImageManager === null || state.tileImageManager instanceof TileImageManager) {
             this.#canvasManager.setTileImageManager(state.tileImageManager);
@@ -164,7 +164,7 @@ export default class TileEditor extends ComponentBase {
         if (paletteList && typeof paletteList.getPaletteById === 'function') {
             this.#canvasManager.invalidateImage();
             this.#paletteList = paletteList;
-            refreshNativePalette = true;
+            updateRenderPaletteList = true;
             refreshTiles = true;
         }
         // Changing tile grid
@@ -229,7 +229,7 @@ export default class TileEditor extends ComponentBase {
                 this.#canvasManager.tileGridColour = '#000000';
                 this.#canvasManager.tileGridOpacity = 0.4;
             }
-            refreshNativePalette = true;
+            updateRenderPaletteList = true;
             refreshTiles = true;
         }
         // Draw tile grid
@@ -271,7 +271,7 @@ export default class TileEditor extends ComponentBase {
             }
             this.#canvasManager.invalidateImage();
             refreshTiles = true;
-        } 
+        }
         // Transparency indicies index
         if (Array.isArray(state?.transparencyIndicies)) {
             this.#canvasManager.transparencyIndicies = state.transparencyIndicies.filter((i) => typeof i === 'number');
@@ -325,11 +325,13 @@ export default class TileEditor extends ComponentBase {
             redrawUI = true;
         }
         // Refresh native palette?
-        if (refreshNativePalette) {
-            if (this.#paletteList) {
-                this.#nativePaletteList = PaletteUtil.clonePaletteListWithNativeColours(this.#paletteList);
+        if (updateRenderPaletteList) {
+            if (this.#paletteList && this.#displayNative) {
+                this.#renderPaletteList = PaletteUtil.clonePaletteListWithNativeColours(this.#paletteList, { preserveIds: true });
+            } else if (this.#paletteList && !this.#displayNative) {
+                this.#renderPaletteList = this.#paletteList;
             } else {
-                this.#nativePaletteList = null;
+                this.#renderPaletteList = null;
             }
             refreshTiles = true;
         }
@@ -341,9 +343,8 @@ export default class TileEditor extends ComponentBase {
         // Refresh image?
         if ((refreshTiles || redrawUI) && this.#tileGrid && this.#tileSet && this.#paletteList && this.#paletteList.length > 0) {
             if (refreshTiles) {
-                let paletteList = !this.#displayNative ? this.#paletteList : this.#nativePaletteList;
-                if (this.#canvasManager.paletteList !== paletteList) {
-                    this.#canvasManager.paletteList = paletteList;
+                if (this.#canvasManager.paletteList !== this.#renderPaletteList) {
+                    this.#canvasManager.paletteList = this.#renderPaletteList;
                 }
                 this.#canvasManager.tileSet = this.#tileSet;
                 this.#canvasManager.tileGrid = this.#tileGrid;
@@ -412,7 +413,7 @@ export default class TileEditor extends ComponentBase {
     /** @param {MouseEvent} ev */
     #handleCanvasMouseMove(ev) {
         if (!this.#tileGrid) return;
-    
+
         if (this.#enabled && this.#tileSet) {
             if (ev.target === this.#tbCanvas) {
                 const coords = this.#canvasManager.convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
@@ -458,7 +459,7 @@ export default class TileEditor extends ComponentBase {
     /** @param {MouseEvent} ev */
     #handleCanvasMouseDown(ev) {
         if (!this.#tileGrid) return;
-      
+
         if (!this.#enabled || ev.target !== this.#tbCanvas) return;
 
         if (ev.target === this.#tbCanvas) {

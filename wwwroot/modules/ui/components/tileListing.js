@@ -100,8 +100,8 @@ export default class TileListing extends ComponentBase {
         }
 
         if (dirty && this.#tileSet && this.#palette) {
-            this.#refreshCanvases(this.#tileSet, this.#palette);
-            this.#displayTiles(this.#tileSet);
+            this.#refreshCanvasesAsync(this.#tileSet, this.#palette)
+                .then(() => this.#displayTiles(this.#tileSet));
         }
 
         if (typeof state?.selectedTileId === 'string' || state.selectedTileId === null) {
@@ -138,8 +138,10 @@ export default class TileListing extends ComponentBase {
      * @param {TileSet} tileSet
      * @param {Palette} palette
      */
-    #refreshCanvases(tileSet, palette) {
-        tileSet.getTiles().forEach((tile) => {
+    async #refreshCanvasesAsync(tileSet, palette) {
+        await this.#tileImageManager.batchCacheTileImagesAsync(tileSet.getTiles(), palette, []);
+
+        tileSet.getTiles().forEach((tile, index) => {
             let canvas = this.#canvases[tile.tileId];
             if (!canvas) {
                 canvas = document.createElement('canvas');
@@ -151,7 +153,7 @@ export default class TileListing extends ComponentBase {
             const context = canvas.getContext('2d');
             context.imageSmoothingEnabled = false;
 
-            const tileCanvas = this.#tileImageManager.getTileImage(tile, palette, []);
+            const tileCanvas = this.#tileImageManager.getTileImageBitmap(tile, palette, []);
             context.drawImage(tileCanvas, 0, 0, 32, 32);
         });
     }

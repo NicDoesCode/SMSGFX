@@ -231,7 +231,7 @@ export default class TileManager extends ComponentBase {
 
         if (updateRenderPalette) {
             if (this.#paletteList && this.#displayNative) {
-                this.#renderPaletteList = PaletteUtil.clonePaletteListWithNativeColours(this.#paletteList);
+                this.#renderPaletteList = PaletteUtil.clonePaletteListWithNativeColours(this.#paletteList, { preserveIds: true });
             } else if (this.#paletteList && !this.#displayNative) {
                 this.#renderPaletteList = this.#paletteList;
             } else {
@@ -241,7 +241,7 @@ export default class TileManager extends ComponentBase {
 
         if (paletteDirty) {
             if (this.#palette && this.#displayNative) {
-                this.#renderPalette = PaletteUtil.clonePaletteWithNativeColours(this.#palette);
+                this.#renderPalette = PaletteUtil.clonePaletteWithNativeColours(this.#palette, { preserveId: true });
             } else if (this.#palette && !this.#displayNative) {
                 this.#renderPalette = this.#palette;
             } else {

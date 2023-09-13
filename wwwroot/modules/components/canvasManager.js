@@ -1,5 +1,4 @@
 import TileSet from "./../models/tileSet.js";
-import Palette from "./../models/palette.js";
 import PaletteList from "./../models/paletteList.js";
 import ColourUtil from "./../util/colourUtil.js";
 import ReferenceImage from "../models/referenceImage.js";
@@ -7,7 +6,6 @@ import TileGridProvider from "../models/tileGridProvider.js";
 import Tile from "../models/tile.js";
 import TileMap from "../models/tileMap.js";
 import TileMapFactory from "../factory/tileMapFactory.js";
-import PaintUtil from "../util/paintUtil.js";
 import TileImageManager from "./tileImageManager.js";
 import PaletteListFactory from "../factory/paletteListFactory.js";
 
@@ -302,7 +300,7 @@ export default class CanvasManager {
     }
 
 
-    /** @type {HTMLCanvasElement} */
+    /** @type {OffscreenCanvas} */
     #tileCanvas;
     /** @type {boolean} */
     #needToDrawTileImage = true;
@@ -310,10 +308,12 @@ export default class CanvasManager {
     #tileGrid = null;
     /** @type {TileMap?} */
     #tilePreviewMap = null;
-    /** @type {HTMLCanvasElement} */
+    /** @type {OffscreenCanvas} */
     #tilePreviewCanvas = null;
-    /** @type {HTMLCanvasElement} */
-    #gridPatternCanvas = null;
+    /** @type {ImageBitmap} */
+    #tilePreviewImage = null;
+    /** @type {ImageBitmap} */
+    #gridPatternImage = null;
     /** @type {TileImageManager} */
     #tileImageManager = {};
     /** @type {TileSet} */
@@ -361,7 +361,7 @@ export default class CanvasManager {
      * @param {PaletteList} [paletteList] - Colour palette list to use.
      */
     constructor(tileGrid, tileSet, paletteList) {
-        this.#tileCanvas = document.createElement('canvas');
+        this.#tileCanvas = new OffscreenCanvas(8, 8);
         if (tileGrid) this.#tileGrid = tileGrid;
         if (tileSet) this.#tileSet = tileSet;
         if (paletteList) this.#paletteList = paletteList;
@@ -659,7 +659,7 @@ export default class CanvasManager {
      * Refreshes the entire tile image.
      */
     #refreshTileImage() {
-        this.#gridPatternCanvas = createGridPatternCanvas(this.scale, this.transparencyGridOpacity);
+        this.#gridPatternImage = createGridPatternCanvas(this.scale, this.transparencyGridOpacity);
         if (this.tileGrid) {
             this.#drawTileImage(this.#tileCanvas, this.#transparencyIndicies);
         }
@@ -667,7 +667,7 @@ export default class CanvasManager {
 
     /**
      * Draws the tile image onto a canvas element.
-     * @param {HTMLCanvasElement} tileCanvas - Canvas element to draw onto.
+     * @param {HTMLCanvasElement|OffscreenCanvas} tileCanvas - Canvas element to draw onto.
      * @param {number[]} transparencyIndicies - Render this colour as transparent.
      */
     #drawTileImage(tileCanvas, transparencyIndicies) {
@@ -699,7 +699,7 @@ export default class CanvasManager {
 
     /**
      * Updates a single tile on the main tile canvas.
-     * @param {HTMLCanvasElement} canvas - Canvas element to draw onto.
+     * @param {HTMLCanvasElement|OffscreenCanvas} canvas - Canvas element to draw onto.
      * @param {number} tileIndex - Index of the tile to update on the tile image.
      * @param {number[]} transparencyIndicies - Render this colour as transparent.
      */
@@ -737,10 +737,10 @@ export default class CanvasManager {
             const originY = (tileGridRow * 8) * pxSize;
             const sizeXY = pxSize * 8;
             context.clearRect(originX, originY, sizeXY, sizeXY);
-            context.drawImage(this.#gridPatternCanvas, originX, originY);
+            context.drawImage(this.#gridPatternImage, originX, originY);
         }
         if (tile) {
-            const tileCanvas = this.#tileImageManager.getTileImage(tile, palette, transparencyIndicies);
+            const tileImage = this.#tileImageManager.getTileImageBitmap(tile, palette, transparencyIndicies);
 
             // Tile exists 
             const x = tileGridCol * 8 * pxSize;
@@ -748,18 +748,18 @@ export default class CanvasManager {
             const sizeXY = pxSize * 8;
             if (tileInfo.horizontalFlip && tileInfo.verticalFlip) {
                 context.scale(-1, -1);
-                context.drawImage(tileCanvas, -x, -y, -sizeXY, -sizeXY);
+                context.drawImage(tileImage, -x, -y, -sizeXY, -sizeXY);
                 context.setTransform(1, 0, 0, 1, 0, 0);
             } else if (tileInfo.horizontalFlip) {
                 context.scale(-1, 1);
-                context.drawImage(tileCanvas, -x, y, -sizeXY, sizeXY);
+                context.drawImage(tileImage, -x, y, -sizeXY, sizeXY);
                 context.setTransform(1, 0, 0, 1, 0, 0);
             } else if (tileInfo.verticalFlip) {
                 context.scale(1, -1);
-                context.drawImage(tileCanvas, x, -y, sizeXY, -sizeXY);
+                context.drawImage(tileImage, x, -y, sizeXY, -sizeXY);
                 context.setTransform(1, 0, 0, 1, 0, 0);
             } else {
-                context.drawImage(tileCanvas, x, y, sizeXY, sizeXY);
+                context.drawImage(tileImage, x, y, sizeXY, sizeXY);
             }
         } else {
             this.#tileImageManager.clearByTile(tileInfo.tileId);
@@ -769,7 +769,7 @@ export default class CanvasManager {
     #buildRenderPaletteList() {
         if (this.#renderPaletteList !== null) return;
         if (this.lockedPaletteSlotIndex !== null && this.lockedPaletteSlotIndex >= 0 && this.lockedPaletteSlotIndex < this.paletteList.getPalette(0).getColours().length) {
-            const list = PaletteListFactory.clone(this.paletteList);
+            const list = PaletteListFactory.clone(this.paletteList, { preserveIds: true });
             const lockColour = this.paletteList.getPalette(0).getColour(this.lockedPaletteSlotIndex);
             for (let i = 1; i < list.getPalettes().length; i++) {
                 const colour = list.getPalette(i).getColour(this.lockedPaletteSlotIndex);
@@ -1156,11 +1156,11 @@ export default class CanvasManager {
             context.setLineDash([]);
         }
 
-        // Show the preview image
+        // Tile stamp tool, draw a preview of the selected tile / tile map
         if (this.#tilePreviewMap && coords.tile && isInBounds(this.tileGrid, coords.tile.row, coords.tile.col)) {
             let redraw = false;
             if (!this.#tilePreviewCanvas) {
-                this.#tilePreviewCanvas = document.createElement('canvas');
+                this.#tilePreviewCanvas = new OffscreenCanvas(1, 1);
                 redraw = true;
             }
             // Set the palette slot on the preview tile set
@@ -1183,11 +1183,12 @@ export default class CanvasManager {
             // Redraw
             if (redraw) {
                 drawTileImage(this.#tilePreviewMap, this.tileSet, this.paletteList, this.#tilePreviewCanvas, this.transparencyIndicies, this.scale);
+                this.#tilePreviewImage = this.#tilePreviewCanvas.transferToImageBitmap();
             }
             // Place the preview image
             const tileX = 8 * coords.tile.col * coords.pxSize;
             const tileY = 8 * coords.tile.row * coords.pxSize;
-            context.drawImage(this.#tilePreviewCanvas, tileX + drawX, tileY + drawY, this.#tilePreviewCanvas.width, this.#tilePreviewCanvas.height);
+            context.drawImage(this.#tilePreviewImage, tileX + drawX, tileY + drawY, this.#tilePreviewCanvas.width, this.#tilePreviewCanvas.height);
         }
 
         // Highlight the selected tile region
@@ -1269,7 +1270,7 @@ export default class CanvasManager {
  * @param {TileGridProvider} tileGrid 
  * @param {TileSet} tileSet 
  * @param {PaletteList} paletteList 
- * @param {HTMLCanvasElement} canvas 
+ * @param {OffscreenCanvas} canvas 
  * @param {number?} [transparencyColour]
  * @param {number?} [pxSize]
  */
@@ -1382,21 +1383,19 @@ function isInBounds(tileGrid, row, column) {
 
 /**
  * @param {number} scale 
- * @returns {CanvasPattern}
+ * @returns {ImageBitmap}
  */
 function createGridPatternCanvas(scale, opacity) {
     const gridColour1 = `rgba(255,255,255,${opacity})`;
     const gridColour2 = `rgba(0,0,0,${opacity})`;
     const gridSizePx = 2;
-    const gridCanvas = document.createElement('canvas');
+    const gridCanvas = new OffscreenCanvas(scale * 8, scale * 8);
     const gridCtx = gridCanvas.getContext('2d');
-    gridCanvas.width = scale * 8;
-    gridCanvas.height = scale * 8;
     for (let y = 0; y < gridCanvas.height; y += gridSizePx) {
         for (let x = 0; x < gridCanvas.width; x += gridSizePx) {
             gridCtx.fillStyle = (x + y) % (gridSizePx * 2) === 0 ? gridColour1 : gridColour2;
             gridCtx.fillRect(x, y, gridSizePx, gridSizePx);
         }
     }
-    return gridCanvas;
+    return gridCanvas.transferToImageBitmap();
 }

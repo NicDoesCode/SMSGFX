@@ -16,15 +16,23 @@ export default class PaletteListFactory {
     /**
      * Creates a deep clone of the given palette list.
      * @param {PaletteList} paletteList - Palette list object to create a deep clone of.
+     * @param {ClonePaletteListOptions?} [options] - Clone options.
      * @returns {PaletteList}
      */
-    static clone(paletteList) {
+    static clone(paletteList, options) {
+        const preserveId = options?.preserveIds ?? false;
         const result = new PaletteList();
         paletteList.getPalettes().forEach((p) => {
-            result.addPalette(PaletteFactory.clone(p));
+            result.addPalette(PaletteFactory.clone(p, { preserveId: preserveId }));
         });
         return result;
     }
 
 
 }
+
+/**
+ * @typedef {Object} ClonePaletteListOptions
+ * @property {boolean?} [preserveIds] - Will the output contain the same IDs as the original?
+ * @exports
+ */

@@ -168,10 +168,12 @@ export default class PaletteFactory {
     /**
      * Creates a new instance of a palette object from an existing.
      * @param {Palette} palette - Palette to clone.
+     * @param {ClonePaletteOptions?} [options] - Clone options.
      * @returns {Palette}
      */
-    static clone(palette) {
-        const newPalette = PaletteFactory.create(null, palette.title, palette.system);
+    static clone(palette, options) {
+        const paletteId = options?.preserveId === true ? palette.paletteId : null;
+        const newPalette = PaletteFactory.create(paletteId, palette.title, palette.system);
         palette.getColours().forEach((colour, index) => {
             newPalette.setColour(index, PaletteColourFactory.create(colour.r, colour.g, colour.b));
         });
@@ -209,6 +211,13 @@ export default class PaletteFactory {
 
 
 }
+
+
+/**
+ * @typedef {Object} ClonePaletteOptions
+ * @property {boolean?} [preserveId] - Will the output contain the same ID as the original?
+ * @exports
+ */
 
 
 const defaultColoursMS = ['#000000', '#000000', '#00AA00', '#00FF00', '#000055', '#0000FF', '#550000', '#00FFFF', '#AA0000', '#FF0000', '#555500', '#FFFF00', '#005500', '#FF00FF', '#555555', '#FFFFFF'];
