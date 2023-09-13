@@ -42,7 +42,7 @@ export default class TileMapList {
      */
     containsTileMapById(tileMapId) {
         if (tileMapId) {
-            return this.#tileMaps.filter(tm => tm.tileMapId === tileMapId).length > 0;
+            return this.#tileMaps.filter((tm) => tm.tileMapId === tileMapId).length > 0;
         }
         return false;
     }
@@ -50,11 +50,11 @@ export default class TileMapList {
     /**
      * Gets an item by ID.
      * @param {string} tileMapId - ID of the item to get.
-     * @returns {TileMap|null}
+     * @returns {TileMap?}
      */
     getTileMapById(tileMapId) {
         if (tileMapId) {
-            const found = this.#tileMaps.filter(tm => tm.tileMapId === tileMapId);
+            const found = this.#tileMaps.filter((tm) => tm.tileMapId === tileMapId);
             if (found.length > 0) {
                 return found[0];
             }
