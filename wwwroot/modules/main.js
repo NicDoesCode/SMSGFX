@@ -5007,6 +5007,7 @@ function LoadingScreenManager() {
                     loadingContainer.remove();
                 }
             });
+            appContainer.style.display = 'block';
             appContainer.style.opacity = '1';
         }, waitTime);
     }
