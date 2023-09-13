@@ -453,6 +453,8 @@ export default class TileManager extends ComponentBase {
         const paletteList = this.#renderPaletteList;
         const tileMap = this.#tileMapList.getTileMapById(this.#selectedTileMapId);
 
+        if (!tileMap) return;
+
         // Build a list of palettes based on whats selected for the tile map
         /** @type {Palette[]} */
         const renderPalettes = new Array(this.#numberOfPaletteSlots);
