@@ -27,7 +27,7 @@ export default class ColourPaletteListing extends ComponentBase {
 
     #element;
     #dispatcher;
-    /** @type {import("../../util/colourUtil.js").ColourInformation[]} */
+    /** @type {import("../../types.js").ColourInformation[]} */
     #colours;
     #direction = 'row';
     #buttonWidth = null;
@@ -134,7 +134,7 @@ export default class ColourPaletteListing extends ComponentBase {
 
     /**
      * @param {string} command
-     * @param {import("../../util/colourUtil.js").ColourInformation} colour 
+     * @param {import("../../types.js").ColourInformation} colour 
      * @returns {ColourPaletteListingCommandEventArgs}
      */
     #createEventArgs(command, colour) {
@@ -167,7 +167,7 @@ export default class ColourPaletteListing extends ComponentBase {
         }
 
         // Build the HTML elements
-        /** @type {import("../../util/colourUtil.js").ColourInformation[]} */
+        /** @type {import("../../types.js").ColourInformation[]} */
         const colours = JSON.parse(JSON.stringify(this.#colours));
         if (this.#direction.endsWith('-reverse')) {
             colours.reverse();
@@ -224,7 +224,7 @@ export default class ColourPaletteListing extends ComponentBase {
  * Colour palette list state object.
  * @typedef {object} ColourPaletteListingState
  * @property {boolean?} enabled - Is the toolbox enabled?
- * @property {import("../../util/colourUtil.js").ColourInformation[]?} colours - Colours to display in the picker list.
+ * @property {import("../../types.js").ColourInformation[]?} colours - Colours to display in the picker list.
  * @property {number?} coloursPerRow - Number of colours to display per row, between 1 and 256.
  * @property {string?} direction - Either 'row', 'row-reverse', 'column' or 'column-reverse'.
  * @property {string?} buttonWidth - CSS button width declaration.

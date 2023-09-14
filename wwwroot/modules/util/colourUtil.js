@@ -42,7 +42,7 @@ export default class ColourUtil {
     /**
      * Extracts RGB colour values from a hexadecimal colour code.
      * @param {string} hex - Hexadecimal colour code.
-     * @returns {ColourInformation}
+     * @returns {import('./../types.js').ColourInformation}
      */
     static rgbFromHex(hex) {
         if (hex && hexRegex.test(hex)) {
@@ -73,7 +73,7 @@ export default class ColourUtil {
      * @param {number} r - Red value, 0 to 255.
      * @param {number} g - Green value, 0 to 255.
      * @param {number} b - Blue value, 0 to 255.
-     * @returns {ColourInformation}
+     * @returns {import('./../types.js').ColourInformation}
      */
     static getClosestNativeColour(system, r, g, b) {
         if (r < 0 || r > 255) throw new Error('Invalid value for red.');
@@ -147,7 +147,7 @@ export default class ColourUtil {
 
     /**
      * Gets a Master System colour palette.
-     * @returns {ColourInformation[]}
+     * @returns {import('./../types.js').ColourInformation[]}
      */
     static getFullMasterSystemPalette() {
     if (!masterSystemPalette) {
@@ -166,7 +166,7 @@ export default class ColourUtil {
 
     /**
      * Gets a Game Gear colour palette.
-     * @returns {ColourInformation[]}
+     * @returns {import('./../types.js').ColourInformation[]}
      */
     static getFullGameGearPalette() {
     if (!gameGearPalette) {
@@ -185,7 +185,7 @@ export default class ColourUtil {
 
     /**
      * Gets a Nintendo Entertainment System colour palette.
-     * @returns {ColourInformation[]}
+     * @returns {import('./../types.js').ColourInformation[]}
      */
     static getFullNESPalette() {
     return nesPalette;
@@ -193,7 +193,7 @@ export default class ColourUtil {
 
     /**
      * Gets a Game Boy colour palette.
-     * @returns {ColourInformation[]}
+     * @returns {import('./../types.js').ColourInformation[]}
      */
     static getFullGameBoyPalette() {
     if (!gameBoyPalette) {
@@ -211,13 +211,13 @@ export default class ColourUtil {
 
 
 
-/** @type {ColourInformation[]} */
+/** @type {import('./../types.js').ColourInformation[]} */
 let masterSystemPalette = null;
 
-/** @type {ColourInformation[]} */
+/** @type {import('./../types.js').ColourInformation[]} */
 let gameGearPalette = null;
 
-/** @type {ColourInformation[]}>} */
+/** @type {import('./../types.js').ColourInformation[]}>} */
 const nesPalette = [
     { r: 84, g: 84, b: 84 },
     { r: 0, g: 30, b: 116 },
@@ -277,12 +277,12 @@ const nesPalette = [
     { r: 160, g: 162, b: 160 },
 ];
 
-/** @type {ColourInformation[]} */
+/** @type {import('./../types.js').ColourInformation[]} */
 let gameBoyPalette = null;
 
 let gbColours = [0, 85, 170, 255];
 
-/** @type {ColourInformation[]} */
+/** @type {import('./../types.js').ColourInformation[]} */
 const gbNativePalette = [
     { r: 22, g: 72, b: 2 },
     { r: 44, g: 84, b: 2 },
@@ -306,7 +306,7 @@ function getNearestGBColour(colour) {
  * @param {number} r - Red.
  * @param {number} g - Green.
  * @param {number} b - Blue.
- * @returns {ColourInformation}
+ * @returns {import('./../types.js').ColourInformation}
  */
 function getNearestNESColour(r, g, b) {
     const rgbByCloseness = nesPalette.map((nesRGB) => {
@@ -352,12 +352,3 @@ function getNearestNESColourIndex(r, g, b) {
     return nesIndex;
 }
 
-
-/**
- * @typedef ColourInformation
- * @type {object}
- * @property {number} r - Red component.
- * @property {number} g - Green component.
- * @property {number} b - Blue component.
- * @export
- */

@@ -56,7 +56,7 @@ export default class TileMapUtil {
      * @returns {TileMapBundle}
      */
     static createOptimisedBundleFromProject(project) {
-        const capabilities = SystemUtil.getSystemCapabilities(project.systemType);
+        const capabilities = SystemUtil.getGraphicsCapabilities(project.systemType);
         return TileMapUtil.createOptimisedBundle(project.tileMapList, project.tileSet, project.paletteList, capabilities);
     }
 
@@ -65,7 +65,7 @@ export default class TileMapUtil {
      * @param {TileMap | TileMapList} tileMapOrList - Tile map or list of tile maps.
      * @param {TileSet} tileSet - Tile set containing the source tiles.
      * @param {PaletteList} paletteList - List of palettes.
-     * @param {import("./systemUtil.js").SystemCapabilities} capabilities - System capabilities.
+     * @param {import("./systemUtil.js").GraphicsCapabilities} capabilities - System capabilities.
      * @returns {TileMapBundle}
      */
     static createOptimisedBundle(tileMapOrList, tileSet, paletteList, capabilities) {
@@ -96,8 +96,8 @@ export default class TileMapUtil {
         // Create optimised list of palettes
         const optimisedPaletteList = PaletteListFactory.create();
         optimised.tileMapList.getTileMaps().forEach((tileMap) => {
-            const capability = tileMap.isSprite ? capabilities.sprite : capabilities.tileMap;
-            for (let i = 0; i < capability.paletteSlots; i++) {
+            const capability = tileMap.isSprite ? capabilities.sprite : capabilities.background;
+            for (let i = 0; i < capability.totalPaletteSlots; i++) {
                 const palette = paletteList.getPaletteById(tileMap.getPalette(i));
                 if (palette && !optimisedPaletteList.getPaletteById(palette.paletteId)) {
                     optimisedPaletteList.addPalette(palette);
@@ -110,36 +110,6 @@ export default class TileMapUtil {
             tileSet: optimised.tileSet,
             tileMaps: optimised.tileMapList
         };
-    }
-
-
-    /**
-     * Gets attributes relating to a given tile map.
-     * @param {TileMap|null} tileMap - Tile map to provide attributes for, or null to accept default system values.
-     * @param {Project|string} projectOrSystemType - Either a project or the system type that the tile map belongs to.
-     * @returns {import('./../types.js').TileMapAttributes}
-     */
-    static getTileMapAttributes(tileMap, projectOrSystemType) {
-        const systemType = projectOrSystemType instanceof Project ? projectOrSystemType.systemType : projectOrSystemType;
-        if (systemType === 'smsgg' && tileMap === null) {
-            return { paletteSlots: 2, transparencyIndex: null, lockedIndex: null };
-        } else if (systemType === 'smsgg' && tileMap.isSprite) {
-            return { paletteSlots: 1, transparencyIndex: 0, lockedIndex: null };
-        } else if (systemType === 'smsgg' && !tileMap.isSprite) {
-            return { paletteSlots: 2, transparencyIndex: null, lockedIndex: null };
-        } else if (systemType === 'gb' && tileMap === null) {
-            return { paletteSlots: 1, transparencyIndex: null, lockedIndex: null };
-        } else if (systemType === 'gb' && tileMap.isSprite) {
-            return { paletteSlots: 1, transparencyIndex: 0, lockedIndex: null };
-        } else if (systemType === 'gb' && !tileMap.isSprite) {
-            return { paletteSlots: 1, transparencyIndex: null, lockedIndex: null };
-        } else if (systemType === 'nes' && tileMap === null) {
-            return { paletteSlots: 4, transparencyIndex: null, lockedIndex: 0 };
-        } else if (systemType === 'nes' && tileMap.isSprite) {
-            return { paletteSlots: 4, transparencyIndex: 0, lockedIndex: 0 };
-        } else if (systemType === 'nes' && !tileMap.isSprite) {
-            return { paletteSlots: 4, transparencyIndex: null, lockedIndex: 0 };
-        } throw new Error('Unknown project system type.');
     }
 
 
@@ -158,7 +128,7 @@ export default class TileMapUtil {
 /**
  * @param {TileMap[]} tileMaps
  * @param {TileSet} tileSet
- * @param {import("./systemUtil.js").SystemCapabilities} capabilities 
+ * @param {import("./systemUtil.js").GraphicsCapabilities} capabilities 
  * @returns {{tileMapList: TileMapList, tileSet: TileSet}}
  */
 function createOptimisedTileMapsAndTileSet(tileMaps, tileSet, capabilities) {
@@ -173,7 +143,7 @@ function createOptimisedTileMapsAndTileSet(tileMaps, tileSet, capabilities) {
     const conformingTileSet = TileSetFactory.clone(tileSet);
     const conformingTileMaps = tileMaps.map((tileMap) => {
 
-        const capability = tileMap.isSprite ? capabilities.sprite : capabilities.tileMap;
+        const capability = tileMap.isSprite ? capabilities.sprite : capabilities.background;
 
         const conformingTileMap = TileMapFactory.clone(tileMap);
         conformingTileMap.getTiles().forEach((tileMapTile) => {
@@ -214,7 +184,7 @@ function createOptimisedTileMapsAndTileSet(tileMaps, tileSet, capabilities) {
 
     const optimisedTileMaps = conformingTileMaps.map((tileMap) => {
 
-        const capability = tileMap.isSprite ? capabilities.sprite : capabilities.tileMap;
+        const capability = tileMap.isSprite ? capabilities.sprite : capabilities.background;
 
         const optimisedTileMap = TileMapFactory.clone(tileMap);
         optimisedTileMap.getTiles().forEach((tileMapTile) => {

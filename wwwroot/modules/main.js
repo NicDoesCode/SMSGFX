@@ -1649,7 +1649,7 @@ function handleImportPaletteModalDialogueOnConfirm(args) {
         selectedPaletteIndex: getProjectUIState().paletteIndex
     });
     tileEditor.setState({
-        paletteList: getTileEditorPaletteList()
+        paletteList: getPaletteListToSuitTileMapOrTileSetSelection()
     });
 
     paletteImportDialogue.hide();
@@ -1661,39 +1661,24 @@ function handleImportPaletteModalDialogueOnConfirm(args) {
  * @param {import('./ui/colourPickerDialogue').ColourPickerDialogueColourEventArgs} args - Event args.
  */
 function handleColourPickerChange(args) {
-
-    const palette = getPaletteList().getPalette(getProjectUIState().paletteIndex);
-    const currentColour = palette.getColour(args.index);
-
+    const currentColour = getPalette().getColour(args.index);
     if (args.r !== currentColour.r || args.g !== currentColour.g || args.b !== currentColour.b) {
-
-        const newColour = PaletteColourFactory.create(args.r, args.g, args.b);
-        palette.setColour(args.index, newColour);
-
-        paletteEditor.setState({
-            paletteList: getPaletteList()
-        });
-        tileEditor.setState({
-            palette: getPalette(),
-            paletteList: getTileEditorPaletteList()
-        });
-
+        paletteSetColourAtIndexWithoutSaving(getProjectUIState().paletteIndex, args.index, { r: args.r, g: args.g, b: args.b })
     }
-
 }
 
 /**
  * User has confirmed their colour choice, finalise the colour selection and save.
- * @param {import('./ui/colourPickerDialogue').ColourPickerDialogueColourEventArgs} args - Event args.
+ * @param {import('./ui/dialogues/colourPickerDialogue.js').ColourPickerDialogueColourEventArgs} args - Event args.
  */
 function handleColourPickerConfirm(args) {
-    changeColourIndex(getProjectUIState().paletteIndex, args.index, { r: args.r, g: args.g, b: args.b })
+    paletteSetColourAtIndex(getProjectUIState().paletteIndex, args.index, { r: args.r, g: args.g, b: args.b })
     colourPickerDialogue.hide();
 }
 
 /**
  * User has cancelled the colour picker, restore the original colour.
- * @param {import('./ui/colourPickerDialogue').ColourPickerDialogueColourEventArgs} args - Event args.
+ * @param {import('./ui/dialogues/colourPickerDialogue.js').ColourPickerDialogueColourEventArgs} args - Event args.
  */
 function handleColourPickerCancel(args) {
 
@@ -1701,18 +1686,7 @@ function handleColourPickerCancel(args) {
     const currentColour = palette.getColour(args.index);
 
     if (args.originalR !== currentColour.r || args.originalG !== currentColour.g || args.originalB !== currentColour.b) {
-
-        const restoreColour = PaletteColourFactory.create(args.originalR, args.originalG, args.originalB);
-        palette.setColour(args.index, restoreColour);
-
-        paletteEditor.setState({
-            paletteList: getPaletteList()
-        });
-        tileEditor.setState({
-            palette: palette,
-            paletteList: getTileEditorPaletteList()
-        });
-
+        paletteSetColourAtIndex(getProjectUIState().paletteIndex, args.index, { r: args.originalR, g: args.originalG, b: args.originalB })
     }
     colourPickerDialogue.hide();
 }
@@ -1731,7 +1705,7 @@ function handleColourPickerToolboxOnCommand(args) {
             break;
 
         case ColourPickerToolbox.Commands.colourChanged:
-            changeColourIndex(getProjectUIState().paletteIndex, instanceState.colourIndex, { r: args.r, g: args.g, b: args.b })
+            paletteSetColourAtIndex(getProjectUIState().paletteIndex, instanceState.colourIndex, { r: args.r, g: args.g, b: args.b })
             break;
 
     }
@@ -1741,35 +1715,43 @@ function handleColourPickerToolboxOnCommand(args) {
 /**
  * @param {number} paletteIndex
  * @param {number} colourIndex
- * @param {{r: number, g: number, b: number}} colour
+ * @param {import('./types.js').ColourInformation} colour
  */
-function changeColourIndex(paletteIndex, colourIndex, colour) {
-    addUndoState();
-
+function paletteSetColourAtIndexWithoutSaving(paletteIndex, colourIndex, colour) {
     const palette = getPaletteList().getPalette(paletteIndex);
 
     const newColour = PaletteColourFactory.create(colour.r, colour.g, colour.b);
     palette.setColour(colourIndex, newColour);
 
-    state.saveProjectToLocalStorage();
-
-    tileImageManager.clearByPalette(palette.paletteId);
+    tileImageManager.clear();
 
     paletteEditor.setState({
         paletteList: getPaletteList(),
         displayNative: getUIState().displayNativeColour
     });
     tileManager.setState({
-        paletteList: getTileEditorPaletteList(),
+        palette: getPalette(),
+        paletteList: getPaletteList(),
         tileSet: getTileSet(),
         displayNative: getUIState().displayNativeColour
     });
     tileEditor.setState({
         palette: getPalette(),
-        paletteList: getTileEditorPaletteList(),
+        paletteList: getPaletteListToSuitTileMapOrTileSetSelection(),
         displayNative: getUIState().displayNativeColour,
         forceRefresh: true
     });
+}
+
+/**
+ * @param {number} paletteIndex
+ * @param {number} colourIndex
+ * @param {import('./types.js').ColourInformation} colour
+ */
+function paletteSetColourAtIndex(paletteIndex, colourIndex, colour) {
+    addUndoState();
+    paletteSetColourAtIndexWithoutSaving(paletteIndex, colourIndex, colour);
+    state.saveProjectToLocalStorage();
 }
 
 
@@ -1842,7 +1824,7 @@ function handleImageImportModalOnConfirm(args) {
     });
     const focusedTile = (Math.floor(getTileGrid().rowCount / 2) * getTileGrid().columnCount) + (Math.floor(getTileGrid().columnCount) / 2);
     tileEditor.setState({
-        paletteList: getTileEditorPaletteList(),
+        paletteList: getPaletteListToSuitTileMapOrTileSetSelection(),
         tileGrid: getTileGrid(),
         tileSet: getTileSet(),
         focusedTile: focusedTile
@@ -2118,14 +2100,14 @@ function getPaletteList() {
  * tile map settings, like locking in a colour
  * @returns {PaletteList}
  */
-function getTileEditorPaletteList() {
+function getPaletteListToSuitTileMapOrTileSetSelection() {
     if (isTileMap()) {
-        // Tile map, return a palette list of length 16, fill it with selected palettes sequentially
+        // Tile map, return a palette list, fill it with selected palettes sequentially
         // when we exceed the amount of allowed palettes in the tile map, instead just repeat
         // the last selected palette.
-        const attr = TileMapUtil.getTileMapAttributes(getTileMap(), getProject());
+        const capability = SystemUtil.getGraphicsCapability(getProject().systemType, getTileMap().isSprite ? 'sprite' : 'background');
         const tileMap = getTileMap();
-        const palettes = new Array(attr.paletteSlots);
+        const palettes = new Array(capability.totalPaletteSlots);
         const paletteList = PaletteListFactory.create();
         for (let i = 0; i < palettes.length; i++) {
             paletteList.addPalette(getPaletteList().getPaletteById(tileMap.getPalette(i)));
@@ -2291,17 +2273,18 @@ function refreshProjectUI() {
         enabled: true
     });
 
-    const tileMapAttributes = TileMapUtil.getTileMapAttributes(getTileMap(), getProject().systemType);
+    const capabilityType = isTileMap() ? getTileMap().isSprite ? 'sprite' : 'background' : 'background';
+    const graphicsCapability = SystemUtil.getGraphicsCapability(getProject().systemType, capabilityType);
 
     tileEditor.setState({
         forceRefresh: true,
-        paletteList: getTileEditorPaletteList(),
+        paletteList: getPaletteListToSuitTileMapOrTileSetSelection(),
         tileSet: getTileSet(),
         tileGrid: getTileGrid(),
         tilesPerBlock: getTilesPerBlock(),
         displayNative: getUIState().displayNativeColour,
         transparencyIndicies: getTransparencyIndicies(),
-        lockedPaletteSlotIndex: tileMapAttributes.lockedIndex,
+        lockedPaletteSlotIndex: graphicsCapability.lockedPaletteIndex,
         selectedTileIndex: instanceState.tileIndex,
         cursorSize: instanceState.pencilSize,
         scale: getUIState().scale,
@@ -2317,8 +2300,8 @@ function refreshProjectUI() {
         tileSet: getTileSet(),
         selectedTileMapId: getProjectUIState().tileMapId,
         selectedTileId: getProjectUIState().tileId,
-        numberOfPaletteSlots: tileMapAttributes.paletteSlots,
-        lockedPaletteSlotIndex: tileMapAttributes.lockedIndex,
+        numberOfPaletteSlots: graphicsCapability.totalPaletteSlots,
+        lockedPaletteSlotIndex: graphicsCapability.lockedPaletteIndex,
         displayNative: getUIState().displayNativeColour
     });
 
@@ -3751,7 +3734,7 @@ function changePaletteSystem(paletteIndex, system) {
         displayNative: getUIState().displayNativeColour
     });
     tileEditor.setState({
-        paletteList: getTileEditorPaletteList(),
+        paletteList: getPaletteListToSuitTileMapOrTileSetSelection(),
         displayNative: getUIState().displayNativeColour,
         forceRefresh: true
     });
@@ -3775,7 +3758,7 @@ function changePaletteEditorDisplayNativeColours(displayNative) {
     tileEditor.setState({
         tileGrid: getTileGrid(),
         tileSet: getTileSet(),
-        paletteList: getTileEditorPaletteList(),
+        paletteList: getPaletteListToSuitTileMapOrTileSetSelection(),
         displayNative: getUIState().displayNativeColour
     });
     tileManager.setState({
@@ -3821,7 +3804,7 @@ function swapColourIndex(sourceColourIndex, targetColourIndex) {
     tileImageManager.clear();
 
     tileEditor.setState({
-        paletteList: getTileEditorPaletteList(),
+        paletteList: getPaletteListToSuitTileMapOrTileSetSelection(),
         tileGrid: getTileGrid(),
         tileSet: getTileSet()
     });
@@ -3859,7 +3842,7 @@ function tileNew() {
         state.saveToLocalStorage();
 
         tileEditor.setState({
-            paletteList: getTileEditorPaletteList(),
+            paletteList: getPaletteListToSuitTileMapOrTileSetSelection(),
             tileGrid: getTileGrid(),
             tileSet: getTileSet()
         });
@@ -4549,22 +4532,23 @@ function tileMapUpdate(tileMapId, args) {
     // Update project
     state.saveToLocalStorage();
 
-    const tileMapAttributes = TileMapUtil.getTileMapAttributes(tileMap, getProject());
+    const capabilityType = isTileMap() ? getTileMap().isSprite ? 'sprite' : 'background' : 'background';
+    const graphicsCapability = SystemUtil.getGraphicsCapability(getProject().systemType, capabilityType);
 
     // Reset UI
     tileManager.setState({
         tileMapList: getTileMapList(),
         selectedTileMapId: getProjectUIState().tileMapId,
-        numberOfPaletteSlots: tileMapAttributes.paletteSlots,
-        lockedPaletteSlotIndex: tileMapAttributes.lockedIndex
+        numberOfPaletteSlots: graphicsCapability.totalPaletteSlots,
+        lockedPaletteSlotIndex: graphicsCapability.lockedPaletteIndex
     });
     tileEditor.setState({
         selectedTileIndex: -1,
         tileGrid: getTileGrid(),
         tileSet: getTileSet(),
-        paletteList: getTileEditorPaletteList(),
+        paletteList: getPaletteListToSuitTileMapOrTileSetSelection(),
         transparencyIndicies: getTransparencyIndicies(),
-        lockedPaletteSlotIndex: tileMapAttributes.lockedIndex,
+        lockedPaletteSlotIndex: graphicsCapability.lockedPaletteIndex,
         forceRefresh: true
     });
 }
@@ -4824,13 +4808,13 @@ function changePaletteIndex(index) {
 }
 
 function getTransparencyIndicies() {
-    const capabilities = SystemUtil.getSystemCapabilities(getProject().systemType);
+    const capabilities = SystemUtil.getGraphicsCapabilities(getProject().systemType);
     const result = [];
     if (instanceState.referenceImage?.hasImage() && instanceState.referenceImageTransparencyIndex >= 0) {
         result.push(instanceState.referenceImageTransparencyIndex);
     }
     if (isTileMap()) {
-        const capability = getTileMap()?.isSprite ? capabilities.sprite : capabilities.tileMap;
+        const capability = getTileMap()?.isSprite ? capabilities.sprite : capabilities.background;
         if (capability.transparencyIndex !== null) {
             result.push(capability.transparencyIndex);
         }

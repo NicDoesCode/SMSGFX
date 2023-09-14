@@ -5,11 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Firefox (HTTP)",
+            "name": "Firefox, serve and launch",
             "type": "firefox",
             "request": "launch",
             "reAttach": true,
-            "url": "http://localhost:8080/index.html",
+            "url": "http://localhost:8443/index.html",
             "webRoot": "${workspaceFolder}/wwwroot",
             "profile": "debug",
             "keepProfileChanges": true,
@@ -23,7 +23,7 @@
             "postDebugTask": "stop-server"
         },
         {
-            "name": "Launch Firefox (HTTPS)",
+            "name": "Firefox, launch",
             "type": "firefox",
             "request": "launch",
             "reAttach": true,
@@ -36,12 +36,10 @@
                     "url": "https://localhost:8443",
                     "path": "${workspaceFolder}/wwwroot"
                 }
-            ],
-            "preLaunchTask": "launch-server",
-            "postDebugTask": "stop-server"
+            ]
         },
         {
-            "name": "Attach Firefox",
+            "name": "Firefox, attach",
             "type": "firefox",
             "request": "attach",
             "url": "https://localhost:8443/index.html",
@@ -54,7 +52,7 @@
             ]
         },
         {
-            "name": "Serve and launch Chrome (HTTPS)",
+            "name": "Chrome, serve and launch",
             "request": "launch",
             "type": "chrome",
             "url": "https://localhost:8443",
@@ -63,21 +61,21 @@
             "postDebugTask": "stop-server"
         },
         {
-            "name": "Launch Chrome (HTTPS)",
+            "name": "Chrome, launch",
             "request": "launch",
             "type": "chrome",
             "url": "https://localhost:8443",
             "webRoot": "${workspaceFolder}/wwwroot"
         },
         {
-            "name": "Attach to Chrome",
+            "name": "Chrome, attach",
             "port": 9222,
             "request": "attach",
             "type": "chrome",
             "webRoot": "${workspaceFolder}/wwwroot",
         },
         {
-            "name": "Launch Firefox (HTTPS) (prod)",
+            "name": "Firefox, build and launch",
             "type": "firefox",
             "request": "launch",
             "reAttach": true,

@@ -227,7 +227,7 @@ const defaultColourNES = ['#000000', '#38b4cc', '#3032ec', '#FFFFFF'];
 /**
  * Gets the colour that corresponds with the NES colour code.
  * @param {number} value - NES colour code.
- * @returns {import("../util/colourUtil.js").ColourInformation}
+ * @returns {import("../types.js").ColourInformation}
  */
 function getColourFromNesIndex(value) {
     const palette = ColourUtil.getFullNESPalette();
