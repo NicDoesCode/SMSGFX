@@ -37,7 +37,7 @@ export default class SmsggAssemblySerialiser extends ProjectAssemblySerialiser {
             });
         }
 
-        const capabilities = SystemUtil.getSystemCapabilities(project.systemType);
+        const capabilities = SystemUtil.getGraphicsCapabilities(project.systemType);
         const bundle = TileMapUtil.createOptimisedBundle(tileMapList, project.tileSet, project.paletteList, capabilities);
 
         const result = ['; SEGA MASTER SYSTEM AND SEGA GAME GEAR ASSEMBLY FOR WLA-DX'];

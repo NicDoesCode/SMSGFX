@@ -36,7 +36,7 @@ export default class GameBoyAssemblySerialiser extends ProjectAssemblySerialiser
             });
         }
 
-        const capabilities = SystemUtil.getSystemCapabilities(project.systemType);
+        const capabilities = SystemUtil.getGraphicsCapabilities(project.systemType);
         const bundle = TileMapUtil.createOptimisedBundle(tileMapList, project.tileSet, project.paletteList, capabilities);
 
         const result = ['; NINTENDO GAME BOY ASSEMBLY FOR WLA-DX'];

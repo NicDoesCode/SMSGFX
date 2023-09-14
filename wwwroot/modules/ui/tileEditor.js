@@ -334,6 +334,7 @@ export default class TileEditor extends ComponentBase {
                 this.#renderPaletteList = null;
             }
             refreshTiles = true;
+            this.#canvasManager.invalidateImage();
         }
         // Force refresh?
         if (typeof state.forceRefresh === 'boolean' && state.forceRefresh === true) {
@@ -343,30 +344,11 @@ export default class TileEditor extends ComponentBase {
         // Refresh image?
         if ((refreshTiles || redrawUI) && this.#tileGrid && this.#tileSet && this.#paletteList && this.#paletteList.length > 0) {
             if (refreshTiles) {
-                if (this.#canvasManager.paletteList !== this.#renderPaletteList) {
-                    this.#canvasManager.paletteList = this.#renderPaletteList;
-                }
+                this.#canvasManager.paletteList = this.#renderPaletteList;
                 this.#canvasManager.tileSet = this.#tileSet;
                 this.#canvasManager.tileGrid = this.#tileGrid;
                 if (this.#canvasManager.scale !== this.#scale) {
-                    const prevScale = this.#canvasManager.scale;
-                    this.#canvasManager.scale = this.#scale;
-                    if (state?.scaleRelativeToMouse === true && this.#lastCoords && this.#lastMouseCoords) {
-                        // Scale / zoom based on mouse coord
-                        const mouseXRelativeToCentre = -((this.#tbCanvas.clientWidth / 2) - this.#lastMouseCoords.x);
-                        const zeroOffsetX = (((this.#tileGrid.columnCount * 8) / 2) * this.#scale);
-                        const hoverPixelNewXOffset = this.#lastCoords.x * this.#scale;
-                        this.#canvasManager.offsetX = Math.round(zeroOffsetX + mouseXRelativeToCentre - hoverPixelNewXOffset);
-
-                        const mouseYRelativeToCentre = -((this.#tbCanvas.clientHeight / 2) - this.#lastMouseCoords.y);
-                        const zeroOffsetY = (((this.#tileGrid.rowCount * 8) / 2) * this.#scale);
-                        const hoverPixelNewYOffset = this.#lastCoords.y * this.#scale;
-                        this.#canvasManager.offsetY = Math.round(zeroOffsetY + mouseYRelativeToCentre - hoverPixelNewYOffset);
-                    } else {
-                        // Scale / zoom based on viewport centre
-                        this.#canvasManager.offsetX = Math.round((this.#canvasManager.offsetX / prevScale) * this.#scale);
-                        this.#canvasManager.offsetY = Math.round((this.#canvasManager.offsetY / prevScale) * this.#scale);
-                    }
+                    this.#updateCanvasManagerScale(state?.scaleRelativeToMouse ?? false);
                 }
             }
             if (this.#lastCoords) {
@@ -384,6 +366,7 @@ export default class TileEditor extends ComponentBase {
             this.#focusTile(state?.focusedTile);
         }
     }
+
 
     /**
      * Returns a bitmap that represents the tile set as a PNG data URL.
@@ -676,6 +659,31 @@ export default class TileEditor extends ComponentBase {
         const pxPerTile = this.#canvasManager.scale * 8;
         this.#canvasManager.offsetX = col / pxPerTile;
         this.#canvasManager.offsetY = row / pxPerTile;
+    }
+
+
+    /**
+     * @param {boolean} relativeToMouse 
+     */
+    #updateCanvasManagerScale(relativeToMouse) {
+        const prevScale = this.#canvasManager.scale;
+        this.#canvasManager.scale = this.#scale;
+        if (relativeToMouse === true && this.#lastCoords && this.#lastMouseCoords) {
+            // Scale / zoom based on mouse coord
+            const mouseXRelativeToCentre = -((this.#tbCanvas.clientWidth / 2) - this.#lastMouseCoords.x);
+            const zeroOffsetX = (((this.#tileGrid.columnCount * 8) / 2) * this.#scale);
+            const hoverPixelNewXOffset = this.#lastCoords.x * this.#scale;
+            this.#canvasManager.offsetX = Math.round(zeroOffsetX + mouseXRelativeToCentre - hoverPixelNewXOffset);
+
+            const mouseYRelativeToCentre = -((this.#tbCanvas.clientHeight / 2) - this.#lastMouseCoords.y);
+            const zeroOffsetY = (((this.#tileGrid.rowCount * 8) / 2) * this.#scale);
+            const hoverPixelNewYOffset = this.#lastCoords.y * this.#scale;
+            this.#canvasManager.offsetY = Math.round(zeroOffsetY + mouseYRelativeToCentre - hoverPixelNewYOffset);
+        } else {
+            // Scale / zoom based on viewport centre
+            this.#canvasManager.offsetX = Math.round((this.#canvasManager.offsetX / prevScale) * this.#scale);
+            this.#canvasManager.offsetY = Math.round((this.#canvasManager.offsetY / prevScale) * this.#scale);
+        }
     }
 
 
