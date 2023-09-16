@@ -48,7 +48,7 @@ export default class TileStampTool {
 }
 /** 
  * Arguments for the tile stamp tool.
- * @typedef {object} TileStampByBlockArgs
+ * @typedef {Object} TileStampByBlockArgs
  * @property {TileMap} tileMap - Tile map that contains the tiles to set.
  * @property {TileSet} tileSet - Tile set that contains the tiles for the project.
  * @property {number} tileRow - Row in tile block grid.
@@ -58,7 +58,7 @@ export default class TileStampTool {
  */
 /** 
  * Arguments for the tile stamp tool.
- * @typedef {object} TileStampByBlockArgs
+ * @typedef {Object} TileStampByBlockArgs
  * @property {TileMap} tileMap - Tile map that contains the tiles to set.
  * @property {TileSet} tileSet - Tile set that contains the tiles for the project.
  * @property {number} tileRow - Row in tile block grid.
@@ -68,7 +68,7 @@ export default class TileStampTool {
  */
 /** 
  * Result for the tile stamp tool.
- * @typedef {object} TileStampResult
+ * @typedef {Object} TileStampResult
  * @property {string[]} updatedTileIds - Unique IDs of tiles affected by the operation.
  * @exports
  */

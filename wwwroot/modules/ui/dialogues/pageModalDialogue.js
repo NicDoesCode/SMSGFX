@@ -118,7 +118,7 @@ export default class PageModalDialogue extends ModalDialogue {
 
 /**
  * Privacy dialogue state object.
- * @typedef {object} PageModalDialogueState
+ * @typedef {Object} PageModalDialogueState
  * @property {string?} [pageUrl] - URL of the page to be loaded into the iframe.
  * @property {string?} [title] - Text to display in the page header.
  * @property {boolean?} [showHeader] - Should the dialogue header be displayed.
@@ -132,7 +132,7 @@ export default class PageModalDialogue extends ModalDialogue {
  */
 /**
  * Privacy dialogue confirm args.
- * @typedef {object} PageModalDialogueStateConfirmEventArgs
+ * @typedef {Object} PageModalDialogueStateConfirmEventArgs
  * @exports
  */
 

@@ -591,7 +591,7 @@ export default class PaletteEditor extends ComponentBase {
 
 /**
  * Palette editor state.
- * @typedef {object} PaletteEditorState
+ * @typedef {Object} PaletteEditorState
  * @property {PaletteList?} paletteList - Current list of palettes, null for no palettes.
  * @property {string?} title - Title of the palette.
  * @property {string?} selectedSystem - Sets the selected system, either 'ms', 'gg', 'gb' or 'nes'.
@@ -610,7 +610,7 @@ export default class PaletteEditor extends ComponentBase {
  * @exports
  */
 /**
- * @typedef {object} PaletteEditorCommandEventArgs
+ * @typedef {Object} PaletteEditorCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {number?} paletteIndex - Index of the selected palette.
  * @property {number?} paletteId - Unique ID of the selected palette.

@@ -2442,7 +2442,7 @@ function updateTilesOnEditors(tileIdOrIds) {
         tileIdOrIds = [tileIdOrIds];
     }
     if (tileIdOrIds && Array.isArray(tileIdOrIds) && tileIdOrIds.length > 0) {
-        tileImageManager.clearByTile(tileIdOrIds);
+        // tileImageManager.clearByTile(tileIdOrIds);
         tileEditor.setState({
             updatedTileIds: tileIdOrIds
         });
@@ -2616,7 +2616,7 @@ function refreshProjectLists() {
 }
 
 /** 
- * @typedef {object} ToolActionArgs
+ * @typedef {Object} ToolActionArgs
  * @property {string} tool 
  * @property {number} colourIndex 
  * @property {number} imageX 
@@ -2660,6 +2660,7 @@ function takeToolAction(args) {
 
                 const lastPx = instanceState.lastTileMapPx;
                 if (imageX !== lastPx.x || imageY !== lastPx.y) {
+                    // console.time('Main > TakeToolAction > Pencil.'); // TMP 
 
                     const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
                     const clamp = instanceState.clampToTile;
@@ -2689,6 +2690,7 @@ function takeToolAction(args) {
                         }
 
                     }
+                    // console.timeEnd('Main > TakeToolAction > Pencil.'); // TMP 
                 }
 
             } else {
@@ -4748,6 +4750,8 @@ function setScale(scale, relativeToMouse) {
     getUIState().scale = scale;
     state.saveToLocalStorage();
 
+    tileImageManager.setScale(scale);
+
     setCommonTileToolbarStates({
         scale: scale
     });
@@ -4968,6 +4972,8 @@ window.addEventListener('load', async () => {
     state.loadPersistentUIStateFromLocalStorage();
 
     checkPersistentUIValues();
+
+    tileImageManager.setScale(getUIState().scale ?? 1);
 
     // Load initial projects
     const projectList = state.getProjectsFromLocalStorage();

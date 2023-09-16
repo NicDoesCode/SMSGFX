@@ -74,7 +74,7 @@ function countOfTileIdInTileMap(tileId, tileMap) {
 
 /** 
  * Result for the tile break link tool.
- * @typedef {object} TileBreakLinkResult
+ * @typedef {Object} TileBreakLinkResult
  * @property {boolean} changesMade - True if changes were made, otherwise false.
  * @property {string[]} updatedTileIds - Unique IDs of tiles affected by the operation.
  * @exports

@@ -138,7 +138,7 @@ export default class PaletteListing extends ComponentBase {
 
 /**
  * Palette list state.
- * @typedef {object} PaletteListingState
+ * @typedef {Object} PaletteListingState
  * @property {PaletteList?} [paletteList] - Palette list to be displayed.
  * @property {string?} [selectedPaletteId] - Unique ID of the selected palette.
  */
@@ -150,7 +150,7 @@ export default class PaletteListing extends ComponentBase {
  * @exports
  */
 /**
- * @typedef {object} PaletteListingCommandEventArgs
+ * @typedef {Object} PaletteListingCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string} paletteId - Unique ID of the palette.
  * @exports

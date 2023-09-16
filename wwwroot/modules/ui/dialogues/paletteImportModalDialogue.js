@@ -88,7 +88,7 @@ export default class PaletteModalDialogue extends ModalDialogue {
 
 /**
  * Import tile set dialogue state object.
- * @typedef {object} PaletteImportModalDialogueState
+ * @typedef {Object} PaletteImportModalDialogueState
  * @property {string} system - The system to be imported, either 'ms', 'gg' or 'gb'.
  * @property {string[]} allowedSystems - Array of allowed systems, 'ms', 'gg' or 'gb'.
  * @property {string} paletteData - The WLA-DLX assembly code that contains the palette.
@@ -102,7 +102,7 @@ export default class PaletteModalDialogue extends ModalDialogue {
  */
 /**
  * Import palette dialogue confirm args.
- * @typedef {object} PaletteImportModalDialogueConfirmEventArgs
+ * @typedef {Object} PaletteImportModalDialogueConfirmEventArgs
  * @property {string} system - The system to be imported, either 'ms' or 'gg'.
  * @property {string} paletteData - The WLA-DLX assembly code that contains the palette.
  * @exports

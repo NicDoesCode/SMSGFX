@@ -36,8 +36,7 @@ export default class TileMapTileFactory {
 
 }
 /**
- * @typedef TileMapTileFactoryCreateArgs
- * @type {object}
+ * @typedef {Object} TileMapTileFactoryCreateArgs
  * @property {string?} tileId
  * @property {boolean?} priority
  * @property {number?} palette

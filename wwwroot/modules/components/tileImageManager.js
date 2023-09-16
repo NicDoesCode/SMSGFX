@@ -14,15 +14,51 @@ export default class TileImageManager {
     #bitmapCache = {};
     /** @type {OffscreenCanvas} */
     #tileCanvas;
+    /** @type {number} */
+    #scale = 1;
 
 
     /**
      * Constructor for the class.
+     * @param {number?} [scale] - Size scale of the cached images, a value of 1 means an 8x8 pixel cached image, a value of 5 means a 40x40 pixel cached image.
+     * @throws Scale is supplied but less than 1.
      */
-    constructor() {
-        this.#tileCanvas = new OffscreenCanvas(8, 8);
+    constructor(scale) {
+        if (typeof scale === 'number') {
+            if (scale < 1) throw new Error('Scale was not valid.');
+            this.#scale = Math.min(scale, 1000);
+        }
+        this.#tileCanvas = new OffscreenCanvas(this.#scale * 8, this.#scale * 8);
     }
 
+
+    /**
+     * Sets the width and height of the cached tile images.
+     * @param {number} scale - Size scale of the cached images, a value of 1 means an 8x8 pixel cached image, a value of 5 means a 40x40 pixel cached image.
+     * @throws Scale is not defined or not a number.
+     * @throws Scale is less than 1.
+     */
+    setScale(scale) {
+        if (typeof scale !== 'number' || scale < 1) throw new Error('Scale was not valid.');
+        if (scale > 1000) scale = 1000;
+        if (scale !== this.#scale) {
+            this.#scale = scale;
+            this.#tileCanvas = new OffscreenCanvas(this.#scale * 8, this.#scale * 8);
+            this.clear();
+        }
+    }
+
+
+    /**
+     * Gets the image for the tile.
+     * @param {Tile} tile - Tile that we get the image for.
+     * @param {Palette} palette - Colour palette to use.
+     * @param {number[]} transparencyIndicies - Palette indicies to render as transparent.
+     * @returns {ImageBitmap}
+     */
+    getTileImageBitmap(tile, palette, transparencyIndicies) {
+        return this.#createTileImageBitmap(this.#tileCanvas, tile, palette, transparencyIndicies);
+    }
 
     /**
      * Creates pre cached versions of tile images.
@@ -36,7 +72,7 @@ export default class TileImageManager {
         // Create an array of canvases to do the processing 
         const canvases = new Array(queueSize);
         for (let t = 0; t < queueSize; t++) {
-            canvases[t] = new OffscreenCanvas(8, 8);
+            canvases[t] = new OffscreenCanvas(this.#scale * 8, this.#scale * 8);
         }
 
         // Create batches of tiles to process
@@ -91,17 +127,6 @@ export default class TileImageManager {
         }
 
         return transparencySlot;
-    }
-
-    /**
-     * Gets the image for the tile.
-     * @param {Tile} tile - Tile that we get the image for.
-     * @param {Palette} palette - Colour palette to use.
-     * @param {number[]} transparencyIndicies - Palette indicies to render as transparent.
-     * @returns {ImageBitmap}
-     */
-    getTileImageBitmap(tile, palette, transparencyIndicies) {
-        return this.#createTileImageBitmap(this.#tileCanvas, tile, palette, transparencyIndicies);
     }
 
 

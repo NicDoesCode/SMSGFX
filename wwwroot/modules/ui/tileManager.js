@@ -586,7 +586,7 @@ export default class TileManager extends ComponentBase {
 
 /**
  * Tile manager state.
- * @typedef {object} TileManagerState
+ * @typedef {Object} TileManagerState
  * @property {TileMapList?} [tileMapList] - Tile map list to be displayed in the listing.
  * @property {TileSet?} [tileSet] - Tile set to be displayed.
  * @property {Palette?} [palette] - Palette to use to render the tiles.
@@ -608,7 +608,7 @@ export default class TileManager extends ComponentBase {
  * @exports
  */
 /**
- * @typedef {object} TileManagerCommandEventArgs
+ * @typedef {Object} TileManagerCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string} tileMapId - Unique ID of the tile map.
  * @property {string} tileId - Unique ID of the tile.

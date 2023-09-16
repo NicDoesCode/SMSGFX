@@ -122,7 +122,7 @@ export default class DocumentationViewer extends ComponentBase {
 
 /**
  * Documentation viewer state object.
- * @typedef {object} DocumentationViewerState
+ * @typedef {Object} DocumentationViewerState
  * @property {string?} [documentationUrl] - URL for main documentation.
  * @property {string?} [documentationInlineUrl] - URL for inline help.
  * @property {string} visible - Should the sidebar be visible?
@@ -136,7 +136,7 @@ export default class DocumentationViewer extends ComponentBase {
  * @exports
  */
 /**
- * @typedef {object} DocumentationViewerCommandEventArgs
+ * @typedef {Object} DocumentationViewerCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string} currentDocumentationUrl - Current URL being displayed in the the documentation iframe.
  * @exports

@@ -206,7 +206,7 @@ export default class PersistentUIState {
 
 /** 
  * Saved state for an individual project.
- * @typedef {object} ProjectState
+ * @typedef {Object} ProjectState
  * @property {string} projectId - Unique ID of the project.
  * @property {number?} paletteIndex - Last selected palette index.
  * @property {string?} tileMapId - Unique ID of the last selected tile map.
@@ -217,7 +217,7 @@ export default class PersistentUIState {
 
 /** 
  * An individual project's export state.
- * @typedef {object} ProjectAssemblyExportState
+ * @typedef {Object} ProjectAssemblyExportState
  * @property {string[]} tileMapIds
  * @property {boolean} exportPalettes
  * @property {boolean} exportTileSet

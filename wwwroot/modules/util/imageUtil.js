@@ -837,20 +837,20 @@ function getSimilaritry(colour, range) {
 
 
 /**
- * @typedef {object} ImageDisplayParams
+ * @typedef {Object} ImageDisplayParams
  * @property {TileSpec?} tiles
  * @property {number?} scale
  */
 
 /**
- * @typedef {object} ImageImportParams
+ * @typedef {Object} ImageImportParams
  * @property {TileSpec?} tiles
  * @property {string?} projectName
  * @property {string?} system
  */
 
 /**
- * @typedef {object} TileSpec
+ * @typedef {Object} TileSpec
  * @property {number} offsetX
  * @property {number} offsetY
  * @property {number} tilesWide
@@ -858,14 +858,14 @@ function getSimilaritry(colour, range) {
  */
 
 /** 
- * @typedef {object} Colour 
+ * @typedef {Object} Colour 
  * @property {number} r - Red component.
  * @property {number} g - Green component.
  * @property {number} b - Blue component.
  * @property {string} hex - HEX value for this colour.
  */
 /** 
- * @typedef {object} ColourMatch
+ * @typedef {Object} ColourMatch
  * @property {number} r - Red component.
  * @property {number} g - Green component.
  * @property {number} b - Blue component.
@@ -877,7 +877,7 @@ function getSimilaritry(colour, range) {
  * @typedef {Object.<string, ColourMatch>} ColourMatchDictionary
  */
 /** 
- * @typedef {object} ColourRange 
+ * @typedef {Object} ColourRange 
  * @property {number} rLow
  * @property {number} gLow
  * @property {number} bLow
@@ -890,7 +890,7 @@ function getSimilaritry(colour, range) {
  * @property {number} rangeFactor
 */
 /**
- * @typedef {object} ColourMapping
+ * @typedef {Object} ColourMapping
  * @property {ColourMatch[]} matches
  * @property {Object.<string, string>} hexLookup
  */

@@ -203,7 +203,7 @@ export default class AssemblyExportModalDialogue extends ModalDialogue {
 
 /**
  * State object.
- * @typedef {object} AssemblyExportModalDialogueState
+ * @typedef {Object} AssemblyExportModalDialogueState
  * @property {string?} content - Exported content to display.
  * @property {boolean?} [selectAllTileMaps] - Selects all tile maps.
  * @property {string[]?} [selectedTileMapIds] - The selected tile map IDs.
@@ -223,7 +223,7 @@ export default class AssemblyExportModalDialogue extends ModalDialogue {
  * @exports
  */
 /**
- * @typedef {object} AssemblyExportDialogueCommandEventArgs
+ * @typedef {Object} AssemblyExportDialogueCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string[]} selectedTileMapIds - The selected tile map IDs.
  * @property {string} optimiseMode - What is the currently selected optimise mode?

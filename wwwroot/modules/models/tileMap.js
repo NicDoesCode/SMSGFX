@@ -468,7 +468,7 @@ export default class TileMap extends TileGridProvider {
 
 /**
  * Parameters for tile map tiles.
- * @typedef {object} TileMapTileParams
+ * @typedef {Object} TileMapTileParams
  * @property {number} tileIndex - Index of the tile within the tile map.
  * @property {boolean} horizontalFlip - Mirror tile horizontally?
  * @property {boolean} verticalFlip - Mirror tile vertically?

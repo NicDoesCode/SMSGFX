@@ -16,7 +16,7 @@ export default class ProjectAssemblySerialiser {
 }
 /**
  * Project assembly serialisation options.
- * @typedef {object} ProjectAssemblySerialisationOptions
+ * @typedef {Object} ProjectAssemblySerialisationOptions
  * @property {string[]?} [tileMapIds] - Tile map IDs to serialise, when omitted all tile maps are serialised, when null or empty none are serialised.
  * @property {string?} optimiseMode - Optimisation mode to use, 'default', 'always' or 'never'.
  * @property {number?} vramOffset - Memory offset of the tile map.

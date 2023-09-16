@@ -222,7 +222,7 @@ export default class ColourPaletteListing extends ComponentBase {
 
 /**
  * Colour palette list state object.
- * @typedef {object} ColourPaletteListingState
+ * @typedef {Object} ColourPaletteListingState
  * @property {boolean?} enabled - Is the toolbox enabled?
  * @property {import("../../types.js").ColourInformation[]?} colours - Colours to display in the picker list.
  * @property {number?} coloursPerRow - Number of colours to display per row, between 1 and 256.
@@ -240,7 +240,7 @@ export default class ColourPaletteListing extends ComponentBase {
  */
 /**
  * Colour palette list on command event args.
- * @typedef {object} ColourPaletteListingCommandEventArgs
+ * @typedef {Object} ColourPaletteListingCommandEventArgs
  * @property {string} command - Command being issued.
  * @property {number} r - Red component.
  * @property {number} g - Green component.

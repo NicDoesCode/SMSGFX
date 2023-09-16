@@ -66,8 +66,7 @@ export default class GoogleAnalyticsManager {
 }
 
 /**
- * @typedef GoogleAnalyticsConfig
- * @type {object}
+ * @typedef {Object} 
  * @property {boolean} useGoogleAnalytics - Gets whether to use Google Analytics or not.
  * @property {string|undefined} key - Google Analytics key.
  * @exports

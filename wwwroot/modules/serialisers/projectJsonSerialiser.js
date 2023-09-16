@@ -2,71 +2,79 @@ import ProjectFactory from '../factory/projectFactory.js';
 import Project from '../models/project.js';
 import TileSetJsonSerialiser from './tileSetJsonSerialiser.js';
 import PaletteListJsonSerialiser from './paletteListJsonSerialiser.js';
-import GeneralUtil from '../util/generalUtil.js';
 import TileMapListJsonSerialiser from './tileMapListJsonSerialiser.js';
 
+
+/**
+ * Provides project serialisation functions.
+ */
 export default class ProjectJsonSerialiser {
 
 
     /**
      * Serialises a project to a JSON string.
-     * @param {Project} project - Project to serialise.
+     * @param {Project} value - Project to serialise.
      * @param {boolean} format - true for pretty format, otherwise false.
+     * @throws When an invalid project object is passed.
      * @returns {string} 
      */
-    static serialise(project, format) {
-        if (!project instanceof Project) throw new Error('Please pass a project.');
+    static serialise(value, format) {
+        if (!value instanceof Project) throw new Error('Please pass a project.');
         if (!format) format = false;
 
-        const result = ProjectJsonSerialiser.toSerialisable(project);
+        const result = ProjectJsonSerialiser.toSerialisable(value);
         return JSON.stringify(result, null, format ? ' ' : null);
     }
 
     /**
      * Returns a deserialised project.
-     * @param {string} jsonProject - JSON serialised project.
+     * @param {string} jsonString - JSON serialised project.
+     * @throws When the JSON string is null or empty.
      * @returns {Project}
      */
-    static deserialise(jsonProject) {
-        if (!jsonProject || typeof jsonProject !== 'string') throw new Error('Project to deserialise must be passed as a JSON string.');
+    static deserialise(jsonString) {
+        if (!jsonString || typeof jsonString !== 'string') throw new Error('Please pass a valid JSON string.');
 
         /** @type {ProjectSerialisable} */
-        const deserialised = JSON.parse(jsonProject);
+        const deserialised = JSON.parse(jsonString);
         return ProjectJsonSerialiser.fromSerialisable(deserialised);
     }
 
     /**
      * Converts a project object to a serialisable one.
-     * @param {Project} project - Project to create serialisable from.
+     * @param {Project} value - Project to create serialisable from.
+     * @throws When a valid project was not passed.
      * @returns {ProjectSerialisable} 
      */
-    static toSerialisable(project) {
+    static toSerialisable(value) {
+        if (!value instanceof Project) throw new Error('Please pass a project.');
+      
         return {
-            id: project?.id ?? null,
+            id: value?.id ?? null,
             version: 1,
-            title: project.title,
-            systemType: project.systemType,
-            dateLastModified: project.dateLastModified?.getTime() ?? Date.now(),
-            tileSet: TileSetJsonSerialiser.toSerialisable(project.tileSet),
-            tileMapList: TileMapListJsonSerialiser.toSerialisable(project.tileMapList),
-            paletteList: PaletteListJsonSerialiser.toSerialisable(project.paletteList)
+            title: value.title,
+            systemType: value.systemType,
+            dateLastModified: value.dateLastModified?.getTime() ?? Date.now(),
+            tileSet: TileSetJsonSerialiser.toSerialisable(value.tileSet),
+            tileMapList: TileMapListJsonSerialiser.toSerialisable(value.tileMapList),
+            paletteList: PaletteListJsonSerialiser.toSerialisable(value.paletteList)
         };
     }
 
     /**
      * Converts a serialisable project back to a project.
-     * @param {ProjectSerialisable} projectSerialisable - Serialisable project to convert.
+     * @param {ProjectSerialisable} serialisable - Serialisable project to convert.
      * @returns {Project}
      */
-    static fromSerialisable(projectSerialisable) {
+    static fromSerialisable(serialisable) {
         return ProjectFactory.create({
-            id: projectSerialisable.id ?? null,
-            title: projectSerialisable.title,
-            systemType: projectSerialisable.systemType,
-            dateLastModified: new Date(projectSerialisable.dateLastModified ?? 0),
-            tileSet: TileSetJsonSerialiser.fromSerialisable(projectSerialisable.tileSet),
-            tileMapList: TileMapListJsonSerialiser.fromSerialisable(projectSerialisable.tileMapList ?? []),
-            paletteList: PaletteListJsonSerialiser.fromSerialisable(projectSerialisable.paletteList ?? [])
+            id: serialisable.id ?? null,
+            title: serialisable.title,
+            systemType: serialisable.systemType,
+            dateLastModified: new Date(serialisable.dateLastModified ?? 0),
+            tileSet: TileSetJsonSerialiser.fromSerialisable(serialisable.tileSet),
+            tileMapList: TileMapListJsonSerialiser.fromSerialisable(serialisable.tileMapList ?? []),
+            paletteList: PaletteListJsonSerialiser.fromSerialisable(serialisable.paletteList ?? [])
         });
     }
 
@@ -74,8 +82,7 @@ export default class ProjectJsonSerialiser {
 }
 
 /**
- * @typedef ProjectSerialisable
- * @type {object}
+ * @typedef {Object} ProjectSerialisable
  * @property {number} version
  * @property {string} id
  * @property {string} title

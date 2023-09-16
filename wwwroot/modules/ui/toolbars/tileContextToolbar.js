@@ -398,7 +398,7 @@ function isToggled(element) {
 
 
 /**
- * @typedef {object} TileContextToolbarState
+ * @typedef {Object} TileContextToolbarState
  * @property {boolean?} visible - Is the toolbar visible?
  * @property {boolean?} enabled - Is the toolbar enabled?
  * @property {string[]?} visibleToolstrips - An array of strings containing visible toolstrips.
@@ -421,7 +421,7 @@ function isToggled(element) {
  */
 
 /**
- * @typedef {object} TileContextToolbarTileMapTileAttributes
+ * @typedef {Object} TileContextToolbarTileMapTileAttributes
  * @property {boolean} horizontalFlip - Flip the tile horizontally?
  * @property {boolean} verticalFlip - Flip the tile vertically?
  * @property {boolean} priority - Does the tile have render priority?
@@ -431,7 +431,7 @@ function isToggled(element) {
  */
 
 /**
- * @typedef {object} TileContextToolbarTileSetTileAttributes
+ * @typedef {Object} TileContextToolbarTileSetTileAttributes
  * @property {boolean} alwaysKeep - Preserve the tile through optimisation routines?
  * @exports
  */
@@ -443,7 +443,7 @@ function isToggled(element) {
  * @exports
  */
 /**
- * @typedef {object} TileContextToolbarCommandEventArgs
+ * @typedef {Object} TileContextToolbarCommandEventArgs
  * @property {string} command - Command being invoked.
  * @property {number?} [brushSize] - Brush size, 1 to 5.
  * @property {boolean?} [tileClamp] - Clamp to tile?

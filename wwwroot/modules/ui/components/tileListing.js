@@ -262,7 +262,7 @@ export default class TileListing extends ComponentBase {
 
 /**
  * Tile manager state.
- * @typedef {object} TileListingState
+ * @typedef {Object} TileListingState
  * @property {TileSet?} [tileSet] - Tile set to be displayed.
  * @property {Palette?} [palette] - Palette to use to render the tiles.
  * @property {string?} [selectedTileId] - Unique ID of the selected tile.
@@ -277,7 +277,7 @@ export default class TileListing extends ComponentBase {
  * @exports
  */
 /**
- * @typedef {object} TileListingCommandEventArgs
+ * @typedef {Object} TileListingCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string} tileId - Unique ID of the tile.
  * @exports

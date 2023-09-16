@@ -223,7 +223,7 @@ export default class ProjectListing extends ComponentBase {
 
 /**
  * Project list state.
- * @typedef {object} ProjectListingState
+ * @typedef {Object} ProjectListingState
  * @property {ProjectList|Project[]|null} [projects] - List of projects to display in the menu.
  * @property {boolean?} [showDateLastModified] - Show the date last modified column?
  * @property {boolean?} [showDelete] - Show the delete button?
@@ -242,7 +242,7 @@ export default class ProjectListing extends ComponentBase {
  */
 
 /**
- * @typedef {object} ProjectListingCommandEventArgs
+ * @typedef {Object} ProjectListingCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string?} projectId - Project ID.
  * @property {string?} [field] - Name of the field that this command relates to.

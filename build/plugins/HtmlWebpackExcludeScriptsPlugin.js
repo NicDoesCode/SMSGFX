@@ -132,5 +132,5 @@ export default class HtmlWebpackExcludeScriptsPlugin {
 }
 
 /** 
- * @typedef {object} HtmlWebpackExcludeScriptsPluginFilters
+ * @typedef {Object} HtmlWebpackExcludeScriptsPluginFilters
  */

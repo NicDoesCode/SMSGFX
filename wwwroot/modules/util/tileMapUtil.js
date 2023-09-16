@@ -117,7 +117,7 @@ export default class TileMapUtil {
 
 /**
  * Bundle ready for encoding.
- * @typedef {object} TileMapBundle
+ * @typedef {Object} TileMapBundle
  * @property {PaletteList} paletteList - All used palettes.
  * @property {TileSet} tileSet - Tile set containing all used tiles.
  * @property {TileMapList} tileMaps - All tile maps.
