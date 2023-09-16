@@ -5,46 +5,70 @@ import TileGridProvider from "../models/tileGridProvider.js";
 import TileMap from "../models/tileMap.js";
 import TileSet from "../models/tileSet.js";
 import PaletteListJsonSerialiser from "../serialisers/paletteListJsonSerialiser.js";
+import TileGridProviderJsonSerialiser from "../serialisers/tileGridProviderJsonSerialiser.js";
+import TileJsonSerialiser from "../serialisers/tileJsonSerialiser.js";
+import TileSetJsonSerialiser from "../serialisers/tileSetJsonSerialiser.js";
 
 
 const canvasManager = new CanvasManager();
-const canvas = new OffscreenCanvas(8, 8);
+// let canvas = new OffscreenCanvas(500, 500);
+/** @type {OffscreenCanvas} */
+let canvas;
+/** @type {CanvasRenderingContext2D} */
+let canvasContext;
 let imageUpdateQueued = false;
 let isBusy = false;
 /** @type {TileImageWorkerMessage[]} */
 let canvasManagerUpdateQueue = [];
 
 
-addEventListener('message', (/** @type {MessageEvent<TileImageWorkerMessage>} */ e) => {
-    console.log('worker: message', e.data); // TMP 
-    if (e.data) {
-        canvasManagerUpdateQueue.push(e.data);
+addEventListener('message', (/** @type {MessageEvent<{ canvas: OffscreenCanvas?, message: TileImageWorkerMessage?>} */ e) => {
+    // console.log('worker: message', e.data); // TMP 
+    if (e.data.canvas) {
+        // console.log('workder: got canvas'); // TMP 
+        canvas = e.data.canvas;
+        canvasContext = canvas.getContext('2d');
+    }
+    if (e.data.message) {
+        // console.log('workder: got message'); // TMP 
+        canvasManagerUpdateQueue.push(e.data.message);
 
-        if (e.data.updateImage === true) {
-            process();
-        }
+        // if (e.data.message.updateImage === true || e.data.message.updateUI === true) {
+        //     // process();
+        // }
     }
 });
 
 
 function process() {
-    console.log('process'); // TMP 
-    if (isBusy) {
-        console.log('process, queue update'); // TMP 
-        imageUpdateQueued = true;
-    } else {
-        console.log('process, make image'); // TMP 
-        isBusy = true;
-        imageUpdateQueued = false;
+    // console.log('process'); // TMP 
+    // if (isBusy) {
+    //     console.log('process, queue update'); // TMP 
+    //     imageUpdateQueued = true;
+    // } else {
+    // console.log('process, make image'); // TMP 
+    // isBusy = true;
+    // imageUpdateQueued = false;
 
+    if (canvasManagerUpdateQueue.length > 0) {
         const message = applyQueuedUpdatesToCanvasManager();
-        const result = generateTheImageResponse(message);
-        postMessage(result);
-
-        isBusy = false;
-        if (imageUpdateQueued) process();
+        if (message) {
+            const response = generateTheImageResponse(message);
+            postMessage(response);
+        }
     }
+
+    // isBusy = false;
+    // if (imageUpdateQueued) setTimeout(() => {
+    // setTimeout(() => {
+    //     console.log('Wait and process'); // TMP 
+    //     process();
+    // }, 500);
+    // // }
+    requestAnimationFrame(process);
 }
+requestAnimationFrame(process);
+// setTimeout(() => process(), 500);
 
 
 function applyQueuedUpdatesToCanvasManager() {
@@ -57,28 +81,34 @@ function applyQueuedUpdatesToCanvasManager() {
     return lastMessage;
 }
 
+
 /**
  * Updates the canvas manager with values from the arguments.
  * @param {TileImageWorkerMessage} message - Message with arguments.
  */
 function applyUpdateToCanvasManager(message) {
-    if (message.tileGrid instanceof TileGridProvider) {
-        canvasManager.tileGrid = message.tileGrid;
+    if (typeof message.tileGrid === 'object') {
+        canvasManager.tileGrid = TileGridProviderJsonSerialiser.fromSerialisable(message.tileGrid);
+    } else if (message.tileGrid === null) {
+        canvasManager.tileGrid = null;
     }
-    if (message.tileSet instanceof TileSet) {
-        canvasManager.tileSet = message.tileSet;
+    if (typeof message.tileSet === 'object') {
+        canvasManager.tileSet = TileSetJsonSerialiser.fromSerialisable(message.tileSet);
+    } else if (message.tileSet === null) {
+        canvasManager.tileSet = null;
     }
-    if (message.paletteList instanceof PaletteList) {
-        canvasManager.paletteList = message.paletteList;
+    if (typeof message.paletteList === 'object') {
+        canvasManager.paletteList = PaletteListJsonSerialiser.fromSerialisable(message.paletteList);
+    } else if (message.paletteList === null) {
+        canvasManager.paletteList = null;
     }
-    if (message.tileGrid) {
-        canvasManager.tileGrid = message.tileGrid;
-    }
-    if (message.tileSet) {
-        canvasManager.tileSet = message.tileSet;
-    }
-    if (message.paletteList) {
-        canvasManager.paletteList = PaletteListJsonSerialiser.deserialise(message.paletteList);
+    if (Array.isArray(message.updatedTiles)) {
+        message.updatedTiles
+            .forEach((tileSerialisable) => {
+                const tile = TileJsonSerialiser.fromSerialisable(tileSerialisable);
+                canvasManager.tileSet.getTileById(tile.tileId).setData(tile.readAll());
+                canvasManager.invalidateTileId(tile.tileId);
+            });
     }
     if (Array.isArray(message.updatedTileIndexes)) {
         message.updatedTileIndexes
@@ -171,28 +201,67 @@ function applyUpdateToCanvasManager(message) {
             canvasManager.clearSelectedTileRegion();
         }
     }
-    if (message.imageSize) {
-        console.log('worker: resize', message.imageSize); // TMP
-        canvas.width = message.imageSize?.width ?? canvas.width;
-        canvas.height = message.imageSize?.width ?? canvas.height;
+    if (message.imageSize && message.imageSize.width && message.imageSize.height) {
+        // console.log('worker: resize', message.imageSize); // TMP
+        // console.log('worker: width', message.imageSize?.width ?? 500); // TMP
+        // console.log('worker: height', message.imageSize?.height ?? 500); // TMP
+        // canvas = new OffscreenCanvas(message.imageSize?.width ?? 500, message.imageSize?.height ?? 500);
+        canvas.width = message.imageSize?.width ?? 500;
+        canvas.height = message.imageSize?.height ?? 500;
     }
 }
 
 /**
  * @param {TileImageWorkerMessage} message
- * @returns {TileImageWorkerResponse}
+ * @returns {{ response: TileImageWorkerResponse, canvas: OffscreenCanvas }}
  */
 function generateTheImageResponse(message) {
-    console.log('generateTheImageResponse message.imageSize'); // TMP
-    if (message.mousePosition) {
-        const pos = message.mousePosition;
-        canvasManager.drawUI(canvas, pos.x, pos.y);
-    } else {
-        canvasManager.drawUI(canvas);
+    // console.log('generateTheImageResponse message.imageSize'); // TMP
+    // /** @type {OffscreenCanvas} */
+    // let drawCanvas = null;
+    const response = makeImageResponse();
+    if (canvasManager.canDraw) {
+        // drawCanvas = new OffscreenCanvas(canvas.width, canvas.height);
+        // console.log('draw'); // TMP
+        if (message.mousePosition) {
+            const pos = message.mousePosition;
+            canvasManager.drawUI(canvasContext, { width: canvas.width, height: canvas.height }, pos.x, pos.y);
+        } else {
+            canvasManager.drawUI(canvasContext, { width: canvas.width, height: canvas.height });
+        }
+        // try {
+        //     response.hasImage = true;
+        //     // response.tileGridBitmap = drawCanvas;
+        //     // response.tileGridBitmap = canvas.transferToImageBitmap();
+        // } catch (e) {
+        //     console.error('generateTheImageResponse error', e); // TMP
+        // }
     }
+    return response;
+}
+
+/**
+ * @returns {TileImageWorkerResponse}
+ */
+function makeImageResponse() {
     return {
-        tileGridBitmap: canvas.transferToImageBitmap()
-    };
+        hasTileGrid: canvasManager.tileGrid !== null,
+        hasTileSet: canvasManager.tileSet !== null,
+        hasPalettes: canvasManager.paletteList !== null,
+        isTileMap: canvasManager.tileGrid !== null && canvasManager.tileGrid instanceof TileMap,
+        hasImage: false,
+        tileGridBitmap: null,
+        canvasSize: {
+            width: canvas.width,
+            height: canvas.height
+        },
+        tileGridRows: canvasManager.tileGrid?.rowCount ?? 1,
+        tileGridColumns: canvasManager.tileGrid?.columnCount ?? 1,
+        offsetX: canvasManager.offsetX,
+        offsetY: canvasManager.offsetY,
+        scale: canvasManager.scale,
+        tilesPerBlock: canvasManager.tilesPerBlock
+    }
 }
 
 
@@ -201,12 +270,13 @@ function generateTheImageResponse(message) {
  * @property {boolean} [updateImage] - When true, the image will be updated and posted back, when set, it also implies update UI.
  * @property {boolean} [updateUI] - When true, the UI component of the image will be updated and posted back.
  * @property {import('./../types.js').Coordinate} [mousePosition] - Mouse X and Y position.
- * @property {TileGridProvider?} [tileGrid] - Tile grid to draw.
- * @property {TileSet} [tileSet] - Tile set that contains the tiles used by the tile grid.
- * @property {PaletteList} [paletteList] - Pallette list used by the tile grid.
+ * @property {import('./../serialisers/tileGridProviderJsonSerialiser.js').TileGridProviderSerialisable?} [tileGrid] - Tile grid to draw.
+ * @property {import('./../serialisers/tileSetJsonSerialiser.js').TileSetSerialisable?} [tileSet] - Tile set that contains the tiles used by the tile grid.
+ * @property {import('./../serialisers/paletteJsonSerialiser.js').PaletteSerialisable[]?} [paletteList] - Pallette list used by the tile grid.
+ * @property {import('../serialisers/tileJsonSerialiser.js').TileSerialisable[]} [updatedTiles] - Triggers a redraw of only the given tile IDs in this array.
  * @property {string[]} [updatedTileIndexes] - Triggers a redraw of only the tiles at the given index in the tile set.
  * @property {string[]} [updatedTileIds] - Triggers a redraw of only the given tile IDs in this array.
- * @property {string} [canvasHighlightMode] - Highlighting mode for the canvas manager.
+ * @property {string} [canvasHighlightMode] - How the canvas highlights what is under the mouse cursor (pixel, row, column, etc).
  * @property {number} [scale] - Image drawing scale, 1 = 1:1, 2 = 2:1, 15 = 15:1.
  * @property {number} [tilesPerBlock] - Size of each block of tiles.
  * @property {number} [selectedTileIndex] - Selected index of a tile, -1 means no selection.
@@ -233,7 +303,18 @@ function generateTheImageResponse(message) {
  */
 /**
  * @typedef {Object} TileImageWorkerResponse
- * @property {ImageBitmap} tileGridBitmap 
+ * @property {boolean} hasImage 
+ * @property {ImageBitmap?} tileGridBitmap 
+ * @property {boolean} hasTileGrid 
+ * @property {boolean} hasTileSet 
+ * @property {boolean} hasPalettes 
+ * @property {boolean} isTileMap 
+ * @property {import('./../types.js').Dimension} [canvasSize] - Size of the canvas object.
+ * @property {number} [tileGridRows]
+ * @property {number} [tileGridColumns]
+ * @property {number} [offsetX] - X offset of the tile grid image.
+ * @property {number} [offsetY] - Y offset of the tile grid image.
+ * @property {number} [scale] - Image drawing scale, 1 = 1:1, 2 = 2:1, 15 = 15:1.
+ * @property {number} [tilesPerBlock] - Size of each block of tiles.
  * @exports
  */
-

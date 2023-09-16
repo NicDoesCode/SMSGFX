@@ -40,10 +40,17 @@ export default class CanvasManager {
 
 
     /**
-     * Enumerates all of the possible highlight modes for the canvas manager.
+     * Enumerates highlight modes.
      */
     static get HighlightModes() {
         return highlightModes;
+    }
+
+    /**
+     * Enumerates draw modes reference images.
+     */
+    static get ReferenceImageDrawMode() {
+        return referenceImageDrawMode;
     }
 
 
@@ -55,7 +62,7 @@ export default class CanvasManager {
     }
 
     /**
-     * Gets or sets the highlighting mode for the canvas manager.
+     * Gets or sets how the canvas highlights what is under the mouse cursor (pixel, row, column, etc).
      */
     get highlightMode() {
         return this.#highlightMode;
@@ -680,6 +687,7 @@ export default class CanvasManager {
 
         const context = tileCanvas.getContext('2d');
 
+        console.log(this.tileGrid, this.tileGrid.columnCount); // TMP 
         const tiles = Math.max(this.tileGrid.columnCount, 1);
         const rows = Math.ceil(this.tileGrid.tileCount / tiles);
 
@@ -774,7 +782,7 @@ export default class CanvasManager {
                     y += r % width === 0 ? 80 : 0;
                 }
                 console.timeEnd('Benchmark 6 - repaint tile scale 10.');
-     
+
                 console.time('Benchmark 7 - 2 repaint tile scale 10.'); // TMP 
                 x = 0; y = 0; r = 0;
                 for (let tileIndex = 0; tileIndex < this.tileGrid.tileCount; tileIndex++) {
@@ -788,7 +796,7 @@ export default class CanvasManager {
                     y += r % width === 0 ? 80 : 0;
                 }
                 console.timeEnd('Benchmark 7 - 2 repaint tile scale 10.');
-       }
+            }
 
             this.#once = true; // TMP 
             return;
@@ -886,7 +894,7 @@ export default class CanvasManager {
 
     #buildRenderPaletteList() {
         if (this.#renderPaletteList !== null) return;
-        console.log('canvasManager.#buildRenderPaletteList'); // TMP 
+        // console.log('canvasManager.#buildRenderPaletteList'); // TMP 
         if (this.lockedPaletteSlotIndex !== null && this.lockedPaletteSlotIndex >= 0 && this.lockedPaletteSlotIndex < this.paletteList.getPalette(0).getColours().length) {
             const list = PaletteListFactory.clone(this.paletteList, { preserveIds: true });
             const lockColour = this.paletteList.getPalette(0).getColour(this.lockedPaletteSlotIndex);
@@ -925,15 +933,16 @@ export default class CanvasManager {
 
     /**
      * Draws a tile set and then returns the image as a base 64 URL.
-     * @param {HTMLCanvasElement} canvas - Canvas to draw onto.
+     * @param {CanvasRenderingContext2D} context - Canvas rendering context.
+     * @param {{width: number, height: number}} canvas - Canvas to draw onto.
      * @param {number} mouseX - X position of the cursor on the image.
      * @param {number} mouseY - Y position of the cursor on the image.
      */
-    drawUI(canvas, mouseX, mouseY) {
-        if (!canvas) throw new Error('drawUI: No canvas.');
+    drawUI(context, canvas, mouseX, mouseY) {
+        if (!context) throw new Error('drawUI: No canvas.');
 
         const tileCanvas = this.#tileCanvas;
-        const context = canvas.getContext('2d');
+        // const context = canvas.getContext('2d');
 
         // Fill canvas background
         if (this.backgroundColour === null || this.backgroundColour === 'transparent') {

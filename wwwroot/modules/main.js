@@ -67,6 +67,7 @@ import TileImageManager from "./components/tileImageManager.js";
 import ProjectList from "./models/projectList.js";
 import TileMapUtil from "./util/tileMapUtil.js";
 import SystemUtil from "./util/systemUtil.js";
+import TileJsonSerialiser from "./serialisers/tileJsonSerialiser.js";
 
 
 /* ****************************************************************************************************
@@ -2444,12 +2445,25 @@ function updateTilesOnEditors(tileIdOrIds) {
     if (tileIdOrIds && Array.isArray(tileIdOrIds) && tileIdOrIds.length > 0) {
         // tileImageManager.clearByTile(tileIdOrIds);
         tileEditor.setState({
-            updatedTileIds: tileIdOrIds
+            updatedTiles: toTileSerialisables(tileIdOrIds) 
         });
         tileManager.setState({
             updatedTileIds: tileIdOrIds
         });
     }
+}
+
+/**
+ * @param {string[]} [tileIdOrIds] - Tile IDs.
+ */
+function toTileSerialisables(tileIds) {
+    return tileIds.map((tileId) => {
+        const tile = getTileSet().getTileById(tileId);
+        if (tile) {
+            return TileJsonSerialiser.toSerialisable(tile);
+        }
+    }).filter((tile) => tile !== null);
+
 }
 
 function resetViewportToCentre() {

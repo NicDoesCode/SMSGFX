@@ -52,7 +52,7 @@ export default class TileJsonSerialiser {
     /**
      * Converts a serialisable tile back to a tile.
      * @param {TileSerialisable} serialisable - Serialisable tile to convert.
-     * @returns {TileSet}
+     * @returns {Tile}
      */
     static fromSerialisable(serialisable) {
         if (!serialisable) throw new Error('Please pass a serialisable tile.');

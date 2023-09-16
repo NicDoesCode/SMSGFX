@@ -14,6 +14,9 @@ import PaletteUtil from "../util/paletteUtil.js";
 import Tile from "../models/tile.js";
 import TileMap from "../models/tileMap.js";
 import PaletteListJsonSerialiser from "../serialisers/paletteListJsonSerialiser.js";
+import TileGridProviderJsonSerialiser from "../serialisers/tileGridProviderJsonSerialiser.js";
+import TileSetJsonSerialiser from "../serialisers/tileSetJsonSerialiser.js";
+import TileJsonSerialiser from "../serialisers/tileJsonSerialiser.js";
 
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
@@ -125,7 +128,7 @@ export default class TileEditor extends ComponentBase {
 
         // Observe size changes and redraw where needed
         const canvasResizeObserver = new ResizeObserver(() => {
-            this.#sendUpdatedCanvasSizeToImageWorker();
+            // this.#sendUpdatedCanvasSizeToImageWorker();
             // if (this.#enabled) {
             //     this.#postImageWorkerMessage({
             //         imageSize: {
@@ -135,13 +138,14 @@ export default class TileEditor extends ComponentBase {
             //         updateImage: true
             //     });
             // }
+            // this.#postImageWorkerMessage({ imageSize: { width: parentRect.width, height: parentRect.height } });
         });
-        canvasResizeObserver.observe(this.#tbCanvas);
+        // canvasResizeObserver.observe(this.#tbCanvas);
 
         const containerResizeObserver = new ResizeObserver(() => {
-            if (this.#enabled && this.#canvasManager.canDraw) {
-                resizeCanvas(this.#tbCanvas);
-            }
+            const parent = this.#tbCanvas.parentElement;
+            const parentRect = parent.getBoundingClientRect();
+            this.#postImageWorkerMessage({ imageSize: { width: parentRect.width, height: parentRect.height }, updateUI: true });
         });
         containerResizeObserver.observe(this.#tbCanvas.parentElement);
 
@@ -154,21 +158,35 @@ export default class TileEditor extends ComponentBase {
 
         this.#imageWorker = new Worker('./modules/worker/tileImageWorker.js', { type: 'module' });
         this.#imageWorker.addEventListener('message', (/** @type {MessageEvent<import('./../worker/tileImageWorker.js').TileImageWorkerResponse>} */ e) => {
-            this.#receiveImageWorkerMessage(e.data);
+            if (e.data instanceof OffscreenCanvas) {
+                this.#receiveImageWorkerCanvas(e.data);
+            } else {
+                this.#receiveImageWorkerMessage(e.data);
+            }
         });
+        this.#tbCanvas.style.position = 'absolute';
 
-        this.#sendUpdatedCanvasSizeToImageWorker();
+        const canv = this.#tbCanvas.transferControlToOffscreen();
+        this.#imageWorker.postMessage({ canvas: canv }, [canv]);
+
+        setTimeout(() => {
+            const parent = this.#tbCanvas.parentElement;
+            const parentRect = parent.getBoundingClientRect();
+            this.#postImageWorkerMessage({ imageSize: { width: parentRect.width, height: parentRect.height }, updateUI: true });
+        }, 250);
     }
 
 
     #sendUpdatedCanvasSizeToImageWorker() {
-        this.#postImageWorkerMessage({
-            imageSize: {
-                width: this.#tbCanvas.width,
-                height: this.#tbCanvas.height
-            },
-            updateImage: true
-        });
+        const canv = this.#tbCanvas.transferControlToOffscreen();
+        this.#imageWorker.postMessage({ canvas: canv }, [canv]);
+        // this.#postImageWorkerMessage({
+        //     imageSize: {
+        //         width: this.#tbCanvas.width,
+        //         height: this.#tbCanvas.height
+        //     },
+        //     updateImage: true
+        // });
     }
 
 
@@ -183,91 +201,24 @@ export default class TileEditor extends ComponentBase {
     }
 
 
+
     /**
      * Sets the state of the tile editor.
      * @param {TileEditorState} state - State object.
      */
     setState(state) {
-        let refreshTiles = false;
-        let redrawUI = false;
-        let updateRenderPaletteList = false;
-        let updateScale = false;
-
 
         /** @type {import('./../worker/tileImageWorker.js').TileImageWorkerMessage} */
         const message = {};
 
-        // Tile image manager
-        if (state?.tileImageManager === null || state.tileImageManager instanceof TileImageManager) {
-            this.#canvasManager.setTileImageManager(state.tileImageManager);
+        // Palette list
+        let paletteUpdated = false;
+        if (state?.paletteList instanceof PaletteList) {
+            this.#paletteList = state?.paletteList;
+            paletteUpdated = true;
         }
-        // Change palette list?
-        const paletteList = state?.paletteList;
-        if (paletteList instanceof PaletteList) {
-            // this.#canvasManager.invalidateImage();
-            this.#paletteList = paletteList;
-            updateRenderPaletteList = true;
-            // refreshTiles = true;
-        }
-        // Changing tile grid
-        const tileGrid = state?.tileGrid;
-        if (paletteList instanceof TileGridProvider || tileGrid === null) {
-            resizeCanvas(this.#tbCanvas);
-            message.tileGrid = state.tileGrid;
-            // this.#canvasManager.invalidateImage();
-            // this.#tileGrid = tileGrid;
-            // refreshTiles = true;
-        }
-        // Changing tile set
-        const tileSet = state?.tileSet;
-        if (tileSet instanceof TileSet || tileSet === null) {
-            message.tileSet = state.tileSet;
-            // this.#canvasManager.invalidateImage();
-            // this.#tileSet = tileSet;
-            // refreshTiles = true;
-        }
-        // Updated tiles
-        if (state?.updatedTiles && Array.isArray(state?.updatedTiles)) {
-            message.updatedTileIndexes = state.updatedTileIndexes;
-            // const updatedTiles = state.updatedTiles;
-            // updatedTiles.forEach((tileIndex) => {
-            //     this.#canvasManager.invalidateTile(tileIndex);
-            // });
-            // refreshTiles = true;
-        }
-        // Updated tile IDs
-        if (state?.updatedTileIds && Array.isArray(state?.updatedTileIds)) {
-            message.updatedTileIds = state.updatedTiles;
-            // const updatedTileIds = state.updatedTileIds;
-            // updatedTileIds.forEach((tileId) => {
-            //     this.#canvasManager.invalidateTileId(tileId);
-            // });
-            // refreshTiles = true;
-        }
-        // Changing scale?
-        if (typeof state?.scale === 'number') {
-            message.scale = state.scale;
-            // if (this.#scale !== state?.scale) {
-            //     const scale = state.scale;
-            //     if (scale > 0 && scale <= 100) {
-            //         this.#scale = state.scale;
-            //         this.#canvasManager.invalidateImage();
-            //         refreshTiles = true;
-            //         updateScale = true;
-            //     } else {
-            //         throw new Error('Scale must be between 1 and 100.');
-            //     }
-            // }
-        }
-        // Changing amount of tiles per block?
-        if (typeof state.tilesPerBlock === 'number') {
-            message.tilesPerBlock = state.tilesPerBlock;
-            // this.#canvasManager.tilesPerBlock = state.tilesPerBlock;
-        } else if (state.tilesPerBlock === null) {
-            message.tilesPerBlock = 1;
-            // this.#canvasManager.tilesPerBlock = 1;
-        }
-        // Display native?
+
+        // Native display
         if (typeof state?.displayNative === 'boolean') {
             this.#displayNative = state.displayNative;
             if (state.displayNative && this.#paletteList?.getPalettes().filter((p) => p.system === 'gb').length > 0) {
@@ -275,55 +226,107 @@ export default class TileEditor extends ComponentBase {
                 message.pixelGridOpacity = 0.5;
                 message.tileGridColour = '#98a200';
                 message.tileGridOpacity = 1;
-                // this.#canvasManager.pixelGridColour = '#98a200';
-                // this.#canvasManager.pixelGridOpacity = 0.5;
-                // this.#canvasManager.tileGridColour = '#98a200';
-                // this.#canvasManager.tileGridOpacity = 1;
             } else {
                 message.pixelGridColour = '#000000';
                 message.pixelGridOpacity = 0.2;
                 message.tileGridColour = '#000000';
                 message.tileGridOpacity = 0.4;
-                // this.#canvasManager.pixelGridColour = '#000000';
-                // this.#canvasManager.pixelGridOpacity = 0.2;
-                // this.#canvasManager.tileGridColour = '#000000';
-                // this.#canvasManager.tileGridOpacity = 0.4;
             }
-            updateRenderPaletteList = true;
-            // refreshTiles = true;
+            paletteUpdated = true;
         }
-        // Draw tile grid
+
+        // Update native palette if either palette or native option was updated
+        if (paletteUpdated && this.#paletteList) {
+            if (this.#displayNative) {
+                this.#renderPaletteList = PaletteUtil.clonePaletteListWithNativeColours(this.#paletteList, { preserveIds: true });
+            } else {
+                this.#renderPaletteList = this.#paletteList;
+            }
+            message.paletteList = PaletteListJsonSerialiser.toSerialisable(this.#renderPaletteList);
+            message.updateImage = true;
+        }
+
+        // Tile grid
+        if (state?.tileGrid instanceof TileGridProvider) {
+            // resizeCanvas(this.#tbCanvas);
+            this.#tileGrid = state.tileGrid;
+            message.tileGrid = TileGridProviderJsonSerialiser.toSerialisable(state.tileGrid);
+            message.updateImage = true;
+        } else if (state?.tileGrid === null) {
+            this.#tileGrid = null;
+            message.tileGrid = null;
+            message.updateImage = true;
+        }
+
+        // Tile set
+        if (state?.tileSet instanceof TileSet) {
+            message.tileSet = TileSetJsonSerialiser.toSerialisable(state.tileSet);
+            message.updateImage = true;
+        } else if (state?.tileGrid === null) {
+            message.tileSet = null;
+            message.updateImage = true;
+        }
+
+        // Updated tiles
+        if (state?.updatedTiles && Array.isArray(state?.updatedTiles)) {
+            message.updatedTiles = state.updatedTiles;
+            message.updateImage = true;
+        }
+
+        // Updated tile indexes
+        if (state?.updatedTileIndexes && Array.isArray(state?.updatedTileIndexes)) {
+            message.updatedTileIndexes = state.updatedTileIndexes;
+            message.updateImage = true;
+        }
+
+        // Updated tile IDs
+        if (state?.updatedTileIds && Array.isArray(state?.updatedTileIds)) {
+            message.updatedTileIds = state.updatedTiles;
+            message.updateImage = true;
+        }
+
+        // Scale
+        if (typeof state?.scale === 'number') {
+            message.scale = state.scale;
+            message.updateImage = true;
+        }
+
+        // Tiles per block
+        if (typeof state.tilesPerBlock === 'number') {
+            message.tilesPerBlock = state.tilesPerBlock;
+        } else if (state.tilesPerBlock === null) {
+            message.tilesPerBlock = 1;
+        }
+
+        // View option: show tile grid
         if (typeof state?.showTileGrid === 'boolean') {
             message.showTileGrid = state?.showTileGrid;
-            // this.#canvasManager.showTileGrid = state?.showTileGrid;
-            // refreshTiles = true;
+            message.updateUI = true;
         }
-        // Draw pixel grid
+        // View option: show pixel grid
         if (typeof state?.showPixelGrid === 'boolean') {
             message.showPixelGrid = state?.showPixelGrid;
-            // this.#canvasManager.showPixelGrid = state?.showPixelGrid;
-            // refreshTiles = true;
+            message.updateUI = true;
         }
+
         // Selected tile index?
         if (typeof state?.selectedTileIndex === 'number') {
             message.selectedTileIndex = state.selectedTileIndex;
-            // if (this.#canvasManager.selectedTileIndex !== state.selectedTileIndex) {
-            //     this.#canvasManager.selectedTileIndex = state.selectedTileIndex;
-            //     redrawUI = true;
-            // }
+            message.updateUI = true;
         }
+
         // Cursor size
         if (typeof state?.cursorSize === 'number') {
             if (state.cursorSize > 0 && state.cursorSize <= 50) {
                 message.cursorSize = state.cursorSize;
-                // this.#canvasManager.cursorSize = state.cursorSize;
             }
-            // redrawUI = true;
         }
+
         // Cursor type
         if (typeof state?.cursor === 'string') {
             this.#tbCanvas.style.cursor = state.cursor;
         }
+
         // Reference image
         if (state?.referenceImage instanceof ReferenceImage || state?.referenceImage === null) {
             // this.#canvasManager.clearReferenceImages();
@@ -336,101 +339,66 @@ export default class TileEditor extends ComponentBase {
             // this.#canvasManager.invalidateImage();
             // refreshTiles = true;
         }
-        // Transparency indicies index
+
+        // Transparency indicies 
         if (Array.isArray(state?.transparencyIndicies) || state.transparencyIndicies === null) {
             message.transparencyIndicies = state.transparencyIndicies;
+            message.updateImage = true;
         }
-        //     if (Array.isArray(state?.transparencyIndicies)) {
-        //     this.#canvasManager.transparencyIndicies = state.transparencyIndicies.filter((i) => typeof i === 'number');
-        //     this.#canvasManager.invalidateImage();
-        //     refreshTiles = true;
-        // } else if (state.transparencyIndicies === null) {
-        //     this.#canvasManager.transparencyIndicies = [];
-        //     this.#canvasManager.invalidateImage();
-        //     refreshTiles = true;
-        // }
+
         // Reference image draw mode
         if (Array.isArray(state?.referenceImageDrawMode) || state.referenceImageDrawMode === null) {
-            message.referenceImageDrawMode = state.referenceImageDrawMode;
+            message.referenceImageDrawMode = state.referenceImageDrawMode ?? CanvasManager.ReferenceImageDrawMode.overIndex;
+            message.updateImage = true;
         }
-        // if (typeof state?.referenceImageDrawMode === 'string') {
-        //     this.#canvasManager.referenceImageDrawMode = state?.referenceImageDrawMode;
-        // } else if (state.referenceImageDrawMode === null) {
-        //     this.#canvasManager.referenceImageDrawMode = 'overIndex';
-        // }
+
         // Locked palette slot index
         if (typeof state.lockedPaletteSlotIndex === 'number' || state.lockedPaletteSlotIndex === null) {
             message.lockedPaletteSlotIndex = state.lockedPaletteSlotIndex;
-            // this.#canvasManager.lockedPaletteSlotIndex = state.lockedPaletteSlotIndex ?? -1;
-            // this.#canvasManager.invalidateImage();
-            // refreshTiles = true;
+            message.updateImage = true;
         }
+
         // Canvas highlight mode
         if (typeof state.canvasHighlightMode === 'number' || state.canvasHighlightMode === null) {
             message.canvasHighlightMode = state.canvasHighlightMode;
         }
-        // if (typeof state?.canvasHighlightMode === 'string') {
-        //     this.#canvasManager.highlightMode = state.canvasHighlightMode;
-        // } else if (typeof state?.canvasHighlightMode === 'object' && state.canvasHighlightMode === null) {
-        //     this.#canvasManager.highlightMode = CanvasManager.HighlightModes.pixel;
-        // }
+
         // Tile stamp preview
         if (typeof state.tileStampPreview === 'string' || state.tileStampPreview instanceof TileMap || state.tileStampPreview instanceof Tile || state.tileStampPreview === null) {
             message.tileStampPreview = state.tileStampPreview;
-            // this.#canvasManager.setTilePreview(state.tileStampPreview);
         }
+
         // Selected region 
         if (typeof state?.selectedRegion !== 'undefined') {
             message.selectedRegion = state.selectedRegion;
-            // if (state.selectedRegion !== null) {
-            //     const r = state.selectedRegion;
-            //     this.#canvasManager.setSelectedTileRegion(r.rowIndex, r.columnIndex, r.width, r.height);
-            // } else {
-            //     this.#canvasManager.clearSelectedTileRegion();
-            // }
-            // redrawUI = true;
+            message.updateUI = true;
         }
-        // Pan horizontal
+
+        // Pan the viewport horizontally
         if (typeof state?.viewportPanHorizontal === 'number') {
             message.panViewportX = state.viewportPanHorizontal;
-            // this.#canvasManager.offsetX += state?.viewportPanHorizontal;
-            // redrawUI = true;
+            message.updateUI = true;
         }
-        // Pan vertical
+
+        // Pan the viewport vertically
         if (typeof state?.viewportPanVertical === 'number') {
             message.panViewportY = state.viewportPanVertical;
-            // this.#canvasManager.offsetY += state?.viewportPanVertical;
-            // redrawUI = true;
+            message.updateUI = true;
         }
-        // Refresh native palette?
-        if (updateRenderPaletteList && this.#paletteList) {
-            if (this.#displayNative) {
-                message.paletteList = PaletteUtil.clonePaletteListWithNativeColours(this.#paletteList, { preserveIds: true });
-            } else {
-                message.paletteList = this.#paletteList;
-            }
-            message.paletteListSerialised = PaletteListJsonSerialiser.serialise(this.#paletteList);
-            // if (this.#paletteList && this.#displayNative) {
-            //     this.#renderPaletteList = PaletteUtil.clonePaletteListWithNativeColours(this.#paletteList, { preserveIds: true });
-            // } else if (this.#paletteList && !this.#displayNative) {
-            //     this.#renderPaletteList = this.#paletteList;
-            // } else {
-            //     this.#renderPaletteList = null;
-            // }
-            // refreshTiles = true;
-            // this.#canvasManager.invalidateImage();
-        }
+
         if (this.#lastCoords) {
             message.mousePosition = { x: this.#lastCoords.x, y: this.#lastCoords.y };
+            message.updateUI = true;
         }
-        if (typeof state?.focusedTile === 'number' && this.#tileGrid) {
+
+        if (typeof state?.focusedTile === 'number' && canvasState.hasTileGrid) {
             this.#focusTileOnMessage(state?.focusedTile, message);
+            message.updateUI = true;
         }
+
         // Force refresh?
         if (typeof state.forceRefresh === 'boolean' && state.forceRefresh === true) {
             message.updateImage = true;
-            // refreshTiles = true;
-            // this.#canvasManager.invalidateImage();
         }
 
         message.imageSize = {
@@ -438,37 +406,320 @@ export default class TileEditor extends ComponentBase {
             height: this.#tbCanvas.height
         };
 
-        // Refresh image?
-        // TODO figure out how to update scale
-        // if ((refreshTiles || redrawUI) && this.#tileGrid && this.#tileSet && this.#paletteList && this.#paletteList.length > 0) {
-        //     if (refreshTiles) {
-        //         this.#canvasManager.paletteList = this.#renderPaletteList;
-        //         this.#canvasManager.tileSet = this.#tileSet;
-        //         this.#canvasManager.tileGrid = this.#tileGrid;
-        //         if (updateScale) {
-        //             // TODO figure out how to update scale
-        //             this.#updateCanvasManagerScale(state?.scaleRelativeToMouse ?? false);
-        //         }
-        //     }
-        //     // console.time('Draw UI.'); // TMP 
-        //     // if (this.#lastCoords) {
-        //     //     this.#canvasManager.drawUI(this.#tbCanvas, this.#lastCoords.x, this.#lastCoords.y);
-        //     // } else {
-        //     //     this.#canvasManager.drawUI(this.#tbCanvas);
-        //     // }
-        //     // console.timeEnd('Draw UI.'); // TMP 
-        // }
-
         if (typeof state?.enabled === 'boolean') {
             this.#enabled = state?.enabled;
         }
 
-        // if (this.#tileGrid && typeof state?.focusedTile === 'number') {
-        //     this.#focusTile(state?.focusedTile);
-        // }
-
         this.#postImageWorkerMessage(message);
     }
+
+
+    // /**
+    //  * Sets the state of the tile editor.
+    //  * @param {TileEditorState} state - State object.
+    //  */
+    // setState(state) {
+    //     let refreshTiles = false;
+    //     let redrawUI = false;
+    //     let updateRenderPaletteList = false;
+    //     let updateScale = false;
+
+    //     /** @type {import('./../worker/tileImageWorker.js').TileImageWorkerMessage} */
+    //     const message = {};
+
+    //     // Tile image manager
+    //     if (state?.tileImageManager === null || state.tileImageManager instanceof TileImageManager) {
+    //         this.#canvasManager.setTileImageManager(state.tileImageManager);
+    //     }
+    //     // Change palette list?
+    //     // const paletteList = state?.paletteList;
+    //     // if (paletteList instanceof PaletteList) {
+    //     //     this.#canvasManager.invalidateImage();
+    //     //     this.#paletteList = paletteList;
+    //     //     updateRenderPaletteList = true;
+    //     //     refreshTiles = true;
+    //     // }
+    //     let paletteUpdated = false;
+    //     if (state?.paletteList instanceof PaletteList) {
+    //         this.#paletteList = state?.paletteList;
+    //         paletteUpdated = true;
+    //     }
+    //     // Display native?
+    //     if (typeof state?.displayNative === 'boolean') {
+    //         this.#displayNative = state.displayNative;
+    //         if (state.displayNative && this.#paletteList?.getPalettes().filter((p) => p.system === 'gb').length > 0) {
+    //             message.pixelGridColour = '#98a200';
+    //             message.pixelGridOpacity = 0.5;
+    //             message.tileGridColour = '#98a200';
+    //             message.tileGridOpacity = 1;
+    //         } else {
+    //             message.pixelGridColour = '#000000';
+    //             message.pixelGridOpacity = 0.2;
+    //             message.tileGridColour = '#000000';
+    //             message.tileGridOpacity = 0.4;
+    //         }
+    //         paletteUpdated = true;
+    //     }
+    //     // Refresh native palette?
+    //     if (paletteUpdated && this.#paletteList) {
+    //         if (this.#displayNative) {
+    //             this.#renderPaletteList = PaletteUtil.clonePaletteListWithNativeColours(this.#paletteList, { preserveIds: true });
+    //         } else {
+    //             this.#renderPaletteList = this.#paletteList;
+    //         }
+    //         message.paletteList = PaletteListJsonSerialiser.toSerialisable(this.#renderPaletteList);
+    //     }
+    //     // Changing tile grid
+    //     // const tileGrid = state?.tileGrid;
+    //     // if (tileGrid instanceof TileGridProvider) {
+    //     //     resizeCanvas(this.#tbCanvas);
+    //     //     this.#canvasManager.invalidateImage();
+    //     //     this.#tileGrid = tileGrid;
+    //     //     refreshTiles = true;
+    //     // }
+    //     if (state?.tileGrid instanceof TileGridProvider) {
+    //         resizeCanvas(this.#tbCanvas);
+    //         message.tileGrid = TileGridProviderJsonSerialiser.toSerialisable(state.tileGrid);
+    //     } else if (state?.tileGrid === null) {
+    //         message.tileGrid = null;
+    //     }
+    //     // Changing tile set
+    //     // const tileSet = state?.tileSet;
+    //     // if (tileSet instanceof TileSet || tileSet === null) {
+    //     //     this.#canvasManager.invalidateImage();
+    //     //     this.#tileSet = tileSet;
+    //     //     refreshTiles = true;
+    //     // }
+    //     if (state?.tileSet instanceof TileSet) {
+    //         message.tileSet = TileSetJsonSerialiser.toSerialisable(state.tileSet);
+    //     } else if (state?.tileGrid === null) {
+    //         message.tileSet = null;
+    //     }
+    //     // Updated tiles
+    //     if (state?.updatedTiles && Array.isArray(state?.updatedTiles)) {
+    //         message.updatedTileIndexes = state.updatedTileIndexes;
+    //         // const updatedTiles = state.updatedTiles;
+    //         // updatedTiles.forEach((tileIndex) => {
+    //         //     this.#canvasManager.invalidateTile(tileIndex);
+    //         // });
+    //         // refreshTiles = true;
+    //     }
+    //     // Updated tile IDs
+    //     if (state?.updatedTileIds && Array.isArray(state?.updatedTileIds)) {
+    //         message.updatedTileIds = state.updatedTiles;
+    //         // const updatedTileIds = state.updatedTileIds;
+    //         // updatedTileIds.forEach((tileId) => {
+    //         //     this.#canvasManager.invalidateTileId(tileId);
+    //         // });
+    //         // refreshTiles = true;
+    //     }
+    //     // Changing scale?
+    //     if (typeof state?.scale === 'number') {
+    //         message.scale = state.scale;
+    //         // if (this.#scale !== state?.scale) {
+    //         //     const scale = state.scale;
+    //         //     if (scale > 0 && scale <= 100) {
+    //         //         this.#scale = state.scale;
+    //         //         this.#canvasManager.invalidateImage();
+    //         //         refreshTiles = true;
+    //         //         updateScale = true;
+    //         //     } else {
+    //         //         throw new Error('Scale must be between 1 and 100.');
+    //         //     }
+    //         // }
+    //     }
+    //     // Changing amount of tiles per block?
+    //     if (typeof state.tilesPerBlock === 'number') {
+    //         message.tilesPerBlock = state.tilesPerBlock;
+    //         // this.#canvasManager.tilesPerBlock = state.tilesPerBlock;
+    //     } else if (state.tilesPerBlock === null) {
+    //         message.tilesPerBlock = 1;
+    //         // this.#canvasManager.tilesPerBlock = 1;
+    //     }
+    //     // // Display native?
+    //     // if (typeof state?.displayNative === 'boolean') {
+    //     //     this.#displayNative = state.displayNative;
+    //     //     if (state.displayNative && this.#paletteList?.getPalettes().filter((p) => p.system === 'gb').length > 0) {
+    //     //         message.pixelGridColour = '#98a200';
+    //     //         message.pixelGridOpacity = 0.5;
+    //     //         message.tileGridColour = '#98a200';
+    //     //         message.tileGridOpacity = 1;
+    //     //         // this.#canvasManager.pixelGridColour = '#98a200';
+    //     //         // this.#canvasManager.pixelGridOpacity = 0.5;
+    //     //         // this.#canvasManager.tileGridColour = '#98a200';
+    //     //         // this.#canvasManager.tileGridOpacity = 1;
+    //     //     } else {
+    //     //         message.pixelGridColour = '#000000';
+    //     //         message.pixelGridOpacity = 0.2;
+    //     //         message.tileGridColour = '#000000';
+    //     //         message.tileGridOpacity = 0.4;
+    //     //         // this.#canvasManager.pixelGridColour = '#000000';
+    //     //         // this.#canvasManager.pixelGridOpacity = 0.2;
+    //     //         // this.#canvasManager.tileGridColour = '#000000';
+    //     //         // this.#canvasManager.tileGridOpacity = 0.4;
+    //     //     }
+    //     //     updateRenderPaletteList = true;
+    //     //     // refreshTiles = true;
+    //     // }
+    //     // Draw tile grid
+    //     if (typeof state?.showTileGrid === 'boolean') {
+    //         message.showTileGrid = state?.showTileGrid;
+    //         // this.#canvasManager.showTileGrid = state?.showTileGrid;
+    //         // refreshTiles = true;
+    //     }
+    //     // Draw pixel grid
+    //     if (typeof state?.showPixelGrid === 'boolean') {
+    //         message.showPixelGrid = state?.showPixelGrid;
+    //         // this.#canvasManager.showPixelGrid = state?.showPixelGrid;
+    //         // refreshTiles = true;
+    //     }
+    //     // Selected tile index?
+    //     if (typeof state?.selectedTileIndex === 'number') {
+    //         message.selectedTileIndex = state.selectedTileIndex;
+    //         // if (this.#canvasManager.selectedTileIndex !== state.selectedTileIndex) {
+    //         //     this.#canvasManager.selectedTileIndex = state.selectedTileIndex;
+    //         //     redrawUI = true;
+    //         // }
+    //     }
+    //     // Cursor size
+    //     if (typeof state?.cursorSize === 'number') {
+    //         if (state.cursorSize > 0 && state.cursorSize <= 50) {
+    //             message.cursorSize = state.cursorSize;
+    //             // this.#canvasManager.cursorSize = state.cursorSize;
+    //         }
+    //         // redrawUI = true;
+    //     }
+    //     // Cursor type
+    //     if (typeof state?.cursor === 'string') {
+    //         this.#tbCanvas.style.cursor = state.cursor;
+    //     }
+    //     // Reference image
+    //     if (state?.referenceImage instanceof ReferenceImage || state?.referenceImage === null) {
+    //         // this.#canvasManager.clearReferenceImages();
+    //         // if (state?.referenceImage && state.referenceImage.hasImage()) {
+    //         //     this.#canvasManager.addReferenceImage(state.referenceImage);
+    //         //     this.#canvasManager.transparencyGridOpacity = 0;
+    //         // } else {
+    //         //     this.#canvasManager.transparencyGridOpacity = 0.15;
+    //         // }
+    //         // this.#canvasManager.invalidateImage();
+    //         // refreshTiles = true;
+    //     }
+    //     // Transparency indicies index
+    //     if (Array.isArray(state?.transparencyIndicies) || state.transparencyIndicies === null) {
+    //         message.transparencyIndicies = state.transparencyIndicies;
+    //     }
+    //     //     if (Array.isArray(state?.transparencyIndicies)) {
+    //     //     this.#canvasManager.transparencyIndicies = state.transparencyIndicies.filter((i) => typeof i === 'number');
+    //     //     this.#canvasManager.invalidateImage();
+    //     //     refreshTiles = true;
+    //     // } else if (state.transparencyIndicies === null) {
+    //     //     this.#canvasManager.transparencyIndicies = [];
+    //     //     this.#canvasManager.invalidateImage();
+    //     //     refreshTiles = true;
+    //     // }
+    //     // Reference image draw mode
+    //     if (Array.isArray(state?.referenceImageDrawMode) || state.referenceImageDrawMode === null) {
+    //         message.referenceImageDrawMode = state.referenceImageDrawMode;
+    //     }
+    //     // if (typeof state?.referenceImageDrawMode === 'string') {
+    //     //     this.#canvasManager.referenceImageDrawMode = state?.referenceImageDrawMode;
+    //     // } else if (state.referenceImageDrawMode === null) {
+    //     //     this.#canvasManager.referenceImageDrawMode = 'overIndex';
+    //     // }
+    //     // Locked palette slot index
+    //     if (typeof state.lockedPaletteSlotIndex === 'number' || state.lockedPaletteSlotIndex === null) {
+    //         message.lockedPaletteSlotIndex = state.lockedPaletteSlotIndex;
+    //         // this.#canvasManager.lockedPaletteSlotIndex = state.lockedPaletteSlotIndex ?? -1;
+    //         // this.#canvasManager.invalidateImage();
+    //         // refreshTiles = true;
+    //     }
+    //     // Canvas highlight mode
+    //     if (typeof state.canvasHighlightMode === 'number' || state.canvasHighlightMode === null) {
+    //         message.canvasHighlightMode = state.canvasHighlightMode;
+    //     }
+    //     // if (typeof state?.canvasHighlightMode === 'string') {
+    //     //     this.#canvasManager.highlightMode = state.canvasHighlightMode;
+    //     // } else if (typeof state?.canvasHighlightMode === 'object' && state.canvasHighlightMode === null) {
+    //     //     this.#canvasManager.highlightMode = CanvasManager.HighlightModes.pixel;
+    //     // }
+    //     // Tile stamp preview
+    //     if (typeof state.tileStampPreview === 'string' || state.tileStampPreview instanceof TileMap || state.tileStampPreview instanceof Tile || state.tileStampPreview === null) {
+    //         message.tileStampPreview = state.tileStampPreview;
+    //         // this.#canvasManager.setTilePreview(state.tileStampPreview);
+    //     }
+    //     // Selected region 
+    //     if (typeof state?.selectedRegion !== 'undefined') {
+    //         message.selectedRegion = state.selectedRegion;
+    //         // if (state.selectedRegion !== null) {
+    //         //     const r = state.selectedRegion;
+    //         //     this.#canvasManager.setSelectedTileRegion(r.rowIndex, r.columnIndex, r.width, r.height);
+    //         // } else {
+    //         //     this.#canvasManager.clearSelectedTileRegion();
+    //         // }
+    //         // redrawUI = true;
+    //     }
+    //     // Pan horizontal
+    //     if (typeof state?.viewportPanHorizontal === 'number') {
+    //         message.panViewportX = state.viewportPanHorizontal;
+    //         // this.#canvasManager.offsetX += state?.viewportPanHorizontal;
+    //         // redrawUI = true;
+    //     }
+    //     // Pan vertical
+    //     if (typeof state?.viewportPanVertical === 'number') {
+    //         message.panViewportY = state.viewportPanVertical;
+    //         // this.#canvasManager.offsetY += state?.viewportPanVertical;
+    //         // redrawUI = true;
+    //     }
+    //     if (this.#lastCoords) {
+    //         message.mousePosition = { x: this.#lastCoords.x, y: this.#lastCoords.y };
+    //     }
+    //     if (typeof state?.focusedTile === 'number' && this.#tileGrid) {
+    //         this.#focusTileOnMessage(state?.focusedTile, message);
+    //     }
+    //     // Force refresh?
+    //     if (typeof state.forceRefresh === 'boolean' && state.forceRefresh === true) {
+    //         message.updateImage = true;
+    //         // refreshTiles = true;
+    //         // this.#canvasManager.invalidateImage();
+    //     }
+
+    //     message.imageSize = {
+    //         width: this.#tbCanvas.width,
+    //         height: this.#tbCanvas.height
+    //     };
+
+    //     // Refresh image?
+    //     // TODO figure out how to update scale
+    //     // if ((refreshTiles || redrawUI) && this.#tileGrid && this.#tileSet && this.#paletteList && this.#paletteList.length > 0) {
+    //     //     if (refreshTiles) {
+    //     //         this.#canvasManager.paletteList = this.#renderPaletteList;
+    //     //         this.#canvasManager.tileSet = this.#tileSet;
+    //     //         this.#canvasManager.tileGrid = this.#tileGrid;
+    //     //         if (updateScale) {
+    //     //             // TODO figure out how to update scale
+    //     //             this.#updateCanvasManagerScale(state?.scaleRelativeToMouse ?? false);
+    //     //         }
+    //     //     }
+    //     //     // console.time('Draw UI.'); // TMP 
+    //     //     // if (this.#lastCoords) {
+    //     //     //     this.#canvasManager.drawUI(this.#tbCanvas, this.#lastCoords.x, this.#lastCoords.y);
+    //     //     // } else {
+    //     //     //     this.#canvasManager.drawUI(this.#tbCanvas);
+    //     //     // }
+    //     //     // console.timeEnd('Draw UI.'); // TMP 
+    //     // }
+
+    //     if (typeof state?.enabled === 'boolean') {
+    //         this.#enabled = state?.enabled;
+    //     }
+
+    //     // if (this.#tileGrid && typeof state?.focusedTile === 'number') {
+    //     //     this.#focusTile(state?.focusedTile);
+    //     // }
+
+    //     this.#postImageWorkerMessage(message);
+    // }
 
 
     /**
@@ -498,14 +749,14 @@ export default class TileEditor extends ComponentBase {
 
     /** @param {MouseEvent} ev */
     #handleCanvasMouseMove(ev) {
-        if (!this.#tileGrid) return;
+        if (!canvasState.hasTileGrid) return;
 
-        if (this.#enabled && this.#tileSet) {
+        if (this.#enabled && canvasState.hasTileSet) {
             if (ev.target === this.#tbCanvas) {
-                const coords = this.#canvasManager.convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
+                const coords = convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
                 if (coords) {
-                    const pxInBounds = coords.x >= 0 && coords.y >= 0 && coords.x < this.#tileGrid.columnCount * 8 && coords.y < this.#tileGrid.rowCount * 8;
-                    const rowColInfo = this.#canvasManager.getRowAndColumnInfo(coords.x, coords.y);
+                    const pxInBounds = coords.x >= 0 && coords.y >= 0 && coords.x < canvasState.tileGridColumns * 8 && coords.y < canvasState.tileGridRows * 8;
+                    const rowColInfo = getRowAndColumnInfo(coords.x, coords.y);
                     const lastCoords = this.#lastCoords;
                     if (!lastCoords || lastCoords.x !== coords.x || lastCoords.y !== coords.y) {
                         /** @type {TileEditorEventArgs} */
@@ -525,15 +776,16 @@ export default class TileEditor extends ComponentBase {
                             tileBlockGridColumnIndex: rowColInfo.columnBlockIndex,
                             tileBlockGridInsertRowIndex: rowColInfo.nearestRowBlockIndex,
                             tileBlockGridInsertColumnIndex: rowColInfo.nearestColumnBlockIndex,
-                            tilesPerBlock: this.#canvasManager.tilesPerBlock,
+                            tilesPerBlock: canvasState.tilesPerBlock,
                             isInBounds: pxInBounds && rowColInfo.isInBounds
                         };
                         this.#dispatcher.dispatch(EVENT_OnEvent, args);
                         this.#lastCoords = coords;
-                        this.#lastMouseCoords = this.#canvasManager.convertViewportCoordsToCanvasCoords(this.#tbCanvas, ev.clientX, ev.clientY);
-                        if (this.#canvasManager.canDraw) {
-                            this.#canvasManager.drawUI(this.#tbCanvas, coords.x, coords.y);
-                        }
+                        this.#lastMouseCoords = convertViewportCoordsToCanvasCoords(this.#tbCanvas, ev.clientX, ev.clientY);
+                        this.#postImageWorkerMessage({ mousePosition: { x: coords.x, y: coords.y }, updateUI: true });
+                        // if (this.#canvasManager.canDraw) {
+                        //     this.#canvasManager.drawUI(this.#tbCanvas, coords.x, coords.y);
+                        // }
                     }
                 }
             }
@@ -544,7 +796,7 @@ export default class TileEditor extends ComponentBase {
 
     /** @param {MouseEvent} ev */
     #handleCanvasMouseDown(ev) {
-        if (!this.#tileGrid) return;
+        if (!canvasState.hasTileGrid) return;
 
         if (!this.#enabled || ev.target !== this.#tbCanvas) return;
 
@@ -559,10 +811,10 @@ export default class TileEditor extends ComponentBase {
             }
         }
 
-        const coords = this.#canvasManager.convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
+        const coords = convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
         if (coords) {
-            const pxInBounds = coords.x >= 0 && coords.y >= 0 && coords.x < this.#tileGrid.columnCount * 8 && coords.y < this.#tileGrid.rowCount * 8;
-            const rowColInfo = this.#canvasManager.getRowAndColumnInfo(coords.x, coords.y);
+            const pxInBounds = coords.x >= 0 && coords.y >= 0 && coords.x < canvasState.tileGridColumns * 8 && coords.y < canvasState.tileGridRows * 8;
+            const rowColInfo = getRowAndColumnInfo(coords.x, coords.y);
             /** @type {TileEditorEventArgs} */
             const args = {
                 event: events.pixelMouseDown,
@@ -582,7 +834,7 @@ export default class TileEditor extends ComponentBase {
                 tileBlockGridColumnIndex: rowColInfo.columnBlockIndex,
                 tileBlockGridInsertRowIndex: rowColInfo.nearestRowBlockIndex,
                 tileBlockGridInsertColumnIndex: rowColInfo.nearestColumnBlockIndex,
-                tilesPerBlock: this.#canvasManager.tilesPerBlock,
+                tilesPerBlock: canvasState.tilesPerBlock,
                 isInBounds: pxInBounds && rowColInfo.isInBounds
             };
             this.#dispatcher.dispatch(EVENT_OnEvent, args);
@@ -591,7 +843,7 @@ export default class TileEditor extends ComponentBase {
 
     /** @param {MouseEvent} ev */
     #handleCanvasMouseUp(ev) {
-        if (!this.#tileGrid) return;
+        if (!canvasState.hasTileGrid) return;
 
         this.#panCanvasOnMouseMove = false;
 
@@ -605,10 +857,10 @@ export default class TileEditor extends ComponentBase {
             this.#canvasMouseRightDown = false;
         }
 
-        const coords = this.#canvasManager.convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
+        const coords = convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
         if (coords) {
-            const pxInBounds = coords.x >= 0 && coords.y >= 0 && coords.x < this.#tileGrid.columnCount * 8 && coords.y < this.#tileGrid.rowCount * 8;
-            const rowColInfo = this.#canvasManager.getRowAndColumnInfo(coords.x, coords.y);
+            const pxInBounds = coords.x >= 0 && coords.y >= 0 && coords.x < canvasState.tileGridColumns * 8 && coords.y < canvasState.tileGridRows * 8;
+            const rowColInfo = getRowAndColumnInfo(coords.x, coords.y);
             /** @type {TileEditorEventArgs} */
             const args = {
                 event: events.pixelMouseUp,
@@ -628,7 +880,7 @@ export default class TileEditor extends ComponentBase {
                 tileBlockGridColumnIndex: rowColInfo.columnBlockIndex,
                 tileBlockGridInsertRowIndex: rowColInfo.nearestRowBlockIndex,
                 tileBlockGridInsertColumnIndex: rowColInfo.nearestColumnBlockIndex,
-                tilesPerBlock: this.#canvasManager.tilesPerBlock,
+                tilesPerBlock: canvasState.tilesPerBlock,
                 isInBounds: pxInBounds && rowColInfo.isInBounds
             };
             this.#dispatcher.dispatch(EVENT_OnEvent, args);
@@ -666,9 +918,9 @@ export default class TileEditor extends ComponentBase {
 
     /** @param {MouseEvent} ev */
     #handleCanvasContextMenu(ev) {
-        if (!this.#enabled || this.#tileGrid.isTileMap) return;
+        if (!this.#enabled || canvasState.isTileMap) return;
 
-        const coords = this.#canvasManager.convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
+        const coords = convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
         if (coords) {
             // Get the tile index
             const tile = this.#tileSet.getTileByCoordinate(coords.x, coords.y);
@@ -698,7 +950,7 @@ export default class TileEditor extends ComponentBase {
             const args = {};
 
             // Get the tile index
-            const coords = this.#canvasManager.convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
+            const coords = convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
             if (coords) {
                 const tile = this.#tileSet.getTileByCoordinate(coords.x, coords.y);
                 args.tileIndex = this.#tileSet.getTileIndex(tile);
@@ -713,14 +965,21 @@ export default class TileEditor extends ComponentBase {
             }
             return false;
         } else {
+            const message = {};
             if (ev.deltaX !== 0) {
-                this.#canvasManager.offsetX -= ev.deltaX * 3;
+                message.panViewportX = ev.deltaX * 3;
+                // this.#canvasManager.offsetX -= ev.deltaX * 3;
             }
             if (ev.deltaY !== 0) {
-                this.#canvasManager.offsetY -= ev.deltaY * 3;
+                message.panViewportY = ev.deltaY * 3;
+                // this.#canvasManager.offsetY -= ev.deltaY * 3;
             }
+            this.#postImageWorkerMessage({
+                updateUI: true,
+                ...message
+            });
             ev.preventDefault();
-            this.#canvasManager.drawUI(this.#tbCanvas);
+            // this.#canvasManager.drawUI(this.#tbCanvas);
             return false;
         }
     }
@@ -749,21 +1008,26 @@ export default class TileEditor extends ComponentBase {
      * @param {number} amountY - Movement of the mouse on the Y axis.
      */
     panCanvas(amountX, amountY) {
-        this.#canvasManager.offsetX += amountX;
-        this.#canvasManager.offsetY += amountY;
-        if (this.#canvasManager.canDraw) {
-            this.#canvasManager.drawUI(this.#tbCanvas);
-        }
+        this.#postImageWorkerMessage({
+            updateUI: true,
+            panViewportX: amountX,
+            panViewportY: amountY
+        });
+        // this.#canvasManager.offsetX += amountX;
+        // this.#canvasManager.offsetY += amountY;
+        // if (this.#canvasManager.canDraw) {
+        //     this.#canvasManager.drawUI(this.#tbCanvas);
+        // }
     }
 
-    // TODO - Delete this when worker canvas manager is happy
-    #focusTile(index) {
-        const col = index % this.#tileSet.tileWidth;
-        const row = Math.floor(index / this.#tileSet.tileWidth);
-        const pxPerTile = this.#canvasManager.scale * 8;
-        this.#canvasManager.offsetX = col / pxPerTile;
-        this.#canvasManager.offsetY = row / pxPerTile;
-    }
+    // // TODO - Delete this when worker canvas manager is happy
+    // #focusTile(index) {
+    //     const col = index % this.#tileSet.tileWidth;
+    //     const row = Math.floor(index / this.#tileSet.tileWidth);
+    //     const pxPerTile = this.#canvasManager.scale * 8;
+    //     this.#canvasManager.offsetX = col / pxPerTile;
+    //     this.#canvasManager.offsetY = row / pxPerTile;
+    // }
 
     /**
      * 
@@ -771,8 +1035,8 @@ export default class TileEditor extends ComponentBase {
      * @param {import('./../worker/tileImageWorker.js').TileImageWorkerMessage} message 
      */
     #focusTileOnMessage(index, message) {
-        const col = index % this.#tileGrid.columnCount;
-        const row = Math.floor(index / this.#tileGrid.rowCount);
+        const col = index % canvasState.tileGridColumns;
+        const row = Math.floor(index / canvasState.tileGridRows);
         const pxPerTile = this.#scale * 8;
         message.offsetX = col / pxPerTile;
         message.offsetY = row / pxPerTile;
@@ -789,12 +1053,12 @@ export default class TileEditor extends ComponentBase {
         if (relativeToMouse === true && this.#lastCoords && this.#lastMouseCoords) {
             // Scale / zoom based on mouse coord
             const mouseXRelativeToCentre = -((this.#tbCanvas.clientWidth / 2) - this.#lastMouseCoords.x);
-            const zeroOffsetX = (((this.#tileGrid.columnCount * 8) / 2) * this.#scale);
+            const zeroOffsetX = (((canvasState.tileGridColumns * 8) / 2) * this.#scale);
             const hoverPixelNewXOffset = this.#lastCoords.x * this.#scale;
             this.#offsetX = Math.round(zeroOffsetX + mouseXRelativeToCentre - hoverPixelNewXOffset);
 
             const mouseYRelativeToCentre = -((this.#tbCanvas.clientHeight / 2) - this.#lastMouseCoords.y);
-            const zeroOffsetY = (((this.#tileGrid.rowCount * 8) / 2) * this.#scale);
+            const zeroOffsetY = (((canvasState.tileGridRows * 8) / 2) * this.#scale);
             const hoverPixelNewYOffset = this.#lastCoords.y * this.#scale;
             this.#offsetY = Math.round(zeroOffsetY + mouseYRelativeToCentre - hoverPixelNewYOffset);
         } else {
@@ -816,7 +1080,7 @@ export default class TileEditor extends ComponentBase {
      * @param {import('./../worker/tileImageWorker.js').TileImageWorkerMessage} message 
      */
     #postImageWorkerMessage(message) {
-        this.#imageWorker.postMessage(message);
+        this.#imageWorker.postMessage({ message: message });
     }
 
     /**
@@ -824,11 +1088,39 @@ export default class TileEditor extends ComponentBase {
      * @param {import('./../worker/tileImageWorker.js').TileImageWorkerResponse} response 
      */
     #receiveImageWorkerMessage(response) {
-        console.log('receiveImageWorkerMessage', response); // TMP 
-        if (!this.#tbCanvasContext) {
-            this.#tbCanvasContext = this.#tbCanvas.getContext('2d');
-        }
-        this.#tbCanvasContext.drawImage(response.tileGridBitmap, 0, 0);
+        // console.log('receiveImageWorkerMessage', response); // TMP 
+
+        canvasState.hasTileGrid = response.hasTileGrid;
+        canvasState.hasTileSet = response.hasTileSet;
+        canvasState.hasPalettes = response.hasPalettes;
+        canvasState.isTileMap = response.isTileMap;
+        canvasState.canvasWidth = response.canvasSize.width;
+        canvasState.canvasHeight = response.canvasSize.height;
+        canvasState.tileGridRows = response.tileGridRows;
+        canvasState.tileGridColumns = response.tileGridColumns;
+        canvasState.offsetX = response.offsetX;
+        canvasState.offsetY = response.offsetY;
+        canvasState.scale = response.scale;
+        canvasState.tilesPerBlock = response.tilesPerBlock;
+
+        // if (response.hasImage) {
+        //     if (!this.#tbCanvasContext) {
+        //         this.#tbCanvasContext = this.#tbCanvas.getContext('2d');
+        //     }
+        //     this.#tbCanvasContext.drawImage(response.tileGridBitmap, 0, 0);
+        // }
+    }
+
+    /**
+     * Posts a message to the tile image worker.
+     * @param {OffscreenCanvas} canvas 
+     */
+    #receiveImageWorkerCanvas(canvas) {
+        // console.log('receiveImageWorkerCanvas', canvas); // TMP 
+        // if (!this.#tbCanvasContext) {
+        //     this.#tbCanvasContext = this.#tbCanvas.getContext('2d');
+        // }
+        // this.#tbCanvasContext.drawImage(canvas, 0, 0);
     }
 
 }
@@ -856,9 +1148,10 @@ export default class TileEditor extends ComponentBase {
  * @property {boolean?} showPixelGrid - Should the pixel grid be drawn?
  * @property {boolean?} enabled - Is the control enabled or disabled?
  * @property {number?} focusedTile - Will ensure that this tile is shown on the screen.
- * @property {number[]?} updatedTiles - When passing updated tiles, the entire image will not be updated and instead only these tiles will be updated.
+ * @property {import("../serialisers/tileJsonSerialiser.js").TileSerialisable[]?} updatedTiles - Tiles that have been updated.
+ * @property {number[]?} updatedTileIndexes - When passing updated tiles, the entire image will not be updated and instead only these tiles will be updated.
  * @property {string[]?} [updatedTileIds] - Array of unique tile IDs that were updated.
- * @property {string?} [canvasHighlightMode] - The highlight mode that the canvas should use.
+ * @property {string?} [canvasHighlightMode] - How the canvas highlights what is under the mouse cursor (pixel, row, column, etc).
  * @property {string|Tile|TileMap|null} [tileStampPreview] - Either a tile ID, individual tile object or tile grid object with the tile stamp preview.
  * @property {import("../models/tileGridProvider.js").TileGridRegion} [selectedRegion] - Selected region to highlight.
  * @property {boolean?} [forceRefresh] - When true the tile grid image will be refreshed.
@@ -914,9 +1207,118 @@ export default class TileEditor extends ComponentBase {
  * @param {HTMLCanvasElement} canvas
  */
 function resizeCanvas(canvas) {
-    const parent = canvas.parentElement;
-    const parentRect = parent.getBoundingClientRect();
-    canvas.style.position = 'absolute';
-    canvas.width = parentRect.width;
-    canvas.height = parentRect.height;
+    // const parent = canvas.parentElement;
+    // const parentRect = parent.getBoundingClientRect();
+    // canvas.style.position = 'absolute';
+    // canvas.width = parentRect.width;
+    // canvas.height = parentRect.height;
+}
+
+const canvasState = {
+    hasTileGrid: false,
+    hasTileSet: false,
+    hasPalettes: false,
+    isTileMap: false,
+    tileGridRows: 0,
+    tileGridColumns: 0,
+    offsetX: 0,
+    offsetY: 0,
+    scale: 0,
+    canvasWidth: 0,
+    canvasHeight: 0,
+    tilesPerBlock: 0
+};
+
+/**
+ * Converts mouse X and Y coordinates from the viewport to the corresponding tile grid coordinate.
+ * @param {HTMLCanvasElement} canvas - Canvas element to use for the conversion.
+ * @param {number} viewportX - Y pixel coordinate within the viewport.
+ * @param {number} viewportY - Y pixel coordinate within the viewport.
+ * @returns {import("../types.js").Coordinate}
+ */
+function convertViewportCoordsToTileGridCoords(canvas, viewportX, viewportY) {
+    const canvasRect = canvas.getBoundingClientRect();
+    const canvasX = viewportX - canvasRect.left - (canvasState.scale / 2);
+    const canvasY = viewportY - canvasRect.top - (canvasState.scale / 2);
+    return convertCanvasCoordsToTileGridCoords(canvas, canvasX, canvasY);
+}
+
+/**
+ * Converts mouse X and Y coordinates from the viewport to the corresponding tile grid coordinate.
+ * @param {HTMLCanvasElement} canvas - Canvas element to use for the conversion.
+ * @param {number} canvasX - Y pixel coordinate within the canvas.
+ * @param {number} canvasY - Y pixel coordinate within the canvas.
+ * @returns {{x: number, y: number}}
+ */
+function convertCanvasCoordsToTileGridCoords(canvas, canvasX, canvasY) {
+    const drawCoords = getDrawCoords(canvas);
+    canvasX -= drawCoords.x;
+    canvasY -= drawCoords.y;
+    return {
+        x: Math.round(canvasX / canvasState.scale),
+        y: Math.round(canvasY / canvasState.scale)
+    };
+}
+
+/**
+ * Gets the top left coordinate of where the tile image is to be drawn.
+ * @param {HTMLCanvasElement} canvas - Canvas where the image is to be drawn.
+ * @returns {import("../types.js").Coordinate}
+ */
+function getDrawCoords(canvas) {
+    return {
+        x: Math.floor((canvas.width - canvasState.canvasWidth) / 2) + canvasState.offsetX,
+        y: Math.floor((canvas.height - canvasState.canvasHeight) / 2) + canvasState.offsetY
+    }
+}
+
+
+/**
+ * Gets the top left coordinate of where the tile image is to be drawn.
+ * @param {HTMLCanvasElement} canvas - Canvas where the image is to be drawn.
+ * @param {number} tileGridX - X coordinate within the tile grid.
+ * @param {number} tileGridY - Y coordinate within the tile grid.
+ * @returns {RowAndColumnInfo}
+ */
+function getRowAndColumnInfo(tileGridX, tileGridY) {
+    const row = Math.floor(tileGridY / 8);
+    const col = Math.floor(tileGridX / 8);
+    const clampedRow = Math.min(Math.max(row, 0), canvasState.tileGridRows);
+    const clampedCol = Math.min(Math.max(col, 0), canvasState.tileGridColumns);
+    const blockRow = Math.floor(clampedRow / canvasState.tilesPerBlock);
+    const blockCol = Math.floor(clampedCol / canvasState.tilesPerBlock);
+    const nearNextRowAdditionalOffset = tileGridY % 8 >= 4 ? 1 : 0;
+    const nearNextColAdditionalOffset = tileGridX % 8 >= 4 ? 1 : 0;
+    const nearestBlockRow = Math.min(Math.round(clampedRow / canvasState.tilesPerBlock) + nearNextRowAdditionalOffset, canvasState.tileGridRows);
+    const nearestBlockCol = Math.min(Math.round(clampedCol / canvasState.tilesPerBlock) + nearNextColAdditionalOffset, canvasState.tileGridColumns);
+    return {
+        rowIndex: row,
+        columnIndex: col,
+        clampedRowIndex: clampedRow,
+        clampedColumnIndex: clampedCol,
+        nearestRowIndex: (tileGridY % 4 > 4) ? clampedRow + 1 : clampedRow,
+        nearestColumnIndex: (tileGridX % 4 > 4) ? clampedCol + 1 : clampedCol,
+        rowBlockIndex: blockRow,
+        columnBlockIndex: blockCol,
+        nearestRowBlockIndex: nearestBlockRow,
+        nearestColumnBlockIndex: nearestBlockCol,
+        rowIsInBounds: row === clampedRow,
+        columnIsInBounds: col === clampedCol,
+        isInBounds: row === clampedRow && col === clampedCol
+    };
+}
+
+/**
+ * Converts mouse X and Y coordinates from the viewport to X and Y coordinates relative to a given canvas object.
+ * @param {HTMLCanvasElement} canvas - Canvas element to use for the conversion.
+ * @param {number} viewportX - Y pixel coordinate within the viewport.
+ * @param {number} viewportY - Y pixel coordinate within the viewport.
+ * @returns {import("../types.js").Coordinate}
+ */
+function convertViewportCoordsToCanvasCoords(canvas, viewportX, viewportY) {
+    const canvasRect = canvas.getBoundingClientRect();
+    return {
+        x: viewportX - canvasRect.left - (canvasState.scale / 2),
+        y: viewportY - canvasRect.top - (canvasState.scale / 2)
+    };
 }

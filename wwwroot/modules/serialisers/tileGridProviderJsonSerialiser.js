@@ -1,7 +1,7 @@
 import TileGridProvider from "../models/tileGridProvider.js";
 import TileMap from "../models/tileMap.js";
 import TileSet from "../models/tileSet.js";
-import TileMapTileJsonSerialiser from "./tileMapTileJsonSerialiser.js";
+import TileMapJsonSerialiser from "./tileMapJsonSerialiser.js";
 import TileSetJsonSerialiser from "./tileSetJsonSerialiser.js";
 
 
@@ -45,12 +45,12 @@ export default class TileGridProviderJsonSerialiser {
         if (value instanceof TileMap) {
             return {
                 type: 'TileMap',
-                value: TileMapJsonSerialiser.toSerialisable(value)
+                serialised: TileMapJsonSerialiser.toSerialisable(value)
             };
         } else if (value instanceof TileSet) {
             return {
                 type: 'TileSet',
-                value: TileSetJsonSerialiser.toSerialisable(value)
+                serialised: TileSetJsonSerialiser.toSerialisable(value)
             };
         } else {
             throw new Error('An unknown tile grid provider object was passed.');
@@ -63,12 +63,12 @@ export default class TileGridProviderJsonSerialiser {
      * @returns {TileGridProvider}
      */
     static fromSerialisable(serialisable) {
-        if (serialisable.type === 'TileMap') {
-            return TileMapTileJsonSerialiser.fromSerialisable(serialisable.serialised);
-        } else if (serialisable.type === 'TileSet') {
+        if (serialisable?.type === 'TileMap') {
+            return TileMapJsonSerialiser.fromSerialisable(serialisable.serialised);
+        } else if (serialisable?.type === 'TileSet') {
             return TileSetJsonSerialiser.fromSerialisable(serialisable.serialised);
         } else {
-            throw new Error('Didn\'t know how to convert the serialised tile grid provider object.');
+            throw new Error(`Didn't know how to convert the serialised tile grid provider object.`);
         }
     }
 
