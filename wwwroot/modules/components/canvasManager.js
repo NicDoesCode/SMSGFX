@@ -470,12 +470,34 @@ export default class CanvasManager {
 
 
     /**
-     * Sets the reference image.
-     * @param {ReferenceImage} referenceImage - Reference image to draw.
+     * Gets the reference image count.
      */
-    addReferenceImage(referenceImage) {
-        if (referenceImage) {
-            this.#referenceImages.push(referenceImage);
+    getReferenceImageCount() {
+        return this.#referenceImages.length;
+    }
+
+    /**
+     * Gets the reference images.
+     */
+    getReferenceImages() {
+        return this.#referenceImages.slice();
+    }
+
+    /**
+     * Gets a reference image by index.
+     * @param {number} index - Index of the reference image.
+     */
+    getReferenceImageByIndex(index) {
+        return this.#referenceImages[index];
+    }
+
+    /**
+     * Sets the reference image.
+     * @param {ReferenceImage} value - Reference image to draw.
+     */
+    addReferenceImage(value) {
+        if (value) {
+            this.#referenceImages.push(value);
         }
     }
 

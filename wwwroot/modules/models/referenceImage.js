@@ -1,3 +1,5 @@
+import ImageUtil from "../util/imageUtil.js";
+
 export default class ReferenceImage {
 
 
@@ -6,7 +8,7 @@ export default class ReferenceImage {
         return this.#image;
     }
     set image(value) {
-        this.#image = value;
+        this.setImage(value);
     }
 
     get imageWidth() {
@@ -34,7 +36,7 @@ export default class ReferenceImage {
     }
 
 
-    /** @type {HTMLImageElement?} */
+    /** @type {ImageBitmap?} */
     #image;
     /** @type {DOMRect?} */
     #bounds;
@@ -51,10 +53,18 @@ export default class ReferenceImage {
 
     /**
      * Sets the image.
-     * @param {HTMLImageElement} image - Image to draw.
+     * @param {HTMLImageElement|HTMLCanvasElement|OffscreenCanvas|ImageBitmap} image - Image to draw.
      */
     setImage(image) {
-        this.#image = image;
+        if (image instanceof ImageBitmap) {
+            this.#image = image;
+        } else if ((image?.tagName && image.tagName === 'IMG') || (image?.tagName && image.tagName === 'CANVAS') || image instanceof OffscreenCanvas) {
+            this.#image = ImageUtil.ToImageBitmap(image);
+        } else if (image === null) {
+            this.#image = null;
+        } else {
+            throw new Error('Invalid value for image.')
+        }
     }
 
     /**
@@ -92,4 +102,53 @@ export default class ReferenceImage {
     }
 
 
+    /**
+     * Converts the reference image into an object that can be serialised.
+     * @returns {ReferenceImageObject}
+     */
+    toObject() {
+        const result = {};
+        result.image = this.image;
+        if (this.#bounds) {
+            result.position = {
+                x: this.positionX,
+                y: this.positionY
+            };
+            result.dimensions = {
+                width: this.drawWidth,
+                height: this.drawHeight
+            }
+        } else {
+            result.position = null;
+            result.dimensions = null;
+        }
+        return result;
+    }
+
+    /**
+     * Converts a serialisable reference image object back into a reference image.
+     * @param {ReferenceImageObject} value - Input reference image object.
+     * @returns {ReferenceImage}
+     */
+    static fromObject(value) {
+        if (typeof value === 'object' && value !== null) {
+            const result = new ReferenceImage();
+            result.image = value.image;
+            if (value.position && value.dimensions) {
+                result.setBounds(value.position.x, value.position.y, value.dimensions.width, value.dimensions.height);
+            }
+            return result;
+        }
+    }
+
+
 }
+
+
+/**
+ * @typedef {Object} ReferenceImageObject
+ * @property {ImageBitmap} image
+ * @property {import('./../types.js').Coordinate} position
+ * @property {import('./../types.js').Dimension} dimensions
+ * @exports
+ */

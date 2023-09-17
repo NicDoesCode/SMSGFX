@@ -11,6 +11,15 @@ export const Types = {};
  */
 
 /**
+ * @typedef {Object} Bounds
+ * @property {number} x - X coordinate.
+ * @property {number} y - Y coordinate.
+ * @property {number} width - Width of the dimension.
+ * @property {number} height - Height of the dimension.
+ * @exports
+ */
+
+/**
  * @typedef {Object} Dimension
  * @property {number} width - Width of the dimension.
  * @property {number} height - Height of the dimension.

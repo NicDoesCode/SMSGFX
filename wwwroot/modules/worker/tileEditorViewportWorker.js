@@ -6,6 +6,7 @@ import PaletteListJsonSerialiser from "../serialisers/paletteListJsonSerialiser.
 import TileGridProviderJsonSerialiser from "../serialisers/tileGridProviderJsonSerialiser.js";
 import TileJsonSerialiser from "../serialisers/tileJsonSerialiser.js";
 import TileSetJsonSerialiser from "../serialisers/tileSetJsonSerialiser.js";
+import ReferenceImage from "./../models/referenceImage.js";
 
 
 /** @type {OffscreenCanvas} */
@@ -162,11 +163,37 @@ function applyUpdateToCanvasManager(message) {
     if (typeof message.transparencyGridOpacity === 'number') {
         canvasManager.transparencyGridOpacity = message.transparencyGridOpacity;
     }
+
+    // Reference image
+
+    if (typeof message.referenceImage === 'object' && message.referenceImage !== null) {
+        canvasManager.clearReferenceImages();
+        const referenceImage = ReferenceImage.fromObject(message.referenceImage);
+        if (referenceImage && referenceImage.hasImage()) {
+            canvasManager.addReferenceImage(referenceImage);
+            canvasManager.transparencyGridOpacity = 0;
+        } else {
+            canvasManager.transparencyGridOpacity = 0.15;
+        }
+        canvasManager.invalidateImage();
+    } else if (message.referenceImage === null) {
+        canvasManager.clearReferenceImages();
+        canvasManager.transparencyGridOpacity = 0.15;
+        canvasManager.invalidateImage();
+    }
+    if (message.referenceImageBounds && message.referenceImageBounds !== null) {
+        if (canvasManager.getReferenceImageCount() > 0) {
+            const ref = canvasManager.getReferenceImageByIndex(0);
+            const b = message.referenceImageBounds;
+            ref.setBounds(b.x, b.y, b.width, b.height);
+        }
+    }
     if (typeof message.referenceImageDrawMode === 'string') {
         canvasManager.referenceImageDrawMode = message.referenceImageDrawMode;
     } else if (message.referenceImageDrawMode === null) {
         canvasManager.referenceImageDrawMode = 'overIndex';
     }
+
     if (typeof message.tileStampPreview === 'string' || message.tileStampPreview instanceof TileMap || message.tileStampPreview instanceof Tile || message.tileStampPreview === null) {
         canvasManager.setTilePreview(message.tileStampPreview);
     }
@@ -274,6 +301,8 @@ function makeImageResponse() {
  * @property {string} [tileGridColour] - Colour of the tile grid.
  * @property {number} [tileGridOpacity] - Opacity of the tile grid.
  * @property {number} [transparencyGridOpacity] - Opacity of the transparency grid.
+ * @property {import('./../models/referenceImage.js').ReferenceImageObject} [referenceImage] - Reference image to display.
+ * @property {import('../types.js').Bounds} [referenceImageBounds] - Bounds for the reference image.
  * @property {string} [referenceImageDrawMode] - Draw mode for the reference image.
  * @property {string|Tile|TileGridProvider|null} [tileStampPreview] - Either a tile ID, individual tile object or tile grid object with the tile stamp preview.
  * @property {import("../models/tileGridProvider.js").TileGridRegion} [selectedRegion] - Selected region to highlight.

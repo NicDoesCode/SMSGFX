@@ -289,16 +289,18 @@ export default class TileEditor extends ComponentBase {
         }
 
         // Reference image
-        if (state?.referenceImage instanceof ReferenceImage || state?.referenceImage === null) {
-            // this.#canvasManager.clearReferenceImages();
-            // if (state?.referenceImage && state.referenceImage.hasImage()) {
-            //     this.#canvasManager.addReferenceImage(state.referenceImage);
-            //     this.#canvasManager.transparencyGridOpacity = 0;
-            // } else {
-            //     this.#canvasManager.transparencyGridOpacity = 0.15;
-            // }
-            // this.#canvasManager.invalidateImage();
-            // refreshTiles = true;
+        if (state?.referenceImage instanceof ReferenceImage) {
+            message.referenceImage = state.referenceImage.toObject();
+            message.updateImage = true;
+        } else if (state?.referenceImage === null) {
+            message.referenceImage = null;
+            message.updateImage = true;
+        }
+
+        // Reference image draw mode
+        if (state.referenceImageBounds && state.referenceImageBounds !== null) {
+            message.referenceImageBounds = state.referenceImageBounds;
+            message.updateImage = true;
         }
 
         // Transparency indicies 
@@ -370,13 +372,13 @@ export default class TileEditor extends ComponentBase {
         if (typeof state?.enabled === 'boolean') {
             this.#enabled = state?.enabled;
         }
- 
+
         if (typeof state.requestExportImage === 'boolean' && state.requestExportImage === true) {
             message.requestBitmapImage = true;
         }
 
         this.#postImageWorkerMessage(message);
-   }
+    }
 
 
     /**
@@ -772,6 +774,7 @@ export default class TileEditor extends ComponentBase {
  * @property {number?} [viewportPanHorizontal] - Pan the viewport horizontally.
  * @property {number?} [viewportPanVertical] - Pan the viewport vertically.
  * @property {ReferenceImage?} [referenceImage] - Reference image to draw.
+ * @property {import('../types.js').Bounds} [referenceImageBounds] - Bounds for the reference image.
  * @property {string?} [referenceImageDrawMode] - Draw mode for the reference image.
  * @property {number[]?} [transparencyIndicies] - Palette indicies that should be rendered as transparent.
  * @property {number?} [lockedPaletteSlotIndex] - When not null, the palette slot index specified here will be repeated from palette 0 across all palettes.

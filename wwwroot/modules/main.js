@@ -3144,6 +3144,11 @@ function takeReferenceImageAction(args) {
                     }
 
                     instanceState.referenceImage.setBounds(newX, newY, newW, newH);
+                    tileEditor.setState({
+                        referenceImageBounds: {
+                            x: newX, y: newY, width: newW, height: newH
+                        }
+                    })
                     tileContextToolbar.setState({ referenceBounds: instanceState.referenceImage.getBounds() });
 
                 }
@@ -3306,7 +3311,12 @@ function updateReferenceImage(bounds, transparencyIndex) {
     const refImage = instanceState.referenceImage;
 
     tileEditor.setState({
-        referenceImage: refImage,
+        referenceImageBounds: {
+            x: refImage.positionX,
+            y: refImage.positionY,
+            width: bounds.width, 
+            height: bounds.height
+        },
         referenceImageDrawMode: (transparencyIndex === -2) ? 'overlay' : (transparencyIndex === -1) ? 'underlay' : 'overIndex',
         transparencyIndicies: getTransparencyIndicies()
     });
