@@ -18,6 +18,13 @@ export const Types = {};
  */
 
 /**
+ * @typedef {Object} GridDimension
+ * @property {number} rows - Amount of rows in the dimension.
+ * @property {number} columns - Amount of columns in the dimension.
+ * @exports
+ */
+
+/**
  * @typedef {Object} Coordinate
  * @property {number} x - X coordinate.
  * @property {number} y - Y coordinate.

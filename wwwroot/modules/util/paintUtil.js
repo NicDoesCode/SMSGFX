@@ -263,14 +263,25 @@ export default class PaintUtil {
 
     /**
      * Renders an image of the tile onto a canvas object, at the size of the canvas object.
-     * @param {OffscreenCanvas|HTMLCanvasElement} canvas - Canvas object that will do tre drawing.
-     * @param {Tile} tileToDraw - Tile to draw to the canvas.
-     * @param {Palette} paletteToUse - Colour palette to use.
-     * @param {number[]} paletteIndiciesToRenderTransparent - Palette indicies to render as transparent.
+     * @param {Tile} tile - Tile to draw to the canvas.
+     * @param {Palette} palette - Colour palette to use.
+     * @param {OffscreenCanvas|HTMLCanvasElement} canvas - Canvas to contain the tile image.
+     * @param {CanvasRenderingContext2D?} context - Canvas 2D rendering context.
+     * @param {number[]?} [paletteIndiciesToRenderTransparent] - Palette indicies to render as transparent.
      * @returns {ImageBitmap}
      */
-    static drawTileImageOntoCanvas(canvas, tileToDraw, paletteToUse, paletteIndiciesToRenderTransparent) {
-        const context = canvas.getContext('2d');
+    static drawTileImageOntoCanvas(tile, palette, canvas, context, paletteIndiciesToRenderTransparent) {
+        if (!tile instanceof Tile) throw new Error('Please supply a valid tile to draw.');
+        if (!palette instanceof Palette) throw new Error('Please supply a valid tile to draw.');
+        if (!canvas instanceof OffscreenCanvas && !canvas instanceof HTMLCanvasElement) throw new Error('Please supply a valid canvas.');
+
+        if (!context) {
+            context = canvas.getContext('2d');
+        }
+
+        if (!paletteIndiciesToRenderTransparent) {
+            paletteIndiciesToRenderTransparent = [];
+        }
 
         let pixelIndex = 0;
         let scaleX = canvas.width / 8;
@@ -283,11 +294,11 @@ export default class PaintUtil {
             for (let x = 0; x < 8; x++) {
                 pixelX = x * scaleX;
 
-                const pixelPaletteIndex = tileToDraw.readAt(pixelIndex);
+                const pixelPaletteIndex = tile.readAt(pixelIndex);
 
                 // Set colour of the pixel
-                if (pixelPaletteIndex >= 0 && pixelPaletteIndex < paletteToUse.getColours().length) {
-                    const colour = paletteToUse.getColour(pixelPaletteIndex);
+                if (pixelPaletteIndex >= 0 && pixelPaletteIndex < palette.getColours().length) {
+                    const colour = palette.getColour(pixelPaletteIndex);
                     context.fillStyle = `rgb(${colour.r}, ${colour.g}, ${colour.b})`;
                 }
 

@@ -1045,7 +1045,7 @@ function handleExportToolbarOnCommand(args) {
             break;
 
         case ExportToolbar.Commands.exportImage:
-            exportImage();
+            tileEditor.setState({ requestExportImage: true });
             break;
 
     }
@@ -1438,6 +1438,12 @@ function handleTileEditorOnEvent(args) {
         takeReferenceImageAction(args);
     } else {
         switch (args.event) {
+
+            case TileEditor.Events.tileGridImage:
+                if (args.tileGridImage instanceof ImageBitmap) {
+                    exportImage(args.tileGridImage);
+                }
+                break;
 
             case TileEditor.Events.pixelMouseDown:
                 instanceState.operationTileIndex = getTileGrid().getTileIndexByCoordinate(args.x, args.y);
@@ -2445,7 +2451,7 @@ function updateTilesOnEditors(tileIdOrIds) {
     if (tileIdOrIds && Array.isArray(tileIdOrIds) && tileIdOrIds.length > 0) {
         // tileImageManager.clearByTile(tileIdOrIds);
         tileEditor.setState({
-            updatedTiles: toTileSerialisables(tileIdOrIds) 
+            updatedTiles: toTileSerialisables(tileIdOrIds)
         });
         tileManager.setState({
             updatedTileIds: tileIdOrIds
@@ -4074,12 +4080,19 @@ function downloadAssemblyCode(code) {
 
 /**
  * Exports tileset to an image.
+ * @argument {ImageBitmap} image
  */
-function exportImage() {
+function exportImage(image) {
+    const canvas = document.createElement('canvas');
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const context = canvas.getContext('2d');
+    context.drawImage(image, 0, 0);
+    const dataUrl = canvas.toDataURL();
+
     const fileName = getProject().title && getProject().title.length > 0 ? getProject().title : 'image';
     const fileNameClean = FileUtil.getCleanFileName(fileName);
     const fullFileName = `${fileNameClean}.png`;
-    const dataUrl = tileEditor.toDataUrl();
     const a = document.createElement('a');
     a.href = dataUrl;
     a.download = fullFileName;
@@ -4822,7 +4835,19 @@ function changePaletteIndex(index) {
     getProjectUIState().paletteIndex = index;
     state.saveToLocalStorage();
 
-    refreshProjectUI();
+    paletteEditor.setState({
+        selectedPaletteId: getPalette().paletteId
+    });
+    tileManager.setState({
+        palette: getPalette()
+    });
+    if (isTileSet()) {
+        tileEditor.setState({
+            paletteList: getPaletteListToSuitTileMapOrTileSetSelection()
+        });
+    }
+
+    // refreshProjectUI();
 }
 
 function getTransparencyIndicies() {

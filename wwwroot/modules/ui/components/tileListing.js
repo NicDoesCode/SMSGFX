@@ -4,7 +4,9 @@ import PaintUtil from "./../../util/paintUtil.js";
 import TemplateUtil from "./../../util/templateUtil.js";
 import TileSet from './../../models/tileSet.js';
 import Palette from "./../../models/palette.js";
-import TileImageManager from "../../components/tileImageManager.js";
+import TileSetJsonSerialiser from "../../serialisers/tileSetJsonSerialiser.js";
+import PaletteJsonSerialiser from "../../serialisers/paletteJsonSerialiser.js";
+import TileJsonSerialiser from "../../serialisers/tileJsonSerialiser.js";
 
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
@@ -40,10 +42,11 @@ export default class TileListing extends ComponentBase {
     #selectedTileId = null;
     /** @type {Object.<string, HTMLCanvasElement>} */
     #canvases = {};
-    /** @type {TileImageManager} */
-    #tileImageManager;
     /** @type {Object.<string, HTMLButtonElement>} */
     #buttons = {};
+
+    /** @type {Worker?} */
+    #imageWorker = null;
 
 
     /**
@@ -56,7 +59,9 @@ export default class TileListing extends ComponentBase {
 
         this.#dispatcher = new EventDispatcher();
 
-        this.#tileImageManager = new TileImageManager();
+        this.#imageWorker = new Worker('./modules/worker/tileImageWorker.js', { type: 'module' });
+        this.#imageWorker.addEventListener('message', (e) => {
+        });
     }
 
 
@@ -76,32 +81,28 @@ export default class TileListing extends ComponentBase {
      * @param {TileListingState} state - State to set.
      */
     setState(state) {
-        let dirty = false;
+        let tileSetChanged = false;
+        let paletteChanged = false;
 
         if (state?.tileSet instanceof TileSet) {
             this.#tileSet = state.tileSet;
-            dirty = true;
+            tileSetChanged = true;
         }
 
         if (state?.palette instanceof Palette) {
             this.#palette = state.palette;
-            dirty = true;
+            paletteChanged = true;
         }
 
-        if (state?.updatedTileIds && Array.isArray(state.updatedTileIds)) {
-            // If any of the updated tile IDs don't have images, then we should refresh everything
-            state.updatedTileIds.forEach((tileId) => {
-                if (!this.#buttons[tileId]) dirty = true;
-            });
-            // Otherwise we can get away with simply updating the affected tiles
-            if (!dirty) {
-                this.#updateTileImages(state.updatedTileIds);
-            }
-        }
-
-        if (dirty && this.#tileSet && this.#palette) {
-            this.#refreshCanvasesAsync(this.#tileSet, this.#palette)
-                .then(() => this.#displayTiles(this.#tileSet));
+        if (tileSetChanged) {
+            this.#reset();
+            this.#ensureButtons(this.#tileSet);
+            this.#addButtonsToContainer(this.#tileSet);
+            this.#configureTileImageWorker(this.#tileSet, this.#palette, this.#canvases);
+        } else if (paletteChanged) {
+            this.#updateTileImageWorkerPalette(this.#palette);
+        } else if (state?.updatedTileIds && Array.isArray(state.updatedTileIds)) {
+            this.#updateTileImageWorkerTileIds(state.updatedTileIds);
         }
 
         if (typeof state?.selectedTileId === 'string' || state.selectedTileId === null) {
@@ -121,52 +122,50 @@ export default class TileListing extends ComponentBase {
     }
 
 
-    /**
-     * Sets or clears the tile image manager.
-     * @param {TileImageManager?} tileImageManager - Tile image manager to set.
-     */
-    setTileImageManager(tileImageManager) {
-        if (tileImageManager && tileImageManager instanceof TileImageManager) {
-            this.#tileImageManager = tileImageManager;
-        } else {
-            this.#tileImageManager = new TileImageManager();
-        }
+    #reset() {
+        this.#buttons = {};
+        this.#canvases = {};
     }
-
 
     /**
      * @param {TileSet} tileSet
-     * @param {Palette} palette
      */
-    async #refreshCanvasesAsync(tileSet, palette) {
-        await this.#tileImageManager.batchCacheTileImagesAsync(tileSet.getTiles(), palette, []);
+    #ensureButtons(tileSet) {
+        tileSet.getTiles().forEach((tile) => {
+            let button = this.#buttons[tile.tileId];
+            if (!button) {
 
-        tileSet.getTiles().forEach((tile, index) => {
+                button = document.createElement('button');
+                button.setAttribute('data-command', commands.tileSelect);
+                button.setAttribute('data-tile-id', tile.tileId);
+                button.classList.add('btn', 'btn-secondary');
+
+                button.addEventListener('click', (ev) => {
+                    this.#handleTileListingCommandButtonClicked(commands.tileSelect, tile.tileId);
+                    ev.stopImmediatePropagation();
+                    ev.preventDefault();
+                });
+
+                this.#buttons[tile.tileId] = button;
+            }
             let canvas = this.#canvases[tile.tileId];
             if (!canvas) {
                 canvas = document.createElement('canvas');
                 canvas.width = 32;
                 canvas.height = 32;
+                button.appendChild(canvas);
                 this.#canvases[tile.tileId] = canvas;
             }
-
-            const context = canvas.getContext('2d');
-            context.imageSmoothingEnabled = false;
-
-            const tileCanvas = this.#tileImageManager.getTileImageBitmap(tile, palette, []);
-            context.drawImage(tileCanvas, 0, 0, 32, 32);
+            button.style.width = `${canvas.width}px`;
+            button.style.height = `${canvas.height}px`;
         });
     }
 
-    /**
-     * @param {TileSet} tileSet
-     */
-    #displayTiles(tileSet) {
-        this.#ensureButtons(tileSet);
+    #addButtonsToContainer() {
         this.#element.innerHTML = '';
-        tileSet.getTiles().forEach((tile) => {
-            const button = this.#buttons[tile.tileId];
-            if (this.#selectedTileId && this.#selectedTileId === tile.tileId) {
+        Object.keys(this.#buttons).forEach((tileId) => {
+            const button = this.#buttons[tileId];
+            if (this.#selectedTileId && this.#selectedTileId === tileId) {
                 button.classList.add('selected');
             } else {
                 button.classList.remove('selected');
@@ -177,31 +176,59 @@ export default class TileListing extends ComponentBase {
 
     /**
      * @param {TileSet} tileSet
+     * @param {Palette} palette
+     * @param {Object.<string, HTMLCanvasElement>} canvases
      */
-    #ensureButtons(tileSet) {
-        tileSet.getTiles().forEach((tile) => {
-            if (!this.#buttons[tile.tileId]) {
+    #configureTileImageWorker(tileSet, palette, canvases) {
+        const canvasesToTransfer = [];
+        /** @type {import('./../../worker/tileImageWorker.js').TileImageWorkerSetMessage} */
+        const message = {
+            messageType: 'set',
+            clear: true,
+            tileSet: TileSetJsonSerialiser.toSerialisable(tileSet),
+            palette: PaletteJsonSerialiser.toSerialisable(palette),
+            canvases: []
+        }
+        Object.keys(canvases).forEach((tileId) => {
+            const canvas = canvases[tileId];
+            const offscreenCanvas = canvas.transferControlToOffscreen()
+            message.canvases.push({
+                tileId: tileId,
+                canvas: offscreenCanvas
+            });
+            canvasesToTransfer.push(offscreenCanvas);
+        });
+        this.#imageWorker.postMessage(message, canvasesToTransfer);
+    }
 
-                const button = document.createElement('button');
-                button.setAttribute('data-command', commands.tileSelect);
-                button.setAttribute('data-tile-id', tile.tileId);
-                button.classList.add('btn', 'btn-secondary');
+    /**
+     * @param {Palette} palette
+     */
+    #updateTileImageWorkerPalette(palette) {
+        /** @type {import('./../../worker/tileImageWorker.js').TileImageWorkerSetMessage} */
+        const message = {
+            messageType: 'set',
+            palette: PaletteJsonSerialiser.toSerialisable(palette)
+        };
+        this.#imageWorker.postMessage(message);
+    }
 
-                const canvas = this.#canvases[tile.tileId];
-                if (canvas) {
-                    button.appendChild(canvas);
-                    button.style.width = `${canvas.width}px`;
-                    button.style.height = `${canvas.height}px`;
-                }
-                button.addEventListener('click', (ev) => {
-                    this.#handleTileListingCommandButtonClicked(commands.tileSelect, tile.tileId);
-                    ev.stopImmediatePropagation();
-                    ev.preventDefault();
-                });
-
-                this.#buttons[tile.tileId] = button;
+    /**
+     * @param {string[]} arrayOfTileIds
+     */
+    #updateTileImageWorkerTileIds(arrayOfTileIds) {
+        /** @type {import('./../../worker/tileImageWorker.js').TileImageWorkerUpdateMessage} */
+        const message = {
+            messageType: 'update',
+            tiles: []
+        };
+        arrayOfTileIds.forEach((tileId) => {
+            const tile = this.#tileSet.getTileById(tileId)
+            if (tile) {
+                message.tiles.push(TileJsonSerialiser.toSerialisable(tile));
             }
         });
+        this.#imageWorker.postMessage(message);
     }
 
     #selectTile(tileId, scrollIntoView) {
@@ -241,21 +268,6 @@ export default class TileListing extends ComponentBase {
         };
     }
 
-    /**
-     * @param {string[]} updateTileIds - Array of tile IDs to be updated.
-     */
-    #updateTileImages(updateTileIds) {
-        if (!this.#tileSet) return;
-        updateTileIds.forEach((tileId) => {
-            const canvas = this.#canvases[tileId];
-            const tile = this.#tileSet.getTileById(tileId);
-            const palette = this.#palette;
-            if (canvas && tile && palette) {
-                PaintUtil.drawTile(canvas, tile, palette);
-            }
-        });
-    }
-
 
 }
 
@@ -267,7 +279,6 @@ export default class TileListing extends ComponentBase {
  * @property {Palette?} [palette] - Palette to use to render the tiles.
  * @property {string?} [selectedTileId] - Unique ID of the selected tile.
  * @property {string[]?} [updatedTileIds] - Array of unique tile IDs that were updated.
- * @property {TileImageManager?} [tileImageManager] - Tile image manager to use for rendering tiles.
  */
 
 /**

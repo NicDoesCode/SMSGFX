@@ -161,9 +161,9 @@ export default class TileManager extends ComponentBase {
         let updateRenderPalette = false;
         let updatedTileIds = null;
 
-        if (state?.tileImageManager === null || state.tileImageManager instanceof TileImageManager) {
-            this.#tileListing.setTileImageManager(state.tileImageManager);
-        }
+        // if (state?.tileImageManager === null || state.tileImageManager instanceof TileImageManager) {
+        //     this.#tileListing.setTileImageManager(state.tileImageManager);
+        // }
 
         if (state?.tileMapList && state.tileMapList instanceof TileMapList) {
             this.#tileMapList = state.tileMapList;
@@ -258,9 +258,21 @@ export default class TileManager extends ComponentBase {
             this.#shuffleTileMapList();
         }
 
-        if (tileListDirty) {
+        if (paletteDirty) {
+
+        }
+
+        if (tileMapListingDirty && paletteDirty) {
             this.#tileListing.setState({
                 tileSet: this.#tileSet ?? undefined,
+                palette: this.#renderPalette ?? undefined
+            });
+        } else if (tileMapListingDirty) {
+            this.#tileListing.setState({
+                tileSet: this.#tileSet ?? undefined
+            });
+        } else if (paletteDirty) {
+            this.#tileListing.setState({
                 palette: this.#renderPalette ?? undefined
             });
         }
@@ -268,7 +280,7 @@ export default class TileManager extends ComponentBase {
         if (updatedTileIds) {
             this.#tileListing.setState({
                 updatedTileIds: updatedTileIds,
-                palette: this.#renderPalette ?? undefined
+                palette: paletteDirty ? this.#renderPalette ?? undefined : undefined
             });
         }
 
