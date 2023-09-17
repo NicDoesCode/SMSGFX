@@ -5008,6 +5008,7 @@ window.addEventListener('load', async () => {
             const defaultTileMap = loadedProject.tileMapList.getTileMapById(sampleProject.defaultTileMapId);
             getProjectUIState(loadedProject).tileMapId = defaultTileMap?.tileMapId ?? null;
         }
+        getUIState().lastProjectId = projectList.getProject(0).id;
         state.savePersistentUIStateToLocalStorage();
     }
 
