@@ -7,7 +7,6 @@ import PaletteList from "../models/paletteList.js";
 import TileSet from "./../models/tileSet.js";
 import TileListing from "./components/tileListing.js";
 import TileMapListing from "./components/tileMapListing.js";
-import TileImageManager from "../components/tileImageManager.js";
 import PaletteUtil from "../util/paletteUtil.js";
 import PaletteFactory from "../factory/paletteFactory.js";
 
@@ -160,10 +159,6 @@ export default class TileManager extends ComponentBase {
         let paletteDirty = false;
         let updateRenderPalette = false;
         let updatedTileIds = null;
-
-        // if (state?.tileImageManager === null || state.tileImageManager instanceof TileImageManager) {
-        //     this.#tileListing.setTileImageManager(state.tileImageManager);
-        // }
 
         if (state?.tileMapList && state.tileMapList instanceof TileMapList) {
             this.#tileMapList = state.tileMapList;
@@ -610,7 +605,6 @@ export default class TileManager extends ComponentBase {
  * @property {number?} [numberOfPaletteSlots] - Amount of palette slots that the tile map provides.
  * @property {number?} [lockedPaletteSlotIndex] - When not null, the palette slot index specified here will be repeated from palette 0 across all palettes.
  * @property {number?} [tileWidth] - Display tile width for the tile set.
- * @property {TileImageManager?} [tileImageManager] - Tile image manager to use for rendering tiles.
  */
 
 /**

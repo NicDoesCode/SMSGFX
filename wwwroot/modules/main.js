@@ -63,9 +63,7 @@ import TileMapTool from "./tools/tileMapTool.js";
 import TileSet from "./models/tileSet.js";
 import SampleProjectManager from "./components/sampleProjectManager.js";
 import KeyboardManager, { KeyDownHandler, KeyUpHandler } from "./components/keyboardManager.js";
-import TileImageManager from "./components/tileImageManager.js";
 import ProjectList from "./models/projectList.js";
-import TileMapUtil from "./util/tileMapUtil.js";
 import SystemUtil from "./util/systemUtil.js";
 import TileJsonSerialiser from "./serialisers/tileJsonSerialiser.js";
 
@@ -148,7 +146,6 @@ const undoManager = new UndoManager(50);
 const watcher = new ProjectWatcher(instanceState.sessionId);
 const googleAnalytics = new GoogleAnalyticsManager();
 const themeManager = new ThemeManager();
-const tileImageManager = new TileImageManager();
 
 /** @type {ProjectToolbar} */ let projectToolbar;
 /** @type {ProjectDropdown} */ let projectDropdown;
@@ -1730,8 +1727,6 @@ function paletteSetColourAtIndexWithoutSaving(paletteIndex, colourIndex, colour)
     const newColour = PaletteColourFactory.create(colour.r, colour.g, colour.b);
     palette.setColour(colourIndex, newColour);
 
-    tileImageManager.clear();
-
     paletteEditor.setState({
         paletteList: getPaletteList(),
         displayNative: getUIState().displayNativeColour
@@ -2449,7 +2444,6 @@ function updateTilesOnEditors(tileIdOrIds) {
         tileIdOrIds = [tileIdOrIds];
     }
     if (tileIdOrIds && Array.isArray(tileIdOrIds) && tileIdOrIds.length > 0) {
-        // tileImageManager.clearByTile(tileIdOrIds);
         tileEditor.setState({
             updatedTiles: toTileSerialisables(tileIdOrIds)
         });
@@ -2680,7 +2674,6 @@ function takeToolAction(args) {
 
                 const lastPx = instanceState.lastTileMapPx;
                 if (imageX !== lastPx.x || imageY !== lastPx.y) {
-                    // console.time('Main > TakeToolAction > Pencil.'); // TMP 
 
                     const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
                     const clamp = instanceState.clampToTile;
@@ -2710,7 +2703,6 @@ function takeToolAction(args) {
                         }
 
                     }
-                    // console.timeEnd('Main > TakeToolAction > Pencil.'); // TMP 
                 }
 
             } else {
@@ -3748,8 +3740,6 @@ function changePaletteSystem(paletteIndex, system) {
 
     state.saveToLocalStorage();
 
-    tileImageManager.clear();
-
     paletteEditor.setState({
         paletteList: getPaletteList(),
         selectedSystem: system,
@@ -3770,8 +3760,6 @@ function changePaletteEditorDisplayNativeColours(displayNative) {
 
     state.persistentUIState.displayNativeColour = displayNative;
     state.saveToLocalStorage();
-
-    tileImageManager.clear();
 
     paletteEditor.setState({
         paletteList: getPaletteList(),
@@ -3823,8 +3811,6 @@ function swapColourIndex(sourceColourIndex, targetColourIndex) {
 
     state.saveToLocalStorage();
 
-    tileImageManager.clear();
-
     tileEditor.setState({
         paletteList: getPaletteListToSuitTileMapOrTileSetSelection(),
         tileGrid: getTileGrid(),
@@ -3845,8 +3831,6 @@ function replaceColourIndex(sourceColourIndex, targetColourIndex) {
     getTileSet().replaceColourIndex(sourceColourIndex, targetColourIndex);
 
     state.saveToLocalStorage();
-
-    tileImageManager.clear();
 
     tileEditor.setState({
         tileGrid: getTileGrid(),
@@ -4121,8 +4105,6 @@ function undoOrRedo(undoOrRedo) {
         }
 
         state.saveProjectToLocalStorage();
-
-        tileImageManager.clear();
 
         // Set UI state
         refreshProjectUI();
@@ -4777,8 +4759,6 @@ function setScale(scale, relativeToMouse) {
     getUIState().scale = scale;
     state.saveToLocalStorage();
 
-    tileImageManager.setScale(scale);
-
     setCommonTileToolbarStates({
         scale: scale
     });
@@ -5012,8 +4992,6 @@ window.addEventListener('load', async () => {
 
     checkPersistentUIValues();
 
-    tileImageManager.setScale(getUIState().scale ?? 1);
-
     // Load initial projects
     const projectList = state.getProjectsFromLocalStorage();
     const sampleManager = await SampleProjectManager.getInstanceAsync();
@@ -5033,9 +5011,6 @@ window.addEventListener('load', async () => {
         }
         state.savePersistentUIStateToLocalStorage();
     }
-
-    tileEditor.setState({ tileImageManager: tileImageManager });
-    tileManager.setState({ tileImageManager: tileImageManager });
 
     const project = projectList.getProjectById(getUIState().lastProjectId);
     state.setProject(project);

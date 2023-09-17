@@ -678,7 +678,6 @@ export default class CanvasManager {
 
         const context = tileCanvas.getContext('2d');
 
-        console.log(this.tileGrid, this.tileGrid.columnCount); // TMP 
         const tiles = Math.max(this.tileGrid.columnCount, 1);
         const rows = Math.ceil(this.tileGrid.tileCount / tiles);
 

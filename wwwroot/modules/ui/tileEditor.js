@@ -7,7 +7,6 @@ import TileEditorContextMenu from "./tileEditorContextMenu.js";
 import TemplateUtil from "../util/templateUtil.js";
 import PaletteList from "../models/paletteList.js";
 import TileGridProvider from "../models/tileGridProvider.js";
-import TileImageManager from "../components/tileImageManager.js";
 import PaletteUtil from "../util/paletteUtil.js";
 import Tile from "../models/tile.js";
 import TileMap from "../models/tileMap.js";
@@ -783,7 +782,6 @@ export default class TileEditor extends ComponentBase {
  * @property {import("../models/tileGridProvider.js").TileGridRegion} [selectedRegion] - Selected region to highlight.
  * @property {boolean?} [forceRefresh] - When true the tile grid image will be refreshed.
  * @property {boolean?} [requestExportImage] - Request that the displayed image be exported.
- * @property {TileImageManager?} [tileImageManager] - Tile image manager to use for rendering tiles.
  * @exports 
  */
 
