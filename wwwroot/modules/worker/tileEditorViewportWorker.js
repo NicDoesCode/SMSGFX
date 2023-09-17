@@ -64,17 +64,17 @@ function applyQueuedUpdatesToCanvasManager() {
  * @param {TileEditorViewportWorkerMessage} message - Message with arguments.
  */
 function applyUpdateToCanvasManager(message) {
-    if (typeof message.tileGrid === 'object') {
+    if (typeof message.tileGrid === 'object' && message.tileGrid !== null) {
         canvasManager.tileGrid = TileGridProviderJsonSerialiser.fromSerialisable(message.tileGrid);
     } else if (message.tileGrid === null) {
         canvasManager.tileGrid = null;
     }
-    if (typeof message.tileSet === 'object') {
+    if (typeof message.tileSet === 'object' && message.tileSet !== null) {
         canvasManager.tileSet = TileSetJsonSerialiser.fromSerialisable(message.tileSet);
     } else if (message.tileSet === null) {
         canvasManager.tileSet = null;
     }
-    if (typeof message.paletteList === 'object') {
+    if (typeof message.paletteList === 'object' && message.paletteList !== null) {
         canvasManager.paletteList = PaletteListJsonSerialiser.fromSerialisable(message.paletteList);
     } else if (message.paletteList === null) {
         canvasManager.paletteList = null;

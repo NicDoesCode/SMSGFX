@@ -2544,6 +2544,8 @@ function formatForNoProject() {
     tileManager.setState({
         tileMapList: dummyProject.tileMapList,
         tileSet: dummyProject.tileSet,
+        palette: null, 
+        paletteList: null,
         selectedTileMapId: null
     });
 }

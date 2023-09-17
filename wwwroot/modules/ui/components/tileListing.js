@@ -176,7 +176,7 @@ export default class TileListing extends ComponentBase {
 
     /**
      * @param {TileSet} tileSet
-     * @param {Palette} palette
+     * @param {Palette?} [palette]
      * @param {Object.<string, HTMLCanvasElement>} canvases
      */
     #configureTileImageWorker(tileSet, palette, canvases) {
@@ -185,9 +185,13 @@ export default class TileListing extends ComponentBase {
         const message = {
             messageType: 'set',
             clear: true,
-            tileSet: TileSetJsonSerialiser.toSerialisable(tileSet),
-            palette: PaletteJsonSerialiser.toSerialisable(palette),
             canvases: []
+        }
+        if (tileSet instanceof TileSet) {
+            message.tileSet = TileSetJsonSerialiser.toSerialisable(tileSet);
+        }
+        if (palette instanceof Palette) {
+            message.palette = PaletteJsonSerialiser.toSerialisable(palette);
         }
         Object.keys(canvases).forEach((tileId) => {
             const canvas = canvases[tileId];
