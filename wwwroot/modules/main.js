@@ -2412,7 +2412,7 @@ function formatForProject() {
     tileEditor.setState({
         paletteList: null,
         tileSet: null,
-        displayNative: false,
+        displayNative: getUIState().displayNativeColour,
         lockedPaletteSlotIndex: null,
         enabled: false
     });
@@ -3722,7 +3722,7 @@ function changePaletteTitle(paletteIndex, newTitle) {
 
     state.saveToLocalStorage();
 
-    paletteEditor.setSgameBoyPalette = tate({
+    paletteEditor.setState({
         paletteList: getPaletteList(),
         displayNative: getUIState().displayNativeColour
     });
@@ -4105,9 +4105,6 @@ function undoOrRedo(undoOrRedo) {
         }
 
         state.saveProjectToLocalStorage();
-
-        // Set UI state
-        refreshProjectUI();
     }
     setCommonTileToolbarStates({
         undoEnabled: undoManager.canUndo,
