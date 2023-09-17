@@ -245,7 +245,10 @@ export default class TileEditor extends ComponentBase {
 
         // Scale
         if (typeof state?.scale === 'number') {
-            message.scale = state.scale;
+            const scaleSettings = this.#getScalingValues(state.scale, state.scaleRelativeToMouse);
+            message.scale = scaleSettings.scale;
+            message.offsetX = scaleSettings.offsetX;
+            message.offsetY = scaleSettings.offsetY;
             message.updateImage = true;
         }
 
@@ -683,31 +686,33 @@ export default class TileEditor extends ComponentBase {
      * @param {number} scale 
      * @param {boolean} relativeToMouse 
      */
-    #updateCanvasManagerScale(scale, relativeToMouse) {
+    #getScalingValues(scale, relativeToMouse) {
         this.#prevScale = this.#scale;
         this.#scale = scale;
+        let offsetX = 0;
+        let offsetY = 0;
         if (relativeToMouse === true && this.#lastCoords && this.#lastMouseCoords) {
             // Scale / zoom based on mouse coord
             const mouseXRelativeToCentre = -((this.#tbCanvas.clientWidth / 2) - this.#lastMouseCoords.x);
             const zeroOffsetX = (((canvasState.tileGridColumns * 8) / 2) * this.#scale);
             const hoverPixelNewXOffset = this.#lastCoords.x * this.#scale;
-            this.#offsetX = Math.round(zeroOffsetX + mouseXRelativeToCentre - hoverPixelNewXOffset);
+            offsetX = Math.round(zeroOffsetX + mouseXRelativeToCentre - hoverPixelNewXOffset);
 
             const mouseYRelativeToCentre = -((this.#tbCanvas.clientHeight / 2) - this.#lastMouseCoords.y);
             const zeroOffsetY = (((canvasState.tileGridRows * 8) / 2) * this.#scale);
             const hoverPixelNewYOffset = this.#lastCoords.y * this.#scale;
-            this.#offsetY = Math.round(zeroOffsetY + mouseYRelativeToCentre - hoverPixelNewYOffset);
+            offsetY = Math.round(zeroOffsetY + mouseYRelativeToCentre - hoverPixelNewYOffset);
         } else {
             // Scale / zoom based on viewport centre
-            this.#offsetX = Math.round((this.#offsetX / this.#prevScale) * this.#scale);
-            this.#offsetY = Math.round((this.#offsetY / this.#prevScale) * this.#scale);
+            offsetX = Math.round((this.#offsetX / this.#prevScale) * this.#scale);
+            offsetY = Math.round((this.#offsetY / this.#prevScale) * this.#scale);
         }
 
-        this.#postImageWorkerMessage({
+        return {
             scale: this.#scale,
-            offsetX: this.#offsetX,
-            offsetY: this.#offsetY
-        });
+            offsetX: offsetX,
+            offsetY: offsetY
+        };
     }
 
 
