@@ -2831,10 +2831,10 @@ function takeToolAction(args) {
                 }
             } else if (tool === TileEditorToolbar.Tools.tileStamp) {
 
-                const stampResult = takeToolAction_tileStamp(args);
-                if (stampResult != null) {
-                    updatedTileIds = updatedTileIds.concat(stampResult.updatedTileIds);
-                    updatedTileMapTileIndexes = updatedTileMapTileIndexes.concat(stampResult.updatedTileMapTileIndexes);
+                const result = takeToolAction_tileStamp(args);
+                if (result != null) {
+                    updatedTileIds = updatedTileIds.concat(result.updatedTileIds);
+                    updatedTileMapTileIndexes = updatedTileMapTileIndexes.concat(result.updatedTileMapTileIndexes);
                     saveProject = true;
                 }
 
@@ -2854,8 +2854,9 @@ function takeToolAction(args) {
                             column: args.tileBlock.col,
                             tilesPerBlock: args.tilesPerBlock
                         });
-                        if (result.updatedTileIds.length > 0) {
-                            updatedTileIds = result.updatedTileIds;
+                        if (result != null) {
+                            updatedTileIds = updatedTileIds.concat(result.updatedTileIds);
+                            updatedTileMapTileIndexes = updatedTileMapTileIndexes.concat(result.updatedTileMapTileIndexes);
                         } else {
                             undoManager.removeLastUndo();
                         }
@@ -2874,7 +2875,8 @@ function takeToolAction(args) {
                         const result = TileLinkBreakTool.createAndLinkNewTileIfUsedElsewhere(tileIndex, getTileMap(), getTileSet(), getProject());
                         if (Array.isArray(result.updatedTileIds) && result.updatedTileIds.length > 0) {
 
-                            updateTilesOnEditors(result.updatedTileIds);
+                            updatedTileIds = updatedTileIds.concat(result.updatedTileIds);
+                            updatedTileMapTileIndexes = updatedTileMapTileIndexes.concat(result.updatedTileMapTileIndexes);
                             saveProject = true;
 
                         } else {
@@ -3020,7 +3022,7 @@ function takeToolAction_tileStamp(args) {
                     });
                 }
                 if (result.updatedTileMapTileIndexes.length > 0) {
-                    return { 
+                    return {
                         updatedTileIds: result.updatedTileIds,
                         updatedTileMapTileIndexes: result.updatedTileMapTileIndexes
                     };

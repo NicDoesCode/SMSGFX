@@ -27,20 +27,28 @@ export default class PalettePaintTool {
      */
     static setTileBlockPaletteIndex(args) {
         const updatedTileIds = [];
+        const updatedTileMapTileIndexes = [];
+
         const mapRow = args.row * args.tilesPerBlock;
         const mapCol = args.column * args.tilesPerBlock;
         for (let r = 0; r < args.tilesPerBlock; r++) {
             const row = mapRow + r;
             for (let c = 0; c < args.tilesPerBlock; c++) {
                 const col = mapCol + c;
-                const tileInfo = args.tileMap.getTileByRowAndColumn(row, col);
-                if (tileInfo && tileInfo.palette !== args.paletteIndex) {
-                    tileInfo.palette = args.paletteIndex;
-                    updatedTileIds.push(tileInfo.tileId);
+                const tileInfo = args.tileMap.getTileInfoByRowAndColumn(row, col);
+                if (tileInfo && tileInfo.paletteIndex !== args.paletteIndex) {
+                    const tileMapTile = args.tileMap.getTileByIndex(tileInfo.tileIndex);
+                    tileMapTile.palette = args.paletteIndex;
+                    updatedTileIds.push(tileMapTile.tileId);
+                    updatedTileMapTileIndexes.push(tileInfo.tileIndex);
                 }
             }
         }
-        return { updatedTileIds: updatedTileIds };
+
+        return { 
+            updatedTileIds: updatedTileIds,
+            updatedTileMapTileIndexes: updatedTileMapTileIndexes
+        };
     }
 
 }
@@ -67,5 +75,6 @@ export default class PalettePaintTool {
  * Result for the palette paint tool.
  * @typedef {Object} PalettePaintResult
  * @property {string[]} updatedTileIds - Unique IDs of tiles affected by the operation.
+ * @property {string[]} updatedTileMapTileIndexes - Indexes of the tile map tiles that were affected.
  * @exports
  */
