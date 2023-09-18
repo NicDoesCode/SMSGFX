@@ -100,8 +100,15 @@ function applyUpdateToCanvasManager(message) {
         message.updatedTiles
             .forEach((tileSerialisable) => {
                 const tile = TileJsonSerialiser.fromSerialisable(tileSerialisable);
-                canvasManager.tileSet.getTileById(tile.tileId).setData(tile.readAll());
-                canvasManager.invalidateTileId(tile.tileId);
+                const existing = canvasManager.tileSet.getTileById(tile.tileId);
+                if (existing) {
+                    // Update the data on the existing tile
+                    canvasManager.tileSet.getTileById(tile.tileId).setData(tile.readAll());
+                    canvasManager.invalidateTileId(tile.tileId);
+                } else {
+                    // Add the tile if not already in the tile set
+                    canvasManager.tileSet.addTile(tile);
+                }
             });
     }
     if (Array.isArray(message.updatedTileIndexes)) {

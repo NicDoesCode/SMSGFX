@@ -349,7 +349,7 @@ export default class TileEditor extends ComponentBase {
         }
 
         // Canvas highlight mode
-        if (typeof state.canvasHighlightMode === 'number' || state.canvasHighlightMode === null) {
+        if (typeof state.canvasHighlightMode === 'string' || state.canvasHighlightMode === null) {
             message.canvasHighlightMode = state.canvasHighlightMode;
         }
 

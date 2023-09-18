@@ -2871,7 +2871,9 @@ function takeToolAction(args) {
                     try {
                         const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
                         const result = TileLinkBreakTool.createAndLinkNewTileIfUsedElsewhere(tileIndex, getTileMap(), getTileSet(), getProject());
-                        if (Array.isArray(result.updatedTileIds) && result.updatedTileIds.length > 0) {
+                        if (result.updatedTileIds.length > 0 || result.updatedTileMapTileIndexes.length > 0) {
+
+                            tileManager.setState({ tileSet: getTileSet() });
 
                             updatedTileIds = updatedTileIds.concat(result.updatedTileIds);
                             updatedTileMapTileIndexes = updatedTileMapTileIndexes.concat(result.updatedTileMapTileIndexes);
