@@ -7,6 +7,7 @@ import Palette from "./../../models/palette.js";
 import TileSetJsonSerialiser from "../../serialisers/tileSetJsonSerialiser.js";
 import PaletteJsonSerialiser from "../../serialisers/paletteJsonSerialiser.js";
 import TileJsonSerialiser from "../../serialisers/tileJsonSerialiser.js";
+import CacheUtil from "../../util/cacheUtil.js";
 
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
@@ -59,7 +60,7 @@ export default class TileListing extends ComponentBase {
 
         this.#dispatcher = new EventDispatcher();
 
-        this.#imageWorker = new Worker('./modules/worker/tileImageWorker.js', { type: 'module' });
+        this.#imageWorker = new Worker(`./modules/worker/tileImageWorker.js${CacheUtil.getCacheBuster() ?? ''}`, { type: 'module' });
         this.#imageWorker.addEventListener('message', (e) => {
         });
     }

@@ -17,6 +17,7 @@ import TileJsonSerialiser from "../serialisers/tileJsonSerialiser.js";
 import TileMapFactory from "../factory/tileMapFactory.js";
 import TileMapTileFactory from "../factory/tileMapTileFactory.js";
 import TileMapJsonSerialiser from "../serialisers/tileMapJsonSerialiser.js";
+import CacheUtil from "../util/cacheUtil.js";
 
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
@@ -134,7 +135,7 @@ export default class TileEditor extends ComponentBase {
                 this.#tileEditorContextMenu.addHandlerOnCommand((args) => this.#bubbleCommand(args));
             });
 
-        this.#viewportWorker = new Worker('./modules/worker/tileEditorViewportWorker.js', { type: 'module' });
+        this.#viewportWorker = new Worker(`./modules/worker/tileEditorViewportWorker.js${CacheUtil.getCacheBuster() ?? ''}`, { type: 'module' });
         this.#viewportWorker.addEventListener('message', (/** @type {MessageEvent<import('./../worker/tileEditorViewportWorker.js').TileEditorViewportWorkerResponse>} */ e) => {
             this.#receiveImageWorkerMessage(e.data);
         });

@@ -27,14 +27,18 @@ export default {
     ...envSettings,
     entry: {
         main: './wwwroot/modules/main.js',
-        pages: './wwwroot/pages/pages.js'
+        pages: './wwwroot/pages/pages.js',
+        tileEditorViewportWorker: './wwwroot/modules/worker/tileEditorViewportWorker.js',
+        tileImageWorker: './wwwroot/modules/worker/tileImageWorker.js',
     },
     output: {
         filename: (pathData) => {
-            if (pathData.chunk.name === 'main')
+            if (pathData.chunk.name === 'main') {
                 return 'modules/[name].js?v=[hash]';
-            else if (pathData.chunk.name === 'pages') {
+            } else if (pathData.chunk.name === 'pages') {
                 return 'pages/[name].js?v=[hash]';
+            } else if (pathData.chunk.name.toLowerCase().includes('worker')) {
+                return 'modules/worker/[name].js?v=[hash]';
             } else {
                 return 'assets/scripts/[name].js?v=[hash]';
             }
