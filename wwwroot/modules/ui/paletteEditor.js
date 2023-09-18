@@ -153,6 +153,7 @@ export default class PaletteEditor extends ComponentBase {
     setState(state) {
         let updateVirtualList = false;
         let paletteListDirty = false;
+        let paletteChanged = false;
 
         if (state?.paletteList instanceof PaletteList || state.paletteList === null) {
             this.#paletteList = state.paletteList;
@@ -164,20 +165,20 @@ export default class PaletteEditor extends ComponentBase {
         // Select a palette by index or ID
         if (typeof state?.selectedPaletteIndex === 'number' || typeof state?.selectedPaletteId === 'string') {
             let index = null;
-            if (typeof state?.selectedPaletteIndex === 'number') {
-                index = state.selectedPaletteIndex;
-            } else if (typeof state?.selectedPaletteId === 'string') {
-                index = this.#paletteList.indexOf(state?.selectedPaletteId);
-            }
-
             if (this.#paletteList) {
+                if (typeof state?.selectedPaletteIndex === 'number') {
+                    index = state.selectedPaletteIndex;
+                } else if (typeof state?.selectedPaletteId === 'string') {
+                    index = this.#paletteList.indexOf(state?.selectedPaletteId);
+                }
+
                 if (index < 0 || index >= this.#paletteList.length) index = 0;
 
-                const palette = this.#paletteList.getPalette(state.selectedPaletteIndex);
+                const palette = this.#paletteList.getPalette(index);
                 this.#selectedPaletteId = palette.paletteId;
 
                 this.#element.querySelectorAll(`[data-command=${commands.paletteSelect}]`).forEach((element) => {
-                    element.selectedIndex = state.selectedPaletteIndex;
+                    element.selectedIndex = index;
                 });
 
                 this.#setPalette(palette);
@@ -186,6 +187,7 @@ export default class PaletteEditor extends ComponentBase {
                 this.#setPalette(null);
             }
 
+            paletteChanged = true;
             updateVirtualList = true;
         }
 
@@ -222,7 +224,7 @@ export default class PaletteEditor extends ComponentBase {
         }
 
         // Refresh the palette stack
-        if (paletteListDirty && this.#paletteList) {
+        if ((paletteListDirty || paletteChanged) && this.#paletteList) {
             this.#paletteListComponent.setState({
                 paletteList: this.#paletteList,
                 selectedPaletteId: this.#selectedPaletteId
@@ -591,7 +593,7 @@ export default class PaletteEditor extends ComponentBase {
 
 /**
  * Palette editor state.
- * @typedef {object} PaletteEditorState
+ * @typedef {Object} PaletteEditorState
  * @property {PaletteList?} paletteList - Current list of palettes, null for no palettes.
  * @property {string?} title - Title of the palette.
  * @property {string?} selectedSystem - Sets the selected system, either 'ms', 'gg', 'gb' or 'nes'.
@@ -610,7 +612,7 @@ export default class PaletteEditor extends ComponentBase {
  * @exports
  */
 /**
- * @typedef {object} PaletteEditorCommandEventArgs
+ * @typedef {Object} PaletteEditorCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {number?} paletteIndex - Index of the selected palette.
  * @property {number?} paletteId - Unique ID of the selected palette.

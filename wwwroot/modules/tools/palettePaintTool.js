@@ -27,26 +27,34 @@ export default class PalettePaintTool {
      */
     static setTileBlockPaletteIndex(args) {
         const updatedTileIds = [];
+        const updatedTileMapTileIndexes = [];
+
         const mapRow = args.row * args.tilesPerBlock;
         const mapCol = args.column * args.tilesPerBlock;
         for (let r = 0; r < args.tilesPerBlock; r++) {
             const row = mapRow + r;
             for (let c = 0; c < args.tilesPerBlock; c++) {
                 const col = mapCol + c;
-                const tileInfo = args.tileMap.getTileByCoordinate(row, col);
-                if (tileInfo && tileInfo.palette !== args.paletteIndex) {
-                    tileInfo.palette = args.paletteIndex;
-                    updatedTileIds.push(tileInfo.tileId);
+                const tileInfo = args.tileMap.getTileInfoByRowAndColumn(row, col);
+                if (tileInfo && tileInfo.paletteIndex !== args.paletteIndex) {
+                    const tileMapTile = args.tileMap.getTileByIndex(tileInfo.tileIndex);
+                    tileMapTile.palette = args.paletteIndex;
+                    updatedTileIds.push(tileMapTile.tileId);
+                    updatedTileMapTileIndexes.push(tileInfo.tileIndex);
                 }
             }
         }
-        return { updatedTileIds: updatedTileIds };
+
+        return { 
+            updatedTileIds: updatedTileIds,
+            updatedTileMapTileIndexes: updatedTileMapTileIndexes
+        };
     }
 
 }
 /** 
  * Arguments for the palette paint by block tool.
- * @typedef {object} PalettePaintByIndexArgs
+ * @typedef {Object} PalettePaintByIndexArgs
  * @property {TileMap} tileMap - Tile map that contains the tiles to set.
  * @property {number} tilesPerBlock - Amount of tiles that comprise each tile block.
  * @property {number} paletteIndex - Index of the palette slot to set.
@@ -55,7 +63,7 @@ export default class PalettePaintTool {
  */
 /** 
  * Arguments for the palette paint by block tool.
- * @typedef {object} PalettePaintByBlockArgs
+ * @typedef {Object} PalettePaintByBlockArgs
  * @property {TileMap} tileMap - Tile map that contains the tiles to set.
  * @property {number} row - Tile or tile block row.
  * @property {number} column - Tile or tile block column.
@@ -65,7 +73,8 @@ export default class PalettePaintTool {
  */
 /** 
  * Result for the palette paint tool.
- * @typedef {object} PalettePaintResult
+ * @typedef {Object} PalettePaintResult
  * @property {string[]} updatedTileIds - Unique IDs of tiles affected by the operation.
+ * @property {string[]} updatedTileMapTileIndexes - Indexes of the tile map tiles that were affected.
  * @exports
  */

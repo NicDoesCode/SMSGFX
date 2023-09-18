@@ -1,61 +1,69 @@
 import TileMapTile from "../models/tileMapTile.js";
 import TileMapTileFactory from "../factory/tileMapTileFactory.js";
 
+
+/**
+ * Provides tile map tile serialisation functions.
+ */
 export default class TileMapTileJsonSerialiser {
 
 
     /**
      * Serialises a tile map tile to a JSON string.
-     * @param {TileMapTile} tileMapTile - Tile map tile to serialise.
+     * @param {TileMapTile} value - Tile map tile to serialise.
      * @returns {string} 
      */
-    static serialise(tileMapTile) {
-        if (!tileMapTile) throw new Error('Please pass a tile map tile.');
-
-        const result = TileMapTileFactory.toSerialisable(tileMapTile);
+    static serialise(value) {
+        const result = TileMapTileFactory.toSerialisable(value);
         return JSON.stringify(result);
     }
 
     /**
      * Returns a deserialised tile map tile.
-     * @param {string} jsonTileMapTile - JSON serialised tile map tile.
+     * @param {string} jsonString - JSON serialised tile map tile.
+     * @throws When the JSON string is null or empty.
      * @returns {TileMapTile}
      */
-    static deserialise(jsonTileMapTile) {
-        if (!jsonTileMapTile || typeof jsonTileMapTile !== 'string') throw new Error('Tile map tile to deserialise must be passed as a JSON string.');
+    static deserialise(jsonString) {
+        if (!jsonString || typeof jsonString !== 'string') throw new Error('Please pass a valid JSON string.');
 
         /** @type {TileMapTileSerialisable} */
-        const deserialised = JSON.parse(jsonTileMapTile);
+        const deserialised = JSON.parse(jsonString);
         return TileMapTileSerialisable.fromSerialisable(deserialised);
     }
 
     /**
      * Converts a tile map tile object to a serialisable one.
-     * @param {TileMapTile} tileMapTile - Tile map tile to create serialisable from.
+     * @param {TileMapTile} value - Tile map tile to create serialisable from.
+     * @throws When a valid tile map tile was not passed.
      * @returns {TileMapTileSerialisable} 
      */
-     static toSerialisable(tileMapTile) {
+     static toSerialisable(value) {
+        if (!value instanceof TileMapTile) throw new Error('Please pass a tile map tile.');
+       
         return {
-            tileId: tileMapTile.tileId,
-            priority: tileMapTile.priority,
-            paletteId: tileMapTile.palette,
-            verticalFlip: tileMapTile.verticalFlip,
-            horizontalFlip: tileMapTile.horizontalFlip
+            tileId: value.tileId,
+            priority: value.priority,
+            paletteId: value.palette,
+            verticalFlip: value.verticalFlip,
+            horizontalFlip: value.horizontalFlip
         };
     }
 
     /**
      * Converts a serialisable tile map tile back to a tile map tile.
-     * @param {TileMapTileSerialisable} tileMapTileSerialisable - Serialisable tile map tile to convert.
+     * @param {TileMapTileSerialisable} serialisable - Serialisable tile map tile to convert.
      * @returns {TileMapTile}
      */
-    static fromSerialisable(tileMapTileSerialisable) {
+    static fromSerialisable(serialisable) {
+        if (!serialisable) throw new Error('Please pass a serialisable tile map tile.');
+      
         return TileMapTileFactory.create({
-            tileId: tileMapTileSerialisable.tileId,
-            priority: tileMapTileSerialisable.priority,
-            palette: tileMapTileSerialisable.paletteId,
-            verticalFlip: tileMapTileSerialisable.verticalFlip,
-            horizontalFlip: tileMapTileSerialisable.horizontalFlip
+            tileId: serialisable.tileId,
+            priority: serialisable.priority,
+            palette: serialisable.paletteId,
+            verticalFlip: serialisable.verticalFlip,
+            horizontalFlip: serialisable.horizontalFlip
         });
     }
 
@@ -63,8 +71,7 @@ export default class TileMapTileJsonSerialiser {
 }
 
 /**
- * @typedef TileMapTileSerialisable
- * @type {object}
+ * @typedef {Object} TileMapTileSerialisable
  * @property {string} tileId
  * @property {boolean} priority
  * @property {string} paletteId

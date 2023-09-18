@@ -13,6 +13,25 @@ export default class ImageUtil {
 
 
     /**
+     * Converts an image to an image bitmap.
+     * @param {HTMLImageElement|HTMLCanvasElement|OffscreenCanvas} image - Image to convert.
+     * @returns {ImageBitmap}
+     */
+    static ToImageBitmap(image) {
+        if (image instanceof ImageBitmap) {
+            return image;
+        } else if ((image.tagName && image.tagName === 'CANVAS') || image instanceof OffscreenCanvas) {
+            return image.transferToImageBitmap();
+        } else if (image.tagName && image.tagName === 'IMG') {
+            const canvas = new OffscreenCanvas(image.width, image.height);
+            canvas.getContext('2d').drawImage(image, 0, 0);
+            return canvas.transferToImageBitmap();
+        }
+        throw new Error('Invalid image object.');
+    }
+
+
+    /**
      * Displays an image on a canvas element.
      * @param {HTMLCanvasElement} canvas - Canvas element to display the image on.
      * @param {HTMLImageElement} image - Image to display.
@@ -837,20 +856,20 @@ function getSimilaritry(colour, range) {
 
 
 /**
- * @typedef {object} ImageDisplayParams
+ * @typedef {Object} ImageDisplayParams
  * @property {TileSpec?} tiles
  * @property {number?} scale
  */
 
 /**
- * @typedef {object} ImageImportParams
+ * @typedef {Object} ImageImportParams
  * @property {TileSpec?} tiles
  * @property {string?} projectName
  * @property {string?} system
  */
 
 /**
- * @typedef {object} TileSpec
+ * @typedef {Object} TileSpec
  * @property {number} offsetX
  * @property {number} offsetY
  * @property {number} tilesWide
@@ -858,14 +877,14 @@ function getSimilaritry(colour, range) {
  */
 
 /** 
- * @typedef {object} Colour 
+ * @typedef {Object} Colour 
  * @property {number} r - Red component.
  * @property {number} g - Green component.
  * @property {number} b - Blue component.
  * @property {string} hex - HEX value for this colour.
  */
 /** 
- * @typedef {object} ColourMatch
+ * @typedef {Object} ColourMatch
  * @property {number} r - Red component.
  * @property {number} g - Green component.
  * @property {number} b - Blue component.
@@ -877,7 +896,7 @@ function getSimilaritry(colour, range) {
  * @typedef {Object.<string, ColourMatch>} ColourMatchDictionary
  */
 /** 
- * @typedef {object} ColourRange 
+ * @typedef {Object} ColourRange 
  * @property {number} rLow
  * @property {number} gLow
  * @property {number} bLow
@@ -890,7 +909,7 @@ function getSimilaritry(colour, range) {
  * @property {number} rangeFactor
 */
 /**
- * @typedef {object} ColourMapping
+ * @typedef {Object} ColourMapping
  * @property {ColourMatch[]} matches
  * @property {Object.<string, string>} hexLookup
  */

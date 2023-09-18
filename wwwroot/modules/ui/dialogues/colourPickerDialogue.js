@@ -356,7 +356,7 @@ export default class ColourPickerDialogue extends ModalDialogue {
  */
 /**
  * Event args from the colour picker modal.
- * @typedef {object} ColourPickerDialogueColourEventArgs
+ * @typedef {Object} ColourPickerDialogueColourEventArgs
  * @property {number} index - Palette index, 0 to 15.
  * @property {string} system - Target system, either 'ms' or 'gg'.
  * @property {number} r - Red component.

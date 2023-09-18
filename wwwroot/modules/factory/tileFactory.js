@@ -92,7 +92,7 @@ export default class TileFactory {
 }
 
 /**
- * @typedef {object} TileCreateArgs
+ * @typedef {Object} TileCreateArgs
  * @property {string?} [tileId] - Unique ID for the tile.
  * @property {boolean?} [alwaysKeep] - Should the tile be kept during the export optimisation phase?
  * @property {number?} [defaultColourIndex] - Colour index to set as the initial colour of the tile, defaults to 15 when not supplied.

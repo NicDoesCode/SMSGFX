@@ -733,7 +733,7 @@ function resetCanvas(canvas) {
 
 /**
  * Import image modal state object.
- * @typedef {object} ImportImageModalState
+ * @typedef {Object} ImportImageModalState
  * @property {PaletteList?} paletteList - List of palettes to make available for import.
  * @property {File?} file - File containing an image to be shown.
  */
@@ -746,7 +746,7 @@ function resetCanvas(canvas) {
  * @exports
  */
 /**
- * @typedef {object} ImportProjectModelConfirmEventArgs
+ * @typedef {Object} ImportProjectModelConfirmEventArgs
  * @property {boolean} createNew - When true we're creating a new project, otherwise we'll add to existing.
  * @property {string} title - Title of the project.
  * @property {TileSet} tileSet - Derrived tile set from the import operation.

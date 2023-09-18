@@ -200,7 +200,7 @@ export default class ProjectToolbar extends ComponentBase {
 
 /**
  * Project toolbar state.
- * @typedef {object} ProjectToolbarState
+ * @typedef {Object} ProjectToolbarState
  * @property {string?} projectTitle - Project title to display.
  * @property {string[]?} enabledCommands - Array of commands that should be enabled, overrided enabled state.
  * @property {string[]?} disabledCommands - Array of commands that should be disabled, overrided enabled state.
@@ -215,7 +215,7 @@ export default class ProjectToolbar extends ComponentBase {
  * @exports
  */
 /**
- * @typedef {object} ProjectToolbarCommandEventArgs
+ * @typedef {Object} ProjectToolbarCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string?} title - Project title.
  * @property {string?} projectId - Project ID.

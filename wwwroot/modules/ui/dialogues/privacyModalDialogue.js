@@ -52,7 +52,7 @@ export default class PrivacyModalDialogue extends ModalDialogue {
 
 /**
  * Privacy dialogue state object.
- * @typedef {object} PrivacyModalDialogueState
+ * @typedef {Object} PrivacyModalDialogueState
  */
 
 /**
@@ -63,6 +63,6 @@ export default class PrivacyModalDialogue extends ModalDialogue {
  */
 /**
  * Privacy dialogue confirm args.
- * @typedef {object} PrivacyModalDialogueStateConfirmEventArgs
+ * @typedef {Object} PrivacyModalDialogueStateConfirmEventArgs
  * @exports
  */

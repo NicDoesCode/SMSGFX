@@ -162,7 +162,7 @@ export default class TileMapTool {
 
 }
 /** 
- * @typedef {object} TileMapCreateArgsBase
+ * @typedef {Object} TileMapCreateArgsBase
  * @property {string} title - Title of the new tile map.
  * @property {number} columnCount - Number of columns for the new tile map.
  * @property {number} rowCount - Number of rows for the new tile map.

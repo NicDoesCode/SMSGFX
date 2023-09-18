@@ -104,7 +104,7 @@ export default class ProjectWatcher {
 
 /**
  * Project broadcast message.
- * @typedef {object} ProjectBroadcastMessage
+ * @typedef {Object} ProjectBroadcastMessage
  * @property {string} event - The event that occurred.
  * @property {string} sessionId - Session that generated the message.
  * @property {string} projectJson - Project that the message related to.
@@ -117,7 +117,7 @@ export default class ProjectWatcher {
  * @exports
  */
 /**
- * @typedef {object} ProjectWatcherEventArgs
+ * @typedef {Object} ProjectWatcherEventArgs
  * @property {string} event - The event that occurred.
  * @property {string} sessionId - Session ID.
  * @property {Project} project - Project that the message related to.

@@ -187,7 +187,7 @@ function fillNewTileRowColumn(tileSetTiles, tileSet, fillMode, tileId, colourInd
 
 /** 
  * Arguments for the Tile Map row column tool.
- * @typedef {object} TileMapRowColumnArgs
+ * @typedef {Object} TileMapRowColumnArgs
  * @property {TileMap} tileMap - Tile map to operate on.
  * @property {TileSet} tileSet - Tile set that contains the tiles linked to the tile map.
  * @property {string} mode - Mode to use for the operation.
@@ -200,6 +200,6 @@ function fillNewTileRowColumn(tileSetTiles, tileSet, fillMode, tileId, colourInd
  */
 /** 
  * Result result for the Tile Map row column tool.
- * @typedef {object} TileMapRowColumnResult
+ * @typedef {Object} TileMapRowColumnResult
  * @exports
  */

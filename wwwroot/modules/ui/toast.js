@@ -123,7 +123,7 @@ export default class Toast extends ComponentBase {
 
 /**
  * State object.
- * @typedef {object} ToastState
+ * @typedef {Object} ToastState
  * @exports
  */
 
@@ -135,7 +135,7 @@ export default class Toast extends ComponentBase {
  */
 /**
  * Command event args.
- * @typedef {object} ToastCommandEventArgs
+ * @typedef {Object} ToastCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string} content - Content that was displayed.
  * @exports

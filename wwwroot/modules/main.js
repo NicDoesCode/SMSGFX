@@ -63,9 +63,7 @@ import TileMapTool from "./tools/tileMapTool.js";
 import TileSet from "./models/tileSet.js";
 import SampleProjectManager from "./components/sampleProjectManager.js";
 import KeyboardManager, { KeyDownHandler, KeyUpHandler } from "./components/keyboardManager.js";
-import TileImageManager from "./components/tileImageManager.js";
 import ProjectList from "./models/projectList.js";
-import TileMapUtil from "./util/tileMapUtil.js";
 import SystemUtil from "./util/systemUtil.js";
 
 
@@ -147,7 +145,6 @@ const undoManager = new UndoManager(50);
 const watcher = new ProjectWatcher(instanceState.sessionId);
 const googleAnalytics = new GoogleAnalyticsManager();
 const themeManager = new ThemeManager();
-const tileImageManager = new TileImageManager();
 
 /** @type {ProjectToolbar} */ let projectToolbar;
 /** @type {ProjectDropdown} */ let projectDropdown;
@@ -614,7 +611,7 @@ function createEventListeners() {
                     } else {
                         const tile = getTileMap().getTileByIndex(instanceState.tileIndex);
                         tile.horizontalFlip = !tile.horizontalFlip;
-                        updateTilesOnEditors(tile.tileId);
+                        updateTilesOnEditors([tile.tileId]);
                     }
                 }
                 break;
@@ -625,7 +622,7 @@ function createEventListeners() {
                     } else {
                         const tile = getTileMap().getTileByIndex(instanceState.tileIndex);
                         tile.verticalFlip = !tile.verticalFlip;
-                        updateTilesOnEditors(tile.tileId);
+                        updateTilesOnEditors([tile.tileId]);
                     }
                 }
                 break;
@@ -1044,7 +1041,7 @@ function handleExportToolbarOnCommand(args) {
             break;
 
         case ExportToolbar.Commands.exportImage:
-            exportImage();
+            tileEditor.setState({ requestExportImage: true });
             break;
 
     }
@@ -1438,6 +1435,12 @@ function handleTileEditorOnEvent(args) {
     } else {
         switch (args.event) {
 
+            case TileEditor.Events.tileGridImage:
+                if (args.tileGridImage instanceof ImageBitmap) {
+                    exportImage(args.tileGridImage);
+                }
+                break;
+
             case TileEditor.Events.pixelMouseDown:
                 instanceState.operationTileIndex = getTileGrid().getTileIndexByCoordinate(args.x, args.y);
                 if (args.isPrimaryButton) {
@@ -1722,8 +1725,6 @@ function paletteSetColourAtIndexWithoutSaving(paletteIndex, colourIndex, colour)
 
     const newColour = PaletteColourFactory.create(colour.r, colour.g, colour.b);
     palette.setColour(colourIndex, newColour);
-
-    tileImageManager.clear();
 
     paletteEditor.setState({
         paletteList: getPaletteList(),
@@ -2410,7 +2411,7 @@ function formatForProject() {
     tileEditor.setState({
         paletteList: null,
         tileSet: null,
-        displayNative: false,
+        displayNative: getUIState().displayNativeColour,
         lockedPaletteSlotIndex: null,
         enabled: false
     });
@@ -2435,21 +2436,17 @@ function formatForProject() {
 
 /**
  * Updates a list of tiles on the tile editors.
- * @param {string|string[]|null} [tileIdOrIds] - Tile IDs.
+ * @param {string[]?} [tileIdOrIds] - Array of tile IDs that were updated.
+ * @param {number[]?} [tileGridIndexes] - Array of tile grid indexes that were updated.
  */
-function updateTilesOnEditors(tileIdOrIds) {
-    if (tileIdOrIds && typeof tileIdOrIds === 'string') {
-        tileIdOrIds = [tileIdOrIds];
-    }
-    if (tileIdOrIds && Array.isArray(tileIdOrIds) && tileIdOrIds.length > 0) {
-        tileImageManager.clearByTile(tileIdOrIds);
-        tileEditor.setState({
-            updatedTileIds: tileIdOrIds
-        });
-        tileManager.setState({
-            updatedTileIds: tileIdOrIds
-        });
-    }
+function updateTilesOnEditors(tileIdOrIds, tileGridIndexes) {
+    tileEditor.setState({
+        updatedTileIds: Array.isArray(tileIdOrIds) ? tileIdOrIds : undefined,
+        updatedTileGridIndexes: Array.isArray(tileGridIndexes) ? tileGridIndexes : undefined
+    });
+    tileManager.setState({
+        updatedTileIds: Array.isArray(tileIdOrIds) ? tileIdOrIds : undefined
+    });
 }
 
 function resetViewportToCentre() {
@@ -2530,6 +2527,8 @@ function formatForNoProject() {
     tileManager.setState({
         tileMapList: dummyProject.tileMapList,
         tileSet: dummyProject.tileSet,
+        palette: null,
+        paletteList: null,
         selectedTileMapId: null
     });
 }
@@ -2616,7 +2615,7 @@ function refreshProjectLists() {
 }
 
 /** 
- * @typedef {object} ToolActionArgs
+ * @typedef {Object} ToolActionArgs
  * @property {string} tool 
  * @property {number} colourIndex 
  * @property {number} imageX 
@@ -2787,6 +2786,8 @@ function takeToolAction(args) {
             let actionTaken = false;
             /** @type {string[]} */
             let updatedTileIds = [];
+            /** @type {number[]} */
+            let updatedTileMapTileIndexes = [];
 
             if (tool === TileEditorToolbar.Tools.tileMapTileAttributes && args.isInBounds) {
                 if (event === TileEditor.Events.pixelMouseDown) {
@@ -2830,9 +2831,9 @@ function takeToolAction(args) {
                 }
             } else if (tool === TileEditorToolbar.Tools.tileStamp) {
 
-                const stampUpdatedTileIds = takeToolAction_tileStamp(args);
-                if (Array.isArray(stampUpdatedTileIds)) {
-                    updatedTileIds = updatedTileIds.concat(stampUpdatedTileIds);
+                const result = takeToolAction_tileStamp(args);
+                if (result != null) {
+                    updatedTileMapTileIndexes = updatedTileMapTileIndexes.concat(result.updatedTileMapTileIndexes);
                     saveProject = true;
                 }
 
@@ -2852,8 +2853,8 @@ function takeToolAction(args) {
                             column: args.tileBlock.col,
                             tilesPerBlock: args.tilesPerBlock
                         });
-                        if (result.updatedTileIds.length > 0) {
-                            updatedTileIds = result.updatedTileIds;
+                        if (result != null) {
+                            updatedTileMapTileIndexes = updatedTileMapTileIndexes.concat(result.updatedTileMapTileIndexes);
                         } else {
                             undoManager.removeLastUndo();
                         }
@@ -2870,9 +2871,12 @@ function takeToolAction(args) {
                     try {
                         const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
                         const result = TileLinkBreakTool.createAndLinkNewTileIfUsedElsewhere(tileIndex, getTileMap(), getTileSet(), getProject());
-                        if (Array.isArray(result.updatedTileIds) && result.updatedTileIds.length > 0) {
+                        if (result.updatedTileIds.length > 0 || result.updatedTileMapTileIndexes.length > 0) {
 
-                            updateTilesOnEditors(result.updatedTileIds);
+                            tileManager.setState({ tileSet: getTileSet() });
+
+                            updatedTileIds = updatedTileIds.concat(result.updatedTileIds);
+                            updatedTileMapTileIndexes = updatedTileMapTileIndexes.concat(result.updatedTileMapTileIndexes);
                             saveProject = true;
 
                         } else {
@@ -2893,7 +2897,7 @@ function takeToolAction(args) {
                 });
             }
 
-            updateTilesOnEditors(updatedTileIds);
+            updateTilesOnEditors(updatedTileIds, updatedTileMapTileIndexes);
         }
 
     }
@@ -2933,7 +2937,7 @@ function takeToolAction_breakLinks(tileIndexes, originalTileSet) {
 
 /** 
  * @param {ToolActionArgs} args 
- * @returns {string[]?}
+ * @returns {{updatedTileIds: string[], updatedTileMapTileIndexes: number[]}?}
  */
 function takeToolAction_tileStamp(args) {
     if (!args.isInBounds) return;
@@ -3017,8 +3021,11 @@ function takeToolAction_tileStamp(args) {
                         tileCol: args.tile.col
                     });
                 }
-                if (result.updatedTileIds.length > 0) {
-                    return result.updatedTileIds;
+                if (result.updatedTileMapTileIndexes.length > 0) {
+                    return {
+                        updatedTileIds: result.updatedTileIds,
+                        updatedTileMapTileIndexes: result.updatedTileMapTileIndexes
+                    };
                 } else {
                     undoManager.removeLastUndo();
                 }
@@ -3128,6 +3135,11 @@ function takeReferenceImageAction(args) {
                     }
 
                     instanceState.referenceImage.setBounds(newX, newY, newW, newH);
+                    tileEditor.setState({
+                        referenceImageBounds: {
+                            x: newX, y: newY, width: newW, height: newH
+                        }
+                    })
                     tileContextToolbar.setState({ referenceBounds: instanceState.referenceImage.getBounds() });
 
                 }
@@ -3290,7 +3302,12 @@ function updateReferenceImage(bounds, transparencyIndex) {
     const refImage = instanceState.referenceImage;
 
     tileEditor.setState({
-        referenceImage: refImage,
+        referenceImageBounds: {
+            x: refImage.positionX,
+            y: refImage.positionY,
+            width: bounds.width,
+            height: bounds.height
+        },
         referenceImageDrawMode: (transparencyIndex === -2) ? 'overlay' : (transparencyIndex === -1) ? 'underlay' : 'overIndex',
         transparencyIndicies: getTransparencyIndicies()
     });
@@ -3487,7 +3504,7 @@ function setTileMapTileAttributes(attributes) {
         if (updatedTileIds.length > 0) {
             state.saveToLocalStorage();
 
-            updateTilesOnEditors(updatedTileIds);
+            updateTilesOnEditors(updatedTileIds, [tileIndex]);
             selectTileIndexIfNotSelected(tileIndex);
         } else {
             // Nothing changed, no reason to keep the undo in memory
@@ -3504,7 +3521,7 @@ function setTileStampDefineMode() {
     getToolState().mode = 'define';
     tileEditor.setState({
         selectedRegion: getToolState().selectedRegion,
-        tileStampPreview: null
+        tileStampPattern: null
     });
     tileContextToolbar.setState({ selectedCommands: [TileContextToolbar.Commands.tileStampDefine] });
 }
@@ -3522,7 +3539,7 @@ function confirmTileStampRegion() {
         const row = region.rowIndex + r;
         for (let c = 0; c < region.width; c++) {
             const col = region.columnIndex + c;
-            const tile = getTileMap().getTileByCoordinate(row, col);
+            const tile = getTileMap().getTileByRowAndColumn(row, col);
             tiles.push(TileMapTileFactory.create({
                 tileId: tile.tileId,
                 horizontalFlip: tile.horizontalFlip,
@@ -3545,7 +3562,7 @@ function confirmTileStampRegion() {
 
     tileEditor.setState({
         selectedRegion: null,
-        tileStampPreview: stampTileMap
+        tileStampPattern: stampTileMap
     });
     tileContextToolbar.setState({
         selectedCommands: []
@@ -3708,7 +3725,7 @@ function changePaletteTitle(paletteIndex, newTitle) {
 
     state.saveToLocalStorage();
 
-    paletteEditor.setSgameBoyPalette = tate({
+    paletteEditor.setState({
         paletteList: getPaletteList(),
         displayNative: getUIState().displayNativeColour
     });
@@ -3725,8 +3742,6 @@ function changePaletteSystem(paletteIndex, system) {
     palette.system = system;
 
     state.saveToLocalStorage();
-
-    tileImageManager.clear();
 
     paletteEditor.setState({
         paletteList: getPaletteList(),
@@ -3748,8 +3763,6 @@ function changePaletteEditorDisplayNativeColours(displayNative) {
 
     state.persistentUIState.displayNativeColour = displayNative;
     state.saveToLocalStorage();
-
-    tileImageManager.clear();
 
     paletteEditor.setState({
         paletteList: getPaletteList(),
@@ -3801,8 +3814,6 @@ function swapColourIndex(sourceColourIndex, targetColourIndex) {
 
     state.saveToLocalStorage();
 
-    tileImageManager.clear();
-
     tileEditor.setState({
         paletteList: getPaletteListToSuitTileMapOrTileSetSelection(),
         tileGrid: getTileGrid(),
@@ -3823,8 +3834,6 @@ function replaceColourIndex(sourceColourIndex, targetColourIndex) {
     getTileSet().replaceColourIndex(sourceColourIndex, targetColourIndex);
 
     state.saveToLocalStorage();
-
-    tileImageManager.clear();
 
     tileEditor.setState({
         tileGrid: getTileGrid(),
@@ -4058,12 +4067,19 @@ function downloadAssemblyCode(code) {
 
 /**
  * Exports tileset to an image.
+ * @argument {ImageBitmap} image
  */
-function exportImage() {
+function exportImage(image) {
+    const canvas = document.createElement('canvas');
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const context = canvas.getContext('2d');
+    context.drawImage(image, 0, 0);
+    const dataUrl = canvas.toDataURL();
+
     const fileName = getProject().title && getProject().title.length > 0 ? getProject().title : 'image';
     const fileNameClean = FileUtil.getCleanFileName(fileName);
     const fullFileName = `${fileNameClean}.png`;
-    const dataUrl = tileEditor.toDataUrl();
     const a = document.createElement('a');
     a.href = dataUrl;
     a.download = fullFileName;
@@ -4092,11 +4108,6 @@ function undoOrRedo(undoOrRedo) {
         }
 
         state.saveProjectToLocalStorage();
-
-        tileImageManager.clear();
-
-        // Set UI state
-        refreshProjectUI();
     }
     setCommonTileToolbarStates({
         undoEnabled: undoManager.canUndo,
@@ -4402,7 +4413,7 @@ function tileSetTileSelectById(tileId) {
 
     // Set the stamp preview in the canvas
     if (instanceState.tool === TileEditorToolbar.Tools.tileStamp) {
-        tileEditor.setState({ tileStampPreview: tile?.tileId ?? null });
+        tileEditor.setState({ tileStampPattern: tile?.tileId ?? null });
     }
 }
 
@@ -4681,9 +4692,9 @@ function selectTool(tool) {
             if (!getProjectUIState().tileId && getTileSet() && getTileSet().length > 0 || !getTileSet().getTileById(getProjectUIState().tileId)) {
                 tileSetTileSelectById(getTileSet().getTile(0).tileId);
             }
-            tileEditor.setState({ tileStampPreview: getProjectUIState().tileId });
+            tileEditor.setState({ tileStampPattern: getProjectUIState().tileId });
         } else {
-            tileEditor.setState({ tileStampPreview: null });
+            tileEditor.setState({ tileStampPattern: null });
         }
 
         if (tool !== TileEditorToolbar.Tools.tileStamp && getProject() !== null) {
@@ -4804,7 +4815,19 @@ function changePaletteIndex(index) {
     getProjectUIState().paletteIndex = index;
     state.saveToLocalStorage();
 
-    refreshProjectUI();
+    paletteEditor.setState({
+        selectedPaletteId: getPalette().paletteId
+    });
+    tileManager.setState({
+        palette: getPalette()
+    });
+    if (isTileSet()) {
+        tileEditor.setState({
+            paletteList: getPaletteListToSuitTileMapOrTileSetSelection()
+        });
+    }
+
+    // refreshProjectUI();
 }
 
 function getTransparencyIndicies() {
@@ -4986,11 +5009,9 @@ window.addEventListener('load', async () => {
             const defaultTileMap = loadedProject.tileMapList.getTileMapById(sampleProject.defaultTileMapId);
             getProjectUIState(loadedProject).tileMapId = defaultTileMap?.tileMapId ?? null;
         }
+        getUIState().lastProjectId = projectList.getProject(0).id;
         state.savePersistentUIStateToLocalStorage();
     }
-
-    tileEditor.setState({ tileImageManager: tileImageManager });
-    tileManager.setState({ tileImageManager: tileImageManager });
 
     const project = projectList.getProjectById(getUIState().lastProjectId);
     state.setProject(project);

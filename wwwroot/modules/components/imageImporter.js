@@ -399,7 +399,7 @@ function extractUniqueColours(image) {
  * @typedef {Object.<string, ColourMatch>} ColourMatchDictionary
  */
 /** 
- * @typedef {object} ColourMatch
+ * @typedef {Object} ColourMatch
  * @property {number} r - Red component.
  * @property {number} g - Green component.
  * @property {number} b - Blue component.
@@ -408,7 +408,7 @@ function extractUniqueColours(image) {
  * @property {string[]} matchedColours - HEX values of all colours that are similar and hence replaced by this colour.
  */
 /**
- * @typedef {object} ColourMapping
+ * @typedef {Object} ColourMapping
  * @property {ColourMatch[]} matches
  * @property {Object.<string, string>} hexLookup
  */

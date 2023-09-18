@@ -305,7 +305,7 @@ function createArgs(event, args) {
  * @exports
  */
 /**
- * @typedef {object} StateEventArgs
+ * @typedef {Object} StateEventArgs
  * @property {string} event - The event that occurred.
  * @property {string} context - Context about the event that occurred.
  * @property {string} projectId - Associated project ID.

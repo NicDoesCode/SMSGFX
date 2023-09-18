@@ -118,7 +118,7 @@ export default class FeedbackToolbar extends ComponentBase {
 
 /**
  * State object.
- * @typedef {object} FeedbackToolbarState
+ * @typedef {Object} FeedbackToolbarState
  * @property {string[]?} enabledCommands - Array of commands that should be enabled, overrided enabled state.
  * @property {string[]?} disabledCommands - Array of commands that should be disabled, overrided enabled state.
  * @property {boolean?} enabled - Is the control enabled or disabled?
@@ -131,7 +131,7 @@ export default class FeedbackToolbar extends ComponentBase {
  * @exports
  */
 /**
- * @typedef {object} FeedbackToolbarCommandEventArgs
+ * @typedef {Object} FeedbackToolbarCommandEventArgs
  * @property {string} command - The command being invoked.
  * @exports
  */

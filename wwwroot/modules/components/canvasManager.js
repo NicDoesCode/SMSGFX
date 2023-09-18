@@ -6,8 +6,8 @@ import TileGridProvider from "../models/tileGridProvider.js";
 import Tile from "../models/tile.js";
 import TileMap from "../models/tileMap.js";
 import TileMapFactory from "../factory/tileMapFactory.js";
-import TileImageManager from "./tileImageManager.js";
 import PaletteListFactory from "../factory/paletteListFactory.js";
+import PaintUtil from "../util/paintUtil.js";
 
 
 const highlightModes = {
@@ -39,10 +39,17 @@ export default class CanvasManager {
 
 
     /**
-     * Enumerates all of the possible highlight modes for the canvas manager.
+     * Enumerates highlight modes.
      */
     static get HighlightModes() {
         return highlightModes;
+    }
+
+    /**
+     * Enumerates draw modes reference images.
+     */
+    static get ReferenceImageDrawMode() {
+        return referenceImageDrawMode;
     }
 
 
@@ -54,7 +61,7 @@ export default class CanvasManager {
     }
 
     /**
-     * Gets or sets the highlighting mode for the canvas manager.
+     * Gets or sets how the canvas highlights what is under the mouse cursor (pixel, row, column, etc).
      */
     get highlightMode() {
         return this.#highlightMode;
@@ -102,8 +109,9 @@ export default class CanvasManager {
         return this.#paletteList;
     }
     set paletteList(value) {
-        this.invalidateImage();
         this.#paletteList = value;
+        this.#renderPaletteList = null;
+        this.invalidateImage();
     }
 
     /**
@@ -314,8 +322,6 @@ export default class CanvasManager {
     #tilePreviewImage = null;
     /** @type {ImageBitmap} */
     #gridPatternImage = null;
-    /** @type {TileImageManager} */
-    #tileImageManager = {};
     /** @type {TileSet} */
     #tileSet = null;
     /** @type {PaletteList} */
@@ -365,7 +371,6 @@ export default class CanvasManager {
         if (tileGrid) this.#tileGrid = tileGrid;
         if (tileSet) this.#tileSet = tileSet;
         if (paletteList) this.#paletteList = paletteList;
-        this.#tileImageManager = new TileImageManager();
     }
 
 
@@ -375,7 +380,7 @@ export default class CanvasManager {
     invalidateImage() {
         // Set redraw variables
         this.#needToDrawTileImage = true;
-        this.#renderPaletteList = null;
+        // this.#renderPaletteList = null;
         this.#tilePreviewCanvas = null;
     }
 
@@ -385,7 +390,9 @@ export default class CanvasManager {
      */
     invalidateTile(index) {
         // Set redraw variables
-        this.#redrawTiles.push(index);
+        if (!this.#redrawTiles.includes(index)) {
+            this.#redrawTiles.push(index);
+        }
         this.#tilePreviewCanvas = null;
     }
 
@@ -395,7 +402,9 @@ export default class CanvasManager {
      */
     invalidateTileId(tileId) {
         this.tileGrid.getTileIdIndexes(tileId).forEach((index) => {
-            this.#redrawTiles.push(index);
+            if (!this.#redrawTiles.includes(index)) {
+                this.#redrawTiles.push(index);
+            }
         });
         this.#tilePreviewCanvas = null;
     }
@@ -410,23 +419,19 @@ export default class CanvasManager {
         return canvas.toDataURL('image/png');
     }
 
-
     /**
-     * Sets or clears the tile image manager.
-     * @param {TileImageManager?} tileImageManager - Tile image manager to set.
+     * Returns a bitmap that represents the tile set as a PNG data URL.
      */
-    setTileImageManager(tileImageManager) {
-        if (tileImageManager && tileImageManager instanceof TileImageManager) {
-            this.#tileImageManager = tileImageManager;
-        } else {
-            this.#tileImageManager = new TileImageManager();
-        }
+    toImageBitmap() {
+        const canvas = new OffscreenCanvas(this.#tileCanvas.width, this.#tileCanvas.height);
+        canvas.getContext('2d').drawImage(this.#tileCanvas, 0, 0);
+        return canvas.transferToImageBitmap();
     }
 
 
     /**
      * Sets the tile preview image, this will be drawn over the tile index where the mouse is.
-     * @param {string|Tile|TileMap} tileOrTileIdOrTileMap 
+     * @param {string|Tile|TileMap|null} tileOrTileIdOrTileMap 
      */
     setTilePreview(tileOrTileIdOrTileMap) {
         /** @type {TileMap} */ let tileMap = null;
@@ -436,7 +441,7 @@ export default class CanvasManager {
                 tileMap = TileMapFactory.create({ defaultTileId: tile.tileId, rows: 1, columns: 1 });
             } else {
                 const tileId = tileOrTileIdOrTileMap instanceof Tile ? tileOrTileIdOrTileMap.tileId : tileOrTileIdOrTileMap;
-                console.warn(`CanvasManager.setTilePreview: Tile with ID '${tileId}' not found, tile preview will be slipped.`);
+                console.warn(`CanvasManager.setTilePreview: Tile with ID '${tileId}' not found, tile preview will be skipped.`);
             }
         } else if (tileOrTileIdOrTileMap instanceof TileMap) {
             tileMap = tileOrTileIdOrTileMap;
@@ -469,12 +474,34 @@ export default class CanvasManager {
 
 
     /**
-     * Sets the reference image.
-     * @param {ReferenceImage} referenceImage - Reference image to draw.
+     * Gets the reference image count.
      */
-    addReferenceImage(referenceImage) {
-        if (referenceImage) {
-            this.#referenceImages.push(referenceImage);
+    getReferenceImageCount() {
+        return this.#referenceImages.length;
+    }
+
+    /**
+     * Gets the reference images.
+     */
+    getReferenceImages() {
+        return this.#referenceImages.slice();
+    }
+
+    /**
+     * Gets a reference image by index.
+     * @param {number} index - Index of the reference image.
+     */
+    getReferenceImageByIndex(index) {
+        return this.#referenceImages[index];
+    }
+
+    /**
+     * Sets the reference image.
+     * @param {ReferenceImage} value - Reference image to draw.
+     */
+    addReferenceImage(value) {
+        if (value) {
+            this.#referenceImages.push(value);
         }
     }
 
@@ -685,6 +712,8 @@ export default class CanvasManager {
         tileCanvas.width = tiles * 8 * pxSize;
         tileCanvas.height = rows * 8 * pxSize;
 
+        this.#buildRenderPaletteList();
+
         for (let tileIndex = 0; tileIndex < this.tileGrid.tileCount; tileIndex++) {
             this.#drawTile(context, tileIndex, transparencyIndicies);
         }
@@ -727,7 +756,7 @@ export default class CanvasManager {
         const tileWidth = Math.max(this.tileGrid.columnCount, 1);
         const tileGridCol = tileindex % tileWidth;
         const tileGridRow = (tileindex - tileGridCol) / tileWidth;
-        const palette = this.#renderPaletteList.getPalette(tileInfo.paletteIndex);
+        const palette = this.#renderPaletteList.getPalette(Math.min(tileInfo.paletteIndex, this.#renderPaletteList.getPalettes().length - 1));
 
         context.imageSmoothingEnabled = false;
 
@@ -740,29 +769,15 @@ export default class CanvasManager {
             context.drawImage(this.#gridPatternImage, originX, originY);
         }
         if (tile) {
-            const tileImage = this.#tileImageManager.getTileImageBitmap(tile, palette, transparencyIndicies);
-
             // Tile exists 
             const x = tileGridCol * 8 * pxSize;
             const y = tileGridRow * 8 * pxSize;
             const sizeXY = pxSize * 8;
-            if (tileInfo.horizontalFlip && tileInfo.verticalFlip) {
-                context.scale(-1, -1);
-                context.drawImage(tileImage, -x, -y, -sizeXY, -sizeXY);
-                context.setTransform(1, 0, 0, 1, 0, 0);
-            } else if (tileInfo.horizontalFlip) {
-                context.scale(-1, 1);
-                context.drawImage(tileImage, -x, y, -sizeXY, sizeXY);
-                context.setTransform(1, 0, 0, 1, 0, 0);
-            } else if (tileInfo.verticalFlip) {
-                context.scale(1, -1);
-                context.drawImage(tileImage, x, -y, sizeXY, -sizeXY);
-                context.setTransform(1, 0, 0, 1, 0, 0);
-            } else {
-                context.drawImage(tileImage, x, y, sizeXY, sizeXY);
-            }
-        } else {
-            this.#tileImageManager.clearByTile(tileInfo.tileId);
+            PaintUtil.drawTileImage(context, x, y, sizeXY, sizeXY, tile, palette, {
+                transparencyIndexes: transparencyIndicies,
+                horizontalFlip: tileInfo.horizontalFlip,
+                verticalFlip: tileInfo.verticalFlip
+            });
         }
     }
 
@@ -779,7 +794,6 @@ export default class CanvasManager {
             }
             list.getPalettes().forEach((p) => {
                 p.paletteId = `${p.paletteId}[lock:${this.lockedPaletteSlotIndex}]`;
-                this.#tileImageManager.clearByPalette(p.paletteId);
             });
             this.#renderPaletteList = list;
         } else {
@@ -806,15 +820,15 @@ export default class CanvasManager {
 
     /**
      * Draws a tile set and then returns the image as a base 64 URL.
-     * @param {HTMLCanvasElement} canvas - Canvas to draw onto.
+     * @param {CanvasRenderingContext2D} context - Canvas rendering context.
+     * @param {{width: number, height: number}} canvas - Canvas to draw onto.
      * @param {number} mouseX - X position of the cursor on the image.
      * @param {number} mouseY - Y position of the cursor on the image.
      */
-    drawUI(canvas, mouseX, mouseY) {
-        if (!canvas) throw new Error('drawUI: No canvas.');
+    drawUI(context, canvas, mouseX, mouseY) {
+        if (!context) throw new Error('drawUI: No canvas draw context.');
 
         const tileCanvas = this.#tileCanvas;
-        const context = canvas.getContext('2d');
 
         // Fill canvas background
         if (this.backgroundColour === null || this.backgroundColour === 'transparent') {
@@ -836,11 +850,11 @@ export default class CanvasManager {
             this.#refreshTileImage();
             this.#redrawTiles = [];
             this.#needToDrawTileImage = false;
-        }
-
-        while (this.#redrawTiles.length > 0) {
-            const tileIndex = this.#redrawTiles.pop();
-            this.#refreshSingleTile(tileIndex);
+        } else {
+            while (this.#redrawTiles.length > 0) {
+                const tileIndex = this.#redrawTiles.pop();
+                this.#refreshSingleTile(tileIndex);
+            }
         }
 
         const drawCoords = this.getDrawCoords(canvas);
@@ -894,6 +908,7 @@ export default class CanvasManager {
         context.strokeRect(canvX - 2, canvY - 2, baseW + 4, baseH + 4);
 
         // Draw the cached image
+        context.imageSmoothingEnabled = false;
         context.drawImage(tileCanvas, baseX, baseY, baseW, baseH, canvX, canvY, baseW, baseH);
 
         // Reset things
@@ -1170,7 +1185,7 @@ export default class CanvasManager {
                     const tsCol = coords.tile.col + r;
                     if (isInBounds(this.tileGrid, tsRow, tsCol)) {
                         const tsTile = this.tileGrid.getTileInfoByRowAndColumn(tsRow, tsCol);
-                        const pTile = this.#tilePreviewMap.getTileByCoordinate(r, c);
+                        const pTile = this.#tilePreviewMap.getTileByRowAndColumn(r, c);
                         if (tsTile && (pTile.paletteIndex !== tsTile.paletteIndex || pTile.horizontalFlip !== tsTile.horizontalFlip || pTile.verticalFlip !== tsTile.verticalFlip)) {
                             pTile.palette = tsTile.paletteIndex;
                             pTile.horizontalFlip = tsTile.horizontalFlip;

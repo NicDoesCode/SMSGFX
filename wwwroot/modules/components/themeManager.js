@@ -112,7 +112,7 @@ export default class ThemeManager {
  * @exports
  */
 /**
- * @typedef {object} ThemeManagerOnEventEventArgs
+ * @typedef {Object} ThemeManagerOnEventEventArgs
  * @property {string} event - The event that was raised.
  * @property {string} theme - Theme that was chosen, either 'light', 'dark' or 'system'.
  * @exports

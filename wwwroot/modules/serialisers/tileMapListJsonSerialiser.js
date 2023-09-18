@@ -2,55 +2,60 @@ import TileMapListFactory from "../factory/tileMapListFactory.js";
 import TileMapList from "../models/tileMapList.js";
 import TileMapJsonSerialiser from "./tileMapJsonSerialiser.js";
 
+
+/**
+ * Provides tile map list serialisation functions.
+ */
 export default class TileMapListJsonSerialiser {
 
 
     /**
      * Serialises a tile map list to JSON.
-     * @param {TileMapList} tileMapList - tile map list to serialise.
+     * @param {TileMapList} value - tile map list to serialise.
      * @returns {string} 
      */
-    static serialise(tileMapList) {
-        if (!tileMapList || typeof tileMapList.getTileMaps !== 'function') throw new Error('Please pass a tile map list.');
-
-        const result = TileMapListJsonSerialiser.toSerialisable(tileMapList);
+    static serialise(value) {
+        const result = TileMapListJsonSerialiser.toSerialisable(value);
         return JSON.stringify(result);
     }
 
     /**
      * Returns a deserialised tile map list.
-     * @param {string} jsonTileMapList - JSON serialised tile map list.
+     * @param {string} jsonString - JSON serialised tile map list.
+     * @throws When the JSON string is null or empty.
      * @returns {TileMapList}
      */
-    static deserialise(jsonTileMapList) {
-        if (!jsonTileMapList || typeof jsonTileMapList !== 'string') throw new Error('Tile map list to deserialise must be passed as a JSON string.');
+    static deserialise(jsonString) {
+        if (!jsonString || typeof jsonString !== 'string') throw new Error('Tile map list to deserialise must be passed as a JSON string.');
 
         /** @type {import('./tileMapJsonSerialiser.js').TileMapSerialisable[]} */
-        const deserialised = JSON.parse(jsonTileMapList);
+        const deserialised = JSON.parse(jsonString);
         return TileMapListJsonSerialiser.fromSerialisable(deserialised);
     }
 
     /**
      * Converts a tile map list object to a serialisable one.
-     * @param {TileMapList} tileMapList - Tile map list to convert.
+     * @param {TileMapList} value - Tile map list to convert.
+     * @throws When a valid tile map list was not passed.
      * @returns {import('./tileMapJsonSerialiser.js').TileMapSerialisable[]} 
      */
-    static toSerialisable(tileMapList) {
-        if (!tileMapList || !tileMapList instanceof TileMapList) throw new Error('Please pass a tile map list.');
+    static toSerialisable(value) {
+        if (!value instanceof TileMapList) throw new Error('Please pass a tile map list.');
 
-        return tileMapList.getTileMaps().map((tm) => TileMapJsonSerialiser.toSerialisable(tm));
+        return value.getTileMaps().map((tm) => TileMapJsonSerialiser.toSerialisable(tm));
     }
 
     /**
      * Converts a serialisable tile map array array back to a tile map list.
-     * @param {import('./tileMapJsonSerialiser.js').TileMapSerialisable[]} tileMapSerialisableArray - Serialisable tile maps to convert.
+     * @param {import('./tileMapJsonSerialiser.js').TileMapSerialisable[]} serialisable - Serialisable tile maps to convert.
+     * @throws When the passed serialisable list of projects was not valid.
      * @returns {TileMapList}
      */
-    static fromSerialisable(tileMapSerialisableArray) {
-        if (!tileMapSerialisableArray || !Array.isArray(tileMapSerialisableArray)) throw new Error('Please pass an array of serialisable tile maps.');
+    static fromSerialisable(serialisable) {
+        if (!serialisable || !Array.isArray(serialisable)) throw new Error('Please pass an array of serialisable tile maps.');
 
         const result = TileMapListFactory.create();
-        tileMapSerialisableArray.forEach((tm) => {
+        serialisable.forEach((tm) => {
             try {
                 result.addTileMap(TileMapJsonSerialiser.fromSerialisable(tm));
             } catch (e) {

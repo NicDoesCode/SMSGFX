@@ -331,7 +331,7 @@ export default class ColourPickerToolbox extends ComponentBase {
 
 
 /**
- * @typedef {object} ColourPickerToolboxState
+ * @typedef {Object} ColourPickerToolboxState
  * @property {boolean?} enabled - Is the toolbox enabled?
  * @property {string?} showTab - Either 'rgb', 'ms' or 'gb', which content tab to show.
  * @property {string[]?} visibleTabs - Comma separated list of tabs to show, of 'rgb', 'ms' or 'gb'.
@@ -349,7 +349,7 @@ export default class ColourPickerToolbox extends ComponentBase {
  */
 /**
  * Colour picker toolbox on command event args.
- * @typedef {object} ColourPickerToolboxCommandEventArgs
+ * @typedef {Object} ColourPickerToolboxCommandEventArgs
  * @property {string} command - Command being issued.
  * @property {string} tab - Tab to display.
  * @property {number} r - Red component.

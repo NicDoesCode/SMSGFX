@@ -207,7 +207,7 @@ export default class WelcomeScreen extends ComponentBase {
 
 /**
  * State object.
- * @typedef {object} WelcomeScreenState
+ * @typedef {Object} WelcomeScreenState
  * @property {boolean?} showWelcomeScreenOnStartUpChecked 
  * @property {ProjectList|Project[]|null} [projects] 
  * @property {boolean?} visible - Is the welcome screen visible?
@@ -225,7 +225,7 @@ export default class WelcomeScreen extends ComponentBase {
  * @exports
  */
 /**
- * @typedef {object} WelcomeScreenStateCommandEventArgs
+ * @typedef {Object} WelcomeScreenStateCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string?} systemType - Type of system, either 'smsgg', 'gb' or 'nes'.
  * @property {string?} projectId - Project ID.

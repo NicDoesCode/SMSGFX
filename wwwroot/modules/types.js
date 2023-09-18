@@ -11,6 +11,29 @@ export const Types = {};
  */
 
 /**
+ * @typedef {Object} Bounds
+ * @property {number} x - X coordinate.
+ * @property {number} y - Y coordinate.
+ * @property {number} width - Width of the dimension.
+ * @property {number} height - Height of the dimension.
+ * @exports
+ */
+
+/**
+ * @typedef {Object} Dimension
+ * @property {number} width - Width of the dimension.
+ * @property {number} height - Height of the dimension.
+ * @exports
+ */
+
+/**
+ * @typedef {Object} GridDimension
+ * @property {number} rows - Amount of rows in the dimension.
+ * @property {number} columns - Amount of columns in the dimension.
+ * @exports
+ */
+
+/**
  * @typedef {Object} Coordinate
  * @property {number} x - X coordinate.
  * @property {number} y - Y coordinate.
@@ -25,7 +48,7 @@ export const Types = {};
  */
 
 /**
- * @typedef {object} ColourInformation
+ * @typedef {Object} ColourInformation
  * @property {number} r - Red component.
  * @property {number} g - Green component.
  * @property {number} b - Blue component.

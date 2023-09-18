@@ -52,7 +52,7 @@ export default class AboutModalDialogue extends ModalDialogue {
 
 /**
  * About dialogue state object.
- * @typedef {object} AboutModalDialogueState
+ * @typedef {Object} AboutModalDialogueState
  */
 
 /**
@@ -63,6 +63,6 @@ export default class AboutModalDialogue extends ModalDialogue {
  */
 /**
  * About dialogue confirm args.
- * @typedef {object} AboutModalDialogueStateConfirmEventArgs
+ * @typedef {Object} AboutModalDialogueStateConfirmEventArgs
  * @exports
  */

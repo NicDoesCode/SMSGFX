@@ -276,7 +276,7 @@ export default class TileEditorToolbar extends ComponentBase {
 
 
 /**
- * @typedef {object} TileEditorToolbarState
+ * @typedef {Object} TileEditorToolbarState
  * @property {boolean?} enabled - Is the toolbar enabled?
  * @property {string[]?} visibleToolstrips - An array of strings containing visible toolstrips.
  * @property {string?} [systemType] - Type of system, which will affect fields with 'data-system-type' attribute .
@@ -297,7 +297,7 @@ export default class TileEditorToolbar extends ComponentBase {
  * @exports
  */
 /**
- * @typedef {object} TileEditorToolbarCommandEventArgs
+ * @typedef {Object} TileEditorToolbarCommandEventArgs
  * @property {string} command - Command being issued.
  * @property {string} tool - Current selected tool.
  * @property {number} tileWidth - Current tile width.

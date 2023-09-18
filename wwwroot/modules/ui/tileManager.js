@@ -7,7 +7,6 @@ import PaletteList from "../models/paletteList.js";
 import TileSet from "./../models/tileSet.js";
 import TileListing from "./components/tileListing.js";
 import TileMapListing from "./components/tileMapListing.js";
-import TileImageManager from "../components/tileImageManager.js";
 import PaletteUtil from "../util/paletteUtil.js";
 import PaletteFactory from "../factory/paletteFactory.js";
 
@@ -161,10 +160,6 @@ export default class TileManager extends ComponentBase {
         let updateRenderPalette = false;
         let updatedTileIds = null;
 
-        if (state?.tileImageManager === null || state.tileImageManager instanceof TileImageManager) {
-            this.#tileListing.setTileImageManager(state.tileImageManager);
-        }
-
         if (state?.tileMapList && state.tileMapList instanceof TileMapList) {
             this.#tileMapList = state.tileMapList;
             tileMapListingDirty = true;
@@ -258,9 +253,21 @@ export default class TileManager extends ComponentBase {
             this.#shuffleTileMapList();
         }
 
-        if (tileListDirty) {
+        if (paletteDirty) {
+
+        }
+
+        if (tileMapListingDirty && paletteDirty) {
             this.#tileListing.setState({
                 tileSet: this.#tileSet ?? undefined,
+                palette: this.#renderPalette ?? undefined
+            });
+        } else if (tileMapListingDirty) {
+            this.#tileListing.setState({
+                tileSet: this.#tileSet ?? undefined
+            });
+        } else if (paletteDirty) {
+            this.#tileListing.setState({
                 palette: this.#renderPalette ?? undefined
             });
         }
@@ -268,7 +275,7 @@ export default class TileManager extends ComponentBase {
         if (updatedTileIds) {
             this.#tileListing.setState({
                 updatedTileIds: updatedTileIds,
-                palette: this.#renderPalette ?? undefined
+                palette: paletteDirty ? this.#renderPalette ?? undefined : undefined
             });
         }
 
@@ -586,7 +593,7 @@ export default class TileManager extends ComponentBase {
 
 /**
  * Tile manager state.
- * @typedef {object} TileManagerState
+ * @typedef {Object} TileManagerState
  * @property {TileMapList?} [tileMapList] - Tile map list to be displayed in the listing.
  * @property {TileSet?} [tileSet] - Tile set to be displayed.
  * @property {Palette?} [palette] - Palette to use to render the tiles.
@@ -598,7 +605,6 @@ export default class TileManager extends ComponentBase {
  * @property {number?} [numberOfPaletteSlots] - Amount of palette slots that the tile map provides.
  * @property {number?} [lockedPaletteSlotIndex] - When not null, the palette slot index specified here will be repeated from palette 0 across all palettes.
  * @property {number?} [tileWidth] - Display tile width for the tile set.
- * @property {TileImageManager?} [tileImageManager] - Tile image manager to use for rendering tiles.
  */
 
 /**
@@ -608,7 +614,7 @@ export default class TileManager extends ComponentBase {
  * @exports
  */
 /**
- * @typedef {object} TileManagerCommandEventArgs
+ * @typedef {Object} TileManagerCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string} tileMapId - Unique ID of the tile map.
  * @property {string} tileId - Unique ID of the tile.

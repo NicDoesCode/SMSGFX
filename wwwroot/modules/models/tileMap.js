@@ -174,7 +174,7 @@ export default class TileMap extends TileGridProvider {
      * @param {number} columnIndex - Column index to obtain the tile from.
      * @returns {TileMapTile?}
      */
-    getTileByCoordinate(rowIndex, columnIndex) {
+    getTileByRowAndColumn(rowIndex, columnIndex) {
         const index = (rowIndex * this.columnCount) + columnIndex;
         return this.getTileByIndex(index);
     }
@@ -468,7 +468,7 @@ export default class TileMap extends TileGridProvider {
 
 /**
  * Parameters for tile map tiles.
- * @typedef {object} TileMapTileParams
+ * @typedef {Object} TileMapTileParams
  * @property {number} tileIndex - Index of the tile within the tile map.
  * @property {boolean} horizontalFlip - Mirror tile horizontally?
  * @property {boolean} verticalFlip - Mirror tile vertically?
