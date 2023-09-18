@@ -337,7 +337,7 @@ export default class TileEditor extends ComponentBase {
         }
 
         // Reference image draw mode
-        if (Array.isArray(state?.referenceImageDrawMode) || state.referenceImageDrawMode === null) {
+        if (typeof state?.referenceImageDrawMode === 'string' || state.referenceImageDrawMode === null) {
             message.referenceImageDrawMode = state.referenceImageDrawMode ?? CanvasManager.ReferenceImageDrawMode.overIndex;
             message.redrawFull = true;
         }

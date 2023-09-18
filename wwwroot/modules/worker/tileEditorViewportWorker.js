@@ -150,8 +150,10 @@ function applyUpdateToCanvasManager(message) {
     }
     if (Array.isArray(message.transparencyIndicies)) {
         canvasManager.transparencyIndicies = message.transparencyIndicies.filter((i) => typeof i === 'number');
+        canvasManager.invalidateImage();
     } else if (message.transparencyIndicies === null) {
         canvasManager.transparencyIndicies = [];
+        canvasManager.invalidateImage();
     }
     if (typeof message.lockedPaletteSlotIndex === 'number' || message.lockedPaletteSlotIndex === null) {
         canvasManager.lockedPaletteSlotIndex = message.lockedPaletteSlotIndex ?? -1;
