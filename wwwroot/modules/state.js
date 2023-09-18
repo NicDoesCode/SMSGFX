@@ -293,7 +293,7 @@ function createArgs(event, args) {
         event: event,
         context: args?.context ?? null,
         projectId: args?.projectId ?? null,
-        lastProjectId: args?.lastProjectId ?? null
+        previousProjectId: args?.lastProjectId ?? null
     };
 }
 
@@ -308,7 +308,8 @@ function createArgs(event, args) {
  * @typedef {Object} StateEventArgs
  * @property {string} event - The event that occurred.
  * @property {string} context - Context about the event that occurred.
- * @property {string} projectId - Associated project ID.
+ * @property {string} projectId - Project ID from the current project.
+ * @property {string} previousProjectId - Project ID from the last loaded project.
  * @exports
  */
 

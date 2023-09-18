@@ -111,7 +111,7 @@ const instanceState = {
     /** @type {number} */
     paletteSlot: 0,
     /** @type {string?} */
-    lastProjectId: null,
+    previousProjectId: null,
     /** @type {string?} */
     selectedTileMapId: null,
     ctrlIsDown: false,
@@ -852,7 +852,7 @@ function handleWatcherEvent(args) {
 
         case ProjectWatcher.Events.projectListChanged:
             setTimeout(() => {
-                refreshProjectLists();
+                uiRefreshProjectLists();
             }, 50);
             break;
 
@@ -865,7 +865,15 @@ function handleStateEvent(args) {
     switch (args.event) {
 
         case State.Events.projectChanged:
-            resetViewportToCentre();
+            const projectChanged = args.projectId !== args.previousProjectId;
+            if (projectChanged) {
+                // Set this as the last used project ID in storage
+                getUIState().lastProjectId = args.projectId;
+                state.savePersistentUIStateToLocalStorage();
+                // Update instance details
+                instanceState.previousProjectId = args.previousProjectId;
+                resetViewportToCentre();
+            }
             displaySelectedProject();
             break;
 
@@ -879,7 +887,7 @@ function handleStateEvent(args) {
             break;
 
         case State.Events.projectListChanged:
-            refreshProjectLists();
+            uiRefreshProjectLists();
             watcher.sendProjectListChanged();
             if (args.context === State.Contexts.deleted) {
                 toast.show('Project deleted.');
@@ -1006,7 +1014,7 @@ async function handleProjectDropdownOnCommand(args) {
         case ProjectDropdown.Commands.sampleProjectSelect:
             await loadSampleProjectAsync(args.sampleProjectId);
             projectDropdown.setState({ visible: false });
-            refreshProjectLists();
+            uiRefreshProjectLists();
             toast.show('Sample project loaded.');
             break;
 
@@ -2345,7 +2353,7 @@ function refreshProjectUI() {
 function formatForProject() {
 
     const project = getProject();
-    const projectChanged = project.id !== instanceState.lastProjectId;
+    const projectChanged = project.id !== instanceState.previousProjectId;
 
     if (projectChanged) {
         instanceState.colourIndex = 0;
@@ -2431,7 +2439,7 @@ function formatForProject() {
 
     refreshProjectUI();
 
-    instanceState.lastProjectId = getProject().id;
+    instanceState.previousProjectId = getProject().id;
 }
 
 /**
@@ -2584,8 +2592,6 @@ function getTileMapContextToolbarVisibleToolstrips(tool) {
 
 function displaySelectedProject() {
     if (getProject()) {
-        getUIState().lastProjectId = getProject().id;
-        state.savePersistentUIStateToLocalStorage();
         formatForProject();
     } else {
         formatForNoProject();
@@ -2601,7 +2607,7 @@ function displaySelectedProject() {
     }
 }
 
-function refreshProjectLists() {
+function uiRefreshProjectLists() {
     const projectList = state.getProjectsFromLocalStorage();
     projectToolbar.setState({
         projects: projectList
