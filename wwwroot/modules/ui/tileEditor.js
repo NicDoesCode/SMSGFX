@@ -88,9 +88,6 @@ export default class TileEditor extends ComponentBase {
     #lastMouseCoords = null;
     #scale = 1;
     #prevScale = 1;
-    #offsetX = 0;
-    #offsetY = 0;
-    #tilesPerBlock = 1;
     #panCanvasOnMouseMove = false;
     #canvasMouseLeftDown = false;
     #canvasMouseMiddleDown = false;
@@ -140,7 +137,7 @@ export default class TileEditor extends ComponentBase {
         const viewportCanvas = this.#tbCanvas.transferControlToOffscreen();
         this.#viewportWorker.postMessage({ canvas: viewportCanvas }, [viewportCanvas]);
 
-        setTimeout(() => this.#resizeCanvas(), 250);
+        this.#canvasSizeCheckTimer();
     }
 
 
@@ -441,6 +438,15 @@ export default class TileEditor extends ComponentBase {
         this.#dispatcher.on(EVENT_OnEvent, callback);
     }
 
+
+    #canvasSizeCheckTimer() {
+        const canvasRect = this.#tbCanvas.getBoundingClientRect();
+        const parentRect = this.#tbCanvas.parentElement.getBoundingClientRect();
+        if (parentRect.width !== canvasRect.width || parentRect.height !== canvasRect.height) {
+            this.#postImageWorkerMessage({ imageSize: { width: parentRect.width, height: parentRect.height }, redrawPartial: true });
+        }
+        setTimeout(() => this.#canvasSizeCheckTimer(), 1000);
+    }
 
     #resizeCanvas() {
         const parent = this.#tbCanvas.parentElement;
@@ -748,8 +754,8 @@ export default class TileEditor extends ComponentBase {
             offsetY = Math.round(zeroOffsetY + mouseYRelativeToCentre - hoverPixelNewYOffset);
         } else {
             // Scale / zoom based on viewport centre
-            offsetX = Math.round((this.#offsetX / this.#prevScale) * this.#scale);
-            offsetY = Math.round((this.#offsetY / this.#prevScale) * this.#scale);
+            offsetX = Math.round((canvasState.offsetX / this.#prevScale) * this.#scale);
+            offsetY = Math.round((canvasState.offsetY / this.#prevScale) * this.#scale);
         }
 
         return {
