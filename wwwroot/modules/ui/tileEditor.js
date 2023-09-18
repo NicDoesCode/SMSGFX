@@ -121,11 +121,7 @@ export default class TileEditor extends ComponentBase {
         this.#tbCanvas.addEventListener('contextmenu', (ev) => this.#handleCanvasContextMenu(ev));
         this.#tbCanvas.addEventListener('wheel', (ev) => this.#handleCanvasMouseWheel(ev));
 
-        const containerResizeObserver = new ResizeObserver(() => {
-            const parent = this.#tbCanvas.parentElement;
-            const parentRect = parent.getBoundingClientRect();
-            this.#postImageWorkerMessage({ imageSize: { width: parentRect.width, height: parentRect.height }, redrawPartial: true });
-        });
+        const containerResizeObserver = new ResizeObserver(() => this.#resizeCanvas());
         containerResizeObserver.observe(this.#tbCanvas.parentElement);
 
         // Load up the tile set context menu
@@ -144,11 +140,7 @@ export default class TileEditor extends ComponentBase {
         const viewportCanvas = this.#tbCanvas.transferControlToOffscreen();
         this.#viewportWorker.postMessage({ canvas: viewportCanvas }, [viewportCanvas]);
 
-        setTimeout(() => {
-            const parent = this.#tbCanvas.parentElement;
-            const parentRect = parent.getBoundingClientRect();
-            this.#postImageWorkerMessage({ imageSize: { width: parentRect.width, height: parentRect.height }, redrawPartial: true });
-        }, 250);
+        setTimeout(() => this.#resizeCanvas(), 250);
     }
 
 
@@ -416,6 +408,10 @@ export default class TileEditor extends ComponentBase {
             message.requestBitmapImage = true;
         }
 
+        const parentRect = this.#tbCanvas.parentElement.getBoundingClientRect();
+        message.width = parentRect.width;
+        message.height = parentRect.height;
+
         this.#postImageWorkerMessage(message);
     }
 
@@ -443,6 +439,13 @@ export default class TileEditor extends ComponentBase {
      */
     addHandlerOnEvent(callback) {
         this.#dispatcher.on(EVENT_OnEvent, callback);
+    }
+
+
+    #resizeCanvas() {
+        const parent = this.#tbCanvas.parentElement;
+        const parentRect = parent.getBoundingClientRect();
+        this.#postImageWorkerMessage({ imageSize: { width: parentRect.width, height: parentRect.height }, redrawPartial: true });
     }
 
 
