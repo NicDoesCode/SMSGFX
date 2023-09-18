@@ -53,7 +53,7 @@ function applyQueuedUpdatesToCanvasManager() {
     /** @type {TileEditorViewportWorkerMessage} */
     let lastMessage = null;
     while (canvasManagerUpdateQueue.length > 0) {
-        lastMessage = canvasManagerUpdateQueue.pop();
+        lastMessage = canvasManagerUpdateQueue.shift();
         applyUpdateToCanvasManager(lastMessage);
     }
     return lastMessage;
@@ -79,6 +79,20 @@ function applyUpdateToCanvasManager(message) {
         canvasManager.paletteList = PaletteListJsonSerialiser.fromSerialisable(message.paletteList);
     } else if (message.paletteList === null) {
         canvasManager.paletteList = null;
+    }
+    if (Array.isArray(message.updatedTileGridTiles)) {
+        message.updatedTileGridTiles.forEach((tileInfo) => {
+            if (canvasManager.tileGrid instanceof TileMap) {
+                /** @type {TileMap} */ const tileMap = canvasManager.tileGrid;
+                const tileMapTile = tileMap.getTileByIndex(tileInfo.tileIndex);
+                if (tileMapTile) {
+                    tileMapTile.tileId = tileInfo.tileId;
+                    tileMapTile.horizontalFlip = tileInfo.horizontalFlip;
+                    tileMapTile.verticalFlip = tileInfo.verticalFlip;
+                    tileMapTile.palette = tileInfo.paletteIndex;
+                }
+            }
+        });
     }
     if (Array.isArray(message.updatedTiles)) {
         message.updatedTiles
@@ -279,6 +293,7 @@ function makeImageResponse() {
  * @property {import('../serialisers/tileGridProviderJsonSerialiser.js').TileGridProviderSerialisable?} [tileGrid] - Tile grid to draw.
  * @property {import('../serialisers/tileSetJsonSerialiser.js').TileSetSerialisable?} [tileSet] - Tile set that contains the tiles used by the tile grid.
  * @property {import('../serialisers/paletteJsonSerialiser.js').PaletteSerialisable[]?} [paletteList] - Pallette list used by the tile grid.
+ * @property {import("./../models/tileGridProvider.js").TileProviderTileInfo[]?} [updatedTileGridTiles] - Triggers a redraw of only the given tile IDs in this array.
  * @property {import('../serialisers/tileJsonSerialiser.js').TileSerialisable[]} [updatedTiles] - Triggers a redraw of only the given tile IDs in this array.
  * @property {string[]} [updatedTileIndexes] - Triggers a redraw of only the tiles at the given index in the tile set.
  * @property {string[]} [updatedTileIds] - Triggers a redraw of only the given tile IDs in this array.
@@ -309,6 +324,7 @@ function makeImageResponse() {
  * @property {import('../types.js').Dimension} [imageSize] - Size of the output image.
  * @exports
  */
+
 /**
  * @typedef {Object} TileEditorViewportWorkerResponse
  * @property {boolean} hasTileGrid 

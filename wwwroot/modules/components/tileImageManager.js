@@ -121,7 +121,7 @@ export default class TileImageManager {
         let transparencyId = `[${transparencyIndicies.join(',')}]`;
         let transparencySlot = paletteSlot[transparencyId]
         if (!transparencySlot) {
-            PaintUtil.drawTileImageOntoCanvas(tile, palette, canvas, null, transparencyIndicies);
+            PaintUtil.drawTileImageOntoCanvas(tile, palette, canvas, null, { transparencyIndexes: transparencyIndicies });
             transparencySlot = canvas.transferToImageBitmap();
             paletteSlot[transparencyId] = transparencySlot;
         }

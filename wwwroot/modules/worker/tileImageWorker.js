@@ -105,7 +105,7 @@ function updateTile(tileId) {
     const c = canvases[tileId];
     const tile = tileSet.getTileById(tileId);
     if (c && tile instanceof Tile && palette instanceof Palette) {
-        PaintUtil.drawTileImageOntoCanvas(tile, palette, c.canvas, c.context, []);
+        PaintUtil.drawTileImageOntoCanvas(tile, palette, c.canvas, c.context);
     }
 }
 

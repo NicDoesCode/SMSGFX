@@ -65,7 +65,6 @@ import SampleProjectManager from "./components/sampleProjectManager.js";
 import KeyboardManager, { KeyDownHandler, KeyUpHandler } from "./components/keyboardManager.js";
 import ProjectList from "./models/projectList.js";
 import SystemUtil from "./util/systemUtil.js";
-import TileJsonSerialiser from "./serialisers/tileJsonSerialiser.js";
 
 
 /* ****************************************************************************************************
@@ -612,7 +611,7 @@ function createEventListeners() {
                     } else {
                         const tile = getTileMap().getTileByIndex(instanceState.tileIndex);
                         tile.horizontalFlip = !tile.horizontalFlip;
-                        updateTilesOnEditors(tile.tileId);
+                        updateTilesOnEditors([tile.tileId]);
                     }
                 }
                 break;
@@ -623,7 +622,7 @@ function createEventListeners() {
                     } else {
                         const tile = getTileMap().getTileByIndex(instanceState.tileIndex);
                         tile.verticalFlip = !tile.verticalFlip;
-                        updateTilesOnEditors(tile.tileId);
+                        updateTilesOnEditors([tile.tileId]);
                     }
                 }
                 break;
@@ -2437,33 +2436,17 @@ function formatForProject() {
 
 /**
  * Updates a list of tiles on the tile editors.
- * @param {string|string[]|null} [tileIdOrIds] - Tile IDs.
+ * @param {string[]?} [tileIdOrIds] - Array of tile IDs that were updated.
+ * @param {number[]?} [tileGridIndexes] - Array of tile grid indexes that were updated.
  */
-function updateTilesOnEditors(tileIdOrIds) {
-    if (tileIdOrIds && typeof tileIdOrIds === 'string') {
-        tileIdOrIds = [tileIdOrIds];
-    }
-    if (tileIdOrIds && Array.isArray(tileIdOrIds) && tileIdOrIds.length > 0) {
-        tileEditor.setState({
-            updatedTiles: toTileSerialisables(tileIdOrIds)
-        });
-        tileManager.setState({
-            updatedTileIds: tileIdOrIds
-        });
-    }
-}
-
-/**
- * @param {string[]} [tileIdOrIds] - Tile IDs.
- */
-function toTileSerialisables(tileIds) {
-    return tileIds.map((tileId) => {
-        const tile = getTileSet().getTileById(tileId);
-        if (tile) {
-            return TileJsonSerialiser.toSerialisable(tile);
-        }
-    }).filter((tile) => tile !== null);
-
+function updateTilesOnEditors(tileIdOrIds, tileGridIndexes) {
+    tileEditor.setState({
+        updatedTileIds: Array.isArray(tileIdOrIds) ? tileIdOrIds : undefined,
+        updatedTileGridIndexes: Array.isArray(tileGridIndexes) ? tileGridIndexes : undefined
+    });
+    tileManager.setState({
+        updatedTileIds: Array.isArray(tileIdOrIds) ? tileIdOrIds : undefined
+    });
 }
 
 function resetViewportToCentre() {
@@ -2544,7 +2527,7 @@ function formatForNoProject() {
     tileManager.setState({
         tileMapList: dummyProject.tileMapList,
         tileSet: dummyProject.tileSet,
-        palette: null, 
+        palette: null,
         paletteList: null,
         selectedTileMapId: null
     });
@@ -3314,7 +3297,7 @@ function updateReferenceImage(bounds, transparencyIndex) {
         referenceImageBounds: {
             x: refImage.positionX,
             y: refImage.positionY,
-            width: bounds.width, 
+            width: bounds.width,
             height: bounds.height
         },
         referenceImageDrawMode: (transparencyIndex === -2) ? 'overlay' : (transparencyIndex === -1) ? 'underlay' : 'overIndex',
@@ -3513,7 +3496,7 @@ function setTileMapTileAttributes(attributes) {
         if (updatedTileIds.length > 0) {
             state.saveToLocalStorage();
 
-            updateTilesOnEditors(updatedTileIds);
+            updateTilesOnEditors(updatedTileIds, [tileIndex]);
             selectTileIndexIfNotSelected(tileIndex);
         } else {
             // Nothing changed, no reason to keep the undo in memory

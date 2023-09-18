@@ -109,9 +109,9 @@ export default class CanvasManager {
         return this.#paletteList;
     }
     set paletteList(value) {
-        this.invalidateImage();
         this.#paletteList = value;
         this.#renderPaletteList = null;
+        this.invalidateImage();
     }
 
     /**
@@ -769,21 +769,11 @@ export default class CanvasManager {
             const x = tileGridCol * 8 * pxSize;
             const y = tileGridRow * 8 * pxSize;
             const sizeXY = pxSize * 8;
-            if (tileInfo.horizontalFlip && tileInfo.verticalFlip) {
-                context.scale(-1, -1);
-                context.drawImage(tileImage, -x, -y, -sizeXY, -sizeXY);
-                context.setTransform(1, 0, 0, 1, 0, 0);
-            } else if (tileInfo.horizontalFlip) {
-                context.scale(-1, 1);
-                context.drawImage(tileImage, -x, y, -sizeXY, sizeXY);
-                context.setTransform(1, 0, 0, 1, 0, 0);
-            } else if (tileInfo.verticalFlip) {
-                context.scale(1, -1);
-                context.drawImage(tileImage, x, -y, sizeXY, -sizeXY);
-                context.setTransform(1, 0, 0, 1, 0, 0);
-            } else {
-                PaintUtil.drawTileImage(context, x, y, sizeXY, sizeXY, tile, palette, transparencyIndicies);
-            }
+            PaintUtil.drawTileImage(context, x, y, sizeXY, sizeXY, tile, palette, {
+                transparencyIndexes: transparencyIndicies,
+                horizontalFlip: tileInfo.horizontalFlip,
+                verticalFlip: tileInfo.verticalFlip
+            });
         }
     }
 

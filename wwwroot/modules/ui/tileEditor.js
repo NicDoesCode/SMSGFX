@@ -13,6 +13,7 @@ import TileMap from "../models/tileMap.js";
 import PaletteListJsonSerialiser from "../serialisers/paletteListJsonSerialiser.js";
 import TileGridProviderJsonSerialiser from "../serialisers/tileGridProviderJsonSerialiser.js";
 import TileSetJsonSerialiser from "../serialisers/tileSetJsonSerialiser.js";
+import TileJsonSerialiser from "../serialisers/tileJsonSerialiser.js";
 
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
@@ -214,6 +215,13 @@ export default class TileEditor extends ComponentBase {
             message.updateImage = true;
         }
 
+        if (state?.updatedTileGridIndexes && Array.isArray(state?.updatedTileGridIndexes)) {
+            message.updatedTileGridTiles = state.updatedTileGridIndexes
+                .map((index) => this.#tileGrid.getTileInfoByIndex(index) ?? null)
+                .filter((tileInfo) => tileInfo !== null);
+            message.updateImage = true;
+        }
+
         // Tile set
         if (state?.tileSet instanceof TileSet) {
             this.#tileSet = state.tileSet;
@@ -226,20 +234,36 @@ export default class TileEditor extends ComponentBase {
         }
 
         // Updated tiles
+        let updatedTiles = [];
+
         if (state?.updatedTiles && Array.isArray(state?.updatedTiles)) {
-            message.updatedTiles = state.updatedTiles;
-            message.updateImage = true;
+            updatedTiles = updatedTiles.concat(state.updatedTiles)
         }
 
-        // Updated tile indexes
         if (state?.updatedTileIndexes && Array.isArray(state?.updatedTileIndexes)) {
-            message.updatedTileIndexes = state.updatedTileIndexes;
-            message.updateImage = true;
+            updatedTiles = updatedTiles.concat(
+                state.updatedTileIndexes.map((index) => {
+                    const tile = this.#tileSet.getTileByIndex(index);
+                    if (tile) {
+                        return TileJsonSerialiser.toSerialisable(tile);
+                    } else return null;
+                }).filter((tile) => tile !== null)
+            );
         }
 
-        // Updated tile IDs
         if (state?.updatedTileIds && Array.isArray(state?.updatedTileIds)) {
-            message.updatedTileIds = state.updatedTiles;
+            updatedTiles = updatedTiles.concat(
+                state.updatedTileIds.map((tileId) => {
+                    const tile = this.#tileSet.getTileById(tileId);
+                    if (tile) {
+                        return TileJsonSerialiser.toSerialisable(tile);
+                    } else return null;
+                }).filter((tile) => tile !== null)
+            );
+        }
+
+        if (updatedTiles.length > 0) {
+            message.updatedTiles = updatedTiles;
             message.updateImage = true;
         }
 
@@ -782,9 +806,9 @@ export default class TileEditor extends ComponentBase {
  * @property {boolean?} showPixelGrid - Should the pixel grid be drawn?
  * @property {boolean?} enabled - Is the control enabled or disabled?
  * @property {number?} focusedTile - Will ensure that this tile is shown on the screen.
- * @property {import("../serialisers/tileJsonSerialiser.js").TileSerialisable[]?} updatedTiles - Tiles that have been updated.
- * @property {number[]?} updatedTileIndexes - When passing updated tiles, the entire image will not be updated and instead only these tiles will be updated.
- * @property {string[]?} [updatedTileIds] - Array of unique tile IDs that were updated.
+ * @property {number[]?} [updatedTileGridIndexes] - Array of tile grid indexes that were updated.
+ * @property {string[]?} [updatedTileIds] - Array of tile IDs that were updated.
+ * @property {number[]?} [updatedTileIndexes] - Array of tile indexes that were updated.
  * @property {string?} [canvasHighlightMode] - How the canvas highlights what is under the mouse cursor (pixel, row, column, etc).
  * @property {string|Tile|TileMap|null} [tileStampPreview] - Either a tile ID, individual tile object or tile grid object with the tile stamp preview.
  * @property {import("../models/tileGridProvider.js").TileGridRegion} [selectedRegion] - Selected region to highlight.

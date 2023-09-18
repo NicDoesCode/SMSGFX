@@ -316,6 +316,7 @@ export default class PaintUtil {
         }
     }
 
+
     /**
      * Renders an image of the tile onto a canvas object, at the size of the canvas object.
      * @param {CanvasRenderingContext2D} context - Context object to do the drawing.
@@ -325,15 +326,19 @@ export default class PaintUtil {
      * @param {number} height - Height to draw the tile image.
      * @param {Tile} tile - Tile to draw to the canvas.
      * @param {Palette} palette - Colour palette to use.
-     * @param {number[]} paletteIndiciesToRenderTransparent - Palette indicies to render as transparent.
+     * @param {DrawTileImageOptions?} [options] - Optional. Additional options for painting the tile.
      * @returns {ImageBitmap}
      */
-    static drawTileImage(context, x, y, width, height, tile, palette, paletteIndiciesToRenderTransparent) {
+    static drawTileImage(context, x, y, width, height, tile, palette, options) {
+        let transIndexes = Array.isArray(options?.transparencyIndexes) ? options.transparencyIndexes : null;
+        let hFlip = options?.horizontalFlip === true;
+        let vflip = options?.verticalFlip === true;
+
         let tilePixelIndex = 0;
         let scaleX = width / 8;
         let scaleY = height / 8;
-        let canvasX = x;
-        let canvasY = y;
+        let canvasX = hFlip ? x + (scaleX * 7) - 1 : x;
+        let canvasY = vflip ? y + (scaleY * 7) - 1 : y;
 
         for (let tileY = 0; tileY < 8; tileY++) {
             for (let tileX = 0; tileX < 8; tileX++) {
@@ -346,7 +351,7 @@ export default class PaintUtil {
                     context.fillStyle = `rgb(${colour.r}, ${colour.g}, ${colour.b})`;
                 }
 
-                if (paletteIndiciesToRenderTransparent.includes(pixelPaletteIndex)) {
+                if (transIndexes && transIndexes.includes(pixelPaletteIndex)) {
                     // This palette index is within the transparency indexes, so it shouldn't be
                     // drawn, so clear it instead of drawing it.
                     context.clearRect(canvasX, canvasY, scaleX, scaleY);
@@ -357,54 +362,10 @@ export default class PaintUtil {
 
                 tilePixelIndex++;
 
-                canvasX += scaleX;
+                canvasX += hFlip ? -scaleX : scaleX;
             }
-            canvasY += scaleY;
-            canvasX = x;
-        }
-    }
-
-    /**
-     * Renders an image of the tile onto a canvas object, at the size of the canvas object.
-     * @param {CanvasRenderingContext2D} context - Context object to do the drawing.
-     * @param {number} x - X position to draw the tile image.
-     * @param {number} y - Y position to draw the tile image.
-     * @param {number} width - Width to draw the tile image.
-     * @param {number} height - Height to draw the tile image.
-     * @param {Tile} tile - Tile to draw to the canvas.
-     * @param {Palette} palette - Colour palette to use.
-     * @param {number[]} paletteIndiciesToRenderTransparent - Palette indicies to render as transparent.
-     * @returns {ImageBitmap}
-     */
-    static drawTileImage2(context, x, y, width, height, tile, palette, paletteIndiciesToRenderTransparent) {
-        let tilePixelIndex = 0;
-        let scaleX = width / 8;
-        let scaleY = height / 8;
-        let canvasX = x;
-        let canvasY = y;
-
-        if (paletteIndiciesToRenderTransparent.length > 0) {
-            context.clearRect(x, y, width, height);
-        }
-
-        for (let pc = 0; pc < palette.getColours().length; pc++) {
-            if (!paletteIndiciesToRenderTransparent.includes(pc)) {
-                const colour = palette.getColour(pc);
-                context.fillStyle = `rgb(${colour.r}, ${colour.g}, ${colour.b})`;
-                for (let tileY = 0; tileY < 8; tileY++) {
-                    for (let tileX = 0; tileX < 8; tileX++) {
-                        const pixelPaletteIndex = tile.readAt(tilePixelIndex);
-                        if (pixelPaletteIndex === pc) {
-                            context.fillRect(canvasX, canvasY, scaleX, scaleY);
-                        }
-                        tilePixelIndex++;
-                        canvasX += scaleX;
-                    }
-                    canvasY += scaleY;
-                    canvasX = x;
-                }
-                tilePixelIndex = 0;
-            }
+            canvasY += vflip ? -scaleY : scaleY;
+            canvasX = hFlip ? x + (scaleX * 7) - 1: x;
         }
     }
 
@@ -539,3 +500,11 @@ function translateCoordinate(tileInfo, x, y) {
  * @property {string[]} affectedTileIds - The unique tile IDs that were affected by the draw operation.
  * @exports
 */
+
+/**
+ * @typedef {Object} DrawTileImageOptions
+ * @property {number[]} transparencyIndexes - Palette colour indexes that will be rendered as transparent.
+ * @property {boolean} horizontalFlip - Draw the tile horizontally reversed?
+ * @property {boolean} verticalFlip - Draw the tile vertically reversed?
+ * @exports
+ */
