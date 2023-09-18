@@ -123,7 +123,7 @@ export default class TileEditor extends ComponentBase {
         const containerResizeObserver = new ResizeObserver(() => {
             const parent = this.#tbCanvas.parentElement;
             const parentRect = parent.getBoundingClientRect();
-            this.#postImageWorkerMessage({ imageSize: { width: parentRect.width, height: parentRect.height }, updateUI: true });
+            this.#postImageWorkerMessage({ imageSize: { width: parentRect.width, height: parentRect.height }, redrawPartial: true });
         });
         containerResizeObserver.observe(this.#tbCanvas.parentElement);
 
@@ -146,7 +146,7 @@ export default class TileEditor extends ComponentBase {
         setTimeout(() => {
             const parent = this.#tbCanvas.parentElement;
             const parentRect = parent.getBoundingClientRect();
-            this.#postImageWorkerMessage({ imageSize: { width: parentRect.width, height: parentRect.height }, updateUI: true });
+            this.#postImageWorkerMessage({ imageSize: { width: parentRect.width, height: parentRect.height }, redrawPartial: true });
         }, 250);
     }
 
@@ -204,36 +204,36 @@ export default class TileEditor extends ComponentBase {
                 this.#renderPaletteList = this.#paletteList;
             }
             message.paletteList = PaletteListJsonSerialiser.toSerialisable(this.#renderPaletteList);
-            message.updateImage = true;
+            message.redrawFull = true;
         }
 
         // Tile grid
         if (state?.tileGrid instanceof TileGridProvider) {
             this.#tileGrid = state.tileGrid;
             message.tileGrid = TileGridProviderJsonSerialiser.toSerialisable(state.tileGrid);
-            message.updateImage = true;
+            message.redrawFull = true;
         } else if (state?.tileGrid === null) {
             this.#tileGrid = null;
             message.tileGrid = null;
-            message.updateImage = true;
+            message.redrawFull = true;
         }
 
         if (state?.updatedTileGridIndexes && Array.isArray(state?.updatedTileGridIndexes)) {
             message.updatedTileGridTiles = state.updatedTileGridIndexes
                 .map((index) => this.#tileGrid.getTileInfoByIndex(index) ?? null)
                 .filter((tileInfo) => tileInfo !== null);
-            message.updateImage = true;
+            message.redrawPartial = true;
         }
 
         // Tile set
         if (state?.tileSet instanceof TileSet) {
             this.#tileSet = state.tileSet;
             message.tileSet = TileSetJsonSerialiser.toSerialisable(state.tileSet);
-            message.updateImage = true;
+            message.redrawFull = true;
         } else if (state?.tileGrid === null) {
             this.#tileSet = null;
             message.tileSet = null;
-            message.updateImage = true;
+            message.redrawFull = true;
         }
 
         // Updated tiles
@@ -267,7 +267,7 @@ export default class TileEditor extends ComponentBase {
 
         if (updatedTiles.length > 0) {
             message.updatedTiles = updatedTiles;
-            message.updateImage = true;
+            message.redrawPartial = true;
         }
 
         // Scale
@@ -276,7 +276,7 @@ export default class TileEditor extends ComponentBase {
             message.scale = scaleSettings.scale;
             message.offsetX = scaleSettings.offsetX;
             message.offsetY = scaleSettings.offsetY;
-            message.updateImage = true;
+            message.redrawFull = true;
         }
 
         // Tiles per block
@@ -289,18 +289,18 @@ export default class TileEditor extends ComponentBase {
         // View option: show tile grid
         if (typeof state?.showTileGrid === 'boolean') {
             message.showTileGrid = state?.showTileGrid;
-            message.updateUI = true;
+            message.redrawPartial = true;
         }
         // View option: show pixel grid
         if (typeof state?.showPixelGrid === 'boolean') {
             message.showPixelGrid = state?.showPixelGrid;
-            message.updateUI = true;
+            message.redrawPartial = true;
         }
 
         // Selected tile index?
         if (typeof state?.selectedTileIndex === 'number') {
             message.selectedTileIndex = state.selectedTileIndex;
-            message.updateUI = true;
+            message.redrawPartial = true;
         }
 
         // Cursor size
@@ -318,34 +318,34 @@ export default class TileEditor extends ComponentBase {
         // Reference image
         if (state?.referenceImage instanceof ReferenceImage) {
             message.referenceImage = state.referenceImage.toObject();
-            message.updateImage = true;
+            message.redrawFull = true;
         } else if (state?.referenceImage === null) {
             message.referenceImage = null;
-            message.updateImage = true;
+            message.redrawFull = true;
         }
 
         // Reference image draw mode
         if (state.referenceImageBounds && state.referenceImageBounds !== null) {
             message.referenceImageBounds = state.referenceImageBounds;
-            message.updateImage = true;
+            message.redrawFull = true;
         }
 
         // Transparency indicies 
         if (Array.isArray(state?.transparencyIndicies) || state.transparencyIndicies === null) {
             message.transparencyIndicies = state.transparencyIndicies;
-            message.updateImage = true;
+            message.redrawFull = true;
         }
 
         // Reference image draw mode
         if (Array.isArray(state?.referenceImageDrawMode) || state.referenceImageDrawMode === null) {
             message.referenceImageDrawMode = state.referenceImageDrawMode ?? CanvasManager.ReferenceImageDrawMode.overIndex;
-            message.updateImage = true;
+            message.redrawFull = true;
         }
 
         // Locked palette slot index
         if (typeof state.lockedPaletteSlotIndex === 'number' || state.lockedPaletteSlotIndex === null) {
             message.lockedPaletteSlotIndex = state.lockedPaletteSlotIndex;
-            message.updateImage = true;
+            message.redrawFull = true;
         }
 
         // Canvas highlight mode
@@ -372,34 +372,34 @@ export default class TileEditor extends ComponentBase {
         // Selected region 
         if (typeof state?.selectedRegion !== 'undefined') {
             message.selectedRegion = state.selectedRegion;
-            message.updateUI = true;
+            message.redrawPartial = true;
         }
 
         // Pan the viewport horizontally
         if (typeof state?.viewportPanHorizontal === 'number') {
             message.panViewportX = state.viewportPanHorizontal;
-            message.updateUI = true;
+            message.redrawPartial = true;
         }
 
         // Pan the viewport vertically
         if (typeof state?.viewportPanVertical === 'number') {
             message.panViewportY = state.viewportPanVertical;
-            message.updateUI = true;
+            message.redrawPartial = true;
         }
 
         if (this.#lastCoords) {
             message.mousePosition = { x: this.#lastCoords.x, y: this.#lastCoords.y };
-            message.updateUI = true;
+            message.redrawPartial = true;
         }
 
         if (typeof state?.focusedTile === 'number' && canvasState.hasTileGrid) {
             this.#focusTileOnMessage(state?.focusedTile, message);
-            message.updateUI = true;
+            message.redrawPartial = true;
         }
 
         // Force refresh?
         if (typeof state.forceRefresh === 'boolean' && state.forceRefresh === true) {
-            message.updateImage = true;
+            message.redrawFull = true;
         }
 
         message.imageSize = {
@@ -480,7 +480,7 @@ export default class TileEditor extends ComponentBase {
                         this.#dispatcher.dispatch(EVENT_OnEvent, args);
                         this.#lastCoords = coords;
                         this.#lastMouseCoords = convertViewportCoordsToCanvasCoords(this.#tbCanvas, ev.clientX, ev.clientY);
-                        this.#postImageWorkerMessage({ mousePosition: { x: coords.x, y: coords.y }, updateUI: true });
+                        this.#postImageWorkerMessage({ mousePosition: { x: coords.x, y: coords.y }, redrawPartial: true });
                     }
                 }
             }
@@ -668,7 +668,7 @@ export default class TileEditor extends ComponentBase {
                 message.panViewportY = -(ev.deltaY * 3);
             }
             this.#postImageWorkerMessage({
-                updateUI: true,
+                redrawPartial: true,
                 ...message
             });
             ev.preventDefault();
@@ -701,7 +701,7 @@ export default class TileEditor extends ComponentBase {
      */
     panCanvas(amountX, amountY) {
         this.#postImageWorkerMessage({
-            updateUI: true,
+            redrawPartial: true,
             panViewportX: amountX,
             panViewportY: amountY
         });

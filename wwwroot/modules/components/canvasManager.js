@@ -390,7 +390,9 @@ export default class CanvasManager {
      */
     invalidateTile(index) {
         // Set redraw variables
-        this.#redrawTiles.push(index);
+        if (!this.#redrawTiles.includes(index)) {
+            this.#redrawTiles.push(index);
+        }
         this.#tilePreviewCanvas = null;
     }
 
@@ -400,7 +402,9 @@ export default class CanvasManager {
      */
     invalidateTileId(tileId) {
         this.tileGrid.getTileIdIndexes(tileId).forEach((index) => {
-            this.#redrawTiles.push(index);
+            if (!this.#redrawTiles.includes(index)) {
+                this.#redrawTiles.push(index);
+            }
         });
         this.#tilePreviewCanvas = null;
     }
@@ -822,10 +826,9 @@ export default class CanvasManager {
      * @param {number} mouseY - Y position of the cursor on the image.
      */
     drawUI(context, canvas, mouseX, mouseY) {
-        if (!context) throw new Error('drawUI: No canvas.');
+        if (!context) throw new Error('drawUI: No canvas draw context.');
 
         const tileCanvas = this.#tileCanvas;
-        // const context = canvas.getContext('2d');
 
         // Fill canvas background
         if (this.backgroundColour === null || this.backgroundColour === 'transparent') {
@@ -847,11 +850,11 @@ export default class CanvasManager {
             this.#refreshTileImage();
             this.#redrawTiles = [];
             this.#needToDrawTileImage = false;
-        }
-
-        while (this.#redrawTiles.length > 0) {
-            const tileIndex = this.#redrawTiles.pop();
-            this.#refreshSingleTile(tileIndex);
+        } else {
+            while (this.#redrawTiles.length > 0) {
+                const tileIndex = this.#redrawTiles.pop();
+                this.#refreshSingleTile(tileIndex);
+            }
         }
 
         const drawCoords = this.getDrawCoords(canvas);

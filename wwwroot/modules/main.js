@@ -2833,7 +2833,6 @@ function takeToolAction(args) {
 
                 const result = takeToolAction_tileStamp(args);
                 if (result != null) {
-                    updatedTileIds = updatedTileIds.concat(result.updatedTileIds);
                     updatedTileMapTileIndexes = updatedTileMapTileIndexes.concat(result.updatedTileMapTileIndexes);
                     saveProject = true;
                 }
@@ -2855,7 +2854,6 @@ function takeToolAction(args) {
                             tilesPerBlock: args.tilesPerBlock
                         });
                         if (result != null) {
-                            updatedTileIds = updatedTileIds.concat(result.updatedTileIds);
                             updatedTileMapTileIndexes = updatedTileMapTileIndexes.concat(result.updatedTileMapTileIndexes);
                         } else {
                             undoManager.removeLastUndo();

@@ -92,6 +92,7 @@ function applyUpdateToCanvasManager(message) {
                     tileMapTile.verticalFlip = tileInfo.verticalFlip;
                     tileMapTile.palette = tileInfo.paletteIndex;
                 }
+                canvasManager.invalidateTile(tileInfo.tileIndex);
             }
         });
     }
@@ -290,8 +291,8 @@ function makeImageResponse() {
 /**
  * @typedef {Object} TileEditorViewportWorkerMessage 
  * @property {boolean} [requestBitmapImage] - When true, a bitmap image will be returned.
- * @property {boolean} [updateImage] - When true, the image will be updated and posted back, when set, it also implies update UI.
- * @property {boolean} [updateUI] - When true, the UI component of the image will be updated and posted back.
+ * @property {boolean} [redrawFull] - When true, the image will be updated and posted back, when set, it also implies update UI.
+ * @property {boolean} [redrawPartial] - When true, the UI component of the image will be updated and posted back.
  * @property {import('../types.js').Coordinate} [mousePosition] - Mouse X and Y position.
  * @property {import('../serialisers/tileGridProviderJsonSerialiser.js').TileGridProviderSerialisable?} [tileGrid] - Tile grid to draw.
  * @property {import('../serialisers/tileSetJsonSerialiser.js').TileSetSerialisable?} [tileSet] - Tile set that contains the tiles used by the tile grid.
