@@ -159,6 +159,8 @@ export default class TileEditor extends ComponentBase {
      */
     setState(state) {
 
+        let tileGridChanging = state.tileGrid !== undefined ? tileGridIsChanging(this.#tileGrid, state.tileGrid) : false;
+
         /** @type {import('./../worker/tileEditorViewportWorker.js').TileEditorViewportWorkerMessage} */
         const message = {};
 
@@ -264,8 +266,10 @@ export default class TileEditor extends ComponentBase {
         if (typeof state?.scale === 'number') {
             const scaleSettings = this.#getScalingValues(state.scale, state.scaleRelativeToMouse);
             message.scale = scaleSettings.scale;
-            message.offsetX = scaleSettings.offsetX;
-            message.offsetY = scaleSettings.offsetY;
+            if (!tileGridChanging) {
+                message.offsetX = scaleSettings.offsetX;
+                message.offsetY = scaleSettings.offsetY;
+            }
             message.redrawFull = true;
         }
 
@@ -997,4 +1001,15 @@ function convertViewportCoordsToCanvasCoords(canvas, viewportX, viewportY) {
         x: viewportX - canvasRect.left - (canvasState.scale / 2),
         y: viewportY - canvasRect.top - (canvasState.scale / 2)
     };
+}
+
+/**
+ * 
+ * @param {TileGridProvider} previous 
+ * @param {TileGridProvider} incoming 
+ */
+function tileGridIsChanging(previous, incoming) {
+    const prevId = (previous instanceof TileMap) ? previous.tileMapId : null;
+    const newId = (incoming instanceof TileMap) ? incoming.tileMapId : null;
+    return newId !== prevId;
 }
