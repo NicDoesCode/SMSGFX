@@ -752,7 +752,7 @@ export default class CanvasManager {
         const tileWidth = Math.max(this.tileGrid.columnCount, 1);
         const tileGridCol = tileindex % tileWidth;
         const tileGridRow = (tileindex - tileGridCol) / tileWidth;
-        const palette = this.#renderPaletteList.getPalette(tileInfo.paletteIndex);
+        const palette = this.#renderPaletteList.getPalette(Math.min(tileInfo.paletteIndex, this.#renderPaletteList.getPalettes().length - 1));
 
         context.imageSmoothingEnabled = false;
 
