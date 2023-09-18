@@ -1182,7 +1182,7 @@ export default class CanvasManager {
                     const tsCol = coords.tile.col + r;
                     if (isInBounds(this.tileGrid, tsRow, tsCol)) {
                         const tsTile = this.tileGrid.getTileInfoByRowAndColumn(tsRow, tsCol);
-                        const pTile = this.#tilePreviewMap.getTileByCoordinate(r, c);
+                        const pTile = this.#tilePreviewMap.getTileByRowAndColumn(r, c);
                         if (tsTile && (pTile.paletteIndex !== tsTile.paletteIndex || pTile.horizontalFlip !== tsTile.horizontalFlip || pTile.verticalFlip !== tsTile.verticalFlip)) {
                             pTile.palette = tsTile.paletteIndex;
                             pTile.horizontalFlip = tsTile.horizontalFlip;

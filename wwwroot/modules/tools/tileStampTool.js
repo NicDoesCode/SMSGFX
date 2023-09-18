@@ -10,12 +10,20 @@ export default class TileStampTool {
      */
     static stampTile(args) {
         const updatedTileIds = [];
-        const tileInfo = args.tileMap.getTileByCoordinate(args.tileRow, args.tileCol);
+        const updatedTileMapTileIndexes = [];
+
+        const tileInfo = args.tileMap.getTileInfoByRowAndColumn(args.tileRow, args.tileCol);
         if (tileInfo && tileInfo.tileId !== args.tileId) {
-            tileInfo.tileId = args.tileId;
-            updatedTileIds.push(tileInfo.tileId);
+            const tileMapTile = args.tileMap.getTileByIndex(tileInfo.tileIndex);
+            tileMapTile.tileId = args.tileId;
+            updatedTileIds.push(tileMapTile.tileId);
+            updatedTileMapTileIndexes.push(tileInfo.tileIndex);
         }
-        return { updatedTileIds: updatedTileIds };
+
+        return {
+            updatedTileIds: updatedTileIds,
+            updatedTileMapTileIndexes: updatedTileMapTileIndexes
+        };
     }
 
     /**
@@ -25,24 +33,31 @@ export default class TileStampTool {
      */
     static stampTileMap(args) {
         const updatedTileIds = [];
+        const updatedTileMapTileIndexes = [];
 
-        for (let r = 0; r < args.stampTileMap.rowCount; r++) {
-            const row = args.tileRow + r;
-            for (let c = 0; c < args.stampTileMap.columnCount; c++) {
-                const col = args.tileCol + c;
-                const tileInfo = args.tileMap.getTileByCoordinate(row, col);
-                const stampTileInfo = args.stampTileMap.getTileByCoordinate(r, c);
-                if (tileInfo && stampTileInfo) {
-                    tileInfo.tileId = stampTileInfo.tileId;
-                    tileInfo.horizontalFlip = stampTileInfo.horizontalFlip;
-                    tileInfo.verticalFlip = stampTileInfo.verticalFlip;
-                    tileInfo.palette = stampTileInfo.palette;
-                    tileInfo.priority = stampTileInfo.priority;
-                    updatedTileIds.push(tileInfo.tileId);
+        for (let stampRow = 0; stampRow < args.stampTileMap.rowCount; stampRow++) {
+            const row = args.tileRow + stampRow;
+            for (let stampCol = 0; stampCol < args.stampTileMap.columnCount; stampCol++) {
+                const col = args.tileCol + stampCol;
+                const tileInfo = args.tileMap.getTileInfoByRowAndColumn(row, col);
+                const stampTile = args.stampTileMap.getTileByRowAndColumn(stampRow, stampCol);
+                if (tileInfo && stampTile) {
+                    const tileMapTile = args.tileMap.getTileByIndex(tileInfo.tileIndex);
+                    tileMapTile.tileId = stampTile.tileId;
+                    tileMapTile.horizontalFlip = stampTile.horizontalFlip;
+                    tileMapTile.verticalFlip = stampTile.verticalFlip;
+                    tileMapTile.palette = stampTile.palette;
+                    tileMapTile.priority = stampTile.priority;
+                    updatedTileIds.push(tileMapTile.tileId);
+                    updatedTileMapTileIndexes.push(tileInfo.tileIndex);
                 }
             }
         }
-        return { updatedTileIds: updatedTileIds };
+
+        return { 
+            updatedTileIds: updatedTileIds, 
+            updatedTileMapTileIndexes: updatedTileMapTileIndexes
+        };
     }
 
 }
@@ -70,5 +85,6 @@ export default class TileStampTool {
  * Result for the tile stamp tool.
  * @typedef {Object} TileStampResult
  * @property {string[]} updatedTileIds - Unique IDs of tiles affected by the operation.
+ * @property {string[]} updatedTileMapTileIndexes - Indexes of the tile map tiles that were affected.
  * @exports
  */

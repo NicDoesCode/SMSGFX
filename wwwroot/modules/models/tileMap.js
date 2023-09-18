@@ -174,7 +174,7 @@ export default class TileMap extends TileGridProvider {
      * @param {number} columnIndex - Column index to obtain the tile from.
      * @returns {TileMapTile?}
      */
-    getTileByCoordinate(rowIndex, columnIndex) {
+    getTileByRowAndColumn(rowIndex, columnIndex) {
         const index = (rowIndex * this.columnCount) + columnIndex;
         return this.getTileByIndex(index);
     }

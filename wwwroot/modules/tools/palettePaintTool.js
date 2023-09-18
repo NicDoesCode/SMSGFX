@@ -33,7 +33,7 @@ export default class PalettePaintTool {
             const row = mapRow + r;
             for (let c = 0; c < args.tilesPerBlock; c++) {
                 const col = mapCol + c;
-                const tileInfo = args.tileMap.getTileByCoordinate(row, col);
+                const tileInfo = args.tileMap.getTileByRowAndColumn(row, col);
                 if (tileInfo && tileInfo.palette !== args.paletteIndex) {
                     tileInfo.palette = args.paletteIndex;
                     updatedTileIds.push(tileInfo.tileId);

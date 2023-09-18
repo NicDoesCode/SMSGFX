@@ -2786,6 +2786,8 @@ function takeToolAction(args) {
             let actionTaken = false;
             /** @type {string[]} */
             let updatedTileIds = [];
+            /** @type {number[]} */
+            let updatedTileMapTileIndexes = [];
 
             if (tool === TileEditorToolbar.Tools.tileMapTileAttributes && args.isInBounds) {
                 if (event === TileEditor.Events.pixelMouseDown) {
@@ -2829,9 +2831,10 @@ function takeToolAction(args) {
                 }
             } else if (tool === TileEditorToolbar.Tools.tileStamp) {
 
-                const stampUpdatedTileIds = takeToolAction_tileStamp(args);
-                if (Array.isArray(stampUpdatedTileIds)) {
-                    updatedTileIds = updatedTileIds.concat(stampUpdatedTileIds);
+                const stampResult = takeToolAction_tileStamp(args);
+                if (stampResult != null) {
+                    updatedTileIds = updatedTileIds.concat(stampResult.updatedTileIds);
+                    updatedTileMapTileIndexes = updatedTileMapTileIndexes.concat(stampResult.updatedTileMapTileIndexes);
                     saveProject = true;
                 }
 
@@ -2892,7 +2895,7 @@ function takeToolAction(args) {
                 });
             }
 
-            updateTilesOnEditors(updatedTileIds);
+            updateTilesOnEditors(updatedTileIds, updatedTileMapTileIndexes);
         }
 
     }
@@ -2932,7 +2935,7 @@ function takeToolAction_breakLinks(tileIndexes, originalTileSet) {
 
 /** 
  * @param {ToolActionArgs} args 
- * @returns {string[]?}
+ * @returns {{updatedTileIds: string[], updatedTileMapTileIndexes: number[]}?}
  */
 function takeToolAction_tileStamp(args) {
     if (!args.isInBounds) return;
@@ -3016,8 +3019,11 @@ function takeToolAction_tileStamp(args) {
                         tileCol: args.tile.col
                     });
                 }
-                if (result.updatedTileIds.length > 0) {
-                    return result.updatedTileIds;
+                if (result.updatedTileMapTileIndexes.length > 0) {
+                    return { 
+                        updatedTileIds: result.updatedTileIds,
+                        updatedTileMapTileIndexes: result.updatedTileMapTileIndexes
+                    };
                 } else {
                     undoManager.removeLastUndo();
                 }
@@ -3513,7 +3519,7 @@ function setTileStampDefineMode() {
     getToolState().mode = 'define';
     tileEditor.setState({
         selectedRegion: getToolState().selectedRegion,
-        tileStampPreview: null
+        tileStampPattern: null
     });
     tileContextToolbar.setState({ selectedCommands: [TileContextToolbar.Commands.tileStampDefine] });
 }
@@ -3531,7 +3537,7 @@ function confirmTileStampRegion() {
         const row = region.rowIndex + r;
         for (let c = 0; c < region.width; c++) {
             const col = region.columnIndex + c;
-            const tile = getTileMap().getTileByCoordinate(row, col);
+            const tile = getTileMap().getTileByRowAndColumn(row, col);
             tiles.push(TileMapTileFactory.create({
                 tileId: tile.tileId,
                 horizontalFlip: tile.horizontalFlip,
@@ -3554,7 +3560,7 @@ function confirmTileStampRegion() {
 
     tileEditor.setState({
         selectedRegion: null,
-        tileStampPreview: stampTileMap
+        tileStampPattern: stampTileMap
     });
     tileContextToolbar.setState({
         selectedCommands: []
@@ -4405,7 +4411,7 @@ function tileSetTileSelectById(tileId) {
 
     // Set the stamp preview in the canvas
     if (instanceState.tool === TileEditorToolbar.Tools.tileStamp) {
-        tileEditor.setState({ tileStampPreview: tile?.tileId ?? null });
+        tileEditor.setState({ tileStampPattern: tile?.tileId ?? null });
     }
 }
 
@@ -4684,9 +4690,9 @@ function selectTool(tool) {
             if (!getProjectUIState().tileId && getTileSet() && getTileSet().length > 0 || !getTileSet().getTileById(getProjectUIState().tileId)) {
                 tileSetTileSelectById(getTileSet().getTile(0).tileId);
             }
-            tileEditor.setState({ tileStampPreview: getProjectUIState().tileId });
+            tileEditor.setState({ tileStampPattern: getProjectUIState().tileId });
         } else {
-            tileEditor.setState({ tileStampPreview: null });
+            tileEditor.setState({ tileStampPattern: null });
         }
 
         if (tool !== TileEditorToolbar.Tools.tileStamp && getProject() !== null) {

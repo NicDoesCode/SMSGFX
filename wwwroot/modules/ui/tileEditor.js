@@ -14,6 +14,9 @@ import PaletteListJsonSerialiser from "../serialisers/paletteListJsonSerialiser.
 import TileGridProviderJsonSerialiser from "../serialisers/tileGridProviderJsonSerialiser.js";
 import TileSetJsonSerialiser from "../serialisers/tileSetJsonSerialiser.js";
 import TileJsonSerialiser from "../serialisers/tileJsonSerialiser.js";
+import TileMapFactory from "../factory/tileMapFactory.js";
+import TileMapTileFactory from "../factory/tileMapTileFactory.js";
+import TileMapJsonSerialiser from "../serialisers/tileMapJsonSerialiser.js";
 
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
@@ -351,8 +354,19 @@ export default class TileEditor extends ComponentBase {
         }
 
         // Tile stamp preview
-        if (typeof state.tileStampPreview === 'string' || state.tileStampPreview instanceof TileMap || state.tileStampPreview instanceof Tile || state.tileStampPreview === null) {
-            message.tileStampPreview = state.tileStampPreview;
+        if (typeof state.tileStampPattern === 'string') {
+            const tile = this.#tileSet.getTileById(state.tileStampPattern);
+            if (tile) {
+                const previewTileMap = TileMapFactory.create({ tiles: [TileMapTileFactory.create({ tileId: tile.tileId })] });
+                message.tileStampPattern = TileMapJsonSerialiser.toSerialisable(previewTileMap);
+            }
+        } else if (state.tileStampPattern instanceof Tile) {
+            const previewTileMap = TileMapFactory.create({ tiles: TileMapTileFactory.create({ tileId: state.tileStampPattern.tileId }) });
+            message.tileStampPattern = TileMapJsonSerialiser.toSerialisable(previewTileMap);
+        } else if (state.tileStampPattern instanceof TileMap) {
+            message.tileStampPattern = TileMapJsonSerialiser.toSerialisable(state.tileStampPattern);
+        } else if (state.tileStampPattern === null) {
+            message.tileStampPattern = null;
         }
 
         // Selected region 
@@ -810,7 +824,7 @@ export default class TileEditor extends ComponentBase {
  * @property {string[]?} [updatedTileIds] - Array of tile IDs that were updated.
  * @property {number[]?} [updatedTileIndexes] - Array of tile indexes that were updated.
  * @property {string?} [canvasHighlightMode] - How the canvas highlights what is under the mouse cursor (pixel, row, column, etc).
- * @property {string|Tile|TileMap|null} [tileStampPreview] - Either a tile ID, individual tile object or tile grid object with the tile stamp preview.
+ * @property {string|Tile|TileMap|null} [tileStampPattern] - Either a tile ID, individual tile object or tile grid object with the tile stamp preview.
  * @property {import("../models/tileGridProvider.js").TileGridRegion} [selectedRegion] - Selected region to highlight.
  * @property {boolean?} [forceRefresh] - When true the tile grid image will be refreshed.
  * @property {boolean?} [requestExportImage] - Request that the displayed image be exported.

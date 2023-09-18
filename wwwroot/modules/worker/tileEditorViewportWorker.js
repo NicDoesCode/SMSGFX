@@ -5,6 +5,7 @@ import TileMap from "../models/tileMap.js";
 import PaletteListJsonSerialiser from "../serialisers/paletteListJsonSerialiser.js";
 import TileGridProviderJsonSerialiser from "../serialisers/tileGridProviderJsonSerialiser.js";
 import TileJsonSerialiser from "../serialisers/tileJsonSerialiser.js";
+import TileMapJsonSerialiser from "../serialisers/tileMapJsonSerialiser.js";
 import TileSetJsonSerialiser from "../serialisers/tileSetJsonSerialiser.js";
 import ReferenceImage from "./../models/referenceImage.js";
 
@@ -207,9 +208,11 @@ function applyUpdateToCanvasManager(message) {
     } else if (message.referenceImageDrawMode === null) {
         canvasManager.referenceImageDrawMode = 'overIndex';
     }
-
-    if (typeof message.tileStampPreview === 'string' || message.tileStampPreview instanceof TileMap || message.tileStampPreview instanceof Tile || message.tileStampPreview === null) {
-        canvasManager.setTilePreview(message.tileStampPreview);
+    if (message.tileStampPattern) {
+        const pattern = TileMapJsonSerialiser.fromSerialisable(message.tileStampPattern);
+        canvasManager.setTilePreview(pattern);
+    } else if (message.tileStampPattern === null) {
+        canvasManager.setTilePreview(null);
     }
     if (typeof message.selectedRegion !== 'undefined') {
         if (message.selectedRegion !== null) {
@@ -319,7 +322,7 @@ function makeImageResponse() {
  * @property {import('./../models/referenceImage.js').ReferenceImageObject} [referenceImage] - Reference image to display.
  * @property {import('../types.js').Bounds} [referenceImageBounds] - Bounds for the reference image.
  * @property {string} [referenceImageDrawMode] - Draw mode for the reference image.
- * @property {string|Tile|TileGridProvider|null} [tileStampPreview] - Either a tile ID, individual tile object or tile grid object with the tile stamp preview.
+ * @property {import('../serialisers/tileMapJsonSerialiser.js').TileMapSerialisable|null} [tileStampPattern] - Serialisable tile map object that contains the tile stamp pattern.
  * @property {import("../models/tileGridProvider.js").TileGridRegion} [selectedRegion] - Selected region to highlight.
  * @property {import('../types.js').Dimension} [imageSize] - Size of the output image.
  * @exports
