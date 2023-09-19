@@ -2115,11 +2115,17 @@ function getPaletteListToSuitTileMapOrTileSetSelection() {
         // when we exceed the amount of allowed palettes in the tile map, instead just repeat
         // the last selected palette.
         const capability = SystemUtil.getGraphicsCapability(getProject().systemType, getTileMap().isSprite ? 'sprite' : 'background');
-        const tileMap = getTileMap();
-        const palettes = new Array(capability.totalPaletteSlots);
         const paletteList = PaletteListFactory.create();
-        for (let i = 0; i < palettes.length; i++) {
-            paletteList.addPalette(getPaletteList().getPaletteById(tileMap.getPalette(i)));
+        let lastGoodPalette = PaletteFactory.createNewStandardColourPaletteBySystemType(getProject().systemType);
+        for (let i = 0; i < capability.totalPaletteSlots; i++) {
+            const paletteId = getTileMap().getPalette(i);
+            let palette = getPaletteList().getPaletteById(paletteId);
+            if (palette) {
+                lastGoodPalette = palette;
+            } else {
+                palette = PaletteFactory.createNewStandardColourPaletteBySystemType(getProject().systemType);
+            }
+            paletteList.addPalette(palette);
         }
         return paletteList;
     } else {
@@ -2390,7 +2396,7 @@ function formatForProject() {
         enabled: true
     });
     paletteEditor.setState({
-        paletteList: PaletteListFactory.create(),
+        paletteList: project.paletteList,
         selectedColourIndex: 0,
         displayNative: getUIState().displayNativeColour,
         enabled: false
@@ -3691,6 +3697,7 @@ function paletteDelete(paletteIndex) {
         try {
 
             getPaletteList().removeAt(paletteIndex);
+
             if (getPaletteList().length === 0) {
                 const newPalette = PaletteFactory.createNewStandardColourPalette('New palette', getDefaultPaletteSystemType());
                 getPaletteList().addPalette(newPalette);
@@ -3700,6 +3707,13 @@ function paletteDelete(paletteIndex) {
             }
 
             state.saveToLocalStorage();
+
+            paletteEditor.setState({
+                paletteList: getPaletteList()
+            });
+            tileManager.setState({
+                paletteList: getPaletteList()
+            });
 
             const palette = getPaletteList().getPalette(paletteIndex);
             changePalette(palette.paletteId);
@@ -4816,7 +4830,6 @@ function changePalette(paletteId) {
 function changePaletteIndex(index) {
     if (index < 0) index = getPaletteList().length - 1;
     if (index >= getPaletteList().length) index = 0;
-    if (index === getProjectUIState().paletteIndex) return;
 
     getProjectUIState().paletteIndex = index;
     state.saveToLocalStorage();
@@ -4832,8 +4845,6 @@ function changePaletteIndex(index) {
             paletteList: getPaletteListToSuitTileMapOrTileSetSelection()
         });
     }
-
-    // refreshProjectUI();
 }
 
 function getTransparencyIndicies() {
