@@ -1232,6 +1232,12 @@ export default class CanvasManager {
      * @param {CanvCoords} coords 
      */
     #drawReferenceImages(context, coords) {
+        const originalSmoothingEnabled = context.imageSmoothingEnabled;
+        const originalSmoothingQuality = context.imageSmoothingQuality;
+
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = 'high';
+
         const pxSize = coords.pxSize;
         context.globalAlpha = 0.5;
         this.#referenceImages.forEach(ref => {
@@ -1243,7 +1249,10 @@ export default class CanvasManager {
             }
         });
         context.globalAlpha = 1;
-    }
+  
+        context.imageSmoothingEnabled = originalSmoothingEnabled;
+        context.imageSmoothingQuality = originalSmoothingQuality;
+  }
 
     /**
      * @param {CanvasRenderingContext2D} context 
