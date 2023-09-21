@@ -413,10 +413,6 @@ export default class PaletteEditor extends ComponentBase {
                 node.remove();
             });
 
-            // while (virtualList.childNodes.length > 0) {
-            //     virtualList.childNodes.item(0).remove();
-            // }
-
             // Create the new options
             select.querySelectorAll('option').forEach((option, index) => {
                 const paletteId = option.getAttribute('data-palette-id');
@@ -662,6 +658,6 @@ export default class PaletteEditor extends ComponentBase {
  * @property {number?} colourIndex - Index from 0 to 15 for the given colour.
  * @property {number?} targetColourIndex - Target palette colour index from 0 to 15 for 'ms' and 'gg', 0 to 3 for 'gb' or 'nes'.
  * @property {boolean?} displayNative - Display native colours for system?
- * @property {string?} [field] - Index of the selected palette.
+ * @property {string?} [field] - Field to sort by.
  * @exports
  */

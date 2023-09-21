@@ -12,7 +12,17 @@
             <button class="btn btn-outline-secondary dropdown-toggle btn-ui border border-0 border-start" type="button"
                 data-bs-toggle="dropdown" aria-expanded="false" title="Select an existing tile map to edit."></button>
             <ul data-smsgfx-id="tileMapSelectDropDown" class="dropdown-menu">
-            </ul>
+                <li><a data-command="sort" data-field="title" data-auto-event="click" class="dropdown-item"
+                        href="#">Sort by title</a></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li><a data-command="tileSetSelect" data-auto-event="click" class="dropdown-item"
+                    href="#">Edit tile set</a></li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
+        </ul>
         </div>
 
         <div class="overflow-hidden overflow-y-auto">
@@ -135,7 +145,8 @@
                 <p class="flex-fill p-1 ps-2 m-0 text-start">Tile set</p>
             </button>
             <button data-command="assemblyImport" data-auto-event="click"
-                class="btn btn-ui btn-outline-secondary border border-start border-0 rounded-end" title="Import tiles from assembly code.">
+                class="btn btn-ui btn-outline-secondary border border-start border-0 rounded-end"
+                title="Import tiles from assembly code.">
                 <i class="bi bi-code"></i>
             </button>
         </div>

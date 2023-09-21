@@ -36,6 +36,18 @@ export default class TileMapList {
     }
 
     /**
+     * Sets the items in the list.
+     * @param {TileMap[]} values - Array of values.
+     */
+    setTileMaps(values) {
+        if (Array.isArray(values)) {
+            const filtered = values.filter((tileMap) => tileMap !== null && tileMap instanceof TileMap);
+            this.#tileMaps = filtered;
+        }
+    }
+
+
+    /**
      * Gets whether the project contains a tile map by ID.
      * @param {string} tileMapId - ID of the item to check.
      * @returns {boolean}

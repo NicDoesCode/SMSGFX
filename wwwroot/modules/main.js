@@ -133,7 +133,9 @@ const instanceState = {
     /** @type {import("./types.js").SampleProject[]} */
     sampleProjects: [],
     /** @type {import("./types.js").SortEntry?} */
-    paletteSort: null
+    paletteSort: null,
+    /** @type {import("./types.js").SortEntry?} */
+    tileMapSort: null
 };
 
 
@@ -1185,7 +1187,7 @@ function handlePaletteEditorOnCommand(args) {
 
         case PaletteEditor.Commands.sort:
             if (typeof args.field === 'string' || args.field === null) {
-                sortPalettes(args.field);
+                paletteListSort(args.field);
             }
             break;
 
@@ -1358,6 +1360,10 @@ function handleTileManagerOnCommand(args) {
 
         case TileManager.Commands.tileMapSelect:
             tileMapOrTileSetSelectById(args.tileMapId);
+            break;
+
+        case TileManager.Commands.sort:
+            tileMapSort(args.field);
             break;
 
         case TileManager.Commands.tileSelect:
@@ -3759,7 +3765,7 @@ function paletteDelete(paletteIndex) {
 /**
  * @param {string?} field 
  */
-function sortPalettes(field) {
+function paletteListSort(field) {
     let dir = instanceState.paletteSort?.direction === 'desc' ? -1 : 1; // Default to ascending
     if (instanceState.paletteSort?.field !== field) {
         dir = 1; // If different field, sort ascending
@@ -4668,6 +4674,45 @@ function tileMapUpdate(tileMapId, args) {
         transparencyIndicies: getTransparencyIndicies(),
         lockedPaletteSlotIndex: graphicsCapability.lockedPaletteIndex,
         forceRefresh: true
+    });
+}
+
+/**
+ * @param {string?} field 
+ */
+function tileMapSort(field) {
+    let dir = instanceState.tileMapSort?.direction === 'desc' ? -1 : 1; // Default to ascending
+    if (instanceState.tileMapSort?.field !== field) {
+        dir = 1; // If different field, sort ascending
+    } else if (instanceState.tileMapSort?.field === field) {
+        dir *= -1; // If same field, swap sort direction
+    }
+    let sortedField = null;
+
+    const tileMaps = getTileMapList().getTileMaps();
+    switch (field) {
+        case TileManager.SortFields.title:
+            sortedField = field;
+            tileMaps.sort((a, b) => (a.title > b.title ? 1 : -1) * dir);
+            break;
+    }
+
+    // Record last sort, if last field was null then no valid value was passed so don't record
+    if (sortedField) {
+        instanceState.tileMapSort = {
+            field: sortedField,
+            direction: dir === 1 ? 'asc' : 'desc'
+        };
+    }
+
+    // Update the project
+    addUndoState();
+    getTileMapList().setTileMaps(tileMaps);
+    state.saveProjectToLocalStorage();
+
+    // Set the UI state
+    tileManager.setState({
+        tileMapList: getTileMapList()
     });
 }
 
