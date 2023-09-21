@@ -220,9 +220,9 @@ export default class PaletteFactory {
  */
 
 
-const defaultColoursMS = ['#000000', '#000000', '#00AA00', '#00FF00', '#000055', '#0000FF', '#550000', '#00FFFF', '#AA0000', '#FF0000', '#555500', '#FFFF00', '#005500', '#FF00FF', '#555555', '#FFFFFF'];
-const defaultColoursGB = ['#000000', '#555555', '#AAAAAA', '#FFFFFF'];
-const defaultColourNES = ['#000000', '#38b4cc', '#3032ec', '#FFFFFF'];
+const defaultColoursMS = ['#FFFFFF', '#000000', '#FFFFFF', '#555555', '#00AA00', '#00FF00', '#000055', '#0000FF', '#FF0000', '#550000', '#FFFF00', '#FF5500', '#FF00FF', '#FF0055', '#00AAAA', '#005555'];
+const defaultColoursGB = ['#FFFFFF', '#AAAAAA', '#555555', '#000000'];
+const defaultColourNES = ['#FFFFFF', '#3032ec', '#38b4cc', '#000000'];
 
 /**
  * Gets the colour that corresponds with the NES colour code.

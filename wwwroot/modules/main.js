@@ -1659,6 +1659,9 @@ function handleImportPaletteModalDialogueOnConfirm(args) {
         paletteList: getPaletteList(),
         selectedPaletteIndex: getProjectUIState().paletteIndex
     });
+    tileManager.setState({
+        paletteList: getPaletteList()
+    });
     tileEditor.setState({
         paletteList: getPaletteListToSuitTileMapOrTileSetSelection()
     });
@@ -3658,6 +3661,13 @@ function paletteNew() {
 
         state.saveToLocalStorage();
 
+        paletteEditor.setState({
+            paletteList: getPaletteList()
+        });
+        tileManager.setState({
+            paletteList: getPaletteList()
+        });
+
         changePalette(newPalette.paletteId);
         toast.show('Palette created.');
     } catch (e) {
@@ -3679,6 +3689,13 @@ function paletteClone(paletteIndex) {
 
             state.saveToLocalStorage();
 
+            paletteEditor.setState({
+                paletteList: getPaletteList()
+            });
+            tileManager.setState({
+                paletteList: getPaletteList()
+            });
+    
             changePalette(newPalette.paletteId);
 
             toast.show('Palette cloned.');
@@ -3714,7 +3731,10 @@ function paletteDelete(paletteIndex) {
             tileManager.setState({
                 paletteList: getPaletteList()
             });
-
+            tileEditor.setState({
+                paletteList: getPaletteListToSuitTileMapOrTileSetSelection()
+            });
+        
             const palette = getPaletteList().getPalette(paletteIndex);
             changePalette(palette.paletteId);
 

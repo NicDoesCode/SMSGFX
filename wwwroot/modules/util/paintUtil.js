@@ -169,8 +169,8 @@ export default class PaintUtil {
             y = y % 8;
         }
 
-        const coords = translateCoordinate(tileInfo, x % 8, y % 8);
-        const originColour = tile.readAtCoord(coords.x, coords.y);
+        const coord = translateCoordinate(tileInfo, x % 8, y % 8);
+        const originColour = tile.readAtCoord(coord.x, coord.y);
         if (originColour === null || originColour === fillColour) return { affectedTileIds: [], affectedTileIndexes: [] };
 
         const updatedTileIds = {};
@@ -179,19 +179,19 @@ export default class PaintUtil {
         /** @type {FillProps} */
         const props = { tileGrid, tileSet, w, h, originColour };
 
-        if (pxIsInsideImageAndMatchesOriginColour(x, y, props)) {
+        if (pxIsInsideImageAndMatchesOriginColour(coord.x, coord.y, props)) {
 
             /** @type {Coordinate[]} */
-            let scanCoords = [{ x, y }];
+            let scanCoords = [{ x: coord.x, y: coord.y }];
             while (scanCoords.length > 0) {
 
                 const scanCoord = scanCoords.pop();
-                const y = scanCoord.y;
+                const scanY = scanCoord.y;
 
                 // Fill left of the origin
                 let leftX = scanCoord.x;
-                while (pxIsInsideImageAndMatchesOriginColour(pxToLeftOf(leftX), y, props)) {
-                    const result = setColourOnPixel(tileGrid, tileSet, pxToLeftOf(leftX), y, fillColour);
+                while (pxIsInsideImageAndMatchesOriginColour(pxToLeftOf(leftX), scanY, props)) {
+                    const result = setColourOnPixel(tileGrid, tileSet, pxToLeftOf(leftX), scanY, fillColour);
                     if (result.wasUpdated) {
                         updatedTileIds[result.tileId] = result.tileId;
                         updatedTileIndexes[result.tileIndex] = result.tileIndex;
@@ -201,8 +201,8 @@ export default class PaintUtil {
 
                 // Fill right of the origin
                 let rightX = scanCoord.x - 1;
-                while (pxIsInsideImageAndMatchesOriginColour(pxToRightOf(rightX), y, props)) {
-                    const result = setColourOnPixel(tileGrid, tileSet, pxToRightOf(rightX), y, fillColour);
+                while (pxIsInsideImageAndMatchesOriginColour(pxToRightOf(rightX), scanY, props)) {
+                    const result = setColourOnPixel(tileGrid, tileSet, pxToRightOf(rightX), scanY, fillColour);
                     if (result.wasUpdated) {
                         updatedTileIds[result.tileId] = result.tileId;
                         updatedTileIndexes[result.tileIndex] = result.tileIndex;
@@ -213,8 +213,8 @@ export default class PaintUtil {
                 // Now scan the line above and below this one, if any matching pixels 
                 // found then add them to the coords list
                 scanCoords = scanCoords
-                    .concat(scanLineForBlocksOfPixelsWithSameOriginColour(leftX, rightX, oneBelow(y), props))
-                    .concat(scanLineForBlocksOfPixelsWithSameOriginColour(leftX, rightX, oneAbove(y), props));
+                    .concat(scanLineForBlocksOfPixelsWithSameOriginColour(leftX, rightX, oneBelow(scanY), props))
+                    .concat(scanLineForBlocksOfPixelsWithSameOriginColour(leftX, rightX, oneAbove(scanY), props));
             }
 
         }
@@ -337,8 +337,8 @@ export default class PaintUtil {
         let tilePixelIndex = 0;
         let scaleX = width / 8;
         let scaleY = height / 8;
-        let canvasX = hFlip ? x + (scaleX * 7) - 1 : x;
-        let canvasY = vflip ? y + (scaleY * 7) - 1 : y;
+        let canvasX = hFlip ? x + (scaleX * 7) : x;
+        let canvasY = vflip ? y + (scaleY * 7) : y;
 
         for (let tileY = 0; tileY < 8; tileY++) {
             for (let tileX = 0; tileX < 8; tileX++) {
@@ -365,7 +365,7 @@ export default class PaintUtil {
                 canvasX += hFlip ? -scaleX : scaleX;
             }
             canvasY += vflip ? -scaleY : scaleY;
-            canvasX = hFlip ? x + (scaleX * 7) - 1: x;
+            canvasX = hFlip ? x + (scaleX * 7): x;
         }
     }
 
