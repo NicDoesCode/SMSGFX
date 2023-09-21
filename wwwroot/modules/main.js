@@ -3675,12 +3675,7 @@ function paletteNew() {
 
         state.saveToLocalStorage();
 
-        paletteEditor.setState({
-            paletteList: getPaletteList()
-        });
-        tileManager.setState({
-            paletteList: getPaletteList()
-        });
+        updatePaletteLists({ skipTileEditor: true });
 
         changePalette(newPalette.paletteId);
         toast.show('Palette created.');
@@ -3703,12 +3698,7 @@ function paletteClone(paletteIndex) {
 
             state.saveToLocalStorage();
 
-            paletteEditor.setState({
-                paletteList: getPaletteList()
-            });
-            tileManager.setState({
-                paletteList: getPaletteList()
-            });
+            updatePaletteLists({ skipTileEditor: true });
 
             changePalette(newPalette.paletteId);
 
@@ -3739,15 +3729,7 @@ function paletteDelete(paletteIndex) {
 
             state.saveToLocalStorage();
 
-            paletteEditor.setState({
-                paletteList: getPaletteList()
-            });
-            tileManager.setState({
-                paletteList: getPaletteList()
-            });
-            tileEditor.setState({
-                paletteList: getPaletteListToSuitTileMapOrTileSetSelection()
-            });
+            updatePaletteLists();
 
             const palette = getPaletteList().getPalette(paletteIndex);
             changePalette(palette.paletteId);
@@ -3809,6 +3791,10 @@ function paletteListSort(field) {
     updatePaletteLists();
 }
 
+/**
+ * 
+ * @param {{ skipTileEditor: boolean }} args 
+ */
 function updatePaletteLists(args) {
     paletteEditor.setState({
         paletteList: getPaletteList()
@@ -3816,9 +3802,11 @@ function updatePaletteLists(args) {
     tileManager.setState({
         paletteList: getPaletteList()
     });
-    tileEditor.setState({
-        paletteList: getPaletteListToSuitTileMapOrTileSetSelection()
-    });
+    if (args?.skipTileEditor !== true) {
+        tileEditor.setState({
+            paletteList: getPaletteListToSuitTileMapOrTileSetSelection()
+        });
+    }
 }
 
 function paletteImportFromAssembly() {
