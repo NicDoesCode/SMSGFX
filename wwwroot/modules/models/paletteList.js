@@ -38,6 +38,18 @@ export default class PaletteList {
     }
 
     /**
+     * Sets the items in the list.
+     * @param {Palette[]} array 
+     */
+    setPalettes(array) {
+        if (Array.isArray(array)) {
+            const filtered = array.filter((palette) => palette !== null && palette instanceof Palette);
+            this.#palettes = filtered;
+        }
+    }
+
+
+    /**
      * Gets an item by index.
      * @param {number} index - Index of the item to get.
      * @returns {Palette}

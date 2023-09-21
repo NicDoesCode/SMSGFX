@@ -131,7 +131,9 @@ const instanceState = {
     referenceImageLockAspect: true,
     referenceImageMoving: false,
     /** @type {import("./types.js").SampleProject[]} */
-    sampleProjects: []
+    sampleProjects: [],
+    /** @type {import("./types.js").SortEntry?} */
+    paletteSort: null
 };
 
 
@@ -1179,6 +1181,12 @@ function handlePaletteEditorOnCommand(args) {
 
         case PaletteEditor.Commands.colourIndexReplace:
             replaceColourIndex(args.colourIndex, args.targetColourIndex);
+            break;
+
+        case PaletteEditor.Commands.sort:
+            if (typeof args.field === 'string' || args.field === null) {
+                sortPalettes(args.field);
+            }
             break;
 
     }
@@ -3695,7 +3703,7 @@ function paletteClone(paletteIndex) {
             tileManager.setState({
                 paletteList: getPaletteList()
             });
-    
+
             changePalette(newPalette.paletteId);
 
             toast.show('Palette cloned.');
@@ -3734,7 +3742,7 @@ function paletteDelete(paletteIndex) {
             tileEditor.setState({
                 paletteList: getPaletteListToSuitTileMapOrTileSetSelection()
             });
-        
+
             const palette = getPaletteList().getPalette(paletteIndex);
             changePalette(palette.paletteId);
 
@@ -3746,6 +3754,65 @@ function paletteDelete(paletteIndex) {
             throw e;
         }
     }
+}
+
+/**
+ * @param {string?} field 
+ */
+function sortPalettes(field) {
+    let dir = instanceState.paletteSort?.direction === 'desc' ? -1 : 1; // Default to ascending
+    if (instanceState.paletteSort?.field !== field) {
+        dir = 1; // If different field, sort ascending
+    } else if (instanceState.paletteSort?.field === field) {
+        dir *= -1; // If same field, swap sort direction
+    }
+    let sortedField = null;
+
+    const palettes = getPaletteList().getPalettes();
+    switch (field) {
+        case PaletteEditor.SortFields.title:
+            sortedField = field;
+            palettes.sort((a, b) => (a.title > b.title ? 1 : -1) * dir);
+            break;
+        case PaletteEditor.SortFields.system:
+            sortedField = field;
+            palettes.sort((a, b) => {
+                if (a.system > b.system) return 1 * dir;
+                if (a.system < b.system) return -1 * dir;
+                if (a.title > b.title) return 1 * dir;
+                else if (a.title < b.title) return -1 * dir;
+                else return 0;
+            });
+            break;
+    }
+
+    // Record last sort, if last field was null then no valid value was passed so don't record
+    if (sortedField) {
+        instanceState.paletteSort = {
+            field: sortedField,
+            direction: dir === 1 ? 'asc' : 'desc'
+        };
+    }
+
+    // Update the project
+    addUndoState();
+    getPaletteList().setPalettes(palettes);
+    state.saveProjectToLocalStorage();
+
+    // Set the UI state
+    updatePaletteLists();
+}
+
+function updatePaletteLists(args) {
+    paletteEditor.setState({
+        paletteList: getPaletteList()
+    });
+    tileManager.setState({
+        paletteList: getPaletteList()
+    });
+    tileEditor.setState({
+        paletteList: getPaletteListToSuitTileMapOrTileSetSelection()
+    });
 }
 
 function paletteImportFromAssembly() {

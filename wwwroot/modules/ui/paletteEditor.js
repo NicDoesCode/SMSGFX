@@ -24,7 +24,13 @@ const commands = {
     colourIndexChange: 'colourIndexChange',
     colourIndexEdit: 'colourIndexEdit',
     colourIndexSwap: 'colourIndexSwap',
-    colourIndexReplace: 'colourIndexReplace'
+    colourIndexReplace: 'colourIndexReplace',
+    sort: 'sort'
+}
+
+export const sortFields = {
+    system: 'system', 
+    title: 'title'
 }
 
 
@@ -33,6 +39,10 @@ export default class PaletteEditor extends ComponentBase {
 
     static get Commands() {
         return commands;
+    }
+
+    static get SortFields() {
+        return sortFields;
     }
 
 
@@ -70,6 +80,17 @@ export default class PaletteEditor extends ComponentBase {
         this.#element = element;
 
         this.#dispatcher = new EventDispatcher();
+
+        TemplateUtil.wireUpLabels(this.#element);
+        TemplateUtil.wireUpCommandAutoEvents(this.#element, (sender, ev, command, event) => {
+            switch (command) {
+                case commands.sort:
+                    const args = this.#createEventArgs(command);
+                    args.field = sender.getAttribute('data-field');
+                    this.#dispatcher.dispatch(EVENT_OnCommand, args);
+                    break;
+            }
+        });
 
         this.#btnPaletteTitle = this.#element.querySelector('[data-smsgfx-id=editPaletteTitle]');
         this.#btnPaletteTitle.addEventListener('click', () => this.#handlePaletteTitleEditClick());
@@ -119,7 +140,14 @@ export default class PaletteEditor extends ComponentBase {
             };
         });
 
-        // this.#createPaletteColourIndexButtons();
+        // this.#element.querySelector(`[data-smsgfx-id=paletteSelectVirtualList] li[data-command] a`).forEach((a) => {
+        //     console.log('a');
+        //     // element.onchange = () => {
+        //     //     const command = element.getAttribute('data-command');
+        //     //     const args = this.#createEventArgs(command);
+        //     //     this.#dispatcher.dispatch(EVENT_OnCommand, args);
+        //     // };
+        // });
 
         PaletteEditorContextMenu.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=palette-editor-context-menu]'))
             .then((component) => {
@@ -356,6 +384,7 @@ export default class PaletteEditor extends ComponentBase {
                 const palettes = paletteList.getPalettes();
                 for (let i = 0; i < palettes.length; i++) {
                     const option = document.createElement('option');
+                    option.setAttribute('data-palette-id', palettes[i].paletteId);
                     option.innerText = `#${i} | ${palettes[i].title}`;
                     option.value = i.toString();
                     option.selected = lastSelectedIndex === i;
@@ -375,12 +404,24 @@ export default class PaletteEditor extends ComponentBase {
     #updatePaletteSelectVirtualList() {
         const virtualList = this.#element.querySelector(`[data-linked-command=${commands.paletteSelect}]`);
         const select = this.#element.querySelector(`select[data-command=${commands.paletteSelect}]`);
+
         if (virtualList && select) {
-            while (virtualList.childNodes.length > 0) {
-                virtualList.childNodes.item(0).remove();
-            }
+
+            // Remove existing palette select options
+            const virtualNodes = virtualList.querySelectorAll('li[data-palette-id]');
+            virtualNodes.forEach((node) => {
+                node.remove();
+            });
+
+            // while (virtualList.childNodes.length > 0) {
+            //     virtualList.childNodes.item(0).remove();
+            // }
+
+            // Create the new options
             select.querySelectorAll('option').forEach((option, index) => {
+                const paletteId = option.getAttribute('data-palette-id');
                 const li = document.createElement('li');
+                li.setAttribute('data-palette-id', paletteId);
                 const a = document.createElement('a');
                 a.href = '#';
                 a.classList.add('dropdown-item');
@@ -621,5 +662,6 @@ export default class PaletteEditor extends ComponentBase {
  * @property {number?} colourIndex - Index from 0 to 15 for the given colour.
  * @property {number?} targetColourIndex - Target palette colour index from 0 to 15 for 'ms' and 'gg', 0 to 3 for 'gb' or 'nes'.
  * @property {boolean?} displayNative - Display native colours for system?
+ * @property {string?} [field] - Index of the selected palette.
  * @exports
  */
