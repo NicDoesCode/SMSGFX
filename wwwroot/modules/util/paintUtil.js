@@ -337,8 +337,8 @@ export default class PaintUtil {
         let tilePixelIndex = 0;
         let scaleX = width / 8;
         let scaleY = height / 8;
-        let canvasX = hFlip ? x + (scaleX * 7) - 1 : x;
-        let canvasY = vflip ? y + (scaleY * 7) - 1 : y;
+        let canvasX = hFlip ? x + (scaleX * 7) : x;
+        let canvasY = vflip ? y + (scaleY * 7) : y;
 
         for (let tileY = 0; tileY < 8; tileY++) {
             for (let tileX = 0; tileX < 8; tileX++) {
@@ -365,7 +365,7 @@ export default class PaintUtil {
                 canvasX += hFlip ? -scaleX : scaleX;
             }
             canvasY += vflip ? -scaleY : scaleY;
-            canvasX = hFlip ? x + (scaleX * 7) - 1: x;
+            canvasX = hFlip ? x + (scaleX * 7): x;
         }
     }
 
