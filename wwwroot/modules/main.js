@@ -131,7 +131,11 @@ const instanceState = {
     referenceImageLockAspect: true,
     referenceImageMoving: false,
     /** @type {import("./types.js").SampleProject[]} */
-    sampleProjects: []
+    sampleProjects: [],
+    /** @type {import("./types.js").SortEntry?} */
+    paletteSort: null,
+    /** @type {import("./types.js").SortEntry?} */
+    tileMapSort: null
 };
 
 
@@ -1181,6 +1185,12 @@ function handlePaletteEditorOnCommand(args) {
             replaceColourIndex(args.colourIndex, args.targetColourIndex);
             break;
 
+        case PaletteEditor.Commands.sort:
+            if (typeof args.field === 'string' || args.field === null) {
+                paletteListSort(args.field);
+            }
+            break;
+
     }
 }
 
@@ -1350,6 +1360,10 @@ function handleTileManagerOnCommand(args) {
 
         case TileManager.Commands.tileMapSelect:
             tileMapOrTileSetSelectById(args.tileMapId);
+            break;
+
+        case TileManager.Commands.sort:
+            tileMapSort(args.field);
             break;
 
         case TileManager.Commands.tileSelect:
@@ -3661,12 +3675,7 @@ function paletteNew() {
 
         state.saveToLocalStorage();
 
-        paletteEditor.setState({
-            paletteList: getPaletteList()
-        });
-        tileManager.setState({
-            paletteList: getPaletteList()
-        });
+        updatePaletteLists({ skipTileEditor: true });
 
         changePalette(newPalette.paletteId);
         toast.show('Palette created.');
@@ -3689,13 +3698,8 @@ function paletteClone(paletteIndex) {
 
             state.saveToLocalStorage();
 
-            paletteEditor.setState({
-                paletteList: getPaletteList()
-            });
-            tileManager.setState({
-                paletteList: getPaletteList()
-            });
-    
+            updatePaletteLists({ skipTileEditor: true });
+
             changePalette(newPalette.paletteId);
 
             toast.show('Palette cloned.');
@@ -3725,16 +3729,8 @@ function paletteDelete(paletteIndex) {
 
             state.saveToLocalStorage();
 
-            paletteEditor.setState({
-                paletteList: getPaletteList()
-            });
-            tileManager.setState({
-                paletteList: getPaletteList()
-            });
-            tileEditor.setState({
-                paletteList: getPaletteListToSuitTileMapOrTileSetSelection()
-            });
-        
+            updatePaletteLists();
+
             const palette = getPaletteList().getPalette(paletteIndex);
             changePalette(palette.paletteId);
 
@@ -3745,6 +3741,71 @@ function paletteDelete(paletteIndex) {
             toast.show('Error removing palette.');
             throw e;
         }
+    }
+}
+
+/**
+ * @param {string?} field 
+ */
+function paletteListSort(field) {
+    let dir = instanceState.paletteSort?.direction === 'desc' ? -1 : 1; // Default to ascending
+    if (instanceState.paletteSort?.field !== field) {
+        dir = 1; // If different field, sort ascending
+    } else if (instanceState.paletteSort?.field === field) {
+        dir *= -1; // If same field, swap sort direction
+    }
+    let sortedField = null;
+
+    const palettes = getPaletteList().getPalettes();
+    switch (field) {
+        case PaletteEditor.SortFields.title:
+            sortedField = field;
+            palettes.sort((a, b) => (a.title > b.title ? 1 : -1) * dir);
+            break;
+        case PaletteEditor.SortFields.system:
+            sortedField = field;
+            palettes.sort((a, b) => {
+                if (a.system > b.system) return 1 * dir;
+                if (a.system < b.system) return -1 * dir;
+                if (a.title > b.title) return 1 * dir;
+                else if (a.title < b.title) return -1 * dir;
+                else return 0;
+            });
+            break;
+    }
+
+    // Record last sort, if last field was null then no valid value was passed so don't record
+    if (sortedField) {
+        instanceState.paletteSort = {
+            field: sortedField,
+            direction: dir === 1 ? 'asc' : 'desc'
+        };
+    }
+
+    // Update the project
+    addUndoState();
+    getPaletteList().setPalettes(palettes);
+    state.saveProjectToLocalStorage();
+
+    // Set the UI state
+    updatePaletteLists();
+}
+
+/**
+ * 
+ * @param {{ skipTileEditor: boolean }} args 
+ */
+function updatePaletteLists(args) {
+    paletteEditor.setState({
+        paletteList: getPaletteList()
+    });
+    tileManager.setState({
+        paletteList: getPaletteList()
+    });
+    if (args?.skipTileEditor !== true) {
+        tileEditor.setState({
+            paletteList: getPaletteListToSuitTileMapOrTileSetSelection()
+        });
     }
 }
 
@@ -4601,6 +4662,45 @@ function tileMapUpdate(tileMapId, args) {
         transparencyIndicies: getTransparencyIndicies(),
         lockedPaletteSlotIndex: graphicsCapability.lockedPaletteIndex,
         forceRefresh: true
+    });
+}
+
+/**
+ * @param {string?} field 
+ */
+function tileMapSort(field) {
+    let dir = instanceState.tileMapSort?.direction === 'desc' ? -1 : 1; // Default to ascending
+    if (instanceState.tileMapSort?.field !== field) {
+        dir = 1; // If different field, sort ascending
+    } else if (instanceState.tileMapSort?.field === field) {
+        dir *= -1; // If same field, swap sort direction
+    }
+    let sortedField = null;
+
+    const tileMaps = getTileMapList().getTileMaps();
+    switch (field) {
+        case TileManager.SortFields.title:
+            sortedField = field;
+            tileMaps.sort((a, b) => (a.title > b.title ? 1 : -1) * dir);
+            break;
+    }
+
+    // Record last sort, if last field was null then no valid value was passed so don't record
+    if (sortedField) {
+        instanceState.tileMapSort = {
+            field: sortedField,
+            direction: dir === 1 ? 'asc' : 'desc'
+        };
+    }
+
+    // Update the project
+    addUndoState();
+    getTileMapList().setTileMaps(tileMaps);
+    state.saveProjectToLocalStorage();
+
+    // Set the UI state
+    tileManager.setState({
+        tileMapList: getTileMapList()
     });
 }
 

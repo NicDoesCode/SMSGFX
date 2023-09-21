@@ -23,7 +23,8 @@ const commands = {
     tileMapChange: 'tileMapChange',
     tileSetChange: 'tileSetChange',
     tileSetToTileMap: 'tileSetToTileMap',
-    assemblyImport: 'assemblyImport'
+    assemblyImport: 'assemblyImport',
+    sort: 'sort'
 }
 
 const fields = {
@@ -32,6 +33,10 @@ const fields = {
     tileMapIsSprite: 'tileMapIsSprite',
     tileMapPaletteId: 'tileMapPaletteId',
     tileWidth: 'tileWidth'
+}
+
+export const sortFields = {
+    title: 'title'
 }
 
 
@@ -46,6 +51,13 @@ export default class TileManager extends ComponentBase {
      */
     static get Commands() {
         return commands;
+    }
+
+    /**
+     * Gets a list of fields that can be sorted.
+     */
+    static get SortFields() {
+        return sortFields;
     }
 
 
@@ -103,6 +115,21 @@ export default class TileManager extends ComponentBase {
         this.#element = element;
 
         this.#dispatcher = new EventDispatcher();
+
+        TemplateUtil.wireUpLabels(this.#element);
+        TemplateUtil.wireUpCommandAutoEvents(this.#element, (sender, ev, command, event) => {
+            // Tile set select
+            if (command === commands.tileSetSelect) {
+                const args = this.#createArgs(TileManager.Commands.tileSetSelect);
+                this.#dispatcher.dispatch(EVENT_OnCommand, args);
+            }
+            // Sort
+            else if (command === commands.sort) {
+                const args = this.#createArgs(TileManager.Commands.sort);
+                args.field = sender.getAttribute('data-field');
+                this.#dispatcher.dispatch(EVENT_OnCommand, args);
+            }
+        });
 
         this.#paletteSelectorElement = this.#element.querySelector('[data-smsgfx-id=palette-selectors]');
 
@@ -520,35 +547,18 @@ export default class TileManager extends ComponentBase {
         const tileMapList = this.#tileMapList;
 
         // Clear existing options
-        while (dropList.hasChildNodes()) {
-            dropList.childNodes[0].remove();
-        }
-
-        // Create tile set node
-        let li = document.createElement('li');
-        let a = document.createElement('a');
-        a.classList.add('dropdown-item');
-        a.href = '#';
-        a.innerText = 'Source tile set';
-        a.addEventListener('click', (ev) => {
-            // Fire tile selected event on click
-            const args = this.#createArgs(TileManager.Commands.tileSetSelect);
-            this.#dispatcher.dispatch(EVENT_OnCommand, args);
+        ['li[data-tile-set]', 'li[data-tile-map-id]'].forEach((selector) => {
+            const virtualNodes = dropList.querySelectorAll(selector);
+            virtualNodes.forEach((node) => {
+                node.remove();
+            });
         });
-        li.appendChild(a);
-        dropList.appendChild(li);
-
-        // Divider
-        li = document.createElement('li');
-        let hr = document.createElement('hr');
-        hr.classList.add('dropdown-divider');
-        li.appendChild(hr);
-        dropList.appendChild(li);
 
         // Add tile maps to list
         if (tileMapList) {
             tileMapList.getTileMaps().forEach((tileMap) => {
                 const li = document.createElement('li');
+                li.setAttribute('data-tile-map-id', tileMap.tileMapId);
                 const a = document.createElement('a');
                 a.classList.add('dropdown-item');
                 a.href = '#';
@@ -624,5 +634,6 @@ export default class TileManager extends ComponentBase {
  * @property {boolean?} [optimise] - Optimise the tile map?
  * @property {boolean?} [isSprite] - Is this tile map a sprite?
  * @property {number?} [tileWidth] - Display tile width for the tile set.
+ * @property {string?} [field] - Field to sort by.
  * @exports
  */
