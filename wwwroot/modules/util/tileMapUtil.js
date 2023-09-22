@@ -98,7 +98,7 @@ export default class TileMapUtil {
         optimised.tileMapList.getTileMaps().forEach((tileMap) => {
             const capability = tileMap.isSprite ? capabilities.sprite : capabilities.background;
             for (let i = 0; i < capability.totalPaletteSlots; i++) {
-                const palette = paletteList.getPaletteById(tileMap.getPalette(i));
+                const palette = paletteList.getPaletteById(tileMap.getPaletteByIndex(i));
                 if (palette && !optimisedPaletteList.getPaletteById(palette.paletteId)) {
                     optimisedPaletteList.addPalette(palette);
                 }

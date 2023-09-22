@@ -1141,6 +1141,10 @@ function handlePaletteEditorOnCommand(args) {
             }
             break;
 
+        case PaletteEditor.Commands.paletteChangeIndex:
+            paletteChangeIndexInList(args.paletteId, args.paletteIndex);
+            break;
+
         case PaletteEditor.Commands.paletteNew:
             paletteNew();
             break;
@@ -2615,6 +2619,11 @@ function getTileMapContextToolbarVisibleToolstrips(tool) {
 
 function displaySelectedProject() {
     if (getProject()) {
+        paletteNew();
+        if (getPaletteList().length === 0) {
+            const newPalette = PaletteFactory.createNewStandardColourPalette('New palette', getDefaultPaletteSystemType());
+            getPaletteList().addPalette(newPalette);
+        }
         formatForProject();
     } else {
         formatForNoProject();
@@ -3662,6 +3671,32 @@ function selectTileIndexIfNotSelected(tileIndex) {
             }
         });
     }
+}
+
+/**
+ * Change the palette index in the palette list.
+ * @argument {string} paletteId
+ * @argument {number} newIndex
+ */
+function paletteChangeIndexInList(paletteId, newIndex) {
+    const palette = getPaletteList().getPaletteById(paletteId);
+    let palettes = getPaletteList().getPalettes();
+    const currentIndex = getPaletteList().indexOf(paletteId);
+
+    if (currentIndex === newIndex) {
+        return;
+    } else if (currentIndex > newIndex) {
+        palettes = palettes.splice(currentIndex, 1);
+        palettes = palettes.slice(0, newIndex).concat([palette]).slice(newIndex + 1);
+    } else if (currentIndex < newIndex) {
+
+    }
+
+    addUndoState();
+    getPaletteList().setPalettes(palettes);
+    state.saveToLocalStorage();
+    updatePaletteLists({ skipTileEditor: true });
+
 }
 
 /**

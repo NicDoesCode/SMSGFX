@@ -52,6 +52,7 @@ export default class PaletteList {
     /**
      * Gets an item by index.
      * @param {number} index - Index of the item to get.
+     * @throws Index is out of range.
      * @returns {Palette}
      */
     getPalette(index) {
@@ -59,6 +60,19 @@ export default class PaletteList {
             return this.#palettes[index];
         } else {
             throw new Error('Index out of range.');
+        }
+    }
+
+    /**
+     * Gets an item by index, or null if out of range.
+     * @param {number} index - Index of the item to get.
+     * @returns {Palette?}
+     */
+    getPaletteByIndex(index) {
+        if (index >= 0 && index < this.#palettes.length) {
+            return this.#palettes[index];
+        } else {
+            return null;
         }
     }
 

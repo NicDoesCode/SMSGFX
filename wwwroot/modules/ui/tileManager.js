@@ -464,7 +464,7 @@ export default class TileManager extends ComponentBase {
 
         this.#paletteSelectorElement.querySelectorAll('select[data-field=paletteId]').forEach((/** @type {HTMLSelectElement} */ select) => {
             const slotNumber = parseInt(select.getAttribute('data-palette-slot'));
-            const selectedPaletteId = tileMap.getPalette(slotNumber);
+            const selectedPaletteId = tileMap.getPaletteByIndex(slotNumber);
             paletteList.getPalettes().forEach((palette, paletteIndex) => {
                 const option = document.createElement('option');
                 option.value = palette.paletteId;
@@ -494,7 +494,7 @@ export default class TileManager extends ComponentBase {
         /** @type {Palette[]} */
         const renderPalettes = new Array(this.#numberOfPaletteSlots);
         for (let i = 0; i < this.#numberOfPaletteSlots; i++) {
-            const paletteId = tileMap.getPalette(i);
+            const paletteId = tileMap.getPaletteByIndex(i);
             const palette = paletteList.getPaletteById(paletteId);
             if (paletteId && palette) {
                 renderPalettes[i] = PaletteFactory.clone(palette);

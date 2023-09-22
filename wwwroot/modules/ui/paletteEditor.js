@@ -20,6 +20,7 @@ const commands = {
     paletteDelete: 'paletteDelete',
     paletteClone: 'paletteClone',
     paletteSystem: 'paletteSystem',
+    paletteChangeIndex: 'paletteChangeIndex',
     displayNativeColours: 'displayNativeColours',
     colourIndexChange: 'colourIndexChange',
     colourIndexEdit: 'colourIndexEdit',
@@ -56,6 +57,10 @@ export default class PaletteEditor extends ComponentBase {
     #paletteButtons = [];
     /** @type {HTMLTableCellElement[]} */
     #paletteCells = [];
+    /** @type {HTMLElement} */
+    #uiPaletteList;
+    /** @type {HTMLElement} */
+    #uiPaletteProperties;
     /** @type {HTMLInputElement} */
     #uiPaletteTitle;
     /** @type {HTMLButtonElement} */
@@ -69,6 +74,11 @@ export default class PaletteEditor extends ComponentBase {
     /** @type {UiPaletteListing?} */
     #paletteListComponent = null;
     #enabled = true;
+    #paletteListMouseDown = false;
+    /** @type {string?} */
+    #paletteListHoverPaletteId = null;
+    /** @type {number?} */
+    #paletteListHoverPaletteIndex = null;
 
 
     /**
@@ -91,6 +101,10 @@ export default class PaletteEditor extends ComponentBase {
                     break;
             }
         });
+
+
+        this.#uiPaletteList = this.#element.querySelector('[data-smsgfx-id=palette-list-top]');
+        this.#uiPaletteProperties = this.#element.querySelector('[data-smsgfx-id=palette-properties]');
 
         this.#btnPaletteTitle = this.#element.querySelector('[data-smsgfx-id=editPaletteTitle]');
         this.#btnPaletteTitle.addEventListener('click', () => this.#handlePaletteTitleEditClick());
@@ -140,15 +154,6 @@ export default class PaletteEditor extends ComponentBase {
             };
         });
 
-        // this.#element.querySelector(`[data-smsgfx-id=paletteSelectVirtualList] li[data-command] a`).forEach((a) => {
-        //     console.log('a');
-        //     // element.onchange = () => {
-        //     //     const command = element.getAttribute('data-command');
-        //     //     const args = this.#createEventArgs(command);
-        //     //     this.#dispatcher.dispatch(EVENT_OnCommand, args);
-        //     // };
-        // });
-
         PaletteEditorContextMenu.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=palette-editor-context-menu]'))
             .then((component) => {
                 this.#contextMenu = component;
@@ -161,46 +166,91 @@ export default class PaletteEditor extends ComponentBase {
                 this.#paletteListComponent.addHandlerOnCommand((args) => this.#handlePaletteListOnCommand(args));
             });
 
-        this.#element.querySelectorAll(`[data-smsgfx-id=palette-list-container]`).forEach((containerElm) => {
-            console.log('container', containerElm);
-            containerElm.addEventListener('mousemove', (/** @type {MouseEvent} */ e) => {
-
-                /** @type{HTMLDivElement} */
-                let pal = e.target.getAttribute('data-smsgfx-id') === 'palette-properties' ? e.target : null;
-                if (!pal) pal = e.target?.parentElement?.getAttribute('data-smsgfx-id') === 'palette-properties' ? e.target.parentElement : null;
-
-                // e.target = `[data-smsgfx-id=palette-properties]`;
-                console.log(pal);
-
-                // Get palette button
-                /** @type{HTMLButtonElement} */
-                let btn = e.target?.getAttribute('data-command') === commands.paletteSelect ? e.target : null;
-                if (!btn) btn = e.target?.parentElement?.getAttribute('data-command') === commands.paletteSelect ? e.target.parentElement : null;
-                if (btn) {
-                    containerElm.querySelectorAll(`button[data-command=${commands.paletteSelect}]`).forEach((btn2) => {
-                        if (btn === btn2) {
-                            console.log(`equal`);
-                            if (e.offsetY < 10) {
-                                console.log(`Highlight top`);
-                                btn.classList.add('highlight-top');
-                            } else if (e.offsetY > (btn.clientHeight - 10)) {
-                                btn.classList.add('highlight-bottom');
-                            } else {
-                                // btn.classList.remove('highlight-top', 'highlight-bottom');
-                                btn.classList.remove('highlight-top', 'highlight-bottom');
-                            }
-                        } else {
-                            btn2.classList.remove('highlight-top', 'highlight-bottom');
-                        }
+        // Set up the palette list container draggable events
+        this.#element.querySelectorAll(`[data-smsgfx-id=palette-list-container]`).forEach((/** @type {HTMLElement} */listContainer) => {
+            listContainer.addEventListener('mouseup', (ev) => {
+                if (this.#paletteListHoverPaletteIndex !== null && this.#paletteListHoverPaletteId !== null) {
+                    const args = this.#createEventArgs(commands.paletteChangeIndex);
+                    args.paletteId = this.#paletteListHoverPaletteId;
+                    args.paletteIndex = this.#paletteListHoverPaletteIndex;
+                    this.#dispatcher.dispatch(EVENT_OnCommand, args);
+                }
+            });
+            listContainer.addEventListener('mouseleave', (ev) => {
+                const rect = listContainer.getBoundingClientRect();
+                if (ev.clientX <= rect.left || ev.clientX >= rect.right || ev.clientY <= rect.top || ev.clientY >= rect.bottom) {
+                    listContainer.querySelectorAll('[data-smsgfx-id=palette-item-container]').forEach((container) => {
+                        container.classList.remove('highlight-top', 'highlight-bottom');
                     });
                 }
-                // if (e.target.hasAttribute('data-palette-id')) {
-                //     console.log(`Hover: ${e.target.getAttribute('data-palette-id')}`);
-                // }
-                // if (e.target.parentElement.hasAttribute('data-palette-id')) {
-                //     console.log(`Hover parent: ${e.target.parentElement.getAttribute('data-palette-id')}`);
-                // }
             });
+            listContainer.addEventListener('mousemove', (/** @type {MouseEvent} */ ev) => {
+
+                if (!this.#paletteListMouseDown) return;
+
+                // Will store a reference to the modified container so that we don't muck with it's CSS later
+                let modifiedContainer = null;
+
+                // Search up the DOM tree till we find the palette container of the current hover target
+                /** @type{HTMLElement?} */
+                const thisContainer = (() => {
+                    let t = ev.target;
+                    while (t !== this.#element) {
+                        if (t.getAttribute('data-smsgfx-id') === 'palette-item-container') return t;
+                        t = t.parentElement;
+                    }
+                    return null;
+                })();
+
+                this.#paletteListHoverPaletteIndex = null;
+
+                // If the container was found, do our calculations to work out next palette ID etc
+                if (thisContainer) {
+                    const paletteId = thisContainer.getAttribute('data-palette-id');
+                    const index = this.#paletteList.indexOf(paletteId);
+
+                    const rect = thisContainer.getBoundingClientRect();
+
+                    const nearTop = (ev.clientY - rect.top) < 10;
+                    const nearBottom = (rect.bottom - ev.clientY) < 10;
+
+                    if (nearTop) {
+                        thisContainer.classList.add('highlight-top');
+                        modifiedContainer = thisContainer;
+                        this.#paletteListHoverPaletteIndex = index;
+                    } else if (nearBottom) {
+                        const nextPalette = this.#paletteList.getPaletteByIndex(index + 1);
+                        if (nextPalette) {
+                            const nextContainer = thisContainer.parentElement.querySelector(`[data-smsgfx-id=palette-item-container][data-palette-id=${CSS.escape(nextPalette.paletteId)}]`);
+                            nextContainer.classList.add('highlight-top');
+                            modifiedContainer = nextContainer;
+                            this.#paletteListHoverPaletteIndex = index + 1;
+                        } else if (!nextPalette) {
+                            thisContainer.classList.add('highlight-bottom');
+                            modifiedContainer = thisContainer;
+                            this.#paletteListHoverPaletteIndex = index + 1;
+                        }
+                    }
+                }
+
+                // Remove highlight CSS from any other containers that weren't modified
+                listContainer.querySelectorAll('[data-smsgfx-id=palette-item-container]').forEach((checkContainer) => {
+                    if (checkContainer !== modifiedContainer) {
+                        checkContainer.classList.remove('highlight-top', 'highlight-bottom');
+                    }
+                });
+            });
+        });
+
+        document.addEventListener('blur', (e) => {
+            this.#paletteListMouseDown = false;
+            this.#paletteListHoverPaletteIndex = null;
+            this.#paletteListHoverPaletteId = null;
+        });
+
+        document.addEventListener('mouseup', (e) => {
+            this.#paletteListHoverPaletteIndex = null;
+            this.#paletteListHoverPaletteId = null;
         });
     }
 
@@ -299,8 +349,8 @@ export default class PaletteEditor extends ComponentBase {
                 paletteList: this.#paletteList,
                 selectedPaletteId: this.#selectedPaletteId
             });
-            this.#shufflePaletteList();
-            // this.#createDragDropTargets();
+            this.#addMouseEventHandlersToPaletteList();
+            this.#showPalettePropertiesPanelInPaletteList();
             const palette = this.#paletteList.getPaletteById(this.#selectedPaletteId);
             if (palette) {
                 this.#setPalette(palette);
@@ -513,47 +563,34 @@ export default class PaletteEditor extends ComponentBase {
         }
     }
 
-    #shufflePaletteList() {
-        if (this.#selectedPaletteId) {
-            const listTop = this.#element.querySelector('[data-smsgfx-id=palette-list-top] div.list-group');
-            const listBottom = this.#element.querySelector('[data-smsgfx-id=palette-list-bottom] div.list-group');
-            if (listTop && listBottom) {
-                listBottom.innerHTML = '';
-                let move = false;
-                this.#paletteList.getPalettes().forEach((palette, index) => {
-                    if (move) {
-                        const paletteButton = listTop.querySelector(`button[data-palette-id=${CSS.escape(palette.paletteId)}]`);
-                        if (paletteButton) {
-                            listBottom.appendChild(paletteButton);
-                        }
-                    }
-                    if (palette.paletteId === this.#selectedPaletteId) {
-                        move = true;
-                    }
-                });
-            }
-        }
+    #addMouseEventHandlersToPaletteList() {
+        const listElm = this.#element.querySelector('[data-smsgfx-id=palette-list-top] div.list-group');
+        listElm.querySelectorAll('div[data-smsgfx-id=palette-item-container]').forEach((/** @type {HTMLElement} */ paletteContainer) => {
+            paletteContainer.addEventListener('mousedown', (ev) => {
+                // Record mouse down when we've clicked on a collapsed palette container or at the top of the palette properties panel
+                const containerPaletteId = paletteContainer.getAttribute('data-palette-id');
+                const pixelsFromTop = ev.clientY - paletteContainer.getBoundingClientRect().top;
+                if (this.#selectedPaletteId !== containerPaletteId || pixelsFromTop < 30) {
+                    this.#paletteListMouseDown = true;
+                    this.#paletteListHoverPaletteId = containerPaletteId;
+                }
+            });
+        });
     }
 
-    #createDragDropTargets() {
-        const listTop = this.#element.querySelector('[data-smsgfx-id=palette-list-top] div.list-group');
-        const listBottom = this.#element.querySelector('[data-smsgfx-id=palette-list-bottom] div.list-group');
+    #showPalettePropertiesPanelInPaletteList() {
+        const listElm = this.#element.querySelector('[data-smsgfx-id=palette-list-top] div.list-group');
+        const propsElm = this.#uiPaletteProperties;
 
-        const createDropTarget = () => {
-            const target = document.createElement('div');
-            target.classList.add('sms-drop-target');
-            target.setAttribute('data-drop-target', '');
-            return target;
-        };
-
-        // Create the drop targets
-        [listTop, listBottom].forEach((listElm) => {
-            listElm.querySelectorAll('[data-drop-target]').forEach((dropElm) => dropElm.remove());
-            listElm.querySelectorAll(`button[data-command=${commands.paletteSelect}]`).forEach((btn) => {
-                btn.before(createDropTarget());
-            });
-        })
-        listBottom.appendChild(createDropTarget());
+        if (this.#selectedPaletteId) {
+            const palContElm = listElm.querySelector(`div[data-smsgfx-id=palette-item-container][data-palette-id=${CSS.escape(this.#selectedPaletteId)}]`);
+            if (palContElm) {
+                propsElm.style.display = 'block';
+                palContElm.appendChild(propsElm);
+            }
+        } else {
+            propsElm.style.display = 'none';
+        }
     }
 
     /**

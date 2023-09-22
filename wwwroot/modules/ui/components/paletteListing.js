@@ -100,8 +100,9 @@ export default class PaletteListing extends ComponentBase {
      * @param {Palette[]} palettes
      */
     #displayPalettes(palettes) {
-        const renderList = palettes.map((p) => {
+        const renderList = palettes.map((p, index) => {
             return {
+                index: index,
                 paletteId: p.paletteId,
                 title: p.title,
                 system: p.system
