@@ -29,7 +29,7 @@ const commands = {
 }
 
 export const sortFields = {
-    system: 'system', 
+    system: 'system',
     title: 'title'
 }
 
@@ -160,6 +160,48 @@ export default class PaletteEditor extends ComponentBase {
                 this.#paletteListComponent = component;
                 this.#paletteListComponent.addHandlerOnCommand((args) => this.#handlePaletteListOnCommand(args));
             });
+
+        this.#element.querySelectorAll(`[data-smsgfx-id=palette-list-container]`).forEach((containerElm) => {
+            console.log('container', containerElm);
+            containerElm.addEventListener('mousemove', (/** @type {MouseEvent} */ e) => {
+
+                /** @type{HTMLDivElement} */
+                let pal = e.target.getAttribute('data-smsgfx-id') === 'palette-properties' ? e.target : null;
+                if (!pal) pal = e.target?.parentElement?.getAttribute('data-smsgfx-id') === 'palette-properties' ? e.target.parentElement : null;
+
+                // e.target = `[data-smsgfx-id=palette-properties]`;
+                console.log(pal);
+
+                // Get palette button
+                /** @type{HTMLButtonElement} */
+                let btn = e.target?.getAttribute('data-command') === commands.paletteSelect ? e.target : null;
+                if (!btn) btn = e.target?.parentElement?.getAttribute('data-command') === commands.paletteSelect ? e.target.parentElement : null;
+                if (btn) {
+                    containerElm.querySelectorAll(`button[data-command=${commands.paletteSelect}]`).forEach((btn2) => {
+                        if (btn === btn2) {
+                            console.log(`equal`);
+                            if (e.offsetY < 10) {
+                                console.log(`Highlight top`);
+                                btn.classList.add('highlight-top');
+                            } else if (e.offsetY > (btn.clientHeight - 10)) {
+                                btn.classList.add('highlight-bottom');
+                            } else {
+                                // btn.classList.remove('highlight-top', 'highlight-bottom');
+                                btn.classList.remove('highlight-top', 'highlight-bottom');
+                            }
+                        } else {
+                            btn2.classList.remove('highlight-top', 'highlight-bottom');
+                        }
+                    });
+                }
+                // if (e.target.hasAttribute('data-palette-id')) {
+                //     console.log(`Hover: ${e.target.getAttribute('data-palette-id')}`);
+                // }
+                // if (e.target.parentElement.hasAttribute('data-palette-id')) {
+                //     console.log(`Hover parent: ${e.target.parentElement.getAttribute('data-palette-id')}`);
+                // }
+            });
+        });
     }
 
 
@@ -258,6 +300,7 @@ export default class PaletteEditor extends ComponentBase {
                 selectedPaletteId: this.#selectedPaletteId
             });
             this.#shufflePaletteList();
+            // this.#createDragDropTargets();
             const palette = this.#paletteList.getPaletteById(this.#selectedPaletteId);
             if (palette) {
                 this.#setPalette(palette);
@@ -490,6 +533,27 @@ export default class PaletteEditor extends ComponentBase {
                 });
             }
         }
+    }
+
+    #createDragDropTargets() {
+        const listTop = this.#element.querySelector('[data-smsgfx-id=palette-list-top] div.list-group');
+        const listBottom = this.#element.querySelector('[data-smsgfx-id=palette-list-bottom] div.list-group');
+
+        const createDropTarget = () => {
+            const target = document.createElement('div');
+            target.classList.add('sms-drop-target');
+            target.setAttribute('data-drop-target', '');
+            return target;
+        };
+
+        // Create the drop targets
+        [listTop, listBottom].forEach((listElm) => {
+            listElm.querySelectorAll('[data-drop-target]').forEach((dropElm) => dropElm.remove());
+            listElm.querySelectorAll(`button[data-command=${commands.paletteSelect}]`).forEach((btn) => {
+                btn.before(createDropTarget());
+            });
+        })
+        listBottom.appendChild(createDropTarget());
     }
 
     /**

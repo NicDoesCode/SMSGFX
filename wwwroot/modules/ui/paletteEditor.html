@@ -28,7 +28,7 @@
     </div>
     <!-- End: Palette editor : header -->
 
-    <div class="overflow-hidden overflow-y-auto">
+    <div data-smsgfx-id="palette-list-container" class="overflow-hidden overflow-y-auto">
 
         <div data-smsgfx-id="palette-list-top" data-smsgfx-component-id="palette-list"
             class="sms-accordion-list sms-accordion-list-top sms-palette-select-list card-body p-0">
@@ -159,6 +159,25 @@
     <!-- End: Palette editor context menu -->
 
     <style data-css-scope="global">
+        .sms-palette-editor .sms-palette-select-list div[data-smsgfx-id=palette-properties],
+        .sms-palette-editor .sms-palette-select-list button[data-command=paletteSelect] {
+            transition: border-width 100ms linear;
+        }
+
+        .sms-palette-editor .sms-palette-select-list div[data-smsgfx-id=palette-properties].highlight-top,
+        .sms-palette-editor .sms-palette-select-list button[data-command=paletteSelect].highlight-top {
+            border-top: 10px solid lime !important;
+        }
+
+        .sms-palette-editor .sms-palette-select-list div[data-smsgfx-id=palette-properties].highlight-bottom,
+        .sms-palette-editor .sms-palette-select-list button[data-command=paletteSelect].highlight-bottom {
+            border-bottom: 10px solid lime !important;
+        }
+
+
+
+
+
         .sms-palette-editor .sms-palette-properties {
             background: linear-gradient(180deg, var(--bs-secondary-bg) 0%, rgba(33, 37, 41, 0) 40%);
         }
