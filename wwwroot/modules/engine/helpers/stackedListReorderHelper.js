@@ -161,8 +161,6 @@ export default class StackedListReorderHelper {
         const nearTop = (ev.clientY - rect.top) < 15;
         const nearBottom = (rect.bottom - ev.clientY) < 15;
 
-        console.log(`nearbottom ? ${nearBottom}, ${rect.bottom}-${ev.clientY}=${(rect.bottom - ev.clientY)}`);
-
         if (!nearTop && !nearBottom) return;
 
         this.#targetItemId = itemId;

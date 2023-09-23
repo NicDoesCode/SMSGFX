@@ -334,8 +334,20 @@ button:disabled img {
     border-bottom: 5px solid var(--bs-primary) !important;
 }
 
+.sms-accordion-list [data-list-item] button {
+    transition: background-color 100ms linear;
+}
+
+.sms-accordion-list [data-list-item] button:hover.sms-accordion-item {
+    background-color: var(--bs-dark-bg-subtle);
+}
+
 [data-bs-theme=dark] .sms-accordion-list [data-list-item] button.sms-accordion-item {
     background-color: var(--bs-dark-bg-subtle);
+}
+
+[data-bs-theme=dark] .sms-accordion-list [data-list-item] button:hover.sms-accordion-item {
+    background-color: var(--bs-black);
 }
 
 .sms-accordion-list [data-list-item] button.sms-accordion-item.active {
