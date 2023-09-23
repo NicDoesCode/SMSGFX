@@ -65,6 +65,7 @@ import SampleProjectManager from "./components/sampleProjectManager.js";
 import KeyboardManager, { KeyDownHandler, KeyUpHandler } from "./components/keyboardManager.js";
 import ProjectList from "./models/projectList.js";
 import SystemUtil from "./util/systemUtil.js";
+import { DropPosition } from "./types.js";
 
 
 /* ****************************************************************************************************
@@ -589,10 +590,10 @@ function createEventListeners() {
                 selectColourIndex(instanceState.colourIndex + 1);
                 break;
             case keyboardCommands.paletteIndexHigher:
-                changePaletteIndex(getProjectUIState().paletteIndex + 1);
+                paletteSelectByIndex(getProjectUIState().paletteIndex + 1);
                 break;
             case keyboardCommands.paletteIndexLower:
-                changePaletteIndex(getProjectUIState().paletteIndex - 1);
+                paletteSelectByIndex(getProjectUIState().paletteIndex - 1);
                 break;
             case keyboardCommands.tileNew:
                 tileNew();
@@ -1135,10 +1136,14 @@ function handlePaletteEditorOnCommand(args) {
     switch (args.command) {
         case PaletteEditor.Commands.paletteSelect:
             if (args.paletteId) {
-                changePalette(args.paletteId);
+                paletteSelectById(args.paletteId);
             } else {
-                changePaletteIndex(args.paletteIndex);
+                paletteSelectByIndex(args.paletteIndex);
             }
+            break;
+
+        case PaletteEditor.Commands.paletteChangePosition:
+            paletteReorder(args.paletteId, args.targetPaletteId, args.targetPosition);
             break;
 
         case PaletteEditor.Commands.paletteNew:
@@ -1360,6 +1365,10 @@ function handleTileManagerOnCommand(args) {
 
         case TileManager.Commands.tileMapSelect:
             tileMapOrTileSetSelectById(args.tileMapId);
+            break;
+
+        case TileManager.Commands.tileMapChangePosition:
+            tileMapReorder(args.tileMapId, args.targetTileMapId, args.targetPosition);
             break;
 
         case TileManager.Commands.sort:
@@ -2615,6 +2624,10 @@ function getTileMapContextToolbarVisibleToolstrips(tool) {
 
 function displaySelectedProject() {
     if (getProject()) {
+        if (getPaletteList().length === 0) {
+            const newPalette = PaletteFactory.createNewStandardColourPalette('New palette', getDefaultPaletteSystemType());
+            getPaletteList().addPalette(newPalette);
+        }
         formatForProject();
     } else {
         formatForNoProject();
@@ -3665,6 +3678,43 @@ function selectTileIndexIfNotSelected(tileIndex) {
 }
 
 /**
+ * Change the palette index in the palette list.
+ * @argument {string} paletteId
+ * @argument {string} targetPaletteId
+ * @argument {string} position
+ */
+function paletteReorder(paletteId, targetPaletteId, position) {
+    if (paletteId === targetPaletteId) return;
+
+    const originIndex = getPaletteList().indexOf(paletteId);
+    let targetIndex = getPaletteList().indexOf(targetPaletteId);
+    if (position === DropPosition.after) targetIndex++;
+
+    let palettes = getPaletteList().getPalettes();
+    if (originIndex === targetIndex) {
+        return;
+    } else if (originIndex > targetIndex) {
+        const deleted = palettes.splice(originIndex, 1);
+        const start = palettes.slice(0, targetIndex);
+        const end = palettes.slice(targetIndex);
+        palettes = start.concat(deleted).concat(end);
+    } else if (originIndex < targetIndex) {
+        const start = palettes.slice(0, targetIndex);
+        const end = palettes.slice(targetIndex);
+        const deleted = start.splice(originIndex, 1);
+        palettes = start.concat(deleted).concat(end);
+    }
+
+    addUndoState();
+
+    getPaletteList().setPalettes(palettes);
+
+    state.saveToLocalStorage();
+
+    updatePaletteLists({ skipTileEditor: true });
+}
+
+/**
  * Creates a new palette.
  */
 function paletteNew() {
@@ -3677,7 +3727,7 @@ function paletteNew() {
 
         updatePaletteLists({ skipTileEditor: true });
 
-        changePalette(newPalette.paletteId);
+        paletteSelectById(newPalette.paletteId);
         toast.show('Palette created.');
     } catch (e) {
         undoManager.removeLastUndo();
@@ -3700,7 +3750,7 @@ function paletteClone(paletteIndex) {
 
             updatePaletteLists({ skipTileEditor: true });
 
-            changePalette(newPalette.paletteId);
+            paletteSelectById(newPalette.paletteId);
 
             toast.show('Palette cloned.');
 
@@ -3732,7 +3782,7 @@ function paletteDelete(paletteIndex) {
             updatePaletteLists();
 
             const palette = getPaletteList().getPalette(paletteIndex);
-            changePalette(palette.paletteId);
+            paletteSelectById(palette.paletteId);
 
             toast.show('Palette removed.');
 
@@ -4471,6 +4521,46 @@ function tileMapOrTileSetSelectById(tileMapId) {
 }
 
 /**
+ * Change the tile map order in the tile map list.
+ * @argument {string} tileMapId
+ * @argument {string} targetTileMapId
+ * @argument {string} position
+ */
+function tileMapReorder(tileMapId, targetTileMapId, position) {
+    if (tileMapId === targetTileMapId) return;
+
+    const originIndex = getTileMapList().indexOf(tileMapId);
+    let targetIndex = getTileMapList().indexOf(targetTileMapId);
+    if (position === DropPosition.after) targetIndex++;
+
+    let tileMaps = getTileMapList().getTileMaps();
+    if (originIndex === targetIndex) {
+        return;
+    } else if (originIndex > targetIndex) {
+        const deleted = tileMaps.splice(originIndex, 1);
+        const start = tileMaps.slice(0, targetIndex);
+        const end = tileMaps.slice(targetIndex);
+        tileMaps = start.concat(deleted).concat(end);
+    } else if (originIndex < targetIndex) {
+        const start = tileMaps.slice(0, targetIndex);
+        const end = tileMaps.slice(targetIndex);
+        const deleted = start.splice(originIndex, 1);
+        tileMaps = start.concat(deleted).concat(end);
+    }
+
+    addUndoState();
+
+    getTileMapList().setTileMaps(tileMaps);
+
+    state.saveToLocalStorage();
+
+    tileManager.setState({ 
+        tileMapList: getTileMapList()
+    });
+}
+
+
+/**
  * Selects a tile map based on index, where the index is out of range the tile set is selected.
  * @param {number?} index - Tile map index in the tile map list.
  */
@@ -4937,17 +5027,17 @@ function decreaseScale(relativeToMouse) {
  * Changes the selected palette by palette ID.
  * @param {number} paletteId - Unique palette ID.
  */
-function changePalette(paletteId) {
+function paletteSelectById(paletteId) {
     if (typeof paletteId !== 'string') return;
     let index = getPaletteList().indexOf(paletteId);
-    changePaletteIndex(index);
+    paletteSelectByIndex(index);
 }
 
 /**
  * Selects a given palette.
  * @param {number} index - Palette index in the palette list.
  */
-function changePaletteIndex(index) {
+function paletteSelectByIndex(index) {
     if (index < 0) index = getPaletteList().length - 1;
     if (index >= getPaletteList().length) index = 0;
 

@@ -1,7 +1,7 @@
 body.sms-app .sms-loading {
-    background: radial-gradient(circle, var(--bs-dark-bg-subtle) 15%, rgba(0, 0, 0, 0) 50%); 
+    background: radial-gradient(circle, var(--bs-dark-bg-subtle) 15%, rgba(0, 0, 0, 0) 50%);
     transition: opacity 0.25s;
-    top: 0; 
+    top: 0;
     bottom: 0;
     left: 0;
     right: 0;
@@ -319,41 +319,69 @@ button:disabled img {
     padding-bottom: 4px;
 }
 
-[data-bs-theme=dark] .sms-accordion-list button.sms-accordion-item {
+/* Styles for drag and drop on the palette select list */
+
+.sms-accordion-list [data-list-item] {
+    transition: border-width 100ms linear;
+}
+
+.sms-accordion-list [data-list-item].list-insert-top {
+    border-top: 5px solid var(--bs-primary) !important;
+}
+
+.sms-accordion-list [data-list-item].list-insert-bottom,
+.sms-accordion-list [data-list-item]:last-of-type.list-insert-bottom {
+    border-bottom: 5px solid var(--bs-primary) !important;
+}
+
+.sms-accordion-list [data-list-item] button {
+    transition: background-color 100ms linear;
+}
+
+.sms-accordion-list [data-list-item] button:hover.sms-accordion-item {
     background-color: var(--bs-dark-bg-subtle);
 }
 
-.sms-accordion-list button.sms-accordion-item.active {
+[data-bs-theme=dark] .sms-accordion-list [data-list-item] button.sms-accordion-item {
+    background-color: var(--bs-dark-bg-subtle);
+}
+
+[data-bs-theme=dark] .sms-accordion-list [data-list-item] button:hover.sms-accordion-item {
+    background-color: var(--bs-black);
+}
+
+.sms-accordion-list [data-list-item] button.sms-accordion-item.active {
     color: var(--bs-dark-text);
     background-color: var(--bs-secondary-bg);
     border-bottom: none !important;
     text-shadow: 0 0 3px #FFFFFF;
 }
 
-[data-bs-theme=dark] .sms-accordion-list button.sms-accordion-item.active {
+[data-bs-theme=dark] .sms-accordion-list [data-list-item] button.sms-accordion-item.active {
     color: var(--bs-light-text-emphasis);
     text-shadow: 0 0 3px #000000;
 }
 
-.sms-accordion-list button.sms-accordion-item .icon-expanded {
+.sms-accordion-list [data-list-item] button.sms-accordion-item .icon-expanded {
     display: none;
 }
 
-.sms-accordion-list button.sms-accordion-item.active .icon-expand {
+.sms-accordion-list [data-list-item] button.sms-accordion-item.active .icon-expand {
     display: none;
 }
 
-.sms-accordion-list button.sms-accordion-item.active.hidden-when-active,
-.sms-accordion-list button.sms-accordion-item.active .hidden-when-active {
+.sms-accordion-list [data-list-item] button.sms-accordion-item.active.hidden-when-active,
+.sms-accordion-list [data-list-item] button.sms-accordion-item.active .hidden-when-active {
     display: none !important;
 }
 
-.sms-accordion-list.sms-accordion-list-bottom button.sms-accordion-item {
-    border-top: var(--bs-border-width) var(--bs-border-style) var(--bs-border-color) !important;
+.sms-accordion-list [data-list-item]:last-of-type {
     border-bottom: none !important;
+    border-bottom-left-radius: var(--bs-card-border-radius);
+    border-bottom-right-radius: var(--bs-card-border-radius);
 }
 
-.sms-accordion-list.sms-accordion-list-bottom button.sms-accordion-item:last-of-type {
+.sms-accordion-list [data-list-item]:last-of-type button {
     border-bottom-left-radius: var(--bs-card-border-radius);
     border-bottom-right-radius: var(--bs-card-border-radius);
 }

@@ -65,6 +65,7 @@ export default class ProjectList {
     /**
      * Gets an item by index.
      * @param {number} index - Index of the item to get.
+     * @throws Index is out of range.
      * @returns {Project}
      */
     getProject(index) {
@@ -72,6 +73,19 @@ export default class ProjectList {
             return this.#projects[index];
         } else {
             throw new Error('Index out of range.');
+        }
+    }
+
+    /**
+     * Gets an item by index, or null if out of range.
+     * @param {number} index - Index of the item to get.
+     * @returns {Project?}
+     */
+    getProjectByIndex(index) {
+        if (index >= 0 && index < this.#projects.length) {
+            return this.#projects[index];
+        } else {
+            return null;
         }
     }
 

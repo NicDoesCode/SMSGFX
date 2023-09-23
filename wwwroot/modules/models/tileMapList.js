@@ -77,6 +77,7 @@ export default class TileMapList {
     /**
      * Gets an item by index.
      * @param {number} index - Index of the item to get.
+     * @throws Index is out of range.
      * @returns {TileMap}
      */
     getTileMap(index) {
@@ -86,6 +87,35 @@ export default class TileMapList {
             throw new Error('Index out of range.');
         }
     }
+
+    /**
+     * Gets an item by index, or null if out of range.
+     * @param {number} index - Index of the item to get.
+     * @returns {TileMap}
+     */
+    getTileMapByIndex(index) {
+        if (index >= 0 && index < this.#tileMaps.length) {
+            return this.#tileMaps[index];
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Gets the index of an item in the list by ID.
+     * @param {string} tileMapId - Unique tile map ID to get the index of.
+     * @returns {number}
+     */
+    indexOf(tileMapId) {
+        if (typeof tileMapId !== 'string') return -1;
+        for (let i = 0; i < this.#tileMaps.length; i++) {
+            if (this.#tileMaps[i].tileMapId === tileMapId) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
 
     /**
      * Adds an item to the list.
