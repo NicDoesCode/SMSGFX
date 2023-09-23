@@ -9,6 +9,7 @@ import TileListing from "./components/tileListing.js";
 import TileMapListing from "./components/tileMapListing.js";
 import PaletteUtil from "../util/paletteUtil.js";
 import PaletteFactory from "../factory/paletteFactory.js";
+import StackedListReorderHelper from "../engine/helpers/stackedListReorderHelper.js";
 
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
@@ -19,6 +20,7 @@ const commands = {
     tileMapSelect: 'tileMapSelect',
     tileMapDelete: 'tileMapDelete',
     tileMapClone: 'tileMapClone',
+    tileMapChangePosition: 'tileMapChangePosition',
     tileSelect: 'tileSelect',
     tileMapChange: 'tileMapChange',
     tileSetChange: 'tileSetChange',
@@ -73,6 +75,10 @@ export default class TileManager extends ComponentBase {
     #tileMapList = null;
     /** @type {TileSet} */
     #tileSet = null;
+    /** @type {HTMLElement} */
+    #uiTileMapProperties;
+    /** @type {HTMLElement} */
+    #uiTileSetProperties;
     /** @type {HTMLInputElement} */
     #uiTileSetTileWidth;
     /** @type {HTMLInputElement} */
@@ -103,6 +109,8 @@ export default class TileManager extends ComponentBase {
     #renderPaletteList = null;
     /** @type {boolean} */
     #displayNative = false;
+    /** @type {StackedListReorderHelper} */
+    #reorderHelper;
 
 
     /**
@@ -130,6 +138,26 @@ export default class TileManager extends ComponentBase {
                 this.#dispatcher.dispatch(EVENT_OnCommand, args);
             }
         });
+
+        this.#reorderHelper = new StackedListReorderHelper(
+            this.#element.querySelector('[data-smsgfx-id=tile-map-list-container]'),
+            'data-tile-map-id'
+        );
+        this.#reorderHelper.addHandlerOnCommand((args) => {
+            if (args.command === StackedListReorderHelper.Commands.reorder) {
+                /** @type {TileManagerCommandEventArgs} */
+                const eArgs = {
+                    command: commands.tileMapChangePosition,
+                    tileMapId: args.originItemId,
+                    targetTileMapId: args.targetItemId,
+                    targetPosition: args.targetItemPosition
+                };
+                this.#dispatcher.dispatch(EVENT_OnCommand, eArgs);
+            }
+        });
+
+        this.#uiTileMapProperties = this.#element.querySelector('[data-smsgfx-id=tile-map-properties]');
+        this.#uiTileSetProperties = this.#element.querySelector('[data-smsgfx-id=tile-set-properties]');
 
         this.#paletteSelectorElement = this.#element.querySelector('[data-smsgfx-id=palette-selectors]');
 
@@ -277,7 +305,8 @@ export default class TileManager extends ComponentBase {
                 tileMapList: this.#tileMapList,
                 selectedTileMapId: this.#selectedTileMapId
             });
-            this.#shuffleTileMapList();
+            this.#reorderHelper.wireUpItems();
+            this.#showPropertiesPanelInList();
         }
 
         if (paletteDirty) {
@@ -426,16 +455,16 @@ export default class TileManager extends ComponentBase {
         this.#btnTileMapTitle.classList.remove('visually-hidden');
         this.#btnTileMapTitle.querySelector('label').innerText = '';
         if (tileMap) {
-            this.#element.querySelector('[data-smsgfx-id=tileSetProperties]').classList.add('visually-hidden');
-            this.#element.querySelector('[data-smsgfx-id=tileMapProperties]').classList.remove('visually-hidden');
+            this.#uiTileSetProperties.classList.add('visually-hidden');
+            this.#uiTileMapProperties.classList.remove('visually-hidden');
             this.#uiTileMapTitle.disabled = false;
             this.#uiTileMapTitle.value = tileMap.title;
             this.#btnTileMapTitle.querySelector('label').innerText = tileMap.title;
             this.#uiTileSetOptimise.checked = tileMap.optimise;
             this.#uiTileSetIsSprite.checked = tileMap.isSprite;
         } else {
-            this.#element.querySelector('[data-smsgfx-id=tileSetProperties]').classList.remove('visually-hidden');
-            this.#element.querySelector('[data-smsgfx-id=tileMapProperties]').classList.add('visually-hidden');
+            this.#uiTileSetProperties.classList.remove('visually-hidden');
+            this.#uiTileMapProperties.classList.add('visually-hidden');
             this.#uiTileMapTitle.disabled = true;
             this.#uiTileMapTitle.value = 'Tile set';
         }
@@ -577,23 +606,18 @@ export default class TileManager extends ComponentBase {
     }
 
 
-    #shuffleTileMapList() {
-        const listTop = this.#element.querySelector('[data-smsgfx-id=tile-map-list-top] div.list-group');
-        const listBottom = this.#element.querySelector('[data-smsgfx-id=tile-map-list-bottom] div.list-group');
-        if (listTop && listBottom) {
-            listBottom.innerHTML = '';
-            let move = false;
-            this.#tileMapList.getTileMaps().forEach((tileMap) => {
-                if (move || !this.#selectedTileMapId) {
-                    const tileMapButton = listTop.querySelector(`button[data-tile-map-id=${CSS.escape(tileMap.tileMapId)}]`);
-                    if (tileMapButton) {
-                        listBottom.appendChild(tileMapButton);
-                    }
-                }
-                if (tileMap.tileMapId === this.#selectedTileMapId) {
-                    move = true;
-                }
-            });
+    #showPropertiesPanelInList() {
+        const listElm = this.#element.querySelector('[data-smsgfx-id=tile-map-list] div.list-group');
+        const propsElm = this.#uiTileMapProperties;
+
+        if (this.#selectedTileMapId) {
+            const palContElm = listElm.querySelector(`div[data-list-item][data-tile-map-id=${CSS.escape(this.#selectedTileMapId)}]`);
+            if (palContElm) {
+                propsElm.style.display = 'block';
+                palContElm.appendChild(propsElm);
+            }
+        } else {
+            propsElm.style.display = 'none';
         }
     }
 
@@ -635,5 +659,7 @@ export default class TileManager extends ComponentBase {
  * @property {boolean?} [isSprite] - Is this tile map a sprite?
  * @property {number?} [tileWidth] - Display tile width for the tile set.
  * @property {string?} [field] - Field to sort by.
+ * @property {string?} [targetTileMapId] - Unique ID of the target tile map.
+ * @property {string?} [targetPosition] - Position where to place the tile map.
  * @exports
  */

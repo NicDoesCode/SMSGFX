@@ -8,6 +8,7 @@ import PaletteEditorContextMenu from "./paletteEditorContextMenu.js";
 import TemplateUtil from "../util/templateUtil.js";
 import PaletteFactory from "../factory/paletteFactory.js";
 import PaletteUtil from "../util/paletteUtil.js";
+import StackedListReorderHelper from "../engine/helpers/stackedListReorderHelper.js";
 
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
@@ -20,7 +21,7 @@ const commands = {
     paletteDelete: 'paletteDelete',
     paletteClone: 'paletteClone',
     paletteSystem: 'paletteSystem',
-    paletteChangeIndex: 'paletteChangeIndex',
+    paletteChangePosition: 'paletteChangeIndex',
     displayNativeColours: 'displayNativeColours',
     colourIndexChange: 'colourIndexChange',
     colourIndexEdit: 'colourIndexEdit',
@@ -49,6 +50,8 @@ export default class PaletteEditor extends ComponentBase {
 
     /** @type {HTMLDivElement} */
     #element;
+    /** @type {EventDispatcher} */
+    #dispatcher;
     /** @type {PaletteList?} */
     #paletteList = null;
     /** @type {string?} */
@@ -60,7 +63,7 @@ export default class PaletteEditor extends ComponentBase {
     /** @type {HTMLElement} */
     #uiPaletteList;
     /** @type {HTMLElement} */
-    #uiPaletteProperties;
+    #uiItemProperties;
     /** @type {HTMLInputElement} */
     #uiPaletteTitle;
     /** @type {HTMLButtonElement} */
@@ -69,16 +72,11 @@ export default class PaletteEditor extends ComponentBase {
     #currentColourIndex = 0;
     /** @type {PaletteEditorContextMenu} */
     #contextMenu;
-    /** @type {EventDispatcher} */
-    #dispatcher;
     /** @type {UiPaletteListing?} */
     #paletteListComponent = null;
     #enabled = true;
-    #paletteListMouseDown = false;
-    /** @type {string?} */
-    #paletteListHoverPaletteId = null;
-    /** @type {number?} */
-    #paletteListHoverPaletteIndex = null;
+    /** @type {StackedListReorderHelper} */
+    #reorderHelper;
 
 
     /**
@@ -102,9 +100,25 @@ export default class PaletteEditor extends ComponentBase {
             }
         });
 
+        this.#reorderHelper = new StackedListReorderHelper(
+            this.#element.querySelector('[data-smsgfx-id=palette-list-container]'),
+            'data-palette-id'
+        );
+        this.#reorderHelper.addHandlerOnCommand((args) => {
+            if (args.command === StackedListReorderHelper.Commands.reorder) {
+                /** @type {PaletteEditorCommandEventArgs} */
+                const eArgs = {
+                    command: commands.paletteChangePosition,
+                    paletteId: args.originItemId,
+                    targetPaletteId: args.targetItemId,
+                    targetPosition: args.targetItemPosition
+                };
+                this.#dispatcher.dispatch(EVENT_OnCommand, eArgs);
+            }
+        });
 
-        this.#uiPaletteList = this.#element.querySelector('[data-smsgfx-id=palette-list-top]');
-        this.#uiPaletteProperties = this.#element.querySelector('[data-smsgfx-id=palette-properties]');
+        this.#uiPaletteList = this.#element.querySelector('[data-smsgfx-id=palette-list]');
+        this.#uiItemProperties = this.#element.querySelector('[data-smsgfx-id=palette-properties]');
 
         this.#btnPaletteTitle = this.#element.querySelector('[data-smsgfx-id=editPaletteTitle]');
         this.#btnPaletteTitle.addEventListener('click', () => this.#handlePaletteTitleEditClick());
@@ -165,94 +179,6 @@ export default class PaletteEditor extends ComponentBase {
                 this.#paletteListComponent = component;
                 this.#paletteListComponent.addHandlerOnCommand((args) => this.#handlePaletteListOnCommand(args));
             });
-
-        // Set up the palette list container draggable events
-        this.#element.querySelectorAll(`[data-smsgfx-id=palette-list-container]`).forEach((/** @type {HTMLElement} */listContainer) => {
-            listContainer.addEventListener('mouseup', (ev) => {
-                if (this.#paletteListHoverPaletteIndex !== null && this.#paletteListHoverPaletteId !== null) {
-                    const args = this.#createEventArgs(commands.paletteChangeIndex);
-                    args.paletteId = this.#paletteListHoverPaletteId;
-                    args.paletteIndex = this.#paletteListHoverPaletteIndex;
-                    this.#dispatcher.dispatch(EVENT_OnCommand, args);
-                }
-            });
-            listContainer.addEventListener('mouseleave', (ev) => {
-                const rect = listContainer.getBoundingClientRect();
-                if (ev.clientX <= rect.left || ev.clientX >= rect.right || ev.clientY <= rect.top || ev.clientY >= rect.bottom) {
-                    listContainer.querySelectorAll('[data-smsgfx-id=palette-item-container]').forEach((container) => {
-                        container.classList.remove('highlight-top', 'highlight-bottom');
-                    });
-                }
-            });
-            listContainer.addEventListener('mousemove', (/** @type {MouseEvent} */ ev) => {
-
-                if (!this.#paletteListMouseDown) return;
-
-                // Will store a reference to the modified container so that we don't muck with it's CSS later
-                let modifiedContainer = null;
-
-                // Search up the DOM tree till we find the palette container of the current hover target
-                /** @type{HTMLElement?} */
-                const thisContainer = (() => {
-                    let t = ev.target;
-                    while (t !== this.#element) {
-                        if (t.getAttribute('data-smsgfx-id') === 'palette-item-container') return t;
-                        t = t.parentElement;
-                    }
-                    return null;
-                })();
-
-                this.#paletteListHoverPaletteIndex = null;
-
-                // If the container was found, do our calculations to work out next palette ID etc
-                if (thisContainer) {
-                    const paletteId = thisContainer.getAttribute('data-palette-id');
-                    const index = this.#paletteList.indexOf(paletteId);
-
-                    const rect = thisContainer.getBoundingClientRect();
-
-                    const nearTop = (ev.clientY - rect.top) < 10;
-                    const nearBottom = (rect.bottom - ev.clientY) < 10;
-
-                    if (nearTop) {
-                        thisContainer.classList.add('highlight-top');
-                        modifiedContainer = thisContainer;
-                        this.#paletteListHoverPaletteIndex = index;
-                    } else if (nearBottom) {
-                        const nextPalette = this.#paletteList.getPaletteByIndex(index + 1);
-                        if (nextPalette) {
-                            const nextContainer = thisContainer.parentElement.querySelector(`[data-smsgfx-id=palette-item-container][data-palette-id=${CSS.escape(nextPalette.paletteId)}]`);
-                            nextContainer.classList.add('highlight-top');
-                            modifiedContainer = nextContainer;
-                            this.#paletteListHoverPaletteIndex = index + 1;
-                        } else if (!nextPalette) {
-                            thisContainer.classList.add('highlight-bottom');
-                            modifiedContainer = thisContainer;
-                            this.#paletteListHoverPaletteIndex = index + 1;
-                        }
-                    }
-                }
-
-                // Remove highlight CSS from any other containers that weren't modified
-                listContainer.querySelectorAll('[data-smsgfx-id=palette-item-container]').forEach((checkContainer) => {
-                    if (checkContainer !== modifiedContainer) {
-                        checkContainer.classList.remove('highlight-top', 'highlight-bottom');
-                    }
-                });
-            });
-        });
-
-        document.addEventListener('blur', (e) => {
-            this.#paletteListMouseDown = false;
-            this.#paletteListHoverPaletteIndex = null;
-            this.#paletteListHoverPaletteId = null;
-        });
-
-        document.addEventListener('mouseup', (e) => {
-            this.#paletteListMouseDown = false;
-            this.#paletteListHoverPaletteIndex = null;
-            this.#paletteListHoverPaletteId = null;
-        });
     }
 
 
@@ -350,7 +276,7 @@ export default class PaletteEditor extends ComponentBase {
                 paletteList: this.#paletteList,
                 selectedPaletteId: this.#selectedPaletteId
             });
-            this.#addMouseEventHandlersToPaletteList();
+            this.#reorderHelper.wireUpItems();
             this.#showPalettePropertiesPanelInPaletteList();
             const palette = this.#paletteList.getPaletteById(this.#selectedPaletteId);
             if (palette) {
@@ -564,24 +490,9 @@ export default class PaletteEditor extends ComponentBase {
         }
     }
 
-    #addMouseEventHandlersToPaletteList() {
-        const listElm = this.#element.querySelector('[data-smsgfx-id=palette-list-top] div.list-group');
-        listElm.querySelectorAll('div[data-smsgfx-id=palette-item-container]').forEach((/** @type {HTMLElement} */ paletteContainer) => {
-            paletteContainer.addEventListener('mousedown', (ev) => {
-                // Record mouse down when we've clicked on a collapsed palette container or at the top of the palette properties panel
-                const containerPaletteId = paletteContainer.getAttribute('data-palette-id');
-                const pixelsFromTop = ev.clientY - paletteContainer.getBoundingClientRect().top;
-                if (this.#selectedPaletteId !== containerPaletteId || pixelsFromTop < 30) {
-                    this.#paletteListMouseDown = true;
-                    this.#paletteListHoverPaletteId = containerPaletteId;
-                }
-            });
-        });
-    }
-
     #showPalettePropertiesPanelInPaletteList() {
-        const listElm = this.#element.querySelector('[data-smsgfx-id=palette-list-top] div.list-group');
-        const propsElm = this.#uiPaletteProperties;
+        const listElm = this.#element.querySelector('[data-smsgfx-id=palette-list] div.list-group');
+        const propsElm = this.#uiItemProperties;
 
         if (this.#selectedPaletteId) {
             const palContElm = listElm.querySelector(`div[data-smsgfx-id=palette-item-container][data-palette-id=${CSS.escape(this.#selectedPaletteId)}]`);
@@ -761,5 +672,7 @@ export default class PaletteEditor extends ComponentBase {
  * @property {number?} targetColourIndex - Target palette colour index from 0 to 15 for 'ms' and 'gg', 0 to 3 for 'gb' or 'nes'.
  * @property {boolean?} displayNative - Display native colours for system?
  * @property {string?} [field] - Field to sort by.
+ * @property {string?} [targetPaletteId] - Unique ID of the target palette.
+ * @property {string?} [targetPosition] - Position where to place the palette.
  * @exports
  */

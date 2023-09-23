@@ -65,6 +65,7 @@ import SampleProjectManager from "./components/sampleProjectManager.js";
 import KeyboardManager, { KeyDownHandler, KeyUpHandler } from "./components/keyboardManager.js";
 import ProjectList from "./models/projectList.js";
 import SystemUtil from "./util/systemUtil.js";
+import { DropPosition } from "./types.js";
 
 
 /* ****************************************************************************************************
@@ -1141,8 +1142,8 @@ function handlePaletteEditorOnCommand(args) {
             }
             break;
 
-        case PaletteEditor.Commands.paletteChangeIndex:
-            paletteChangeIndex(args.paletteId, args.paletteIndex);
+        case PaletteEditor.Commands.paletteChangePosition:
+            paletteReorder(args.paletteId, args.targetPaletteId, args.targetPosition);
             break;
 
         case PaletteEditor.Commands.paletteNew:
@@ -1364,6 +1365,10 @@ function handleTileManagerOnCommand(args) {
 
         case TileManager.Commands.tileMapSelect:
             tileMapOrTileSetSelectById(args.tileMapId);
+            break;
+
+        case TileManager.Commands.tileMapChangePosition:
+            tileMapReorder(args.tileMapId, args.targetTileMapId, args.targetPosition);
             break;
 
         case TileManager.Commands.sort:
@@ -3675,23 +3680,28 @@ function selectTileIndexIfNotSelected(tileIndex) {
 /**
  * Change the palette index in the palette list.
  * @argument {string} paletteId
- * @argument {number} newIndex
+ * @argument {string} targetPaletteId
+ * @argument {string} position
  */
-function paletteChangeIndex(paletteId, newIndex) {
-    let palettes = getPaletteList().getPalettes();
-    const currentIndex = getPaletteList().indexOf(paletteId);
+function paletteReorder(paletteId, targetPaletteId, position) {
+    if (paletteId === targetPaletteId) return;
 
-    if (currentIndex === newIndex) {
+    const originIndex = getPaletteList().indexOf(paletteId);
+    let targetIndex = getPaletteList().indexOf(targetPaletteId);
+    if (position === DropPosition.after) targetIndex++;
+
+    let palettes = getPaletteList().getPalettes();
+    if (originIndex === targetIndex) {
         return;
-    } else if (currentIndex > newIndex) {
-        const deleted = palettes.splice(currentIndex, 1);
-        const start = palettes.slice(0, newIndex);
-        const end = palettes.slice(newIndex);
+    } else if (originIndex > targetIndex) {
+        const deleted = palettes.splice(originIndex, 1);
+        const start = palettes.slice(0, targetIndex);
+        const end = palettes.slice(targetIndex);
         palettes = start.concat(deleted).concat(end);
-    } else if (currentIndex < newIndex) {
-        const start = palettes.slice(0, newIndex);
-        const end = palettes.slice(newIndex);
-        const deleted = start.splice(currentIndex, 1);
+    } else if (originIndex < targetIndex) {
+        const start = palettes.slice(0, targetIndex);
+        const end = palettes.slice(targetIndex);
+        const deleted = start.splice(originIndex, 1);
         palettes = start.concat(deleted).concat(end);
     }
 
@@ -4509,6 +4519,46 @@ function tileMapOrTileSetSelectById(tileMapId) {
 
     refreshProjectUI();
 }
+
+/**
+ * Change the tile map order in the tile map list.
+ * @argument {string} tileMapId
+ * @argument {string} targetTileMapId
+ * @argument {string} position
+ */
+function tileMapReorder(tileMapId, targetTileMapId, position) {
+    if (tileMapId === targetTileMapId) return;
+
+    const originIndex = getTileMapList().indexOf(tileMapId);
+    let targetIndex = getTileMapList().indexOf(targetTileMapId);
+    if (position === DropPosition.after) targetIndex++;
+
+    let tileMaps = getTileMapList().getTileMaps();
+    if (originIndex === targetIndex) {
+        return;
+    } else if (originIndex > targetIndex) {
+        const deleted = tileMaps.splice(originIndex, 1);
+        const start = tileMaps.slice(0, targetIndex);
+        const end = tileMaps.slice(targetIndex);
+        tileMaps = start.concat(deleted).concat(end);
+    } else if (originIndex < targetIndex) {
+        const start = tileMaps.slice(0, targetIndex);
+        const end = tileMaps.slice(targetIndex);
+        const deleted = start.splice(originIndex, 1);
+        tileMaps = start.concat(deleted).concat(end);
+    }
+
+    addUndoState();
+
+    getTileMapList().setTileMaps(tileMaps);
+
+    state.saveToLocalStorage();
+
+    tileManager.setState({ 
+        tileMapList: getTileMapList()
+    });
+}
+
 
 /**
  * Selects a tile map based on index, where the index is out of range the tile set is selected.

@@ -1,4 +1,8 @@
 export const Types = {};
+export const DropPosition = {
+    before: 'before',
+    after: 'after'
+}
 
 /**
  * @typedef {Object} SampleProject

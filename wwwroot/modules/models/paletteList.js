@@ -77,8 +77,8 @@ export default class PaletteList {
     }
 
     /**
-     * Gets an item by ID.
-     * @param {string} paletteId - Unique Palette ID to fetch.
+     * Gets the index of an item in the list by ID.
+     * @param {string} paletteId - Unique Palette ID to get the index of.
      * @returns {number}
      */
     indexOf(paletteId) {
