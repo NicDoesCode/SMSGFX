@@ -161,21 +161,21 @@
     <!-- End: Palette editor context menu -->
 
     <style data-css-scope="global">
+        /* Styles for drag and drop on the palette select list */
+
         .sms-palette-editor .sms-palette-select-list div[data-smsgfx-id=palette-item-container] {
             transition: border-width 100ms linear;
         }
 
         .sms-palette-editor .sms-palette-select-list div[data-smsgfx-id=palette-item-container].highlight-top {
-            border-top: 10px solid lime !important;
+            border-top: 10px solid var(--bs-primary);
         }
 
         .sms-palette-editor .sms-palette-select-list div[data-smsgfx-id=palette-item-container].highlight-bottom {
-            border-bottom: 10px solid lime !important;
+            border-bottom: 10px solid var(--bs-primary);
         }
 
-
-
-
+        /* Palette properties panel */
 
         .sms-palette-editor .sms-palette-properties {
             background: linear-gradient(180deg, var(--bs-secondary-bg) 0%, rgba(33, 37, 41, 0) 40%);

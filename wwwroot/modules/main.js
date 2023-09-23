@@ -589,10 +589,10 @@ function createEventListeners() {
                 selectColourIndex(instanceState.colourIndex + 1);
                 break;
             case keyboardCommands.paletteIndexHigher:
-                changePaletteIndex(getProjectUIState().paletteIndex + 1);
+                paletteSelectByIndex(getProjectUIState().paletteIndex + 1);
                 break;
             case keyboardCommands.paletteIndexLower:
-                changePaletteIndex(getProjectUIState().paletteIndex - 1);
+                paletteSelectByIndex(getProjectUIState().paletteIndex - 1);
                 break;
             case keyboardCommands.tileNew:
                 tileNew();
@@ -1135,14 +1135,14 @@ function handlePaletteEditorOnCommand(args) {
     switch (args.command) {
         case PaletteEditor.Commands.paletteSelect:
             if (args.paletteId) {
-                changePalette(args.paletteId);
+                paletteSelectById(args.paletteId);
             } else {
-                changePaletteIndex(args.paletteIndex);
+                paletteSelectByIndex(args.paletteIndex);
             }
             break;
 
         case PaletteEditor.Commands.paletteChangeIndex:
-            paletteChangeIndexInList(args.paletteId, args.paletteIndex);
+            paletteChangeIndex(args.paletteId, args.paletteIndex);
             break;
 
         case PaletteEditor.Commands.paletteNew:
@@ -2619,7 +2619,6 @@ function getTileMapContextToolbarVisibleToolstrips(tool) {
 
 function displaySelectedProject() {
     if (getProject()) {
-        paletteNew();
         if (getPaletteList().length === 0) {
             const newPalette = PaletteFactory.createNewStandardColourPalette('New palette', getDefaultPaletteSystemType());
             getPaletteList().addPalette(newPalette);
@@ -3678,25 +3677,31 @@ function selectTileIndexIfNotSelected(tileIndex) {
  * @argument {string} paletteId
  * @argument {number} newIndex
  */
-function paletteChangeIndexInList(paletteId, newIndex) {
-    const palette = getPaletteList().getPaletteById(paletteId);
+function paletteChangeIndex(paletteId, newIndex) {
     let palettes = getPaletteList().getPalettes();
     const currentIndex = getPaletteList().indexOf(paletteId);
 
     if (currentIndex === newIndex) {
         return;
     } else if (currentIndex > newIndex) {
-        palettes = palettes.splice(currentIndex, 1);
-        palettes = palettes.slice(0, newIndex).concat([palette]).slice(newIndex + 1);
+        const deleted = palettes.splice(currentIndex, 1);
+        const start = palettes.slice(0, newIndex);
+        const end = palettes.slice(newIndex);
+        palettes = start.concat(deleted).concat(end);
     } else if (currentIndex < newIndex) {
-
+        const start = palettes.slice(0, newIndex);
+        const end = palettes.slice(newIndex);
+        const deleted = start.splice(currentIndex, 1);
+        palettes = start.concat(deleted).concat(end);
     }
 
     addUndoState();
-    getPaletteList().setPalettes(palettes);
-    state.saveToLocalStorage();
-    updatePaletteLists({ skipTileEditor: true });
 
+    getPaletteList().setPalettes(palettes);
+
+    state.saveToLocalStorage();
+
+    updatePaletteLists({ skipTileEditor: true });
 }
 
 /**
@@ -3712,7 +3717,7 @@ function paletteNew() {
 
         updatePaletteLists({ skipTileEditor: true });
 
-        changePalette(newPalette.paletteId);
+        paletteSelectById(newPalette.paletteId);
         toast.show('Palette created.');
     } catch (e) {
         undoManager.removeLastUndo();
@@ -3735,7 +3740,7 @@ function paletteClone(paletteIndex) {
 
             updatePaletteLists({ skipTileEditor: true });
 
-            changePalette(newPalette.paletteId);
+            paletteSelectById(newPalette.paletteId);
 
             toast.show('Palette cloned.');
 
@@ -3767,7 +3772,7 @@ function paletteDelete(paletteIndex) {
             updatePaletteLists();
 
             const palette = getPaletteList().getPalette(paletteIndex);
-            changePalette(palette.paletteId);
+            paletteSelectById(palette.paletteId);
 
             toast.show('Palette removed.');
 
@@ -4972,17 +4977,17 @@ function decreaseScale(relativeToMouse) {
  * Changes the selected palette by palette ID.
  * @param {number} paletteId - Unique palette ID.
  */
-function changePalette(paletteId) {
+function paletteSelectById(paletteId) {
     if (typeof paletteId !== 'string') return;
     let index = getPaletteList().indexOf(paletteId);
-    changePaletteIndex(index);
+    paletteSelectByIndex(index);
 }
 
 /**
  * Selects a given palette.
  * @param {number} index - Palette index in the palette list.
  */
-function changePaletteIndex(index) {
+function paletteSelectByIndex(index) {
     if (index < 0) index = getPaletteList().length - 1;
     if (index >= getPaletteList().length) index = 0;
 

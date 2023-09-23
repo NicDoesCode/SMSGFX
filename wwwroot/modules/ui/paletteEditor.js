@@ -249,6 +249,7 @@ export default class PaletteEditor extends ComponentBase {
         });
 
         document.addEventListener('mouseup', (e) => {
+            this.#paletteListMouseDown = false;
             this.#paletteListHoverPaletteIndex = null;
             this.#paletteListHoverPaletteId = null;
         });
