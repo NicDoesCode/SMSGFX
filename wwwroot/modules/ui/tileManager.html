@@ -50,16 +50,31 @@
             <div class="sms-tile-map-properties card-body p-2 pt-0 visually-hidden"
                 data-smsgfx-id="tile-map-properties">
                 <div class="row mb-2">
-                    <div class="col">
+                    <div class="col d-flex flex-row w-100 m-0">
                         <button data-smsgfx-id="editTileMapTitle"
-                            class="btn border border-0 p-0 m-0 d-flex flex-row w-100">
+                            class="btn border border-0 p-0 m-0 d-flex flex-row flex-fill">
                             <label
                                 class="p-2 ps-0 fw-bold text-body-emphasis text-start overflow-hidden text-nowrap flex-shrink w-100">Title</label>
                             <span class="p-2"><i class="bi bi-pencil-fill"></i></span>
                         </button>
                         <input data-command="tileMapChange" data-auto-event="change" data-field="title" type="text"
-                            class="form-control visually-hidden mt-2" aria-label="Enter name"
+                            class="form-control visually-hidden mt-2 flex-fill" aria-label="Enter name"
                             title="Change the title of the tile map.">
+                        <button data-smsgfx-id="editTileMapMenu" class="btn btn-secondary m-0 p-0"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="p-2"><i class="bi bi-three-dots"></i></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><button data-command="tileMapReference" data-auto-event="click" class="dropdown-item" type="button">Use as reference</button></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><button data-command="tileMapMirror" data-auto-event="click" class="dropdown-item" type="button">Mirror</button></li>
+                            <li><button data-command="tileMapFlip" data-auto-event="click" class="dropdown-item" type="button">Flip</button></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><button data-command="tileMapClone" data-auto-event="click" class="dropdown-item" type="button">Clone</button></li>
+                            <li><button data-command="tileMapCloneMirror" data-auto-event="click" class="dropdown-item" type="button">Clone mirrored</button></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><button data-command="tileMapDelete" data-auto-event="click" class="dropdown-item" type="button">Delete</button></li>
+                        </ul>
                     </div>
                 </div>
                 <div class="row">
