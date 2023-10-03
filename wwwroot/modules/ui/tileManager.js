@@ -129,19 +129,6 @@ export default class TileManager extends ComponentBase {
         this.#dispatcher = new EventDispatcher();
 
         TemplateUtil.wireUpLabels(this.#element);
-        TemplateUtil.wireUpCommandAutoEvents(this.#element, (sender, ev, command, event) => {
-            // Tile set select
-            if (command === commands.tileSetSelect) {
-                const args = this.#createArgs(TileManager.Commands.tileSetSelect);
-                this.#dispatcher.dispatch(EVENT_OnCommand, args);
-            }
-            // Sort
-            else if (command === commands.sort) {
-                const args = this.#createArgs(TileManager.Commands.sort);
-                args.field = sender.getAttribute('data-field');
-                this.#dispatcher.dispatch(EVENT_OnCommand, args);
-            }
-        });
 
         this.#reorderHelper = new StackedListReorderHelper(
             this.#element.querySelector('[data-smsgfx-id=tile-map-list-container]'),
@@ -395,13 +382,23 @@ export default class TileManager extends ComponentBase {
      * @param {HTMLElement} parentElement 
      */
     #wireAutoEvents(parentElement) {
-        parentElement.querySelectorAll('[data-command][data-auto-event]').forEach((element) => {
-            const event = element.getAttribute('data-auto-event');
-            element.addEventListener(event, () => {
-                const command = element.getAttribute('data-command');
-                const args = this.#createArgs(command, element);
+        TemplateUtil.wireUpCommandAutoEvents(parentElement, (sender, ev, command, event) => {
+            if (command === commands.tileSetSelect) {
+                // Tile set select
+                const args = this.#createArgs(TileManager.Commands.tileSetSelect);
                 this.#dispatcher.dispatch(EVENT_OnCommand, args);
-            });
+            }
+            else if (command === commands.sort) {
+                // Sort
+                const args = this.#createArgs(TileManager.Commands.sort);
+                args.field = sender.getAttribute('data-field');
+                this.#dispatcher.dispatch(EVENT_OnCommand, args);
+            } else {
+                // Generic
+                const args = this.#createArgs(command, sender);
+                args.tileMapId = this.#selectedTileMapId;
+                this.#dispatcher.dispatch(EVENT_OnCommand, args);
+            }
         });
     }
 

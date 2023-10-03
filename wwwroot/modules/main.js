@@ -66,6 +66,7 @@ import KeyboardManager, { KeyDownHandler, KeyUpHandler } from "./components/keyb
 import ProjectList from "./models/projectList.js";
 import SystemUtil from "./util/systemUtil.js";
 import { DropPosition } from "./types.js";
+import TileMapUtil from "./util/tileMapUtil.js";
 
 
 /* ****************************************************************************************************
@@ -1383,12 +1384,28 @@ function handleTileManagerOnCommand(args) {
             tileMapClone(args.tileMapId);
             break;
 
+        case TileManager.Commands.tileMapCloneMirror:
+            tileMapClone(args.tileMapId, { mirror: true });
+            break;
+
         case TileManager.Commands.tileMapDelete:
             tileMapRemove(args.tileMapId);
             break;
 
         case TileManager.Commands.tileMapChange:
             tileMapUpdate(args.tileMapId, args);
+            break;
+
+        case TileManager.Commands.tileMapMirror:
+            tileMapMirrorOrFlip(args.tileMapId, { mirror: true });
+            break;
+
+        case TileManager.Commands.tileMapFlip:
+            tileMapMirrorOrFlip(args.tileMapId, { flip: true });
+            break;
+
+        case TileManager.Commands.tileMapReference:
+            referenceImageFromTileMap(args.tileMapId);
             break;
 
         case TileManager.Commands.tileSetChange:
@@ -3313,6 +3330,18 @@ function selectReferenceImage() {
     fileInput.click();
 }
 
+/**
+ * Sets a tile map as a reference image.
+ * @param {string} tileMapId - Unique ID of the tile map.
+ */
+function referenceImageFromTileMap(tileMapId) {
+    // if (!tileMapId || typeof tileMapId !== 'string') throw new Error('Please pass a tile map ID.');
+    // const tileMap = getTileMapList().getTileMapById(tileMapId);
+    // if (tileMap) throw new Error('Tile map not found.');
+
+    // const tileMapImage = ImageUtil.
+}
+
 function clearReferenceImage() {
 
     instanceState.referenceImage.clearImage();
@@ -4554,7 +4583,7 @@ function tileMapReorder(tileMapId, targetTileMapId, position) {
 
     state.saveToLocalStorage();
 
-    tileManager.setState({ 
+    tileManager.setState({
         tileMapList: getTileMapList()
     });
 }
@@ -4643,8 +4672,9 @@ function tileSetUpdate(args) {
 /**
  * Clones a tile map.
  * @param {string} tileMapId - Unique ID of the tile map to delete.
+ * @param {{ mirror: boolean, flip: boolean }} args 
  */
-function tileMapClone(tileMapId) {
+function tileMapClone(tileMapId, args) {
     if (!tileMapId) throw new Error('The tile map ID was invalid.');
 
     const sourceTileMap = getTileMapList().getTileMapById(tileMapId);
@@ -4653,14 +4683,28 @@ function tileMapClone(tileMapId) {
 
     addUndoState();
 
-    const clonedTileMap = TileMapFactory.clone(sourceTileMap);
-    clonedTileMap.title += " (copy)";
+    try {
 
-    getTileMapList().addTileMap(clonedTileMap);
+        const clonedTileMap = TileMapFactory.clone(sourceTileMap);
+        clonedTileMap.title += " (copy)";
 
-    tileMapOrTileSetSelectById(clonedTileMap.tileMapId);
+        if (args?.mirror === true) {
+            TileMapUtil.mirrorTileMap(clonedTileMap);
+        }
 
-    toast.show('Tile map cloned.');
+        if (args?.flip === true) {
+            TileMapUtil.flipTileMap(clonedTileMap);
+        }
+
+        getTileMapList().addTileMap(clonedTileMap);
+
+        tileMapOrTileSetSelectById(clonedTileMap.tileMapId);
+
+        toast.show('Tile map cloned.');
+
+    } catch (e) {
+
+    }
 }
 
 /**
@@ -4737,7 +4781,7 @@ function tileMapUpdate(tileMapId, args) {
     const capabilityType = isTileMap() ? getTileMap().isSprite ? 'sprite' : 'background' : 'background';
     const graphicsCapability = SystemUtil.getGraphicsCapability(getProject().systemType, capabilityType);
 
-    // Reset UI
+    // Update UI
     tileManager.setState({
         tileMapList: getTileMapList(),
         selectedTileMapId: getProjectUIState().tileMapId,
@@ -4751,6 +4795,46 @@ function tileMapUpdate(tileMapId, args) {
         paletteList: getPaletteListToSuitTileMapOrTileSetSelection(),
         transparencyIndicies: getTransparencyIndicies(),
         lockedPaletteSlotIndex: graphicsCapability.lockedPaletteIndex,
+        forceRefresh: true
+    });
+}
+
+/**
+ * @param {string} tileMapId 
+ * @param {{ mirror: boolean, flip: boolean }} args 
+ */
+function tileMapMirrorOrFlip(tileMapId, args) {
+    if (!tileMapId) throw new Error('The tile map ID was invalid.');
+    const tileMap = getTileMapList().getTileMapById(tileMapId);
+    if (!tileMap) throw new Error('No tile map matched the given ID.');
+
+    addUndoState();
+
+    try {
+
+        if (args?.mirror === true) {
+            TileMapUtil.mirrorTileMap(tileMap);
+            toast.show('Tile map mirrored.');
+        }
+
+        if (args?.flip === true) {
+            TileMapUtil.flipTileMap(tileMap);
+            toast.show('Tile map flipped.');
+        }
+
+    } catch (e) {
+        undoManager.removeLastUndo();
+        toast.show('Error mirroring or flipping tile map.')
+        throw e;
+    }
+
+    // Update project
+    state.saveToLocalStorage();
+
+    // Update UI
+    tileEditor.setState({
+        selectedTileIndex: -1,
+        tileGrid: getTileGrid(),
         forceRefresh: true
     });
 }

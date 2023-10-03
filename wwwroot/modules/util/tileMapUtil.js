@@ -112,6 +112,44 @@ export default class TileMapUtil {
         };
     }
 
+    /**
+     * Mirrors a tile map horizontally.
+     * @param {TileMap} tileMap - The tile map to mirror horizontally.
+     */
+    static mirrorTileMap(tileMap) {
+        if (!tileMap instanceof TileMap) throw new Error('Tile map was not passed.');
+
+        for (let rowNum = 0; rowNum < tileMap.rowCount; rowNum++) {
+            const tilesInRow = tileMap.getTileMapRow(rowNum);
+            tilesInRow.reverse();
+            for (let colNum = 0; colNum < tileMap.columnCount; colNum++) {
+                const thisTile = tilesInRow[colNum];
+                thisTile.horizontalFlip = !thisTile.horizontalFlip;
+                const tileIndex = (rowNum * tileMap.columnCount) + colNum;
+                tileMap.setTileByIndex(tileIndex, thisTile);
+            }
+        }
+    }
+
+    /**
+     * Flips a tile map vertically.
+     * @param {TileMap} tileMap - The tile map to flip vertically.
+     */
+    static flipTileMap(tileMap) {
+        if (!tileMap instanceof TileMap) throw new Error('Tile map was not passed.');
+
+        for (let colNum = 0; colNum < tileMap.columnCount; colNum++) {
+            const tilesInCol = tileMap.getTileMapColumn(colNum);
+            tilesInCol.reverse();
+            for (let rowNum = 0; rowNum < tileMap.rowCount; rowNum++) {
+                const thisTile = tilesInCol[rowNum];
+                thisTile.verticalFlip = !thisTile.verticalFlip;
+                const tileIndex = (rowNum * tileMap.columnCount) + colNum;
+                tileMap.setTileByIndex(tileIndex, thisTile);
+            }
+        }
+    }
+
 
 }
 
