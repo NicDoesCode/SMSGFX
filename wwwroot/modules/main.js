@@ -67,6 +67,7 @@ import ProjectList from "./models/projectList.js";
 import SystemUtil from "./util/systemUtil.js";
 import { DropPosition } from "./types.js";
 import TileMapUtil from "./util/tileMapUtil.js";
+import PaintUtil from "./util/paintUtil.js";
 
 
 /* ****************************************************************************************************
@@ -3339,7 +3340,7 @@ function referenceImageFromTileMap(tileMapId) {
     // const tileMap = getTileMapList().getTileMapById(tileMapId);
     // if (tileMap) throw new Error('Tile map not found.');
 
-    // const tileMapImage = ImageUtil.
+    // const tileMapImage = PaintUtil.
 }
 
 function clearReferenceImage() {

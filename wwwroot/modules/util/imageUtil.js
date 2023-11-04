@@ -5,19 +5,19 @@ import ProjectFactory from "../factory/projectFactory.js";
 import ColourUtil from "./colourUtil.js";
 import TileSetFactory from "../factory/tileSetFactory.js";
 import PaletteListFactory from "../factory/paletteListFactory.js";
-import GeneralUtil from "./generalUtil.js";
+import TileMap from "../models/tileMap.js";
 
 const imageMimeTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/gif', 'image/svg+xml'];
 
 export default class ImageUtil {
 
-
+    
     /**
      * Converts an image to an image bitmap.
      * @param {HTMLImageElement|HTMLCanvasElement|OffscreenCanvas} image - Image to convert.
      * @returns {ImageBitmap}
      */
-    static ToImageBitmap(image) {
+    static toImageBitmap(image) {
         if (image instanceof ImageBitmap) {
             return image;
         } else if ((image.tagName && image.tagName === 'CANVAS') || image instanceof OffscreenCanvas) {
