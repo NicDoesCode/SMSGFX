@@ -3336,11 +3336,15 @@ function selectReferenceImage() {
  * @param {string} tileMapId - Unique ID of the tile map.
  */
 function referenceImageFromTileMap(tileMapId) {
-    // if (!tileMapId || typeof tileMapId !== 'string') throw new Error('Please pass a tile map ID.');
-    // const tileMap = getTileMapList().getTileMapById(tileMapId);
-    // if (tileMap) throw new Error('Tile map not found.');
+    if (!tileMapId || typeof tileMapId !== 'string') throw new Error('Please pass a tile map ID.');
+    const tileMap = getTileMapList().getTileMapById(tileMapId);
+    if (!tileMap) throw new Error('Tile map not found.');
 
-    // const tileMapImage = PaintUtil.
+    console.log('Yes the tile map was found.');
+
+    const canv = new OffscreenCanvas(tileMap.columnCount * 8, tileMap.rowCount * 8);
+    const tileMapImage = PaintUtil.drawTileImage(canv.getContext('2d'), 0, 0, canv.width, canv.height, )
+    const tileMapImage = PaintUtil.dr(canv.getContext('2d'), 0, 0, canv.width, canv.height, )
 }
 
 function clearReferenceImage() {

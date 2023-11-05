@@ -4,6 +4,8 @@ import Tile from '../models/tile.js';
 import TileSet from '../models/tileSet.js'
 import TileGridProvider from '../models/tileGridProvider.js';
 import TileSetFactory from '../factory/tileSetFactory.js';
+import TileMap from '../models/tileMap.js';
+import PaletteList from '../models/paletteList.js';
 
 export default class PaintUtil {
 
@@ -227,6 +229,32 @@ export default class PaintUtil {
     }
 
     /**
+     * Draws a tile map onto a canvas object.
+     * @param {HTMLCanvasElement|OffscreenCanvas} canvas - Canvas to draw onto.
+     * @param {TileGridProvider} tileGrid - Tile grid to draw.
+     * @param {PaletteList} paletteList - Palettes to use when drawing.
+     */
+    static drawTileGridOntoCanvas(canvas, tileGrid, paletteList) {
+        if (!canvas instanceof HTMLCanvasElement && !canvas instanceof OffscreenCanvas)
+            throw new Error('Non valid canvas object was passed.');
+        if (!tileGrid instanceof TileGridProvider)
+            throw new Error('Tile grid was not valid.');
+        if (!paletteList instanceof PaletteList)
+            throw new Error('Palette list was not valid.');
+
+        const ctx = canvas.getContext('2d');
+
+        for (let col = 0; col < tileGrid.columnCount; col++) {
+            for (let row = 0; row < tileGrid.rowCount; row++) {
+                let tile = tileGrid.getTileInfoByRowAndColumn(row, col);
+                if (tile) {
+                    
+                }
+            }
+        }
+    }
+
+    /**
      * Draw a single tile to a canvas.
      * @param {HTMLCanvasElement} canvas - Canvas element to draw onto.
      * @param {Tile} tile - Tile to draw.
@@ -365,7 +393,7 @@ export default class PaintUtil {
                 canvasX += hFlip ? -scaleX : scaleX;
             }
             canvasY += vflip ? -scaleY : scaleY;
-            canvasX = hFlip ? x + (scaleX * 7): x;
+            canvasX = hFlip ? x + (scaleX * 7) : x;
         }
     }
 
