@@ -232,15 +232,15 @@ export default class PaintUtil {
      * Draws a tile map onto a canvas object.
      * @param {TileGridProvider} tileGrid - Tile grid to draw.
      * @param {TileSet} tileSet - Tile set that contains the tiles used by the tile grid.
-     * @param {PaletteList} paletteList - Palettes to use when drawing.
+     * @param {Palette[]|PaletteList} palettes - Palettes to use when drawing.
      * @param {number[]?} [paletteIndiciesToRenderTransparent] - Palette indicies to render as transparent.
      * @returns {ImageBitmap}
      */
-    static createTileGridImage(tileGrid, tileSet, paletteList, paletteIndiciesToRenderTransparent) {
+    static createTileGridImage(tileGrid, tileSet, palettes, paletteIndiciesToRenderTransparent) {
         const widthPx = tileGrid.columnCount * 8;
         const heightPx = tileGrid.rowCount * 8;
         const canvas = new OffscreenCanvas(widthPx, heightPx);
-        drawTileGridOntoCanvas(canvas, tileGrid, tileSet, paletteList, paletteIndiciesToRenderTransparent);
+        drawTileGridOntoCanvas(canvas, tileGrid, tileSet, palettes, paletteIndiciesToRenderTransparent);
         return canvas.transferToImageBitmap();
     }
 
@@ -399,13 +399,14 @@ function translateCoordinate(tileInfo, x, y) {
  * @param {HTMLCanvasElement|OffscreenCanvas} canvas - Canvas to draw onto.
  * @param {TileGridProvider} tileGrid - Tile grid to draw.
  * @param {TileSet} tileSet - Tile set that contains the tiles used by the tile grid.
- * @param {PaletteList} paletteList - Palettes to use when drawing.
+ * @param {Palette[]|PaletteList} palettes - Palettes to use when drawing.
  */
-function drawTileGridOntoCanvas(canvas, tileGrid, tileSet, paletteList) {
+function drawTileGridOntoCanvas(canvas, tileGrid, tileSet, palettes) {
     if (!canvas instanceof HTMLCanvasElement && !canvas instanceof OffscreenCanvas) throw new Error('Non valid canvas object was passed.');
     if (!tileGrid instanceof TileGridProvider) throw new Error('Tile grid was not valid.');
     if (!tileSet instanceof TileSet) throw new Error('Tile set was not valid.');
-    if (!paletteList instanceof PaletteList) throw new Error('Palette list was not valid.');
+
+    const paletteArray = palettes instanceof PaletteList ? palettes.getPalettes() : palettes.map((p) => p instanceof Palette);
 
     const context = canvas.getContext('2d');
     const dimensions = { w: 8, h: 8 };
@@ -414,7 +415,7 @@ function drawTileGridOntoCanvas(canvas, tileGrid, tileSet, paletteList) {
         for (let row = 0; row < tileGrid.rowCount; row++) {
             const tileInfo = tileGrid.getTileInfoByRowAndColumn(row, col);
             const tile = tileSet?.getTile(tileInfo.tileId) ?? null;
-            const palette = paletteList?.getPaletteByIndex(tileInfo.paletteIndex) ?? null;
+            const palette = paletteArray[tileInfo.paletteIndex];
             const coords = { x: col * 8, y: row * 8 };
             if (tile && palette) {
                 drawTileImage(context,

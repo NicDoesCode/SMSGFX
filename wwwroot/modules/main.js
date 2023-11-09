@@ -3340,11 +3340,22 @@ function referenceImageFromTileMap(tileMapId) {
     const tileMap = getTileMapList().getTileMapById(tileMapId);
     if (!tileMap) throw new Error('Tile map not found.');
 
-    console.log('Yes the tile map was found.');
+    const palettes = tileMap.getPalettes().map((id) => getPaletteList().getPaletteById(id));
+    const transIndex = tileMap.isSprite ? [0] : [];
+    const image = PaintUtil.createTileGridImage(tileMap, getTileSet(), palettes, transIndex);
 
-    const canv = new OffscreenCanvas(tileMap.columnCount * 8, tileMap.rowCount * 8);
-    const tileMapImage = PaintUtil.drawTileImage(canv.getContext('2d'), 0, 0, canv.width, canv.height, )
-    const tileMapImage = PaintUtil.dr(canv.getContext('2d'), 0, 0, canv.width, canv.height, )
+    instanceState.referenceImage = new ReferenceImage();
+    instanceState.referenceImage.setImage(image);
+    instanceState.referenceImage.setBounds(0, 0, image.width, image.height);
+
+    tileContextToolbar.setState({
+        referenceBounds: instanceState.referenceImage.getBounds(),
+        referenceTransparency: instanceState.transparencyIndex
+    });
+    tileEditor.setState({
+        referenceImage: instanceState.referenceImage,
+        transparencyIndicies: getTransparencyIndicies()
+    });
 }
 
 function clearReferenceImage() {
