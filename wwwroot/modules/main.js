@@ -3341,8 +3341,8 @@ function referenceImageFromTileMap(tileMapId) {
     if (!tileMap) throw new Error('Tile map not found.');
 
     const palettes = tileMap.getPalettes().map((id) => getPaletteList().getPaletteById(id));
-    const transIndex = tileMap.isSprite ? [0] : [];
-    const image = PaintUtil.createTileGridImage(tileMap, getTileSet(), palettes, transIndex);
+    const transparentIndicies = tileMap.isSprite ? [0] : [];
+    const image = PaintUtil.createTileGridImage(tileMap, getTileSet(), palettes, transparentIndicies);
 
     instanceState.referenceImage = new ReferenceImage();
     instanceState.referenceImage.setImage(image);

@@ -1235,7 +1235,7 @@ export default class CanvasManager {
         const originalSmoothingEnabled = context.imageSmoothingEnabled;
         const originalSmoothingQuality = context.imageSmoothingQuality;
 
-        context.imageSmoothingEnabled = true;
+        context.imageSmoothingEnabled = false;
         context.imageSmoothingQuality = 'high';
 
         const pxSize = coords.pxSize;

@@ -406,7 +406,7 @@ function drawTileGridOntoCanvas(canvas, tileGrid, tileSet, palettes) {
     if (!tileGrid instanceof TileGridProvider) throw new Error('Tile grid was not valid.');
     if (!tileSet instanceof TileSet) throw new Error('Tile set was not valid.');
 
-    const paletteArray = palettes instanceof PaletteList ? palettes.getPalettes() : palettes.map((p) => p instanceof Palette);
+    const paletteArray = palettes instanceof PaletteList ? palettes.getPalettes() : palettes.filter((p) => p instanceof Palette);
 
     const context = canvas.getContext('2d');
     const dimensions = { w: 8, h: 8 };
@@ -414,7 +414,7 @@ function drawTileGridOntoCanvas(canvas, tileGrid, tileSet, palettes) {
     for (let col = 0; col < tileGrid.columnCount; col++) {
         for (let row = 0; row < tileGrid.rowCount; row++) {
             const tileInfo = tileGrid.getTileInfoByRowAndColumn(row, col);
-            const tile = tileSet?.getTile(tileInfo.tileId) ?? null;
+            const tile = tileSet?.getTileById(tileInfo.tileId) ?? null;
             const palette = paletteArray[tileInfo.paletteIndex];
             const coords = { x: col * 8, y: row * 8 };
             if (tile && palette) {
