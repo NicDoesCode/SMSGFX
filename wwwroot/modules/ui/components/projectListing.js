@@ -1,9 +1,11 @@
 import ComponentBase from "../componentBase.js";
 import EventDispatcher from "../../components/eventDispatcher.js";
 import ProjectList from "../../models/projectList.js";
+import ProjectEntryList from "../../models/projectEntryList.js";
 import TemplateUtil from "../../util/templateUtil.js";
 import DateTimeUtil from "../../util/dateTimeUtil.js";
 import GeneralUtil from "../../util/generalUtil.js";
+import ProjectEntry from "../../models/projectEntry.js";
 
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
@@ -124,7 +126,7 @@ export default class ProjectListing extends ComponentBase {
             this.#listElmement.style.height = (state.height !== null) ? state.height : null;
         }
 
-        if (state.projects instanceof ProjectList || Array.isArray(state.projects)) {
+        if (state.projects instanceof ProjectList || state.projects instanceof ProjectEntryList || Array.isArray(state.projects)) {
             this.#displayProjects(state.projects);
         }
 
@@ -149,10 +151,15 @@ export default class ProjectListing extends ComponentBase {
 
 
     /**
-     * @param {ProjectList|Project[]} projects
+     * @param {ProjectList|Project[]|ProjectEntryList|ProjectEntry[]} projects
      */
     #displayProjects(projects) {
-        const projectArray = projects instanceof ProjectList ? projects.getProjects() : projects;
+        /** @type {Project[]|ProjectEntry[]} */
+        let projectArray = [];
+        if (projects instanceof ProjectList)  projectArray.push(...projects.getProjects());
+        if (projects instanceof ProjectEntryList)  projectArray.push(...projects.getProjectEntries());
+        if (Array.isArray(projects))  projectArray.push(...projects);
+
         const renderList = projectArray.map((p) => {
             return {
                 title: p.title,
@@ -224,7 +231,7 @@ export default class ProjectListing extends ComponentBase {
 /**
  * Project list state.
  * @typedef {Object} ProjectListingState
- * @property {ProjectList|Project[]|null} [projects] - List of projects to display in the menu.
+ * @property {ProjectList|Project[]|ProjectEntryList|ProjectEntry[]|null} [projects] - List of projects to display in the menu.
  * @property {boolean?} [showDateLastModified] - Show the date last modified column?
  * @property {boolean?} [showDelete] - Show the delete button?
  * @property {boolean?} [showSort] - Show the sort button?

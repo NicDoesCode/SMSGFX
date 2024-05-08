@@ -14,6 +14,7 @@ import PaletteListFactory from "./factory/paletteListFactory.js";
 import TileUtil from "./util/tileUtil.js";
 import FileUtil from "./util/fileUtil.js";
 import Project from "./models/project.js";
+import ProjectEntry from "./models/projectEntry.js";
 import GeneralUtil from "./util/generalUtil.js";
 import ProjectWatcher from "./components/projectWatcher.js";
 import ImageUtil from "./util/imageUtil.js";
@@ -64,6 +65,7 @@ import TileSet from "./models/tileSet.js";
 import SampleProjectManager from "./components/sampleProjectManager.js";
 import KeyboardManager, { KeyDownHandler, KeyUpHandler } from "./components/keyboardManager.js";
 import ProjectList from "./models/projectList.js";
+import ProjectEntryList from "./models/projectEntryList.js";
 import SystemUtil from "./util/systemUtil.js";
 import { DropPosition } from "./types.js";
 import TileMapUtil from "./util/tileMapUtil.js";
@@ -945,9 +947,7 @@ function handleProjectToolbarOnCommand(args) {
             break;
 
         case ProjectToolbar.Commands.projectLoadById:
-            const projects = state.getProjectsFromLocalStorage();
-            const project = projects.getProjectById(args.projectId);
-            state.setProject(project);
+            state.setProjectById(args.projectId);
             break;
 
         case ProjectToolbar.Commands.projectDelete:
@@ -963,7 +963,7 @@ function handleProjectToolbarOnCommand(args) {
 
 /** @param {import('./ui/dialogues/projectDropdown.js').ProjectDropdownCommandEventArgs} args */
 async function handleProjectDropdownOnCommand(args) {
-    const projectList = state.getProjectsFromLocalStorage();
+    const projectEntries = state.getProjectEntries();
     switch (args.command) {
 
         case ProjectDropdown.Commands.title:
@@ -991,8 +991,7 @@ async function handleProjectDropdownOnCommand(args) {
             break;
 
         case ProjectDropdown.Commands.projectLoadById:
-            const project = projectList.getProjectById(args.projectId);
-            state.setProject(project);
+            state.setProjectById(args.projectId);
             projectDropdown.setState({ visible: false });
             break;
 
@@ -1014,7 +1013,7 @@ async function handleProjectDropdownOnCommand(args) {
             getUIState().projectDropDownSort = sort;
             state.savePersistentUIStateToLocalStorage();
             projectDropdown.setState({
-                projects: getSortedProjectArray(projectList, sort)
+                projects: getSortedProjectArray(projectEntries, sort)
             });
             break;
 
@@ -1028,7 +1027,7 @@ async function handleProjectDropdownOnCommand(args) {
         case ProjectDropdown.Commands.showWelcomeScreen:
             welcomeScreen.setState({
                 visible: true,
-                projects: getSortedProjectArray(projectList, getUIState().projectDropDownSort),
+                projects: getSortedProjectArray(projectEntries, getUIState().projectDropDownSort),
                 visibleCommands: ['dismiss']
             });
             projectDropdown.setState({ visible: false });
@@ -1948,9 +1947,7 @@ function welcomeScreenOnCommand(args) {
             break;
 
         case WelcomeScreen.Commands.projectLoadById:
-            const projects = state.getProjectsFromLocalStorage();
-            const project = projects.getProjectById(args.projectId);
-            state.setProject(project);
+            state.setProjectById(args.projectId);
             welcomeScreen.setState({ visible: false });
             break;
 
@@ -1972,7 +1969,7 @@ function welcomeScreenOnCommand(args) {
             getUIState().welcomeScreenProjectSort = sort;
             state.savePersistentUIStateToLocalStorage();
             welcomeScreen.setState({
-                projects: getSortedProjectArray(state.getProjectsFromLocalStorage(), sort)
+                projects: getSortedProjectArray(state.getProjectEntries(), sort)
             });
             break;
 
@@ -1992,7 +1989,7 @@ function welcomeScreenOnCommand(args) {
  * Creates a default tile set and palettes when the data store doesn't contain any.
  */
 function createDefaultProjectIfNoneExists() {
-    const projects = state.getProjectsFromLocalStorage();
+    const projects = state.getProjectEntries();
     if (projects.length === 0) {
         const newProject = createEmptyProject();
         state.setProject(newProject);
@@ -2273,27 +2270,31 @@ function isTileMap() {
 }
 
 /**
- * @param {ProjectList|Project[]} projects 
+ * @param {ProjectEntryList|ProjectEntry[]|ProjectList|Project[]} projects 
  * @param {import('./types.js').SortEntry} sort 
- * @returns {Project[]}
+ * @returns {Project[]|ProjectEntry[]}
  */
 function getSortedProjectArray(projects, sort) {
-    projects = projects instanceof ProjectList ? projects.getProjects() : projects;
-    if (!projects || !Array.isArray(projects)) return [];
+    /** @type {Project[]|ProjectEntry[]} */
+    const projectArray = [];
+    if (projects instanceof ProjectList) projectArray.push(...projects.getProjects());
+    if (projects instanceof ProjectEntryList) projectArray.push(...projects.getProjectEntries());
+    if (Array.isArray(projects)) projectArray.push(...projects);
+
     if (sort?.field === 'title') {
         if (sort.direction === 'asc') {
-            projects.sort((a, b) => a.title > b.title ? 1 : -1);
+            projectArray.sort((a, b) => a.title > b.title ? 1 : -1);
         } else {
-            projects.sort((a, b) => a.title < b.title ? 1 : -1);
+            projectArray.sort((a, b) => a.title < b.title ? 1 : -1);
         }
     } else if (sort?.field === 'dateLastModified') {
         if (sort.direction === 'asc') {
-            projects.sort((a, b) => a.dateLastModified > b.dateLastModified ? 1 : -1);
+            projectArray.sort((a, b) => a.dateLastModified > b.dateLastModified ? 1 : -1);
         } else {
-            projects.sort((a, b) => a.dateLastModified < b.dateLastModified ? 1 : -1);
+            projectArray.sort((a, b) => a.dateLastModified < b.dateLastModified ? 1 : -1);
         }
     }
-    return projects;
+    return projectArray;
 }
 
 function refreshProjectUI() {
@@ -2650,11 +2651,11 @@ function displaySelectedProject() {
     } else {
         formatForNoProject();
         // Select default project if one was there
-        const projects = state.getProjectsFromLocalStorage();
+        const projectEntries = state.getProjectEntries();
         const project = (() => {
-            const lastProject = projects.getProjectById(getUIState().lastProjectId);
+            const lastProject = state.getProjectById(getUIState().lastProjectId);
             if (lastProject) return lastProject;
-            if (projects.length > 0) return projects.getProject(0);
+            if (projectEntries.length > 0) return state.getProjectFromLocalStorage(projectEntries[0].id);
             return null;
         })();
         if (project) state.setProject(project);
@@ -2662,15 +2663,15 @@ function displaySelectedProject() {
 }
 
 function uiRefreshProjectLists() {
-    const projectList = state.getProjectsFromLocalStorage();
+    const projectEntryList = state.getProjectEntries();
     projectToolbar.setState({
-        projects: projectList
+        projects: projectEntryList
     });
     projectDropdown.setState({
-        projects: getSortedProjectArray(projectList, getUIState().projectDropDownSort)
+        projects: getSortedProjectArray(projectEntryList, getUIState().projectDropDownSort)
     });
     welcomeScreen.setState({
-        projects: getSortedProjectArray(projectList, getUIState().welcomeScreenProjectSort)
+        projects: getSortedProjectArray(projectEntryList, getUIState().welcomeScreenProjectSort)
     });
 }
 
@@ -5325,45 +5326,45 @@ window.addEventListener('load', async () => {
     await PageModalDialogue.wireUpElementsAsync(document.body);
 
     // Load and set state
+    state.loadProjectEntriesFromLocalStorage();
     state.loadPersistentUIStateFromLocalStorage();
 
     checkPersistentUIValues();
 
     // Load initial projects
-    const projectList = state.getProjectsFromLocalStorage();
+    const projectEntryList = state.getProjectEntries();
     const sampleManager = await SampleProjectManager.getInstanceAsync();
     instanceState.sampleProjects = await sampleManager.getSampleProjectsAsync();
 
     const sampleProjects = instanceState.sampleProjects;
-    if (projectList.length === 0) {
+    if (projectEntryList.length === 0) {
         for (let i = 0; i < sampleProjects.length; i++) {
             const sampleProject = sampleProjects[i];
             const loadedProject = await sampleManager.loadSampleProjectAsync(sampleProject.url);
             // Add to storage
-            projectList.addProject(loadedProject);
             state.saveProjectToLocalStorage(loadedProject, false);
             // Default tile map ID
             const defaultTileMap = loadedProject.tileMapList.getTileMapById(sampleProject.defaultTileMapId);
             getProjectUIState(loadedProject).tileMapId = defaultTileMap?.tileMapId ?? null;
         }
-        getUIState().lastProjectId = projectList.getProject(0).id;
+        getUIState().lastProjectId = state.getProjectEntries()[0].id;
         state.savePersistentUIStateToLocalStorage();
     }
 
-    const project = projectList.getProjectById(getUIState().lastProjectId);
-    state.setProject(project);
+    state.setProjectById(getUIState().lastProjectId);
 
     projectToolbar.setState({
-        projects: projectList
+        projects: projectEntryList
     });
     projectDropdown.setState({
-        projects: getSortedProjectArray(projectList, getUIState().projectDropDownSort),
+        projects: getSortedProjectArray(projectEntryList, getUIState().projectDropDownSort),
         sampleProjects: sampleProjects
     });
 
     // Clean up unused project states
     Object.keys(getUIState().projectStates).forEach((projectId) => {
-        if (!projectList.containsProjectById(projectId)) {
+        const found = state.getProjectEntries().filter((p) => p.id === projectId);
+        if (found.length === 0) {
             delete getUIState().projectStates[projectId];
         }
     });
@@ -5396,7 +5397,7 @@ window.addEventListener('load', async () => {
         showWelcomeScreenOnStartUpChecked: getUIState().welcomeVisibleOnStartup,
         visibleCommands: getProject() instanceof Project === true ? ['dismiss'] : [],
         invisibleCommands: getProject() instanceof Project === false ? ['dismiss'] : [],
-        projects: getSortedProjectArray(projectList, getUIState().welcomeScreenProjectSort)
+        projects: getSortedProjectArray(projectEntryList, getUIState().welcomeScreenProjectSort)
     });
 
     optionsToolbar.setState({
