@@ -791,8 +791,8 @@ export default class TileEditor extends ComponentBase {
         canvasState.canvasHeight = response.canvasSize.height;
         canvasState.tileGridRows = response.tileGridDimension.rows;
         canvasState.tileGridColumns = response.tileGridDimension.columns;
-        canvasState.tileGridWidthPixels = response.tileGridImage.width;
-        canvasState.tileGridHeightPixels = response.tileGridImage.height;
+        canvasState.tileGridWidthPixels = response.tileGridImageDimensions.width;
+        canvasState.tileGridHeightPixels = response.tileGridImageDimensions.height;
         canvasState.offsetX = response.tileGridOffset.x;
         canvasState.offsetY = response.tileGridOffset.y;
         canvasState.scale = response.scale;
@@ -867,7 +867,7 @@ export default class TileEditor extends ComponentBase {
 /**
  * @typedef {Object} TileEditorEventArgs
  * @property {string} event - Event that occurred.
- * @property {number} tileGridImage - Image of the tile grid.
+ * @property {ImageBitmap} tileGridImage - Image of the tile grid.
  * @property {number} x - X tile grid pixel thats selected.
  * @property {number} y - Y tile grid pixel thats selected.
  * @property {number?} [tileGridRowIndex] - Index of the tile grid row that corresponds with the Y mouse coordinate.

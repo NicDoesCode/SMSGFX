@@ -274,12 +274,12 @@ function makeImageResponse() {
         hasTileSet: canvasManager.tileSet !== null,
         hasPalettes: canvasManager.paletteList !== null,
         isTileMap: canvasManager.tileGrid !== null && canvasManager.tileGrid instanceof TileMap,
-        tileGridBitmap: null,
+        tileGridImage: null,
         canvasSize: {
             width: canvas.width,
             height: canvas.height
         },
-        tileGridImage: {
+        tileGridImageDimensions: {
             width: canvasManager.tileGrid ? (canvasManager.tileGrid.columnCount * 8 * canvasManager.scale) : 1,
             height: canvasManager.tileGrid ? (canvasManager.tileGrid.rowCount * 8 * canvasManager.scale) : 1
         },
@@ -346,7 +346,7 @@ function makeImageResponse() {
  * @property {boolean} isTileMap 
  * @property {ImageBitmap?} [tileGridImage] - An image of the tile grid.
  * @property {import('../types.js').Dimension} [canvasSize] - Pixel dimensions of the viewport.
- * @property {import('../types.js').Dimension} [tileGridImage] - Pixel dimensions of the tile grid image.
+ * @property {import('../types.js').Dimension} [tileGridImageDimensions] - Pixel dimensions of the tile grid image.
  * @property {import('../types.js').GridDimension} [tileGridDimension] - Dimension of the tile grid in rows and columns.
  * @property {import('../types.js').Coordinate} [tileGridOffset] - Offset of the tile grid image relative to the centre of the viewport.
  * @property {number} [scale] - Image drawing scale, 1 = 1:1, 2 = 2:1, 15 = 15:1.

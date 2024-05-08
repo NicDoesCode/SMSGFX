@@ -59,7 +59,7 @@ export default class ReferenceImage {
         if (image instanceof ImageBitmap) {
             this.#image = image;
         } else if ((image?.tagName && image.tagName === 'IMG') || (image?.tagName && image.tagName === 'CANVAS') || image instanceof OffscreenCanvas) {
-            this.#image = ImageUtil.ToImageBitmap(image);
+            this.#image = ImageUtil.toImageBitmap(image);
         } else if (image === null) {
             this.#image = null;
         } else {

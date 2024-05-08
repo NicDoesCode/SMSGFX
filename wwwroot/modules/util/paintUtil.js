@@ -4,6 +4,8 @@ import Tile from '../models/tile.js';
 import TileSet from '../models/tileSet.js'
 import TileGridProvider from '../models/tileGridProvider.js';
 import TileSetFactory from '../factory/tileSetFactory.js';
+import TileMap from '../models/tileMap.js';
+import PaletteList from '../models/paletteList.js';
 
 export default class PaintUtil {
 
@@ -227,38 +229,19 @@ export default class PaintUtil {
     }
 
     /**
-     * Draw a single tile to a canvas.
-     * @param {HTMLCanvasElement} canvas - Canvas element to draw onto.
-     * @param {Tile} tile - Tile to draw.
-     * @param {Palette} palette - Palette to use to render the pixel.
+     * Draws a tile map onto a canvas object.
+     * @param {TileGridProvider} tileGrid - Tile grid to draw.
+     * @param {TileSet} tileSet - Tile set that contains the tiles used by the tile grid.
+     * @param {Palette[]|PaletteList} palettes - Palettes to use when drawing.
+     * @param {number[]?} [paletteIndiciesToRenderTransparent] - Palette indicies to render as transparent.
+     * @returns {ImageBitmap}
      */
-    static drawTile(canvas, tile, palette) {
-        const context = canvas.getContext('2d');
-        const numColours = palette.getColours().length;
-
-        const w = canvas.width / 8;
-        const h = canvas.height / 8;
-
-        for (let tilePx = 0; tilePx < 64; tilePx++) {
-
-            const tileCol = tilePx % 8;
-            const tileRow = (tilePx - tileCol) / 8;
-
-            const x = tileCol * w;
-            const y = tileRow * h;
-
-            let pixelPaletteIndex = tile.readAt(tilePx);
-
-            // Set colour
-            if (pixelPaletteIndex >= 0 && pixelPaletteIndex < numColours) {
-                const colour = palette.getColour(pixelPaletteIndex);
-                const hex = ColourUtil.toHex(colour.r, colour.g, colour.b);
-                context.fillStyle = hex;
-            }
-
-            context.moveTo(0, 0);
-            context.fillRect(x, y, w, h);
-        }
+    static createTileGridImage(tileGrid, tileSet, palettes, paletteIndiciesToRenderTransparent) {
+        const widthPx = tileGrid.columnCount * 8;
+        const heightPx = tileGrid.rowCount * 8;
+        const canvas = new OffscreenCanvas(widthPx, heightPx);
+        drawTileGridOntoCanvas(canvas, tileGrid, tileSet, palettes, paletteIndiciesToRenderTransparent);
+        return canvas.transferToImageBitmap();
     }
 
     /**
@@ -316,59 +299,7 @@ export default class PaintUtil {
         }
     }
 
-
-    /**
-     * Renders an image of the tile onto a canvas object, at the size of the canvas object.
-     * @param {CanvasRenderingContext2D} context - Context object to do the drawing.
-     * @param {number} x - X position to draw the tile image.
-     * @param {number} y - Y position to draw the tile image.
-     * @param {number} width - Width to draw the tile image.
-     * @param {number} height - Height to draw the tile image.
-     * @param {Tile} tile - Tile to draw to the canvas.
-     * @param {Palette} palette - Colour palette to use.
-     * @param {DrawTileImageOptions?} [options] - Optional. Additional options for painting the tile.
-     * @returns {ImageBitmap}
-     */
-    static drawTileImage(context, x, y, width, height, tile, palette, options) {
-        let transIndexes = Array.isArray(options?.transparencyIndexes) ? options.transparencyIndexes : null;
-        let hFlip = options?.horizontalFlip === true;
-        let vflip = options?.verticalFlip === true;
-
-        let tilePixelIndex = 0;
-        let scaleX = width / 8;
-        let scaleY = height / 8;
-        let canvasX = hFlip ? x + (scaleX * 7) : x;
-        let canvasY = vflip ? y + (scaleY * 7) : y;
-
-        for (let tileY = 0; tileY < 8; tileY++) {
-            for (let tileX = 0; tileX < 8; tileX++) {
-
-                const pixelPaletteIndex = tile.readAt(tilePixelIndex);
-
-                // Set colour of the pixel
-                if (pixelPaletteIndex >= 0 && pixelPaletteIndex < palette.getColours().length) {
-                    const colour = palette.getColour(pixelPaletteIndex);
-                    context.fillStyle = `rgb(${colour.r}, ${colour.g}, ${colour.b})`;
-                }
-
-                if (transIndexes && transIndexes.includes(pixelPaletteIndex)) {
-                    // This palette index is within the transparency indexes, so it shouldn't be
-                    // drawn, so clear it instead of drawing it.
-                    context.clearRect(canvasX, canvasY, scaleX, scaleY);
-                } else {
-                    // Pixel colour is not in transparency indicies, so draw it.
-                    context.fillRect(canvasX, canvasY, scaleX, scaleY);
-                }
-
-                tilePixelIndex++;
-
-                canvasX += hFlip ? -scaleX : scaleX;
-            }
-            canvasY += vflip ? -scaleY : scaleY;
-            canvasX = hFlip ? x + (scaleX * 7): x;
-        }
-    }
-
+    static drawTileImage = drawTileImage;
 
 }
 
@@ -461,6 +392,95 @@ function translateCoordinate(tileInfo, x, y) {
         y: tileInfo.verticalFlip ? 7 - y : y
     };
 }
+
+
+/**
+ * Draws a tile map onto a canvas object.
+ * @param {HTMLCanvasElement|OffscreenCanvas} canvas - Canvas to draw onto.
+ * @param {TileGridProvider} tileGrid - Tile grid to draw.
+ * @param {TileSet} tileSet - Tile set that contains the tiles used by the tile grid.
+ * @param {Palette[]|PaletteList} palettes - Palettes to use when drawing.
+ */
+function drawTileGridOntoCanvas(canvas, tileGrid, tileSet, palettes) {
+    if (!canvas instanceof HTMLCanvasElement && !canvas instanceof OffscreenCanvas) throw new Error('Non valid canvas object was passed.');
+    if (!tileGrid instanceof TileGridProvider) throw new Error('Tile grid was not valid.');
+    if (!tileSet instanceof TileSet) throw new Error('Tile set was not valid.');
+
+    const paletteArray = palettes instanceof PaletteList ? palettes.getPalettes() : palettes.filter((p) => p instanceof Palette);
+
+    const context = canvas.getContext('2d');
+    const dimensions = { w: 8, h: 8 };
+
+    for (let col = 0; col < tileGrid.columnCount; col++) {
+        for (let row = 0; row < tileGrid.rowCount; row++) {
+            const tileInfo = tileGrid.getTileInfoByRowAndColumn(row, col);
+            const tile = tileSet?.getTileById(tileInfo.tileId) ?? null;
+            const palette = paletteArray[tileInfo.paletteIndex];
+            const coords = { x: col * 8, y: row * 8 };
+            if (tile && palette) {
+                drawTileImage(context,
+                    coords.x, coords.y,
+                    dimensions.w, dimensions.h,
+                    tile, palette,
+                    { horizontalFlip: tileInfo.horizontalFlip, verticalFlip: tileInfo.verticalFlip }
+                );
+            }
+        }
+    }
+}
+
+/**
+ * Renders an image of the tile onto a canvas object, at the size of the canvas object.
+ * @param {CanvasRenderingContext2D} context - Context object to do the drawing.
+ * @param {number} x - X position to draw the tile image.
+ * @param {number} y - Y position to draw the tile image.
+ * @param {number} width - Width to draw the tile image.
+ * @param {number} height - Height to draw the tile image.
+ * @param {Tile} tile - Tile to draw to the canvas.
+ * @param {Palette} palette - Colour palette to use.
+ * @param {DrawTileImageOptions?} [options] - Optional. Additional options for painting the tile.
+ * @returns {ImageBitmap}
+ */
+function drawTileImage(context, x, y, width, height, tile, palette, options) {
+    let transIndexes = Array.isArray(options?.transparencyIndexes) ? options.transparencyIndexes : null;
+    let hFlip = options?.horizontalFlip === true;
+    let vflip = options?.verticalFlip === true;
+
+    let tilePixelIndex = 0;
+    let scaleX = width / 8;
+    let scaleY = height / 8;
+    let canvasX = hFlip ? x + (scaleX * 7) : x;
+    let canvasY = vflip ? y + (scaleY * 7) : y;
+
+    for (let tileY = 0; tileY < 8; tileY++) {
+        for (let tileX = 0; tileX < 8; tileX++) {
+
+            const pixelPaletteIndex = tile.readAt(tilePixelIndex);
+
+            // Set colour of the pixel
+            if (pixelPaletteIndex >= 0 && pixelPaletteIndex < palette.getColours().length) {
+                const colour = palette.getColour(pixelPaletteIndex);
+                context.fillStyle = `rgb(${colour.r}, ${colour.g}, ${colour.b})`;
+            }
+
+            if (transIndexes && transIndexes.includes(pixelPaletteIndex)) {
+                // This palette index is within the transparency indexes, so it shouldn't be
+                // drawn, so clear it instead of drawing it.
+                context.clearRect(canvasX, canvasY, scaleX, scaleY);
+            } else {
+                // Pixel colour is not in transparency indicies, so draw it.
+                context.fillRect(canvasX, canvasY, scaleX, scaleY);
+            }
+
+            tilePixelIndex++;
+
+            canvasX += hFlip ? -scaleX : scaleX;
+        }
+        canvasY += vflip ? -scaleY : scaleY;
+        canvasX = hFlip ? x + (scaleX * 7) : x;
+    }
+}
+
 
 /** 
  * @typedef {Object} FillProps
