@@ -1056,7 +1056,7 @@ function handleExportToolbarOnCommand(args) {
             break;
 
         case ExportToolbar.Commands.exportImage:
-            tileEditor.setState({ requestExportImage: true });
+            exportCurrentTileGridAsImage();
             break;
 
     }
@@ -4259,6 +4259,16 @@ function downloadAssemblyCode(code) {
     a.download = fullFileName;
     a.click();
     a.remove();
+}
+
+/**
+ * Exports the currently selected tile set or tile grid to an image.
+ */
+function exportCurrentTileGridAsImage() {
+    const tileGrid = getTileGrid();
+    const palettes = getPaletteListToSuitTileMapOrTileSetSelection();
+    const image = PaintUtil.createTileGridImage(tileGrid, getTileSet(), palettes);
+    exportImage(image);
 }
 
 /**
