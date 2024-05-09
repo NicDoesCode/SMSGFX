@@ -56,7 +56,7 @@ export default class ProjectEntryList {
     indexById(projectId) {
         if (projectId) {
             for (let i = 0; i < this.#entries.length; i++) {
-                if (this.#entries[p].id === projectId) return i;
+                if (this.#entries[i].id === projectId) return i;
             }
         }
         return -1;

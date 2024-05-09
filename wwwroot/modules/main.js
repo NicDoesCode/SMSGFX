@@ -5353,7 +5353,12 @@ window.addEventListener('load', async () => {
         projectEntryList = state.getProjectEntries();
     }
 
-    state.setProjectById(getUIState().lastProjectId);
+    try {
+        state.setProjectById(getUIState().lastProjectId);
+    } catch {
+        const firstProjectId = state.getProjectEntries()[0].id;
+        state.setProjectById(firstProjectId);
+    }
 
     projectToolbar.setState({
         projects: projectEntryList
