@@ -2654,8 +2654,10 @@ function displaySelectedProject() {
         // Select default project if one was there
         const projectEntries = state.getProjectEntries();
         const project = (() => {
-            const lastProject = state.getProjectById(getUIState().lastProjectId);
-            if (lastProject) return lastProject;
+            if (getUIState().lastProjectId) {
+                const lastProject = state.getProjectById(getUIState().lastProjectId);
+                if (lastProject) return lastProject;
+            }
             if (projectEntries.length > 0) return state.getProjectFromLocalStorage(projectEntries[0].id);
             return null;
         })();
