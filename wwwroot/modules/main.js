@@ -2642,6 +2642,20 @@ function getTileMapContextToolbarVisibleToolstrips(tool) {
     return visibleStrips;
 }
 
+
+    // /**
+    //  * @param {Palette} palette - Palette to query.
+    //  * @returns {Palette}
+    //  */
+    // #getPaletteInRegularOrNative(palette) {
+    //     const displayNative = this.#getElement(commands.displayNativeColours)?.checked ?? false;
+    //     if (displayNative) {
+    //         return PaletteUtil.clonePaletteWithNativeColours(palette, { preserveIds: true });
+    //     } else {
+    //         return palette;
+    //     }
+    // }
+
 function displaySelectedProject() {
     if (getProject()) {
         if (getPaletteList().length === 0) {
