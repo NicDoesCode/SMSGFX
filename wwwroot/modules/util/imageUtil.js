@@ -136,8 +136,6 @@ export default class ImageUtil {
                 });
             });
 
-            const noMatch = []; // TMP 
-
             let x = 0, y = -1;
             for (let i = 0; i < imageData.data.length; i += 4) {
 
@@ -152,7 +150,6 @@ export default class ImageUtil {
                 if (colourHexLookup[pixel.hex]) {
                     context.fillStyle = colourHexLookup[pixel.hex];
                 } else {
-                    if (!noMatch.includes(pixel.hex)) noMatch.push(pixel.hex); // TMP 
                     context.fillStyle = 'yellow';
                 }
                 context.fillRect(x, y, 1, 1);
@@ -160,7 +157,6 @@ export default class ImageUtil {
                 x++;
             }
 
-            console.log('noMatch', noMatch); // TMP 
             resolve(await canvasToImageAsync(canvas));
         });
     }
