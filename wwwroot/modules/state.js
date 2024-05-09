@@ -181,12 +181,8 @@ export default class State {
      * @param {string?} projectId - Unique ID of the project to load.
      */
     setProjectById(projectId) {
-        if (this.#projects.has(projectId)) {
-            const project = this.#projects.get(projectId);
-            this.setProject(project);
-        } else {
-            this.setProjectFromLocalStorage(projectId);
-        }
+        const project = this.getProjectById(projectId);
+        this.setProject(project);
     }
 
     /**
@@ -232,6 +228,7 @@ export default class State {
      * @returns {ProjectEntry[]}
      */
     getProjectEntries() {
+        updateProjectEntriesFromProjects(this.#projectEntries, this.#projects);
         if (this.#projectEntries instanceof ProjectEntryList) {
             return this.#projectEntries.getProjectEntries();
         }
@@ -400,6 +397,22 @@ function addOrRemoveProjectEntriesBasedOnLocalStorage(entries, state) {
             entries.removeAt(index);
         }
     }
+}
+
+/**
+ * Updates project entries from a list of projects.
+ * @param {ProjectEntryList} projectEntryList - List of project entries to update.
+ * @param {Map<string, Project>} projects - Projects to update from.
+ */
+function updateProjectEntriesFromProjects(projectEntryList, projects) {
+    projectEntryList.getProjectEntries().forEach((entry) => {
+        if (projects.has(entry.id)) {
+            const project = projects.get(entry.id);
+            entry.title = project.title;
+            entry.systemType = project.systemType;
+            entry.dateLastModified = project.dateLastModified;
+        }
+    });
 }
 
 
