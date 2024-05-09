@@ -6,8 +6,6 @@ import EventDispatcher from "../components/eventDispatcher.js";
 import PaletteList from "../models/paletteList.js";
 import PaletteEditorContextMenu from "./paletteEditorContextMenu.js";
 import TemplateUtil from "../util/templateUtil.js";
-import PaletteFactory from "../factory/paletteFactory.js";
-import PaletteUtil from "../util/paletteUtil.js";
 import StackedListReorderHelper from "../engine/helpers/stackedListReorderHelper.js";
 
 
@@ -58,10 +56,6 @@ export default class PaletteEditor extends ComponentBase {
     #selectedPaletteId = null;
     /** @type {HTMLButtonElement[]} */
     #paletteButtons = [];
-    /** @type {HTMLTableCellElement[]} */
-    #paletteCells = [];
-    /** @type {HTMLElement} */
-    #uiPaletteList;
     /** @type {HTMLElement} */
     #uiItemProperties;
     /** @type {HTMLInputElement} */
@@ -117,7 +111,6 @@ export default class PaletteEditor extends ComponentBase {
             }
         });
 
-        this.#uiPaletteList = this.#element.querySelector('[data-smsgfx-id=palette-list]');
         this.#uiItemProperties = this.#element.querySelector('[data-smsgfx-id=palette-properties]');
 
         this.#btnPaletteTitle = this.#element.querySelector('[data-smsgfx-id=editPaletteTitle]');
@@ -535,8 +528,7 @@ export default class PaletteEditor extends ComponentBase {
      */
     #createPaletteColourIndexButtons(palette) {
 
-        const renderPalette = this.#getPaletteInRegularOrNative(palette);
-        const data = renderPalette.getColours().map((colour, index) => {
+        const data = palette.getColours().map((colour, index) => {
             return {
                 colourIndex: index,
                 hex: ColourUtil.toHex(colour.r, colour.g, colour.b),
@@ -582,11 +574,10 @@ export default class PaletteEditor extends ComponentBase {
      * @param {Palette} palette
      */
     #updatePaletteColourIndexButtonColour(palette) {
-        const renderPalette = this.#getPaletteInRegularOrNative(palette);
         const element = this.#element.querySelector('[data-smsgfx-id=palette-colours]');
         element.querySelectorAll('button[data-colour-index]').forEach((/** @type {HTMLButtonElement} */ button) => {
             const colourIndex = parseInt(button.getAttribute('data-colour-index'));
-            const paletteColour = renderPalette.getColour(colourIndex);
+            const paletteColour = palette.getColour(colourIndex);
             const colourHex = ColourUtil.toHex(paletteColour.r, paletteColour.g, paletteColour.b);
             button.setAttribute('data-colour-hex', colourHex);
             button.style.backgroundColor = colourHex
@@ -624,19 +615,6 @@ export default class PaletteEditor extends ComponentBase {
                 button.classList.add('highlighted');
             }
         });
-    }
-
-    /**
-     * @param {Palette} palette - Palette to query.
-     * @returns {Palette}
-     */
-    #getPaletteInRegularOrNative(palette) {
-        const displayNative = this.#getElement(commands.displayNativeColours)?.checked ?? false;
-        if (displayNative) {
-            return PaletteUtil.clonePaletteWithNativeColours(palette, { preserveIds: true });
-        } else {
-            return palette;
-        }
     }
 
 
