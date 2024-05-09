@@ -1,9 +1,12 @@
 import EventDispatcher from "../../components/eventDispatcher.js";
-import ProjectList from "../../models/projectList.js";
 import TemplateUtil from "../../util/templateUtil.js";
 import ComponentBase from "../componentBase.js";
 import ProjectListing from "../components/projectListing.js";
 import ConfigManager from "../../components/configManager.js";
+import Project from "../../models/project.js";
+import ProjectEntry from "../../models/projectEntry.js";
+import ProjectList from "../../models/projectList.js";
+import ProjectEntryList from "../../models/projectEntryList.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -140,7 +143,7 @@ export default class WelcomeScreen extends ComponentBase {
             });
         }
 
-        if (state.projects instanceof ProjectList || Array.isArray(state.projects) || state.projects === null) {
+        if (state.projects instanceof ProjectList || state.projects instanceof ProjectEntryList || Array.isArray(state.projects) || state.projects === null) {
             const projects = state.projects ?? [];
             await this.#loadProjectListIfNotLoaded();
             if (this.#projectListing) {
@@ -209,7 +212,7 @@ export default class WelcomeScreen extends ComponentBase {
  * State object.
  * @typedef {Object} WelcomeScreenState
  * @property {boolean?} showWelcomeScreenOnStartUpChecked 
- * @property {ProjectList|Project[]|null} [projects] 
+ * @property {ProjectList|Project[]|ProjectEntryList|ProjectEntry[]|null} [projects] 
  * @property {boolean?} visible - Is the welcome screen visible?
  * @property {string[]?} enabledCommands - Array of commands that should be enabled, overrided enabled state.
  * @property {string[]?} disabledCommands - Array of commands that should be disabled, overrided enabled state.

@@ -4,14 +4,18 @@ import PersistentUIStateFactory from "./factory/persistentUIStateFactory.js";
 import AppUIStateJsonSerialiser from "./serialisers/persistentUIStateJsonSerialiser.js";
 import Project from "./models/project.js";
 import ProjectList from "./models/projectList.js";
+import ProjectEntry from "./models/projectEntry.js";
+import ProjectEntryList from "./models/projectEntryList.js";
 import GeneralUtil from "./util/generalUtil.js";
 import ProjectJsonSerialiser from "./serialisers/projectJsonSerialiser.js";
+import ProjectEntryListJsonSerialiser from "./serialisers/projectEntryListJsonSerialiser.js";
 import EventDispatcher from "./components/eventDispatcher.js";
 import ProjectUtil from "./util/projectUtil.js";
 
 
 const LOCAL_STORAGE_APPUI = 'smsgfxappui';
 const LOCAL_STORAGE_PROJECTS = 'smsgfxproject_';
+const LOCAL_STORAGE_PROJECT_ENTRIES = 'smsgfxprojectentries';
 
 const EVENT_OnEvent = 'EVENT_OnEvent';
 
@@ -69,7 +73,7 @@ export default class State {
      * Gets the current project state.
      */
     get projectState() {
-        return this.#project;
+        return this.#projectState;
     }
 
 
@@ -79,8 +83,12 @@ export default class State {
     #project;
     /** @type {import("./models/persistentUIState.js").ProjectState?} */
     #projectState;
+    /** @type {ProjectEntryList} */
+    #projectEntries;
     /** @type {EventDispatcher} */
     #dispatcher;
+    /** @type {Map<string, Project>} */
+    #projects = new Map();
 
 
     /**
@@ -89,6 +97,7 @@ export default class State {
     constructor() {
         this.#persistentUIState = PersistentUIStateFactory.create();
         this.#project = null;
+        this.#projectEntries = new ProjectEntryList();
         this.#dispatcher = new EventDispatcher();
     }
 
@@ -132,7 +141,7 @@ export default class State {
      */
     setProject(project) {
         let lastProjectId = this.project?.id ?? null;
-        if (project) {
+        if (project instanceof Project) {
             this.#project = project;
         } else {
             this.#project = null;
@@ -145,7 +154,6 @@ export default class State {
             this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectUpdated, { projectId: thisProjectId }));
         }
     }
-
 
     /**
      * Loads persistent UI values from local storage.
@@ -163,8 +171,17 @@ export default class State {
      * @param {string?} projectId - Unique ID of the project to load from local storage.
      */
     setProjectFromLocalStorage(projectId) {
-        const project = getProjectFromLocalStorage(projectId);
+        const project = this.getProjectFromLocalStorage(projectId);
         ensureProjectHasId(project);
+        this.setProject(project);
+    }
+
+    /**
+     * Loads a project, favouring any cached project, otherwise from local storage, sets it as the current project.
+     * @param {string?} projectId - Unique ID of the project to load.
+     */
+    setProjectById(projectId) {
+        const project = this.getProjectById(projectId);
         this.setProject(project);
     }
 
@@ -180,7 +197,22 @@ export default class State {
 
         if (!serialised) throw new Error('Project ID not found.');
 
-        return ProjectJsonSerialiser.deserialise(serialised);
+        const result = ProjectJsonSerialiser.deserialise(serialised);
+        this.#projects.set(result.id, result);
+        return result;
+    }
+
+    /**
+     * Gets a project from the cache first, falling back to local storage.
+     * @param {string} projectId - ID of the project to get.
+     * @returns {Project}
+     */
+    getProjectById(projectId) {
+        if (this.#projects.has(projectId)) {
+            return this.#projects.get(projectId);
+        } else {
+            return this.getProjectFromLocalStorage(projectId);
+        }
     }
 
     /**
@@ -189,6 +221,45 @@ export default class State {
     savePersistentUIStateToLocalStorage() {
         const serialisedUIState = AppUIStateJsonSerialiser.serialise(this.persistentUIState);
         localStorage.setItem(LOCAL_STORAGE_APPUI, serialisedUIState);
+    }
+
+    /**
+     * Gets the project entry list.
+     * @returns {ProjectEntry[]}
+     */
+    getProjectEntries() {
+        addOrRemoveProjectEntriesBasedOnLocalStorage(this.#projectEntries, this);
+        updateProjectEntriesFromProjects(this.#projectEntries, this.#projects);
+        if (this.#projectEntries instanceof ProjectEntryList) {
+            return this.#projectEntries.getProjectEntries();
+        }
+        return [];
+    }
+
+    /**
+     * Loads the project entry list from local storage.
+     */
+    loadProjectEntriesFromLocalStorage() {
+        // Load the actual object
+        const entriesJson = localStorage.getItem(LOCAL_STORAGE_PROJECT_ENTRIES);
+        if (entriesJson && entriesJson.length > 0) {
+            this.#projectEntries = ProjectEntryListJsonSerialiser.deserialise(entriesJson);
+        } else {
+            this.#projectEntries = new ProjectEntryList();
+        }
+        addOrRemoveProjectEntriesBasedOnLocalStorage(this.#projectEntries, this);
+    }
+
+    /**
+     * Saves the project entry list to local storage.
+     */
+    saveProjectEntriesToLocalStorage() {
+        if (this.#projectEntries) {
+            const serialisedEntries = ProjectEntryListJsonSerialiser.serialise(this.#projectEntries);
+            localStorage.setItem(LOCAL_STORAGE_PROJECT_ENTRIES, serialisedEntries);
+        } else {
+            localStorage.removeItem(LOCAL_STORAGE_PROJECT_ENTRIES);
+        }
     }
 
     /**
@@ -210,6 +281,7 @@ export default class State {
                 this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectListChanged));
             }
         }
+        addOrRemoveProjectEntriesBasedOnLocalStorage(this.#projectEntries, this);
     }
 
     /**
@@ -218,6 +290,7 @@ export default class State {
     saveToLocalStorage() {
         this.savePersistentUIStateToLocalStorage();
         this.saveProjectToLocalStorage();
+        this.saveProjectEntriesToLocalStorage();
     }
 
 
@@ -235,6 +308,7 @@ export default class State {
                 this.setProject(null);
             }
         }
+        addOrRemoveProjectEntriesBasedOnLocalStorage(this.#projectEntries, this);
     }
 
     /**
@@ -242,7 +316,7 @@ export default class State {
      * @param {string?} preferredProjectId - If possible use this project ID, if it exists then new one will be generated.
      */
     generateUniqueProjectId(preferredProjectId) {
-        if (typeof preferredProjectId === 'string' && preferredProjectId !== '' && !projectIdExistsInLocalSTorage(preferredProjectId)) {
+        if (typeof preferredProjectId === 'string' && preferredProjectId !== '' && !projectIdExistsInLocalStorage(preferredProjectId)) {
             return preferredProjectId;
         }
         return generateUniqueProjectId();
@@ -266,7 +340,7 @@ function ensureProjectHasId(project) {
  * Returns a boolean value on whether there is an antry for a project ID in local storage.
  * @param {string} projectId - Project ID to check.
  */
-function projectIdExistsInLocalSTorage(projectId) {
+function projectIdExistsInLocalStorage(projectId) {
     if (typeof projectId !== 'string' || projectId === '') throw new Error('Project ID was not valid.');
     const storageId = `${LOCAL_STORAGE_PROJECTS}${projectId}`;
     return localStorage.getItem(storageId) !== null;
@@ -279,7 +353,7 @@ function generateUniqueProjectId() {
     let result;
     do {
         result = ProjectUtil.generateProjectId();
-    } while (projectIdExistsInLocalSTorage(result))
+    } while (projectIdExistsInLocalStorage(result))
     return result;
 }
 
@@ -296,6 +370,52 @@ function createArgs(event, args) {
         previousProjectId: args?.lastProjectId ?? null
     };
 }
+
+/**
+ * Adds and removes project entries if they exist or don't exist in local storage.
+ * @param {ProjectEntryList} entries - Project entries.
+ * @param {State} state
+ * @returns 
+ */
+function addOrRemoveProjectEntriesBasedOnLocalStorage(entries, state) {
+    if (!entries) return;
+    // Search for new projects
+    for (const storageKey in localStorage) {
+        if (storageKey.startsWith(LOCAL_STORAGE_PROJECTS)) {
+            const projectId = storageKey.substring(LOCAL_STORAGE_PROJECTS.length);
+            if (!entries.containsProjectEntryById(projectId)) {
+                const project = state.getProjectFromLocalStorage(projectId);
+                entries.addOrUpdateFromProject(project);
+            }
+        }
+    }
+    // Search for deleted projects
+    const projectEntryArray = entries.getProjectEntries();
+    for (let projectEntry of projectEntryArray) {
+        const key = `${LOCAL_STORAGE_PROJECTS}${projectEntry.id}`;
+        if (!localStorage.getItem(key)) {
+            const index = entries.indexById(projectEntry.id);
+            entries.removeAt(index);
+        }
+    }
+}
+
+/**
+ * Updates project entries from a list of projects.
+ * @param {ProjectEntryList} projectEntryList - List of project entries to update.
+ * @param {Map<string, Project>} projects - Projects to update from.
+ */
+function updateProjectEntriesFromProjects(projectEntryList, projects) {
+    projectEntryList.getProjectEntries().forEach((entry) => {
+        if (projects.has(entry.id)) {
+            const project = projects.get(entry.id);
+            entry.title = project.title;
+            entry.systemType = project.systemType;
+            entry.dateLastModified = project.dateLastModified;
+        }
+    });
+}
+
 
 
 /**

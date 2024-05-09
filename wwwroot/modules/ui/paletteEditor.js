@@ -272,6 +272,8 @@ export default class PaletteEditor extends ComponentBase {
 
         // Refresh the palette stack
         if ((paletteListDirty || paletteChanged) && this.#paletteList) {
+            const container = this.#element.querySelector('[data-smsgfx-id=palette-list-container]');
+            container.appendChild(this.#uiItemProperties);
             this.#paletteListComponent.setState({
                 paletteList: this.#paletteList,
                 selectedPaletteId: this.#selectedPaletteId

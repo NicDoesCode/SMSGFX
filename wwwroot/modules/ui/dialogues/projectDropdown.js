@@ -1,5 +1,8 @@
 import EventDispatcher from "../../components/eventDispatcher.js";
+import Project from "../../models/project.js";
+import ProjectEntry from "../../models/projectEntry.js";
 import ProjectList from "../../models/projectList.js";
+import ProjectEntryList from "../../models/projectEntryList.js";
 import TemplateUtil from "../../util/templateUtil.js";
 import ModalDialogue from "./../modalDialogue.js";
 import ProjectListing from "../components/projectListing.js";
@@ -177,9 +180,15 @@ export default class ProjectDropdown extends ModalDialogue {
 
 
     /**
-     * @param {ProjectList|Project[]} projects
+     * @param {ProjectList|ProjectEntryList|Project[]|ProjectEntry[]} projects
      */
     async #displayProjects(projects) {
+        
+        /** @type {Project[]|ProjectEntry[]} */
+        const projectArray = [];
+        if (projects instanceof ProjectList) projectArray.push(...projects.getProjects());
+        if (projects instanceof ProjectEntryList) projectArray.push(...projects.getProjectEntries());
+        if (Array.isArray(projects)) projectArray.push(...projects);
 
         // Ensure project listing object created
         if (!this.#projectListing) {
@@ -210,7 +219,7 @@ export default class ProjectDropdown extends ModalDialogue {
 
         // Display the projects
         this.#projectListing.setState({
-            projects: projects,
+            projects: projectArray,
             height: '200px',
             showDelete: true
         });
@@ -256,7 +265,7 @@ export default class ProjectDropdown extends ModalDialogue {
  * @property {string?} [projectTitle] - Project title to display.
  * @property {string[]?} [enabledCommands] - Array of commands that should be enabled, overrided enabled state.
  * @property {string[]?} [disabledCommands] - Array of commands that should be disabled, overrided enabled state.
- * @property {ProjectList|Project[]} [projects] - List of projects to display in the menu.
+ * @property {ProjectList|ProjectEntryList|Project[]|ProjectEntry[]} projects - List of projects to display in the menu.
  * @property {string?} [systemType] - System type to target, either 'smsgg', 'gb' or 'nes'.
  * @property {SampleProject[]?} [sampleProjects] - List of projects to include in samples menu.
  * @property {boolean?} [enabled] - Is the control enabled or disabled?
