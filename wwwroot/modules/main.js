@@ -1778,6 +1778,8 @@ function handleColourPickerToolboxOnCommand(args) {
  * @param {import('./types.js').ColourInformation} colour
  */
 function paletteSetColourAtIndexWithoutSaving(paletteIndex, colourIndex, colour) {
+    currentProject.nativePalettes = null;
+
     const palette = getPaletteList().getPalette(paletteIndex);
 
     const newColour = PaletteColourFactory.create(colour.r, colour.g, colour.b);
@@ -2533,6 +2535,8 @@ function formatForProject() {
         paletteSlot: instanceState.paletteSlot
     });
 
+    updateTileEditorGridColours();
+
     refreshProjectUI();
 
     instanceState.previousProjectId = getProject().id;
@@ -2637,6 +2641,8 @@ function formatForNoProject() {
         paletteList: null,
         selectedTileMapId: null
     });
+
+    updateTileEditorGridColours();
 }
 
 /**
@@ -4007,8 +4013,6 @@ function changePaletteEditorDisplayNativeColours(displayNative) {
     state.persistentUIState.displayNativeColour = displayNative;
     state.saveToLocalStorage();
 
-    const isGameboyProject = displayNative && getProject().systemType === 'gb';
-    
     paletteEditor.setState({
         paletteList: getRenderPaletteList(),
         displayNative: getUIState().displayNativeColour
@@ -4016,15 +4020,23 @@ function changePaletteEditorDisplayNativeColours(displayNative) {
     tileEditor.setState({
         tileGrid: getTileGrid(),
         tileSet: getTileSet(),
-        paletteList: getRenderPaletteListToSuitTileMapOrTileSetSelection(),
-        pixelGridColour: (isGameboyProject) ? '#98a200' : '#000000',
-        pixelGridOpacity: (isGameboyProject) ? 0.5 : 0.2,
-        tileGridColour: (isGameboyProject) ? '#98a200' : '#000000',
-        tileGridOpacity: (isGameboyProject) ? 1 : 0.4
+        paletteList: getRenderPaletteListToSuitTileMapOrTileSetSelection()
     });
     tileManager.setState({
         paletteList: getRenderPaletteList(),
         palette: getRenderPalette()
+    });
+
+    updateTileEditorGridColours();
+}
+
+function updateTileEditorGridColours() {
+    const isGameboyProject = getUIState().displayNativeColour && getProject().systemType === 'gb';
+    tileEditor.setState({
+        pixelGridColour: (isGameboyProject) ? '#98a200' : '#000000',
+        pixelGridOpacity: (isGameboyProject) ? 0.5 : 0.2,
+        tileGridColour: (isGameboyProject) ? '#98a200' : '#000000',
+        tileGridOpacity: (isGameboyProject) ? 1 : 0.4
     });
 }
 
@@ -4070,7 +4082,8 @@ function swapColourIndex(sourceColourIndex, targetColourIndex) {
         paletteList: getRenderPaletteList()
     });
     tileManager.setState({
-        paletteList: getRenderPaletteList()
+        paletteList: getRenderPaletteList(),
+        palette: getRenderPalette()
     });
 }
 

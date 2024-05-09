@@ -73,8 +73,6 @@ export default class TileManager extends ComponentBase {
     #dispatcher;
     /** @type {Palette} */
     #palette = null;
-    /** @type {Palette} */
-    #renderPalette = null;
     /** @type {TileMapList} */
     #tileMapList = null;
     /** @type {TileSet} */
@@ -199,7 +197,6 @@ export default class TileManager extends ComponentBase {
         let tileListDirty = false;
         let paletteSlotsDirty = false;
         let paletteDirty = false;
-        let updateRenderPalette = false;
         let updatedTileIds = null;
 
         if (state?.tileMapList && state.tileMapList instanceof TileMapList) {
@@ -252,20 +249,10 @@ export default class TileManager extends ComponentBase {
 
         if (state?.paletteList instanceof PaletteList) {
             this.#paletteList = state.paletteList;
-            updateRenderPalette = true;
             paletteSlotsDirty = true;
         } else if (state?.paletteList === null) {
             this.#paletteList = null;
-            updateRenderPalette = true;
             paletteSlotsDirty = true;
-        }
-
-        if (paletteDirty) {
-            if (this.#palette) {
-                this.#renderPalette = this.#palette;
-            } else {
-                this.#renderPalette = null;
-            }
         }
 
         if (tileMapListingDirty) {
@@ -281,7 +268,7 @@ export default class TileManager extends ComponentBase {
         if (tileMapListingDirty && paletteDirty) {
             this.#tileListing.setState({
                 tileSet: this.#tileSet ?? undefined,
-                palette: this.#renderPalette ?? undefined
+                palette: this.#palette ?? undefined
             });
         } else if (tileMapListingDirty) {
             this.#tileListing.setState({
@@ -289,14 +276,14 @@ export default class TileManager extends ComponentBase {
             });
         } else if (paletteDirty) {
             this.#tileListing.setState({
-                palette: this.#renderPalette ?? undefined
+                palette: this.#palette ?? undefined
             });
         }
 
         if (updatedTileIds) {
             this.#tileListing.setState({
                 updatedTileIds: updatedTileIds,
-                palette: paletteDirty ? this.#renderPalette ?? undefined : undefined
+                palette: paletteDirty ? this.#palette ?? undefined : undefined
             });
         }
 
