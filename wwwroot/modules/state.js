@@ -228,6 +228,7 @@ export default class State {
      * @returns {ProjectEntry[]}
      */
     getProjectEntries() {
+        addOrRemoveProjectEntriesBasedOnLocalStorage(this.#projectEntries, this);
         updateProjectEntriesFromProjects(this.#projectEntries, this.#projects);
         if (this.#projectEntries instanceof ProjectEntryList) {
             return this.#projectEntries.getProjectEntries();

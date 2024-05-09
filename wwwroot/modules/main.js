@@ -857,6 +857,7 @@ function handleWatcherEvent(args) {
                 });
             }
             formatForProject();
+            uiRefreshProjectLists();
             break;
 
         case ProjectWatcher.Events.projectListChanged:
