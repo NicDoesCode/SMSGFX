@@ -109,10 +109,6 @@ export default class TileManager extends ComponentBase {
     #selectedTileMapId = null;
     /** @type {PaletteList?} */
     #paletteList = null;
-    /** @type {PaletteList?} */
-    #renderPaletteList = null;
-    /** @type {boolean} */
-    #displayNative = false;
     /** @type {StackedListReorderHelper} */
     #reorderHelper;
 
@@ -264,26 +260,8 @@ export default class TileManager extends ComponentBase {
             paletteSlotsDirty = true;
         }
 
-        if (typeof state?.displayNative === 'boolean' || state?.displayNative === null) {
-            updateRenderPalette = true;
-            this.#displayNative = state?.displayNative ?? false;
-            paletteSlotsDirty = true;
-        }
-
-        if (updateRenderPalette) {
-            if (this.#paletteList && this.#displayNative) {
-                this.#renderPaletteList = PaletteUtil.clonePaletteListWithNativeColours(this.#paletteList, { preserveIds: true });
-            } else if (this.#paletteList && !this.#displayNative) {
-                this.#renderPaletteList = this.#paletteList;
-            } else {
-                this.#renderPaletteList = null;
-            }
-        }
-
         if (paletteDirty) {
-            if (this.#palette && this.#displayNative) {
-                this.#renderPalette = PaletteUtil.clonePaletteWithNativeColours(this.#palette, { preserveId: true });
-            } else if (this.#palette && !this.#displayNative) {
+            if (this.#palette) {
                 this.#renderPalette = this.#palette;
             } else {
                 this.#renderPalette = null;
@@ -298,10 +276,6 @@ export default class TileManager extends ComponentBase {
             });
             this.#reorderHelper.wireUpItems();
             this.#showPropertiesPanelInList();
-        }
-
-        if (paletteDirty) {
-
         }
 
         if (tileMapListingDirty && paletteDirty) {
@@ -473,7 +447,7 @@ export default class TileManager extends ComponentBase {
 
 
     #populatePaletteSelectors() {
-        const paletteList = this.#renderPaletteList;
+        const paletteList = this.#paletteList;
         const numberOfPaletteSlots = this.#numberOfPaletteSlots;
         const tileMap = this.#tileMapList?.getTileMapById(this.#selectedTileMapId);
 
@@ -513,9 +487,9 @@ export default class TileManager extends ComponentBase {
     }
 
     #populatePaletteColours() {
-        if (!this.#tileMapList || !this.#renderPaletteList) return;
+        if (!this.#tileMapList || !this.#paletteList) return;
 
-        const paletteList = this.#renderPaletteList;
+        const paletteList = this.#paletteList;
         const tileMap = this.#tileMapList.getTileMapById(this.#selectedTileMapId);
 
         if (!tileMap) return;
@@ -633,7 +607,6 @@ export default class TileManager extends ComponentBase {
  * @property {TileSet?} [tileSet] - Tile set to be displayed.
  * @property {Palette?} [palette] - Palette to use to render the tiles.
  * @property {PaletteList?} [paletteList] - Available palettes for the palette slots.
- * @property {boolean?} [displayNative] - Should the palettes be displayed in native colours?
  * @property {string?} [selectedTileMapId] - Unique ID of the selected tile map.
  * @property {string?} [selectedTileId] - Unique ID of the selected tile.
  * @property {string[]?} [updatedTileIds] - Array of unique tile IDs that were updated.
