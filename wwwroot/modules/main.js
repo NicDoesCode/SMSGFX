@@ -5332,7 +5332,7 @@ window.addEventListener('load', async () => {
     checkPersistentUIValues();
 
     // Load initial projects
-    const projectEntryList = state.getProjectEntries();
+    let projectEntryList = state.getProjectEntries();
     const sampleManager = await SampleProjectManager.getInstanceAsync();
     instanceState.sampleProjects = await sampleManager.getSampleProjectsAsync();
 
@@ -5349,6 +5349,7 @@ window.addEventListener('load', async () => {
         }
         getUIState().lastProjectId = state.getProjectEntries()[0].id;
         state.savePersistentUIStateToLocalStorage();
+        projectEntryList = state.getProjectEntries();
     }
 
     state.setProjectById(getUIState().lastProjectId);
