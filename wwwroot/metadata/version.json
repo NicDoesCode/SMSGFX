@@ -1,0 +1,35 @@
+{
+    "versions": [
+        {
+            "version": "1.4.0",
+            "releaseNotes": "https://github.com/NicDoesCode/SMSGFX/releases/tag/v1.4",
+            "sort": 140
+        }
+    ],
+    "channels": {
+        "local": {
+            "hidden": true,
+            "name": "Local",
+            "description": "Development on local host.",
+            "url": "https://localhost:8443"
+        },
+        "edge": {
+            "hidden": false,
+            "name": "Edge",
+            "description": "Bleeding edge, latest code, incomplete, unstable, proceed with caution.",
+            "url": "https://edge.smsgfx.qwerky.gamers"
+        },
+        "dev": {
+            "hidden": false,
+            "name": "Beta",
+            "description": "Feature complete, undergoing testing, may contain bugs.",
+            "url": "https://dev.smsgfx.qwerky.gamers"
+        },
+        "prod": {
+            "hidden": false,
+            "name": "Release",
+            "description": "Production release, most stable version.",
+            "url": "https://smsgfx.qwerky.gamers"
+        }
+    }
+}
