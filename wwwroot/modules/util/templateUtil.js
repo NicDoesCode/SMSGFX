@@ -188,6 +188,7 @@ export default class TemplateUtil {
  * @argument {HTMLElement} sender - Element that initiated the event.
  * @argument {string} eventType - Type of event that occurred.
  * @argument {string} command - Associated command.
+ * @argument {Event} event - Associated command.
  * @exports
  */
 

@@ -12,40 +12,69 @@
             <button class="btn btn-outline-secondary dropdown-toggle btn-ui border border-0 border-start" type="button"
                 data-bs-toggle="dropdown" aria-expanded="false" title="Select an existing tile map to edit."></button>
             <ul data-smsgfx-id="tileMapSelectDropDown" class="dropdown-menu">
+                <li><a data-command="sort" data-field="title" data-auto-event="click" class="dropdown-item"
+                        href="#">Sort by title</a></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li><a data-command="tileSetSelect" data-auto-event="click" class="dropdown-item" href="#">Edit tile
+                        set</a></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
             </ul>
         </div>
 
-        <div class="overflow-hidden overflow-y-auto">
+        <div data-smsgfx-id="tile-map-list-container" class="overflow-hidden overflow-y-auto">
 
-            <div data-smsgfx-id="tile-map-list-top" data-smsgfx-component-id="tile-map-listing"
+            <div data-smsgfx-id="tile-map-list" data-smsgfx-component-id="tile-map-listing" data-list-item-container
                 class="sms-accordion-list sms-accordion-list-top sms-tile-map-select-list card-body p-0">
                 <template>
                     <script data-smsgfx-template-id="item-template" type="text/x-handlebars-template">
                     <div class="list-group rounded-0 border border-0">
                         {{#each this}}
-                        <button data-command="tileMapSelect" data-auto-event="click" data-tile-map-id="{{tileMapId}}" 
-                            class="sms-accordion-item list-group-item hidden-when-active border border-0 border-bottom text-start fw-bold d-flex flex-row w-100 p-0 m-0">
-                            <label class="p-2 fw-bold text-body-emphasis text-start overflow-hidden text-nowrap flex-shrink w-100">{{title}}</label>
-                            <span class="icon-expand p-2"><i class="bi bi-caret-down-fill"></i></span>
-                        </button>
+                        <div data-list-item data-smsgfx-id="tile-map-item-container" data-tile-map-id="{{tileMapId}}"
+                            class="border border-0 border-bottom p-0 m-0">
+                            <button data-command="tileMapSelect" data-auto-event="click" data-tile-map-id="{{tileMapId}}" 
+                                class="sms-accordion-item list-group-item hidden-when-active text-start fw-bold d-flex flex-row w-100 p-0 m-0 border border-0">
+                                <label class="p-2 fw-bold text-body-emphasis text-start overflow-hidden text-nowrap flex-shrink w-100">{{title}}</label>
+                                <span class="icon-expand p-2"><i class="bi bi-caret-down-fill"></i></span>
+                            </button>
+                        </div>
                         {{/each}}
                     </div>
                 </script>
                 </template>
             </div>
 
-            <div class="sms-tile-map-properties card-body p-2 pt-0 visually-hidden" data-smsgfx-id="tileMapProperties">
+            <div class="sms-tile-map-properties card-body p-2 pt-0 visually-hidden"
+                data-smsgfx-id="tile-map-properties">
                 <div class="row mb-2">
-                    <div class="col">
+                    <div class="col d-flex flex-row w-100 m-0">
                         <button data-smsgfx-id="editTileMapTitle"
-                            class="btn border border-0 p-0 m-0 d-flex flex-row w-100">
+                            class="btn border border-0 p-0 m-0 d-flex flex-row flex-fill">
                             <label
                                 class="p-2 ps-0 fw-bold text-body-emphasis text-start overflow-hidden text-nowrap flex-shrink w-100">Title</label>
                             <span class="p-2"><i class="bi bi-pencil-fill"></i></span>
                         </button>
                         <input data-command="tileMapChange" data-auto-event="change" data-field="title" type="text"
-                            class="form-control visually-hidden mt-2" aria-label="Enter name"
+                            class="form-control visually-hidden mt-2 flex-fill" aria-label="Enter name"
                             title="Change the title of the tile map.">
+                        <button data-smsgfx-id="editTileMapMenu" class="btn btn-secondary m-0 p-0"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="p-2"><i class="bi bi-three-dots"></i></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><button data-command="tileMapReference" data-auto-event="click" class="dropdown-item" type="button">Use as reference</button></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><button data-command="tileMapMirror" data-auto-event="click" class="dropdown-item" type="button">Mirror</button></li>
+                            <li><button data-command="tileMapFlip" data-auto-event="click" class="dropdown-item" type="button">Flip</button></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><button data-command="tileMapClone" data-auto-event="click" class="dropdown-item" type="button">Clone</button></li>
+                            <li><button data-command="tileMapCloneMirror" data-auto-event="click" class="dropdown-item" type="button">Clone mirrored</button></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><button data-command="tileMapDelete" data-auto-event="click" class="dropdown-item" type="button">Delete</button></li>
+                        </ul>
                     </div>
                 </div>
                 <div class="row">
@@ -118,29 +147,25 @@
                 </div>
             </div>
 
-            <div data-smsgfx-id="tile-map-list-bottom"
-                class="sms-accordion-list sms-accordion-list-bottom sms-tile-map-select-list card-body p-0">
-                <div class="list-group rounded-0 border border-0">
-                </div>
-            </div>
-
         </div>
 
     </div>
 
     <div class="sms-tile-set sms-toolbox card mb-2" data-smsgfx-toolbox-item>
         <div class="card-header sms-card-toolbar p-0 d-flex">
-            <button data-command="tileSetSelect"
+            <button data-auto-event="click" data-command="tileSetSelect"
                 class="btn btn-ui btn-outline-secondary border border-0 p-0 m-0 flex-fill rounded-start">
                 <p class="flex-fill p-1 ps-2 m-0 text-start">Tile set</p>
             </button>
             <button data-command="assemblyImport" data-auto-event="click"
-                class="btn btn-ui btn-outline-secondary border border-start border-0 rounded-end" title="Import tiles from assembly code.">
+                class="btn btn-ui btn-outline-secondary border border-start border-0 rounded-end"
+                title="Import tiles from assembly code.">
                 <i class="bi bi-code"></i>
             </button>
         </div>
         <div class="card-body p-0">
-            <div class="sms-tile-map-properties card-body p-2 pt-0 visually-hidden" data-smsgfx-id="tileSetProperties">
+            <div class="sms-tile-map-properties card-body p-2 pt-0 visually-hidden"
+                data-smsgfx-id="tile-set-properties">
                 <div class="row mb-0 ps-3 pe-3">
                     <div class="col p-1">
                         <p class="m-0 mb-1">
@@ -200,7 +225,7 @@
             padding-bottom: 4px;
         }
 
-        .sms-tile-manager .sms-tile-map .sms-tile-map-properties {
+        .sms-tile-manager [data-list-item] .sms-tile-map-properties {
             background: linear-gradient(180deg, var(--bs-secondary-bg) 0%, rgba(33, 37, 41, 0) 40%);
         }
 

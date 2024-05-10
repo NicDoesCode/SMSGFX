@@ -6,8 +6,7 @@ import EventDispatcher from "../components/eventDispatcher.js";
 import PaletteList from "../models/paletteList.js";
 import PaletteEditorContextMenu from "./paletteEditorContextMenu.js";
 import TemplateUtil from "../util/templateUtil.js";
-import PaletteFactory from "../factory/paletteFactory.js";
-import PaletteUtil from "../util/paletteUtil.js";
+import StackedListReorderHelper from "../engine/helpers/stackedListReorderHelper.js";
 
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
@@ -20,11 +19,18 @@ const commands = {
     paletteDelete: 'paletteDelete',
     paletteClone: 'paletteClone',
     paletteSystem: 'paletteSystem',
+    paletteChangePosition: 'paletteChangeIndex',
     displayNativeColours: 'displayNativeColours',
     colourIndexChange: 'colourIndexChange',
     colourIndexEdit: 'colourIndexEdit',
     colourIndexSwap: 'colourIndexSwap',
-    colourIndexReplace: 'colourIndexReplace'
+    colourIndexReplace: 'colourIndexReplace',
+    sort: 'sort'
+}
+
+export const sortFields = {
+    system: 'system',
+    title: 'title'
 }
 
 
@@ -35,17 +41,23 @@ export default class PaletteEditor extends ComponentBase {
         return commands;
     }
 
+    static get SortFields() {
+        return sortFields;
+    }
+
 
     /** @type {HTMLDivElement} */
     #element;
+    /** @type {EventDispatcher} */
+    #dispatcher;
     /** @type {PaletteList?} */
     #paletteList = null;
     /** @type {string?} */
     #selectedPaletteId = null;
     /** @type {HTMLButtonElement[]} */
     #paletteButtons = [];
-    /** @type {HTMLTableCellElement[]} */
-    #paletteCells = [];
+    /** @type {HTMLElement} */
+    #uiItemProperties;
     /** @type {HTMLInputElement} */
     #uiPaletteTitle;
     /** @type {HTMLButtonElement} */
@@ -54,11 +66,11 @@ export default class PaletteEditor extends ComponentBase {
     #currentColourIndex = 0;
     /** @type {PaletteEditorContextMenu} */
     #contextMenu;
-    /** @type {EventDispatcher} */
-    #dispatcher;
     /** @type {UiPaletteListing?} */
     #paletteListComponent = null;
     #enabled = true;
+    /** @type {StackedListReorderHelper} */
+    #reorderHelper;
 
 
     /**
@@ -70,6 +82,36 @@ export default class PaletteEditor extends ComponentBase {
         this.#element = element;
 
         this.#dispatcher = new EventDispatcher();
+
+        TemplateUtil.wireUpLabels(this.#element);
+        TemplateUtil.wireUpCommandAutoEvents(this.#element, (sender, ev, command, event) => {
+            switch (command) {
+                case commands.sort:
+                    const args = this.#createEventArgs(command);
+                    args.field = sender.getAttribute('data-field');
+                    this.#dispatcher.dispatch(EVENT_OnCommand, args);
+                    break;
+            }
+        });
+
+        this.#reorderHelper = new StackedListReorderHelper(
+            this.#element.querySelector('[data-smsgfx-id=palette-list-container]'),
+            'data-palette-id'
+        );
+        this.#reorderHelper.addHandlerOnCommand((args) => {
+            if (args.command === StackedListReorderHelper.Commands.reorder) {
+                /** @type {PaletteEditorCommandEventArgs} */
+                const eArgs = {
+                    command: commands.paletteChangePosition,
+                    paletteId: args.originItemId,
+                    targetPaletteId: args.targetItemId,
+                    targetPosition: args.targetItemPosition
+                };
+                this.#dispatcher.dispatch(EVENT_OnCommand, eArgs);
+            }
+        });
+
+        this.#uiItemProperties = this.#element.querySelector('[data-smsgfx-id=palette-properties]');
 
         this.#btnPaletteTitle = this.#element.querySelector('[data-smsgfx-id=editPaletteTitle]');
         this.#btnPaletteTitle.addEventListener('click', () => this.#handlePaletteTitleEditClick());
@@ -118,8 +160,6 @@ export default class PaletteEditor extends ComponentBase {
                 this.#dispatcher.dispatch(EVENT_OnCommand, args);
             };
         });
-
-        // this.#createPaletteColourIndexButtons();
 
         PaletteEditorContextMenu.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=palette-editor-context-menu]'))
             .then((component) => {
@@ -225,11 +265,14 @@ export default class PaletteEditor extends ComponentBase {
 
         // Refresh the palette stack
         if ((paletteListDirty || paletteChanged) && this.#paletteList) {
+            const container = this.#element.querySelector('[data-smsgfx-id=palette-list-container]');
+            container.appendChild(this.#uiItemProperties);
             this.#paletteListComponent.setState({
                 paletteList: this.#paletteList,
                 selectedPaletteId: this.#selectedPaletteId
             });
-            this.#shufflePaletteList();
+            this.#reorderHelper.wireUpItems();
+            this.#showPalettePropertiesPanelInPaletteList();
             const palette = this.#paletteList.getPaletteById(this.#selectedPaletteId);
             if (palette) {
                 this.#setPalette(palette);
@@ -356,6 +399,7 @@ export default class PaletteEditor extends ComponentBase {
                 const palettes = paletteList.getPalettes();
                 for (let i = 0; i < palettes.length; i++) {
                     const option = document.createElement('option');
+                    option.setAttribute('data-palette-id', palettes[i].paletteId);
                     option.innerText = `#${i} | ${palettes[i].title}`;
                     option.value = i.toString();
                     option.selected = lastSelectedIndex === i;
@@ -375,12 +419,20 @@ export default class PaletteEditor extends ComponentBase {
     #updatePaletteSelectVirtualList() {
         const virtualList = this.#element.querySelector(`[data-linked-command=${commands.paletteSelect}]`);
         const select = this.#element.querySelector(`select[data-command=${commands.paletteSelect}]`);
+
         if (virtualList && select) {
-            while (virtualList.childNodes.length > 0) {
-                virtualList.childNodes.item(0).remove();
-            }
+
+            // Remove existing palette select options
+            const virtualNodes = virtualList.querySelectorAll('li[data-palette-id]');
+            virtualNodes.forEach((node) => {
+                node.remove();
+            });
+
+            // Create the new options
             select.querySelectorAll('option').forEach((option, index) => {
+                const paletteId = option.getAttribute('data-palette-id');
                 const li = document.createElement('li');
+                li.setAttribute('data-palette-id', paletteId);
                 const a = document.createElement('a');
                 a.href = '#';
                 a.classList.add('dropdown-item');
@@ -433,25 +485,18 @@ export default class PaletteEditor extends ComponentBase {
         }
     }
 
-    #shufflePaletteList() {
+    #showPalettePropertiesPanelInPaletteList() {
+        const listElm = this.#element.querySelector('[data-smsgfx-id=palette-list] div.list-group');
+        const propsElm = this.#uiItemProperties;
+
         if (this.#selectedPaletteId) {
-            const listTop = this.#element.querySelector('[data-smsgfx-id=palette-list-top] div.list-group');
-            const listBottom = this.#element.querySelector('[data-smsgfx-id=palette-list-bottom] div.list-group');
-            if (listTop && listBottom) {
-                listBottom.innerHTML = '';
-                let move = false;
-                this.#paletteList.getPalettes().forEach((palette, index) => {
-                    if (move) {
-                        const paletteButton = listTop.querySelector(`button[data-palette-id=${CSS.escape(palette.paletteId)}]`);
-                        if (paletteButton) {
-                            listBottom.appendChild(paletteButton);
-                        }
-                    }
-                    if (palette.paletteId === this.#selectedPaletteId) {
-                        move = true;
-                    }
-                });
+            const palContElm = listElm.querySelector(`div[data-smsgfx-id=palette-item-container][data-palette-id=${CSS.escape(this.#selectedPaletteId)}]`);
+            if (palContElm) {
+                propsElm.style.display = 'block';
+                palContElm.appendChild(propsElm);
             }
+        } else {
+            propsElm.style.display = 'none';
         }
     }
 
@@ -483,8 +528,7 @@ export default class PaletteEditor extends ComponentBase {
      */
     #createPaletteColourIndexButtons(palette) {
 
-        const renderPalette = this.#getPaletteInRegularOrNative(palette);
-        const data = renderPalette.getColours().map((colour, index) => {
+        const data = palette.getColours().map((colour, index) => {
             return {
                 colourIndex: index,
                 hex: ColourUtil.toHex(colour.r, colour.g, colour.b),
@@ -530,11 +574,10 @@ export default class PaletteEditor extends ComponentBase {
      * @param {Palette} palette
      */
     #updatePaletteColourIndexButtonColour(palette) {
-        const renderPalette = this.#getPaletteInRegularOrNative(palette);
         const element = this.#element.querySelector('[data-smsgfx-id=palette-colours]');
         element.querySelectorAll('button[data-colour-index]').forEach((/** @type {HTMLButtonElement} */ button) => {
             const colourIndex = parseInt(button.getAttribute('data-colour-index'));
-            const paletteColour = renderPalette.getColour(colourIndex);
+            const paletteColour = palette.getColour(colourIndex);
             const colourHex = ColourUtil.toHex(paletteColour.r, paletteColour.g, paletteColour.b);
             button.setAttribute('data-colour-hex', colourHex);
             button.style.backgroundColor = colourHex
@@ -574,19 +617,6 @@ export default class PaletteEditor extends ComponentBase {
         });
     }
 
-    /**
-     * @param {Palette} palette - Palette to query.
-     * @returns {Palette}
-     */
-    #getPaletteInRegularOrNative(palette) {
-        const displayNative = this.#getElement(commands.displayNativeColours)?.checked ?? false;
-        if (displayNative) {
-            return PaletteUtil.clonePaletteWithNativeColours(palette, { preserveIds: true });
-        } else {
-            return palette;
-        }
-    }
-
 
 }
 
@@ -621,5 +651,8 @@ export default class PaletteEditor extends ComponentBase {
  * @property {number?} colourIndex - Index from 0 to 15 for the given colour.
  * @property {number?} targetColourIndex - Target palette colour index from 0 to 15 for 'ms' and 'gg', 0 to 3 for 'gb' or 'nes'.
  * @property {boolean?} displayNative - Display native colours for system?
+ * @property {string?} [field] - Field to sort by.
+ * @property {string?} [targetPaletteId] - Unique ID of the target palette.
+ * @property {string?} [targetPosition] - Position where to place the palette.
  * @exports
  */

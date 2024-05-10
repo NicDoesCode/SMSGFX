@@ -54,6 +54,16 @@ export default class TileGridProvider {
         throw new Error('Not implemented.');
     }
 
+
+    /**
+     * Gets information about a tile by the tile index.
+     * @param {number} tileIndex - Index of the tile.
+     * @returns {TileProviderTileInfo}
+     */
+    getTileInfoByIndex(tileIndex) {
+        throw new Error('Not implemented.');
+    }
+
     /**
      * Gets information about a tile by a row and column coordinate.
      * @param {number} rowIndex - Zero based index of the row within the tile grid.

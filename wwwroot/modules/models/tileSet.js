@@ -159,8 +159,8 @@ export default class TileSet extends TileGridProvider {
     }
 
     /**
-     * Gets a tile from the tile map based on index, returns null if index out of range.
-     * @param {number} index - Index in the tile map of the tile to get.
+     * Gets an item by index, or null if out of range.
+     * @param {number} index - Index of the item to get.
      * @returns {Tile?}
      */
     getTileByIndex(index) {

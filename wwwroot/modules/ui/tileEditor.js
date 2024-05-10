@@ -76,8 +76,6 @@ export default class TileEditor extends ComponentBase {
     #tileEditorContextMenu;
     /** @type {PaletteList} */
     #paletteList = null;
-    /** @type {PaletteList} */
-    #renderPaletteList = null;
     /** @type {TileGridProvider} */
     #tileGrid = null;
     /** @type {TileSet} */
@@ -92,9 +90,12 @@ export default class TileEditor extends ComponentBase {
     #canvasMouseLeftDown = false;
     #canvasMouseMiddleDown = false;
     #canvasMouseRightDown = false;
-    #displayNative = true;
     #dispatcher;
     #enabled = true;
+    #pixelGridColour = '#98a200';
+    #pixelGridOpacity = 0.5;
+    #tileGridColour = '#98a200';
+    #tileGridOpacity = 1;
 
     /** @type {Worker?} */
     #viewportWorker = null;
@@ -171,31 +172,26 @@ export default class TileEditor extends ComponentBase {
             paletteUpdated = true;
         }
 
-        // Native display
-        if (typeof state?.displayNative === 'boolean') {
-            this.#displayNative = state.displayNative;
-            if (state.displayNative && this.#paletteList?.getPalettes().filter((p) => p.system === 'gb').length > 0) {
-                message.pixelGridColour = '#98a200';
-                message.pixelGridOpacity = 0.5;
-                message.tileGridColour = '#98a200';
-                message.tileGridOpacity = 1;
-            } else {
-                message.pixelGridColour = '#000000';
-                message.pixelGridOpacity = 0.2;
-                message.tileGridColour = '#000000';
-                message.tileGridOpacity = 0.4;
-            }
-            paletteUpdated = true;
+        if (typeof state?.pixelGridColour === 'string' && state?.pixelGridColour.length > 0) {
+            this.#pixelGridColour = state?.pixelGridColour;
+            message.pixelGridColour = this.#pixelGridColour;
+        }
+        if (typeof state?.pixelGridOpacity === 'number') {
+            this.#pixelGridOpacity = state?.pixelGridOpacity;
+            message.pixelGridOpacity = this.#pixelGridOpacity;
+        }
+        if (typeof state?.tileGridColour === 'string' && state?.tileGridColour.length > 0) {
+            this.#tileGridColour = state?.tileGridColour;
+            message.tileGridColour = this.#tileGridColour;
+        }
+        if (typeof state?.tileGridOpacity === 'number') {
+            this.#tileGridOpacity = state?.tileGridOpacity;
+            message.tileGridOpacity = this.#tileGridOpacity;
         }
 
-        // Update native palette if either palette or native option was updated
+        // Update palette 
         if (paletteUpdated && this.#paletteList) {
-            if (this.#displayNative) {
-                this.#renderPaletteList = PaletteUtil.clonePaletteListWithNativeColours(this.#paletteList, { preserveIds: true });
-            } else {
-                this.#renderPaletteList = this.#paletteList;
-            }
-            message.paletteList = PaletteListJsonSerialiser.toSerialisable(this.#renderPaletteList);
+            message.paletteList = PaletteListJsonSerialiser.toSerialisable(this.#paletteList);
             message.redrawFull = true;
         }
 
@@ -791,8 +787,8 @@ export default class TileEditor extends ComponentBase {
         canvasState.canvasHeight = response.canvasSize.height;
         canvasState.tileGridRows = response.tileGridDimension.rows;
         canvasState.tileGridColumns = response.tileGridDimension.columns;
-        canvasState.tileGridWidthPixels = response.tileGridImage.width;
-        canvasState.tileGridHeightPixels = response.tileGridImage.height;
+        canvasState.tileGridWidthPixels = response.tileGridImageDimensions.width;
+        canvasState.tileGridHeightPixels = response.tileGridImageDimensions.height;
         canvasState.offsetX = response.tileGridOffset.x;
         canvasState.offsetY = response.tileGridOffset.y;
         canvasState.scale = response.scale;
@@ -819,7 +815,6 @@ export default class TileEditor extends ComponentBase {
  * @property {number?} scale - Current scale level.
  * @property {boolean?} [scaleRelativeToMouse] - Scale based on the mouse cursor position?.
  * @property {number?} [tilesPerBlock] - The amount of tiles per tile block.
- * @property {boolean?} displayNative - Should the tile editor display native colours?
  * @property {number?} selectedTileIndex - Currently selected tile index.
  * @property {number?} cursorSize - Size of the cursor in px.
  * @property {string?} cursor - Cursor to use when the mouse hovers over the image editor.
@@ -832,6 +827,10 @@ export default class TileEditor extends ComponentBase {
  * @property {number?} [lockedPaletteSlotIndex] - When not null, the palette slot index specified here will be repeated from palette 0 across all palettes.
  * @property {boolean?} showTileGrid - Should the tile grid be drawn?
  * @property {boolean?} showPixelGrid - Should the pixel grid be drawn?
+ * @property {string} [pixelGridColour] - Colour of the pixel grid.
+ * @property {number} [pixelGridOpacity] - Opacity of the pixel grid.
+ * @property {string} [tileGridColour] - Colour of the tile grid.
+ * @property {number} [tileGridOpacity] - Opacity of the tile grid.
  * @property {boolean?} enabled - Is the control enabled or disabled?
  * @property {number?} focusedTile - Will ensure that this tile is shown on the screen.
  * @property {number[]?} [updatedTileGridIndexes] - Array of tile grid indexes that were updated.
@@ -867,7 +866,7 @@ export default class TileEditor extends ComponentBase {
 /**
  * @typedef {Object} TileEditorEventArgs
  * @property {string} event - Event that occurred.
- * @property {number} tileGridImage - Image of the tile grid.
+ * @property {ImageBitmap} tileGridImage - Image of the tile grid.
  * @property {number} x - X tile grid pixel thats selected.
  * @property {number} y - Y tile grid pixel thats selected.
  * @property {number?} [tileGridRowIndex] - Index of the tile grid row that corresponds with the Y mouse coordinate.

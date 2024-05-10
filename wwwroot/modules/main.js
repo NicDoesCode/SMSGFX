@@ -14,6 +14,7 @@ import PaletteListFactory from "./factory/paletteListFactory.js";
 import TileUtil from "./util/tileUtil.js";
 import FileUtil from "./util/fileUtil.js";
 import Project from "./models/project.js";
+import ProjectEntry from "./models/projectEntry.js";
 import GeneralUtil from "./util/generalUtil.js";
 import ProjectWatcher from "./components/projectWatcher.js";
 import ImageUtil from "./util/imageUtil.js";
@@ -64,7 +65,12 @@ import TileSet from "./models/tileSet.js";
 import SampleProjectManager from "./components/sampleProjectManager.js";
 import KeyboardManager, { KeyDownHandler, KeyUpHandler } from "./components/keyboardManager.js";
 import ProjectList from "./models/projectList.js";
+import ProjectEntryList from "./models/projectEntryList.js";
 import SystemUtil from "./util/systemUtil.js";
+import { DropPosition } from "./types.js";
+import TileMapUtil from "./util/tileMapUtil.js";
+import PaintUtil from "./util/paintUtil.js";
+import PaletteUtil from "./util/paletteUtil.js";
 
 
 /* ****************************************************************************************************
@@ -131,10 +137,17 @@ const instanceState = {
     referenceImageLockAspect: true,
     referenceImageMoving: false,
     /** @type {import("./types.js").SampleProject[]} */
-    sampleProjects: []
+    sampleProjects: [],
+    /** @type {import("./types.js").SortEntry?} */
+    paletteSort: null,
+    /** @type {import("./types.js").SortEntry?} */
+    tileMapSort: null
 };
 
-
+const currentProject = {
+    /** @type {PaletteList?} */
+    nativePalettes: null
+};
 
 
 /* ****************************************************************************************************
@@ -585,10 +598,10 @@ function createEventListeners() {
                 selectColourIndex(instanceState.colourIndex + 1);
                 break;
             case keyboardCommands.paletteIndexHigher:
-                changePaletteIndex(getProjectUIState().paletteIndex + 1);
+                paletteSelectByIndex(getProjectUIState().paletteIndex + 1);
                 break;
             case keyboardCommands.paletteIndexLower:
-                changePaletteIndex(getProjectUIState().paletteIndex - 1);
+                paletteSelectByIndex(getProjectUIState().paletteIndex - 1);
                 break;
             case keyboardCommands.tileNew:
                 tileNew();
@@ -848,6 +861,7 @@ function handleWatcherEvent(args) {
                 });
             }
             formatForProject();
+            uiRefreshProjectLists();
             break;
 
         case ProjectWatcher.Events.projectListChanged:
@@ -867,6 +881,7 @@ function handleStateEvent(args) {
         case State.Events.projectChanged:
             const projectChanged = args.projectId !== args.previousProjectId;
             if (projectChanged) {
+                currentProject.nativePalettes = null;
                 // Set this as the last used project ID in storage
                 getUIState().lastProjectId = args.projectId;
                 state.savePersistentUIStateToLocalStorage();
@@ -938,9 +953,7 @@ function handleProjectToolbarOnCommand(args) {
             break;
 
         case ProjectToolbar.Commands.projectLoadById:
-            const projects = state.getProjectsFromLocalStorage();
-            const project = projects.getProjectById(args.projectId);
-            state.setProject(project);
+            state.setProjectById(args.projectId);
             break;
 
         case ProjectToolbar.Commands.projectDelete:
@@ -956,7 +969,7 @@ function handleProjectToolbarOnCommand(args) {
 
 /** @param {import('./ui/dialogues/projectDropdown.js').ProjectDropdownCommandEventArgs} args */
 async function handleProjectDropdownOnCommand(args) {
-    const projectList = state.getProjectsFromLocalStorage();
+    const projectEntries = state.getProjectEntries();
     switch (args.command) {
 
         case ProjectDropdown.Commands.title:
@@ -984,8 +997,7 @@ async function handleProjectDropdownOnCommand(args) {
             break;
 
         case ProjectDropdown.Commands.projectLoadById:
-            const project = projectList.getProjectById(args.projectId);
-            state.setProject(project);
+            state.setProjectById(args.projectId);
             projectDropdown.setState({ visible: false });
             break;
 
@@ -1007,7 +1019,7 @@ async function handleProjectDropdownOnCommand(args) {
             getUIState().projectDropDownSort = sort;
             state.savePersistentUIStateToLocalStorage();
             projectDropdown.setState({
-                projects: getSortedProjectArray(projectList, sort)
+                projects: getSortedProjectArray(projectEntries, sort)
             });
             break;
 
@@ -1021,7 +1033,7 @@ async function handleProjectDropdownOnCommand(args) {
         case ProjectDropdown.Commands.showWelcomeScreen:
             welcomeScreen.setState({
                 visible: true,
-                projects: getSortedProjectArray(projectList, getUIState().projectDropDownSort),
+                projects: getSortedProjectArray(projectEntries, getUIState().projectDropDownSort),
                 visibleCommands: ['dismiss']
             });
             projectDropdown.setState({ visible: false });
@@ -1049,7 +1061,7 @@ function handleExportToolbarOnCommand(args) {
             break;
 
         case ExportToolbar.Commands.exportImage:
-            tileEditor.setState({ requestExportImage: true });
+            exportCurrentTileGridAsImage();
             break;
 
     }
@@ -1131,10 +1143,14 @@ function handlePaletteEditorOnCommand(args) {
     switch (args.command) {
         case PaletteEditor.Commands.paletteSelect:
             if (args.paletteId) {
-                changePalette(args.paletteId);
+                paletteSelectById(args.paletteId);
             } else {
-                changePaletteIndex(args.paletteIndex);
+                paletteSelectByIndex(args.paletteIndex);
             }
+            break;
+
+        case PaletteEditor.Commands.paletteChangePosition:
+            paletteReorder(args.paletteId, args.targetPaletteId, args.targetPosition);
             break;
 
         case PaletteEditor.Commands.paletteNew:
@@ -1179,6 +1195,12 @@ function handlePaletteEditorOnCommand(args) {
 
         case PaletteEditor.Commands.colourIndexReplace:
             replaceColourIndex(args.colourIndex, args.targetColourIndex);
+            break;
+
+        case PaletteEditor.Commands.sort:
+            if (typeof args.field === 'string' || args.field === null) {
+                paletteListSort(args.field);
+            }
             break;
 
     }
@@ -1352,6 +1374,14 @@ function handleTileManagerOnCommand(args) {
             tileMapOrTileSetSelectById(args.tileMapId);
             break;
 
+        case TileManager.Commands.tileMapChangePosition:
+            tileMapReorder(args.tileMapId, args.targetTileMapId, args.targetPosition);
+            break;
+
+        case TileManager.Commands.sort:
+            tileMapSort(args.field);
+            break;
+
         case TileManager.Commands.tileSelect:
             tileSetTileSelectById(args.tileId);
             break;
@@ -1360,12 +1390,28 @@ function handleTileManagerOnCommand(args) {
             tileMapClone(args.tileMapId);
             break;
 
+        case TileManager.Commands.tileMapCloneMirror:
+            tileMapClone(args.tileMapId, { mirror: true });
+            break;
+
         case TileManager.Commands.tileMapDelete:
             tileMapRemove(args.tileMapId);
             break;
 
         case TileManager.Commands.tileMapChange:
             tileMapUpdate(args.tileMapId, args);
+            break;
+
+        case TileManager.Commands.tileMapMirror:
+            tileMapMirrorOrFlip(args.tileMapId, { mirror: true });
+            break;
+
+        case TileManager.Commands.tileMapFlip:
+            tileMapMirrorOrFlip(args.tileMapId, { flip: true });
+            break;
+
+        case TileManager.Commands.tileMapReference:
+            referenceImageFromTileMap(args.tileMapId);
             break;
 
         case TileManager.Commands.tileSetChange:
@@ -1656,14 +1702,14 @@ function handleImportPaletteModalDialogueOnConfirm(args) {
     state.saveToLocalStorage();
 
     paletteEditor.setState({
-        paletteList: getPaletteList(),
+        paletteList: getRenderPaletteList(),
         selectedPaletteIndex: getProjectUIState().paletteIndex
     });
     tileManager.setState({
-        paletteList: getPaletteList()
+        paletteList: getRenderPaletteList()
     });
     tileEditor.setState({
-        paletteList: getPaletteListToSuitTileMapOrTileSetSelection()
+        paletteList: getRenderPaletteListToSuitTileMapOrTileSetSelection()
     });
 
     paletteImportDialogue.hide();
@@ -1732,25 +1778,25 @@ function handleColourPickerToolboxOnCommand(args) {
  * @param {import('./types.js').ColourInformation} colour
  */
 function paletteSetColourAtIndexWithoutSaving(paletteIndex, colourIndex, colour) {
+    currentProject.nativePalettes = null;
+
     const palette = getPaletteList().getPalette(paletteIndex);
 
     const newColour = PaletteColourFactory.create(colour.r, colour.g, colour.b);
     palette.setColour(colourIndex, newColour);
 
     paletteEditor.setState({
-        paletteList: getPaletteList(),
+        paletteList: getRenderPaletteList(),
         displayNative: getUIState().displayNativeColour
     });
     tileManager.setState({
-        palette: getPalette(),
-        paletteList: getPaletteList(),
-        tileSet: getTileSet(),
-        displayNative: getUIState().displayNativeColour
+        palette: getRenderPalette(),
+        paletteList: getRenderPaletteList(),
+        tileSet: getTileSet()
     });
     tileEditor.setState({
-        palette: getPalette(),
-        paletteList: getPaletteListToSuitTileMapOrTileSetSelection(),
-        displayNative: getUIState().displayNativeColour,
+        palette: getRenderPalette(),
+        paletteList: getRenderPaletteListToSuitTileMapOrTileSetSelection(),
         forceRefresh: true
     });
 }
@@ -1828,15 +1874,15 @@ function handleImageImportModalOnConfirm(args) {
     state.saveToLocalStorage();
 
     paletteEditor.setState({
-        paletteList: getPaletteList(),
-        selectedPaletteIndex: getPaletteList().length - 1
+        paletteList: getRenderPaletteList(),
+        selectedPaletteIndex: getRenderPaletteList().length - 1
     });
     setCommonTileToolbarStates({
         tileWidth: getTileSet().tileWidth
     });
     const focusedTile = (Math.floor(getTileGrid().rowCount / 2) * getTileGrid().columnCount) + (Math.floor(getTileGrid().columnCount) / 2);
     tileEditor.setState({
-        paletteList: getPaletteListToSuitTileMapOrTileSetSelection(),
+        paletteList: getRenderPaletteListToSuitTileMapOrTileSetSelection(),
         tileGrid: getTileGrid(),
         tileSet: getTileSet(),
         focusedTile: focusedTile
@@ -1907,9 +1953,7 @@ function welcomeScreenOnCommand(args) {
             break;
 
         case WelcomeScreen.Commands.projectLoadById:
-            const projects = state.getProjectsFromLocalStorage();
-            const project = projects.getProjectById(args.projectId);
-            state.setProject(project);
+            state.setProjectById(args.projectId);
             welcomeScreen.setState({ visible: false });
             break;
 
@@ -1931,7 +1975,7 @@ function welcomeScreenOnCommand(args) {
             getUIState().welcomeScreenProjectSort = sort;
             state.savePersistentUIStateToLocalStorage();
             welcomeScreen.setState({
-                projects: getSortedProjectArray(state.getProjectsFromLocalStorage(), sort)
+                projects: getSortedProjectArray(state.getProjectEntries(), sort)
             });
             break;
 
@@ -1951,7 +1995,7 @@ function welcomeScreenOnCommand(args) {
  * Creates a default tile set and palettes when the data store doesn't contain any.
  */
 function createDefaultProjectIfNoneExists() {
-    const projects = state.getProjectsFromLocalStorage();
+    const projects = state.getProjectEntries();
     if (projects.length === 0) {
         const newProject = createEmptyProject();
         state.setProject(newProject);
@@ -2108,8 +2152,23 @@ function getPaletteList() {
     return getProject()?.paletteList ?? null;
 }
 /**
- * Gets the palette list for the tile editor to used which is based on selected console limitations, as well as
- * tile map settings, like locking in a colour
+ * Returns the entire project render palette list (native colours or default)
+ * @returns {PaletteList}
+ */
+function getRenderPaletteList() {
+    if (!getProject()?.paletteList) return null;
+    if (!currentProject.nativePalettes) {
+        currentProject.nativePalettes = PaletteUtil.clonePaletteListWithNativeColours(getProject().paletteList, { preserveIds: true });
+    }
+    if (getUIState().displayNativeColour) {
+        return currentProject.nativePalettes;
+    } else {
+        return getProject().paletteList;
+    }
+}
+/**
+ * Gets the render palette list (native colours or default) for the tile editor to used which is based on selected 
+ * console limitations, as well as tile map settings, like locking in a colour
  * @returns {PaletteList}
  */
 function getPaletteListToSuitTileMapOrTileSetSelection() {
@@ -2137,16 +2196,43 @@ function getPaletteListToSuitTileMapOrTileSetSelection() {
         return PaletteListFactory.create([palette]);
     }
 }
-function getPalette() {
-    if (getPaletteList().length > 0) {
+/**
+ * Gets the palette list for the tile editor to used which is based on selected console limitations, as well as
+ * tile map settings, like locking in a colour
+ * @returns {PaletteList}
+ */
+function getRenderPaletteListToSuitTileMapOrTileSetSelection() {
+    const paletteList = getPaletteListToSuitTileMapOrTileSetSelection();
+    if (getUIState().displayNativeColour) {
+        return PaletteUtil.clonePaletteListWithNativeColours(paletteList, { preserveIds: true });
+    } else {
+        return paletteList;
+    }
+}
+/**
+ * Gets the currently selected palette.
+ * @param {PaletteList?} customPaletteList - Custom palette list to obtain palette from.
+ * @returns {Palette?}
+ */
+function getPalette(customPaletteList) {
+    const paletteList = customPaletteList ?? getPaletteList();
+    if (paletteList.length > 0) {
         const paletteIndex = getProjectUIState().paletteIndex;
-        if (paletteIndex >= 0 && paletteIndex < getPaletteList().length) {
-            return getPaletteList().getPalette(paletteIndex);
+        if (paletteIndex >= 0 && paletteIndex < paletteList.length) {
+            return paletteList.getPalette(paletteIndex);
         } else {
             getProjectUIState().paletteIndex = 0;
-            return getPaletteList().getPalette(0);
+            return paletteList.getPalette(0);
         }
     } else return null;
+}
+/**
+ * Gets the currently selected render palette (native colours or default).
+ * @param {PaletteList?} customPaletteList - Custom palette list to obtain palette from.
+ * @returns {Palette?}
+ */
+function getRenderPalette() {
+    return getPalette(getRenderPaletteList());
 }
 function getUIState() {
     return state.persistentUIState;
@@ -2232,27 +2318,31 @@ function isTileMap() {
 }
 
 /**
- * @param {ProjectList|Project[]} projects 
+ * @param {ProjectEntryList|ProjectEntry[]|ProjectList|Project[]} projects 
  * @param {import('./types.js').SortEntry} sort 
- * @returns {Project[]}
+ * @returns {Project[]|ProjectEntry[]}
  */
 function getSortedProjectArray(projects, sort) {
-    projects = projects instanceof ProjectList ? projects.getProjects() : projects;
-    if (!projects || !Array.isArray(projects)) return [];
+    /** @type {Project[]|ProjectEntry[]} */
+    const projectArray = [];
+    if (projects instanceof ProjectList) projectArray.push(...projects.getProjects());
+    if (projects instanceof ProjectEntryList) projectArray.push(...projects.getProjectEntries());
+    if (Array.isArray(projects)) projectArray.push(...projects);
+
     if (sort?.field === 'title') {
         if (sort.direction === 'asc') {
-            projects.sort((a, b) => a.title > b.title ? 1 : -1);
+            projectArray.sort((a, b) => a.title > b.title ? 1 : -1);
         } else {
-            projects.sort((a, b) => a.title < b.title ? 1 : -1);
+            projectArray.sort((a, b) => a.title < b.title ? 1 : -1);
         }
     } else if (sort?.field === 'dateLastModified') {
         if (sort.direction === 'asc') {
-            projects.sort((a, b) => a.dateLastModified > b.dateLastModified ? 1 : -1);
+            projectArray.sort((a, b) => a.dateLastModified > b.dateLastModified ? 1 : -1);
         } else {
-            projects.sort((a, b) => a.dateLastModified < b.dateLastModified ? 1 : -1);
+            projectArray.sort((a, b) => a.dateLastModified < b.dateLastModified ? 1 : -1);
         }
     }
-    return projects;
+    return projectArray;
 }
 
 function refreshProjectUI() {
@@ -2283,7 +2373,7 @@ function refreshProjectUI() {
     });
 
     paletteEditor.setState({
-        paletteList: getPaletteList(),
+        paletteList: getRenderPaletteList(),
         selectedPaletteId: getPalette().paletteId,
         lastPaletteInputSystem: getUIState().importPaletteSystem,
         selectedPaletteIndex: getProjectUIState().paletteIndex,
@@ -2296,11 +2386,10 @@ function refreshProjectUI() {
 
     tileEditor.setState({
         forceRefresh: true,
-        paletteList: getPaletteListToSuitTileMapOrTileSetSelection(),
+        paletteList: getRenderPaletteListToSuitTileMapOrTileSetSelection(),
         tileSet: getTileSet(),
         tileGrid: getTileGrid(),
         tilesPerBlock: getTilesPerBlock(),
-        displayNative: getUIState().displayNativeColour,
         transparencyIndicies: getTransparencyIndicies(),
         lockedPaletteSlotIndex: graphicsCapability.lockedPaletteIndex,
         selectedTileIndex: instanceState.tileIndex,
@@ -2312,15 +2401,14 @@ function refreshProjectUI() {
     });
 
     tileManager.setState({
-        paletteList: getPaletteList(),
-        palette: getPalette(),
+        paletteList: getRenderPaletteList(),
+        palette: getRenderPalette(),
         tileMapList: getTileMapList(),
         tileSet: getTileSet(),
         selectedTileMapId: getProjectUIState().tileMapId,
         selectedTileId: getProjectUIState().tileId,
         numberOfPaletteSlots: graphicsCapability.totalPaletteSlots,
-        lockedPaletteSlotIndex: graphicsCapability.lockedPaletteIndex,
-        displayNative: getUIState().displayNativeColour
+        lockedPaletteSlotIndex: graphicsCapability.lockedPaletteIndex
     });
 
     const toolStrips = TileEditorToolbar.ToolStrips;
@@ -2360,6 +2448,8 @@ function refreshProjectUI() {
 }
 
 function formatForProject() {
+
+    currentProject.nativePalettes = null;
 
     const project = getProject();
     const projectChanged = project.id !== instanceState.previousProjectId;
@@ -2428,7 +2518,6 @@ function formatForProject() {
     tileEditor.setState({
         paletteList: null,
         tileSet: null,
-        displayNative: getUIState().displayNativeColour,
         lockedPaletteSlotIndex: null,
         enabled: false
     });
@@ -2445,6 +2534,8 @@ function formatForProject() {
         paletteSlotCount: getNumberOfPaletteSlots(),
         paletteSlot: instanceState.paletteSlot
     });
+
+    updateTileEditorGridColours();
 
     refreshProjectUI();
 
@@ -2476,6 +2567,8 @@ function resetViewportToCentre() {
 }
 
 function formatForNoProject() {
+
+    currentProject.nativePalettes = null;
 
     const dummyProject = createEmptyProject({ systemType: 'smsgg' });
     while (dummyProject.paletteList.length > 1) {
@@ -2548,6 +2641,8 @@ function formatForNoProject() {
         paletteList: null,
         selectedTileMapId: null
     });
+
+    updateTileEditorGridColours();
 }
 
 /**
@@ -2601,15 +2696,21 @@ function getTileMapContextToolbarVisibleToolstrips(tool) {
 
 function displaySelectedProject() {
     if (getProject()) {
+        if (getPaletteList().length === 0) {
+            const newPalette = PaletteFactory.createNewStandardColourPalette('New palette', getDefaultPaletteSystemType());
+            getPaletteList().addPalette(newPalette);
+        }
         formatForProject();
     } else {
         formatForNoProject();
         // Select default project if one was there
-        const projects = state.getProjectsFromLocalStorage();
+        const projectEntries = state.getProjectEntries();
         const project = (() => {
-            const lastProject = projects.getProjectById(getUIState().lastProjectId);
-            if (lastProject) return lastProject;
-            if (projects.length > 0) return projects.getProject(0);
+            if (getUIState().lastProjectId) {
+                const lastProject = state.getProjectById(getUIState().lastProjectId);
+                if (lastProject) return lastProject;
+            }
+            if (projectEntries.length > 0) return state.getProjectFromLocalStorage(projectEntries[0].id);
             return null;
         })();
         if (project) state.setProject(project);
@@ -2617,15 +2718,15 @@ function displaySelectedProject() {
 }
 
 function uiRefreshProjectLists() {
-    const projectList = state.getProjectsFromLocalStorage();
+    const projectEntryList = state.getProjectEntries();
     projectToolbar.setState({
-        projects: projectList
+        projects: projectEntryList
     });
     projectDropdown.setState({
-        projects: getSortedProjectArray(projectList, getUIState().projectDropDownSort)
+        projects: getSortedProjectArray(projectEntryList, getUIState().projectDropDownSort)
     });
     welcomeScreen.setState({
-        projects: getSortedProjectArray(projectList, getUIState().welcomeScreenProjectSort)
+        projects: getSortedProjectArray(projectEntryList, getUIState().welcomeScreenProjectSort)
     });
 }
 
@@ -3286,6 +3387,33 @@ function selectReferenceImage() {
     fileInput.click();
 }
 
+/**
+ * Sets a tile map as a reference image.
+ * @param {string} tileMapId - Unique ID of the tile map.
+ */
+function referenceImageFromTileMap(tileMapId) {
+    if (!tileMapId || typeof tileMapId !== 'string') throw new Error('Please pass a tile map ID.');
+    const tileMap = getTileMapList().getTileMapById(tileMapId);
+    if (!tileMap) throw new Error('Tile map not found.');
+
+    const palettes = tileMap.getPalettes().map((id) => getRenderPaletteList().getPaletteById(id));
+    const transparentIndicies = tileMap.isSprite ? [0] : [];
+    const image = PaintUtil.createTileGridImage(tileMap, getTileSet(), palettes, transparentIndicies);
+
+    instanceState.referenceImage = new ReferenceImage();
+    instanceState.referenceImage.setImage(image);
+    instanceState.referenceImage.setBounds(0, 0, image.width, image.height);
+
+    tileContextToolbar.setState({
+        referenceBounds: instanceState.referenceImage.getBounds(),
+        referenceTransparency: instanceState.transparencyIndex
+    });
+    tileEditor.setState({
+        referenceImage: instanceState.referenceImage,
+        transparencyIndicies: getTransparencyIndicies()
+    });
+}
+
 function clearReferenceImage() {
 
     instanceState.referenceImage.clearImage();
@@ -3651,6 +3779,43 @@ function selectTileIndexIfNotSelected(tileIndex) {
 }
 
 /**
+ * Change the palette index in the palette list.
+ * @argument {string} paletteId
+ * @argument {string} targetPaletteId
+ * @argument {string} position
+ */
+function paletteReorder(paletteId, targetPaletteId, position) {
+    if (paletteId === targetPaletteId) return;
+
+    const originIndex = getPaletteList().indexOf(paletteId);
+    let targetIndex = getPaletteList().indexOf(targetPaletteId);
+    if (position === DropPosition.after) targetIndex++;
+
+    let palettes = getPaletteList().getPalettes();
+    if (originIndex === targetIndex) {
+        return;
+    } else if (originIndex > targetIndex) {
+        const deleted = palettes.splice(originIndex, 1);
+        const start = palettes.slice(0, targetIndex);
+        const end = palettes.slice(targetIndex);
+        palettes = start.concat(deleted).concat(end);
+    } else if (originIndex < targetIndex) {
+        const start = palettes.slice(0, targetIndex);
+        const end = palettes.slice(targetIndex);
+        const deleted = start.splice(originIndex, 1);
+        palettes = start.concat(deleted).concat(end);
+    }
+
+    addUndoState();
+
+    getPaletteList().setPalettes(palettes);
+
+    state.saveToLocalStorage();
+
+    updatePaletteLists({ skipTileEditor: true });
+}
+
+/**
  * Creates a new palette.
  */
 function paletteNew() {
@@ -3661,14 +3826,9 @@ function paletteNew() {
 
         state.saveToLocalStorage();
 
-        paletteEditor.setState({
-            paletteList: getPaletteList()
-        });
-        tileManager.setState({
-            paletteList: getPaletteList()
-        });
+        updatePaletteLists({ skipTileEditor: true });
 
-        changePalette(newPalette.paletteId);
+        paletteSelectById(newPalette.paletteId);
         toast.show('Palette created.');
     } catch (e) {
         undoManager.removeLastUndo();
@@ -3689,14 +3849,9 @@ function paletteClone(paletteIndex) {
 
             state.saveToLocalStorage();
 
-            paletteEditor.setState({
-                paletteList: getPaletteList()
-            });
-            tileManager.setState({
-                paletteList: getPaletteList()
-            });
-    
-            changePalette(newPalette.paletteId);
+            updatePaletteLists({ skipTileEditor: true });
+
+            paletteSelectById(newPalette.paletteId);
 
             toast.show('Palette cloned.');
 
@@ -3725,18 +3880,10 @@ function paletteDelete(paletteIndex) {
 
             state.saveToLocalStorage();
 
-            paletteEditor.setState({
-                paletteList: getPaletteList()
-            });
-            tileManager.setState({
-                paletteList: getPaletteList()
-            });
-            tileEditor.setState({
-                paletteList: getPaletteListToSuitTileMapOrTileSetSelection()
-            });
-        
+            updatePaletteLists();
+
             const palette = getPaletteList().getPalette(paletteIndex);
-            changePalette(palette.paletteId);
+            paletteSelectById(palette.paletteId);
 
             toast.show('Palette removed.');
 
@@ -3745,6 +3892,71 @@ function paletteDelete(paletteIndex) {
             toast.show('Error removing palette.');
             throw e;
         }
+    }
+}
+
+/**
+ * @param {string?} field 
+ */
+function paletteListSort(field) {
+    let dir = instanceState.paletteSort?.direction === 'desc' ? -1 : 1; // Default to ascending
+    if (instanceState.paletteSort?.field !== field) {
+        dir = 1; // If different field, sort ascending
+    } else if (instanceState.paletteSort?.field === field) {
+        dir *= -1; // If same field, swap sort direction
+    }
+    let sortedField = null;
+
+    const palettes = getPaletteList().getPalettes();
+    switch (field) {
+        case PaletteEditor.SortFields.title:
+            sortedField = field;
+            palettes.sort((a, b) => (a.title > b.title ? 1 : -1) * dir);
+            break;
+        case PaletteEditor.SortFields.system:
+            sortedField = field;
+            palettes.sort((a, b) => {
+                if (a.system > b.system) return 1 * dir;
+                if (a.system < b.system) return -1 * dir;
+                if (a.title > b.title) return 1 * dir;
+                else if (a.title < b.title) return -1 * dir;
+                else return 0;
+            });
+            break;
+    }
+
+    // Record last sort, if last field was null then no valid value was passed so don't record
+    if (sortedField) {
+        instanceState.paletteSort = {
+            field: sortedField,
+            direction: dir === 1 ? 'asc' : 'desc'
+        };
+    }
+
+    // Update the project
+    addUndoState();
+    getPaletteList().setPalettes(palettes);
+    state.saveProjectToLocalStorage();
+
+    // Set the UI state
+    updatePaletteLists();
+}
+
+/**
+ * 
+ * @param {{ skipTileEditor: boolean }} args 
+ */
+function updatePaletteLists(args) {
+    paletteEditor.setState({
+        paletteList: getRenderPaletteList()
+    });
+    tileManager.setState({
+        paletteList: getRenderPaletteList()
+    });
+    if (args?.skipTileEditor !== true) {
+        tileEditor.setState({
+            paletteList: getRenderPaletteListToSuitTileMapOrTileSetSelection()
+        });
     }
 }
 
@@ -3766,12 +3978,11 @@ function changePaletteTitle(paletteIndex, newTitle) {
     state.saveToLocalStorage();
 
     paletteEditor.setState({
-        paletteList: getPaletteList(),
+        paletteList: getRenderPaletteList(),
         displayNative: getUIState().displayNativeColour
     });
     tileManager.setState({
-        paletteList: getPaletteList(),
-        displayNative: getUIState().displayNativeColour
+        paletteList: getRenderPaletteList()
     });
 }
 
@@ -3784,40 +3995,48 @@ function changePaletteSystem(paletteIndex, system) {
     state.saveToLocalStorage();
 
     paletteEditor.setState({
-        paletteList: getPaletteList(),
+        paletteList: getRenderPaletteList(),
         selectedSystem: system,
         displayNative: getUIState().displayNativeColour
     });
     tileEditor.setState({
-        paletteList: getPaletteListToSuitTileMapOrTileSetSelection(),
-        displayNative: getUIState().displayNativeColour,
+        paletteList: getRenderPaletteListToSuitTileMapOrTileSetSelection(),
         forceRefresh: true
     });
     tileManager.setState({
-        paletteList: getPaletteList(),
-        displayNative: getUIState().displayNativeColour
+        paletteList: getRenderPaletteList()
     });
 }
 
 function changePaletteEditorDisplayNativeColours(displayNative) {
-
+    currentProject.nativePalettes = null; 
     state.persistentUIState.displayNativeColour = displayNative;
     state.saveToLocalStorage();
 
     paletteEditor.setState({
-        paletteList: getPaletteList(),
+        paletteList: getRenderPaletteList(),
         displayNative: getUIState().displayNativeColour
     });
     tileEditor.setState({
         tileGrid: getTileGrid(),
         tileSet: getTileSet(),
-        paletteList: getPaletteListToSuitTileMapOrTileSetSelection(),
-        displayNative: getUIState().displayNativeColour
+        paletteList: getRenderPaletteListToSuitTileMapOrTileSetSelection()
     });
     tileManager.setState({
-        paletteList: getPaletteList(),
-        palette: getPalette(),
-        displayNative: getUIState().displayNativeColour
+        paletteList: getRenderPaletteList(),
+        palette: getRenderPalette()
+    });
+
+    updateTileEditorGridColours();
+}
+
+function updateTileEditorGridColours() {
+    const isGameboyProject = getUIState().displayNativeColour && getProject().systemType === 'gb';
+    tileEditor.setState({
+        pixelGridColour: (isGameboyProject) ? '#98a200' : '#000000',
+        pixelGridOpacity: (isGameboyProject) ? 0.5 : 0.2,
+        tileGridColour: (isGameboyProject) ? '#98a200' : '#000000',
+        tileGridOpacity: (isGameboyProject) ? 1 : 0.4
     });
 }
 
@@ -3855,16 +4074,16 @@ function swapColourIndex(sourceColourIndex, targetColourIndex) {
     state.saveToLocalStorage();
 
     tileEditor.setState({
-        paletteList: getPaletteListToSuitTileMapOrTileSetSelection(),
+        paletteList: getRenderPaletteListToSuitTileMapOrTileSetSelection(),
         tileGrid: getTileGrid(),
         tileSet: getTileSet()
     });
     paletteEditor.setState({
-        paletteList: getPaletteList()
+        paletteList: getRenderPaletteList()
     });
     tileManager.setState({
-        paletteList: getPaletteList(),
-        displayNative: getUIState().displayNativeColour
+        paletteList: getRenderPaletteList(),
+        palette: getRenderPalette()
     });
 }
 
@@ -3891,7 +4110,7 @@ function tileNew() {
         state.saveToLocalStorage();
 
         tileEditor.setState({
-            paletteList: getPaletteListToSuitTileMapOrTileSetSelection(),
+            paletteList: getRenderPaletteListToSuitTileMapOrTileSetSelection(),
             tileGrid: getTileGrid(),
             tileSet: getTileSet()
         });
@@ -4103,6 +4322,16 @@ function downloadAssemblyCode(code) {
     a.download = fullFileName;
     a.click();
     a.remove();
+}
+
+/**
+ * Exports the currently selected tile set or tile grid to an image.
+ */
+function exportCurrentTileGridAsImage() {
+    const tileGrid = getTileGrid();
+    const palettes = getRenderPaletteListToSuitTileMapOrTileSetSelection();
+    const image = PaintUtil.createTileGridImage(tileGrid, getTileSet(), palettes);
+    exportImage(image);
 }
 
 /**
@@ -4410,6 +4639,46 @@ function tileMapOrTileSetSelectById(tileMapId) {
 }
 
 /**
+ * Change the tile map order in the tile map list.
+ * @argument {string} tileMapId
+ * @argument {string} targetTileMapId
+ * @argument {string} position
+ */
+function tileMapReorder(tileMapId, targetTileMapId, position) {
+    if (tileMapId === targetTileMapId) return;
+
+    const originIndex = getTileMapList().indexOf(tileMapId);
+    let targetIndex = getTileMapList().indexOf(targetTileMapId);
+    if (position === DropPosition.after) targetIndex++;
+
+    let tileMaps = getTileMapList().getTileMaps();
+    if (originIndex === targetIndex) {
+        return;
+    } else if (originIndex > targetIndex) {
+        const deleted = tileMaps.splice(originIndex, 1);
+        const start = tileMaps.slice(0, targetIndex);
+        const end = tileMaps.slice(targetIndex);
+        tileMaps = start.concat(deleted).concat(end);
+    } else if (originIndex < targetIndex) {
+        const start = tileMaps.slice(0, targetIndex);
+        const end = tileMaps.slice(targetIndex);
+        const deleted = start.splice(originIndex, 1);
+        tileMaps = start.concat(deleted).concat(end);
+    }
+
+    addUndoState();
+
+    getTileMapList().setTileMaps(tileMaps);
+
+    state.saveToLocalStorage();
+
+    tileManager.setState({
+        tileMapList: getTileMapList()
+    });
+}
+
+
+/**
  * Selects a tile map based on index, where the index is out of range the tile set is selected.
  * @param {number?} index - Tile map index in the tile map list.
  */
@@ -4492,8 +4761,9 @@ function tileSetUpdate(args) {
 /**
  * Clones a tile map.
  * @param {string} tileMapId - Unique ID of the tile map to delete.
+ * @param {{ mirror: boolean, flip: boolean }} args 
  */
-function tileMapClone(tileMapId) {
+function tileMapClone(tileMapId, args) {
     if (!tileMapId) throw new Error('The tile map ID was invalid.');
 
     const sourceTileMap = getTileMapList().getTileMapById(tileMapId);
@@ -4502,14 +4772,28 @@ function tileMapClone(tileMapId) {
 
     addUndoState();
 
-    const clonedTileMap = TileMapFactory.clone(sourceTileMap);
-    clonedTileMap.title += " (copy)";
+    try {
 
-    getTileMapList().addTileMap(clonedTileMap);
+        const clonedTileMap = TileMapFactory.clone(sourceTileMap);
+        clonedTileMap.title += " (copy)";
 
-    tileMapOrTileSetSelectById(clonedTileMap.tileMapId);
+        if (args?.mirror === true) {
+            TileMapUtil.mirrorTileMap(clonedTileMap);
+        }
 
-    toast.show('Tile map cloned.');
+        if (args?.flip === true) {
+            TileMapUtil.flipTileMap(clonedTileMap);
+        }
+
+        getTileMapList().addTileMap(clonedTileMap);
+
+        tileMapOrTileSetSelectById(clonedTileMap.tileMapId);
+
+        toast.show('Tile map cloned.');
+
+    } catch (e) {
+
+    }
 }
 
 /**
@@ -4586,7 +4870,7 @@ function tileMapUpdate(tileMapId, args) {
     const capabilityType = isTileMap() ? getTileMap().isSprite ? 'sprite' : 'background' : 'background';
     const graphicsCapability = SystemUtil.getGraphicsCapability(getProject().systemType, capabilityType);
 
-    // Reset UI
+    // Update UI
     tileManager.setState({
         tileMapList: getTileMapList(),
         selectedTileMapId: getProjectUIState().tileMapId,
@@ -4597,10 +4881,89 @@ function tileMapUpdate(tileMapId, args) {
         selectedTileIndex: -1,
         tileGrid: getTileGrid(),
         tileSet: getTileSet(),
-        paletteList: getPaletteListToSuitTileMapOrTileSetSelection(),
+        paletteList: getRenderPaletteListToSuitTileMapOrTileSetSelection(),
         transparencyIndicies: getTransparencyIndicies(),
         lockedPaletteSlotIndex: graphicsCapability.lockedPaletteIndex,
         forceRefresh: true
+    });
+}
+
+/**
+ * @param {string} tileMapId 
+ * @param {{ mirror: boolean, flip: boolean }} args 
+ */
+function tileMapMirrorOrFlip(tileMapId, args) {
+    if (!tileMapId) throw new Error('The tile map ID was invalid.');
+    const tileMap = getTileMapList().getTileMapById(tileMapId);
+    if (!tileMap) throw new Error('No tile map matched the given ID.');
+
+    addUndoState();
+
+    try {
+
+        if (args?.mirror === true) {
+            TileMapUtil.mirrorTileMap(tileMap);
+            toast.show('Tile map mirrored.');
+        }
+
+        if (args?.flip === true) {
+            TileMapUtil.flipTileMap(tileMap);
+            toast.show('Tile map flipped.');
+        }
+
+    } catch (e) {
+        undoManager.removeLastUndo();
+        toast.show('Error mirroring or flipping tile map.')
+        throw e;
+    }
+
+    // Update project
+    state.saveToLocalStorage();
+
+    // Update UI
+    tileEditor.setState({
+        selectedTileIndex: -1,
+        tileGrid: getTileGrid(),
+        forceRefresh: true
+    });
+}
+
+/**
+ * @param {string?} field 
+ */
+function tileMapSort(field) {
+    let dir = instanceState.tileMapSort?.direction === 'desc' ? -1 : 1; // Default to ascending
+    if (instanceState.tileMapSort?.field !== field) {
+        dir = 1; // If different field, sort ascending
+    } else if (instanceState.tileMapSort?.field === field) {
+        dir *= -1; // If same field, swap sort direction
+    }
+    let sortedField = null;
+
+    const tileMaps = getTileMapList().getTileMaps();
+    switch (field) {
+        case TileManager.SortFields.title:
+            sortedField = field;
+            tileMaps.sort((a, b) => (a.title > b.title ? 1 : -1) * dir);
+            break;
+    }
+
+    // Record last sort, if last field was null then no valid value was passed so don't record
+    if (sortedField) {
+        instanceState.tileMapSort = {
+            field: sortedField,
+            direction: dir === 1 ? 'asc' : 'desc'
+        };
+    }
+
+    // Update the project
+    addUndoState();
+    getTileMapList().setTileMaps(tileMaps);
+    state.saveProjectToLocalStorage();
+
+    // Set the UI state
+    tileManager.setState({
+        tileMapList: getTileMapList()
     });
 }
 
@@ -4837,17 +5200,17 @@ function decreaseScale(relativeToMouse) {
  * Changes the selected palette by palette ID.
  * @param {number} paletteId - Unique palette ID.
  */
-function changePalette(paletteId) {
+function paletteSelectById(paletteId) {
     if (typeof paletteId !== 'string') return;
     let index = getPaletteList().indexOf(paletteId);
-    changePaletteIndex(index);
+    paletteSelectByIndex(index);
 }
 
 /**
  * Selects a given palette.
  * @param {number} index - Palette index in the palette list.
  */
-function changePaletteIndex(index) {
+function paletteSelectByIndex(index) {
     if (index < 0) index = getPaletteList().length - 1;
     if (index >= getPaletteList().length) index = 0;
 
@@ -4858,11 +5221,11 @@ function changePaletteIndex(index) {
         selectedPaletteId: getPalette().paletteId
     });
     tileManager.setState({
-        palette: getPalette()
+        palette: getRenderPalette()
     });
     if (isTileSet()) {
         tileEditor.setState({
-            paletteList: getPaletteListToSuitTileMapOrTileSetSelection()
+            paletteList: getRenderPaletteListToSuitTileMapOrTileSetSelection()
         });
     }
 }
@@ -5025,45 +5388,51 @@ window.addEventListener('load', async () => {
     await PageModalDialogue.wireUpElementsAsync(document.body);
 
     // Load and set state
+    state.loadProjectEntriesFromLocalStorage();
     state.loadPersistentUIStateFromLocalStorage();
 
     checkPersistentUIValues();
 
     // Load initial projects
-    const projectList = state.getProjectsFromLocalStorage();
+    let projectEntryList = state.getProjectEntries();
     const sampleManager = await SampleProjectManager.getInstanceAsync();
     instanceState.sampleProjects = await sampleManager.getSampleProjectsAsync();
 
     const sampleProjects = instanceState.sampleProjects;
-    if (projectList.length === 0) {
+    if (projectEntryList.length === 0) {
         for (let i = 0; i < sampleProjects.length; i++) {
             const sampleProject = sampleProjects[i];
             const loadedProject = await sampleManager.loadSampleProjectAsync(sampleProject.url);
             // Add to storage
-            projectList.addProject(loadedProject);
             state.saveProjectToLocalStorage(loadedProject, false);
             // Default tile map ID
             const defaultTileMap = loadedProject.tileMapList.getTileMapById(sampleProject.defaultTileMapId);
             getProjectUIState(loadedProject).tileMapId = defaultTileMap?.tileMapId ?? null;
         }
-        getUIState().lastProjectId = projectList.getProject(0).id;
+        getUIState().lastProjectId = state.getProjectEntries()[0].id;
         state.savePersistentUIStateToLocalStorage();
+        projectEntryList = state.getProjectEntries();
     }
 
-    const project = projectList.getProjectById(getUIState().lastProjectId);
-    state.setProject(project);
+    try {
+        state.setProjectById(getUIState().lastProjectId);
+    } catch {
+        const firstProjectId = state.getProjectEntries()[0].id;
+        state.setProjectById(firstProjectId);
+    }
 
     projectToolbar.setState({
-        projects: projectList
+        projects: projectEntryList
     });
     projectDropdown.setState({
-        projects: getSortedProjectArray(projectList, getUIState().projectDropDownSort),
+        projects: getSortedProjectArray(projectEntryList, getUIState().projectDropDownSort),
         sampleProjects: sampleProjects
     });
 
     // Clean up unused project states
     Object.keys(getUIState().projectStates).forEach((projectId) => {
-        if (!projectList.containsProjectById(projectId)) {
+        const found = state.getProjectEntries().filter((p) => p.id === projectId);
+        if (found.length === 0) {
             delete getUIState().projectStates[projectId];
         }
     });
@@ -5096,7 +5465,7 @@ window.addEventListener('load', async () => {
         showWelcomeScreenOnStartUpChecked: getUIState().welcomeVisibleOnStartup,
         visibleCommands: getProject() instanceof Project === true ? ['dismiss'] : [],
         invisibleCommands: getProject() instanceof Project === false ? ['dismiss'] : [],
-        projects: getSortedProjectArray(projectList, getUIState().welcomeScreenProjectSort)
+        projects: getSortedProjectArray(projectEntryList, getUIState().welcomeScreenProjectSort)
     });
 
     optionsToolbar.setState({
@@ -5150,3 +5519,40 @@ window.addEventListener('load', async () => {
         loadingScreenManager.switchToApp(1500);
     });
 });
+
+
+
+
+
+
+
+
+// /**
+//  * @param {Palette} palette - Palette to query.
+//  * @returns {Palette}
+//  */
+// #getPaletteInRegularOrNative(palette) {
+//     const displayNative = this.#getElement(commands.displayNativeColours)?.checked ?? false;
+//     if (displayNative) {
+//         return PaletteUtil.clonePaletteWithNativeColours(palette, { preserveIds: true });
+//     } else {
+//         return palette;
+//     }
+// }
+// // Native display
+// if (typeof state?.displayNative === 'boolean') {
+//     this.#displayNative = state.displayNative;
+//     if (state.displayNative && this.#paletteList?.getPalettes().filter((p) => p.system === 'gb').length > 0) {
+//         message.pixelGridColour = '#98a200';
+//         message.pixelGridOpacity = 0.5;
+//         message.tileGridColour = '#98a200';
+//         message.tileGridOpacity = 1;
+//     } else {
+//         message.pixelGridColour = '#000000';
+//         message.pixelGridOpacity = 0.2;
+//         message.tileGridColour = '#000000';
+//         message.tileGridOpacity = 0.4;
+//     }
+//     paletteUpdated = true;
+// }
+

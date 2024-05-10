@@ -146,9 +146,23 @@ export default class TileMap extends TileGridProvider {
 
 
     /**
-     * Returns a tile map tile by index.
-     * @param {number} index - Index of the tile to return.
-     * @returns {TileMapTile | null}
+     * Gets an item by index.
+     * @param {number} index - Index of the item to get.
+     * @throws Index is out of range.
+     * @returns {TileMapTile}
+     */
+    getTile(index) {
+        if (index >= 0 && index < this.#tiles.length) {
+            return this.#tiles[index];
+        } else {
+            throw new Error('Index out of range.');
+        }
+    }
+
+    /**
+     * Gets an item by index, or null if out of range.
+     * @param {number} index - Index of the item to get.
+     * @returns {TileMapTile?}
      */
     getTileByIndex(index) {
         if (index >= 0 && index <= this.tileCount) {
@@ -349,9 +363,22 @@ export default class TileMap extends TileGridProvider {
     /**
      * Gets the ID of the palette associated with a given index.
      * @param {number} index - Index of the palette ID to return.
+     * @throws Index out of range.
      * @returns {string?}
      */
     getPalette(index) {
+        if (index < 0 || index >= this.#paletteIds.length) {
+            throw new Error('Index out of range.');
+        }
+        return this.#paletteIds[index];
+    }
+
+    /**
+     * Gets the ID of the palette associated with a given index, or null if index out of range.
+     * @param {number} index - Index of the palette ID to return.
+     * @returns {string?}
+     */
+    getPaletteByIndex(index) {
         if (index < 0 || index >= this.#paletteIds.length) {
             return null;
         }

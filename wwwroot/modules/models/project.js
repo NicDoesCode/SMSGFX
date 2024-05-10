@@ -25,7 +25,7 @@ export default class Project {
         this.#title = value;
     }
 
-    /** Gets or sets the system type (either 'smsgg' or 'gb'). */
+    /** Gets or sets the system type (either 'smsgg', 'gb' or 'nes'). */
     get systemType() {
         return this.#systemType;
     }

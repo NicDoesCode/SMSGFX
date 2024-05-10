@@ -15,25 +15,36 @@
         </button>
         <button class="btn btn-outline-secondary dropdown-toggle btn-ui border border-0 border-start" type="button"
             data-bs-toggle="dropdown" aria-expanded="false" title="Select an existing palette to edit."></button>
-        <ul data-linked-command="paletteSelect" class="sms-dropdown-menu dropdown-menu dropdown-menu-end">
+        <ul data-smsgfx-id="paletteSelectVirtualList" data-linked-command="paletteSelect"
+            class="sms-dropdown-menu dropdown-menu dropdown-menu-end">
+            <li><a data-command="sort" data-field="title" data-auto-event="click" class="dropdown-item" href="#">Sort by
+                    title</a></li>
+            <li><a data-command="sort" data-field="system" data-auto-event="click" class="dropdown-item" href="#">Sort
+                    by system</a></li>
+            <li>
+                <hr class="dropdown-divider">
+            </li>
         </ul>
     </div>
     <!-- End: Palette editor : header -->
 
-    <div class="overflow-hidden overflow-y-auto">
+    <div data-smsgfx-id="palette-list-container" class="overflow-hidden overflow-y-auto">
 
-        <div data-smsgfx-id="palette-list-top" data-smsgfx-component-id="palette-list"
+        <div data-smsgfx-id="palette-list" data-smsgfx-component-id="palette-list" data-list-item-container
             class="sms-accordion-list sms-accordion-list-top sms-palette-select-list card-body p-0">
             <template>
                 <script data-smsgfx-template-id="item-template" type="text/x-handlebars-template">
                     <div class="list-group rounded-0 border border-0">
                         {{#each this}}
-                        <button data-command="paletteSelect" data-palette-id="{{paletteId}}" 
-                            class="sms-accordion-item list-group-item hidden-when-active border border-0 border-bottom text-start fw-bold d-flex flex-row w-100 p-0 m-0"
-                            title="{{title}}">
-                            <label class="p-2 fw-bold text-body-emphasis text-start overflow-hidden text-nowrap flex-shrink w-100">{{title}}</label>
-                            <span class="icon-expand p-2"><i class="bi bi-caret-down-fill"></i></span>
-                        </button>
+                        <div data-list-item data-smsgfx-id="palette-item-container" data-palette-id="{{paletteId}}" data-palette-index="{{index}}"
+                            class="border border-0 border-bottom p-0 m-0">
+                            <button data-command="paletteSelect" data-palette-id="{{paletteId}}" data-palette-index="{{index}}"
+                                class="sms-accordion-item hidden-when-active text-start fw-bold d-flex flex-row w-100 p-0 m-0 border border-0"
+                                title="{{title}}">
+                                <label class="p-2 fw-bold text-body-emphasis text-start overflow-hidden text-nowrap flex-shrink w-100">{{title}}</label>
+                                <span class="icon-expand p-2"><i class="bi bi-caret-down-fill"></i></span>
+                            </button>
+                        </div>
                         {{/each}}
                     </div>
                 </script>
@@ -48,9 +59,9 @@
                             class="p-2 ps-0 fw-bold text-body-emphasis text-start overflow-hidden text-nowrap flex-shrink w-100">Title</label>
                         <span class="p-2"><i class="bi bi-pencil-fill"></i></span>
                     </button>
-                    <input data-smsgfx-id="paletteTitle" data-command="paletteTitle" data-auto-event="change" data-field="title" type="text"
-                        class="form-control visually-hidden mt-2" aria-label="Enter name" list="tbPaletteSelect"
-                        title="Change the title of the palette.">
+                    <input data-smsgfx-id="paletteTitle" data-command="paletteTitle" data-auto-event="change"
+                        data-field="title" type="text" class="form-control visually-hidden mt-2" aria-label="Enter name"
+                        list="tbPaletteSelect" title="Change the title of the palette.">
                 </div>
             </div>
             <select data-command="paletteSystem" class="form-select form-select-sm visually-hidden"
@@ -84,7 +95,8 @@
                             </button>
                         </li>
                         <li class="nav-item">
-                            <button data-linked-command="paletteSystem" data-value="nes" class="nav-link visually-hidden"
+                            <button data-linked-command="paletteSystem" data-value="nes"
+                                class="nav-link visually-hidden"
                                 title="This palette is for Nintendo Entertainment System.">
                                 NES
                             </button>
@@ -136,12 +148,6 @@
             </div>
         </div>
 
-        <div data-smsgfx-id="palette-list-bottom"
-            class="sms-accordion-list sms-accordion-list-bottom sms-palette-select-list card-body p-0">
-            <div class="list-group rounded-0 border border-0">
-            </div>
-        </div>
-
     </div>
 
     <!-- Palette editor context menu -->
@@ -150,7 +156,7 @@
     <!-- End: Palette editor context menu -->
 
     <style data-css-scope="global">
-        .sms-palette-editor .sms-palette-properties {
+        .sms-palette-editor [data-list-item] .sms-palette-properties {
             background: linear-gradient(180deg, var(--bs-secondary-bg) 0%, rgba(33, 37, 41, 0) 40%);
         }
 

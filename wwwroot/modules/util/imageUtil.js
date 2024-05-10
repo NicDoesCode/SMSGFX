@@ -5,19 +5,19 @@ import ProjectFactory from "../factory/projectFactory.js";
 import ColourUtil from "./colourUtil.js";
 import TileSetFactory from "../factory/tileSetFactory.js";
 import PaletteListFactory from "../factory/paletteListFactory.js";
-import GeneralUtil from "./generalUtil.js";
+import TileMap from "../models/tileMap.js";
 
 const imageMimeTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/gif', 'image/svg+xml'];
 
 export default class ImageUtil {
 
-
+    
     /**
      * Converts an image to an image bitmap.
      * @param {HTMLImageElement|HTMLCanvasElement|OffscreenCanvas} image - Image to convert.
      * @returns {ImageBitmap}
      */
-    static ToImageBitmap(image) {
+    static toImageBitmap(image) {
         if (image instanceof ImageBitmap) {
             return image;
         } else if ((image.tagName && image.tagName === 'CANVAS') || image instanceof OffscreenCanvas) {
@@ -136,8 +136,6 @@ export default class ImageUtil {
                 });
             });
 
-            const noMatch = []; // TMP 
-
             let x = 0, y = -1;
             for (let i = 0; i < imageData.data.length; i += 4) {
 
@@ -152,7 +150,6 @@ export default class ImageUtil {
                 if (colourHexLookup[pixel.hex]) {
                     context.fillStyle = colourHexLookup[pixel.hex];
                 } else {
-                    if (!noMatch.includes(pixel.hex)) noMatch.push(pixel.hex); // TMP 
                     context.fillStyle = 'yellow';
                 }
                 context.fillRect(x, y, 1, 1);
@@ -160,7 +157,6 @@ export default class ImageUtil {
                 x++;
             }
 
-            console.log('noMatch', noMatch); // TMP 
             resolve(await canvasToImageAsync(canvas));
         });
     }
