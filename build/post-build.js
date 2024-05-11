@@ -17,16 +17,11 @@ function run() {
 
 
 function makeConfig() {
-    const patreonHandle = process.env[`HANDLE_PATREON`] ?? null;
-    const kofiHandle = process.env[`HANDLE_KOFI`] ?? null;
-    const documentationUrl = process.env[`DOCUMENTATION_URL`] ?? null;
-    const documentationInlineUrl = process.env[`DOCUMENTATION_INLINE_URL`] ?? null;
-
     const config = {
-        patreonHandle: patreonHandle,
-        kofiHandle: kofiHandle,
-        documentationUrl: documentationUrl, 
-        documentationInlineUrl: documentationInlineUrl
+        patreonHandle: process.env[`HANDLE_PATREON`] ?? null,
+        kofiHandle: process.env[`HANDLE_KOFI`] ?? null,
+        documentationUrl: process.env[`DOCUMENTATION_URL`] ?? null, 
+        documentationInlineUrl: process.env[`DOCUMENTATION_INLINE_URL`] ?? null
     };
     const configString = JSON.stringify(config);
     const distDir = path.resolve(__dirname, '..', 'dist');

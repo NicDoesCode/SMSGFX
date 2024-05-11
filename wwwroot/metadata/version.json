@@ -1,11 +1,20 @@
 {
-    "versions": [
-        {
+    "versions": {
+        "1.4.0": {
             "version": "1.4.0",
-            "releaseNotes": "https://github.com/NicDoesCode/SMSGFX/releases/tag/v1.4",
-            "sort": 140
+            "releaseNotesUrl": "https://github.com/NicDoesCode/SMSGFX/releases/tag/v1.4",
+            "major": 1,
+            "minor": 4,
+            "patch": 0
         }
-    ],
+    },
+    "channelHostMappings" : {
+        "localhost": "local",
+        "127.0.0.1": "local",
+        "edge.smsgfx.qwerky.games": "edge",
+        "dev.smsgfx.qwerky.games": "dev",
+        "smsgfx.qwerky.games": "prod"
+    },
     "channels": {
         "local": {
             "hidden": true,
@@ -16,20 +25,20 @@
         "edge": {
             "hidden": false,
             "name": "Edge",
-            "description": "Bleeding edge, latest code, incomplete, unstable, proceed with caution.",
-            "url": "https://edge.smsgfx.qwerky.gamers"
+            "description": "Feature incomplete, unstable.",
+            "url": "https://edge.smsgfx.qwerky.games"
         },
         "dev": {
             "hidden": false,
             "name": "Beta",
-            "description": "Feature complete, undergoing testing, may contain bugs.",
-            "url": "https://dev.smsgfx.qwerky.gamers"
+            "description": "Feature complete, may contain bugs.",
+            "url": "https://dev.smsgfx.qwerky.games"
         },
         "prod": {
             "hidden": false,
             "name": "Release",
-            "description": "Production release, most stable version.",
-            "url": "https://smsgfx.qwerky.gamers"
+            "description": "Production release, stable version.",
+            "url": "https://smsgfx.qwerky.games"
         }
     }
 }
