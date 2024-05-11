@@ -84,7 +84,8 @@ export default {
             patterns: [
                 { from: 'wwwroot/assets/image', to: 'assets/image' },
                 { from: 'wwwroot/assets/sample', to: 'assets/sample', noErrorOnMissing: true },
-                { from: 'wwwroot/config', to: 'config', noErrorOnMissing: true }
+                { from: 'wwwroot/config', to: 'config', noErrorOnMissing: true },
+                { from: 'wwwroot/metadata', to: 'metadata' },
             ]
         }),
         new HtmlWebpackPlugin({

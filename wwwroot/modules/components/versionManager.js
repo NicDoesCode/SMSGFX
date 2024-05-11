@@ -59,7 +59,7 @@ export default class VersionManager {
         if (resp.ok) {
             this.#version = JSON.parse(await resp.text());
         } else {
-            this.#version = { versions: [], channels: {} };
+            this.#version = { versions: {}, channels: {}, channelHostMappings: {} };
         }
 
         return this.#version;
