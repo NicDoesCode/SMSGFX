@@ -1,6 +1,18 @@
 <div data-smsgfx-component="dialogues/welcomeScreen" class="sms-welcome-screen card z-2" tabindex="-1">
-    <div class="card-header border border-0">
-        <h5 class="modal-title m-0">Welcome to SMSGFX!</h5>
+    <div class="card-header border border-0 p-0">
+        <h5 class="modal-title m-0 pb-0">Welcome to SMSGFX!</h5>
+        <p data-smsgfx-id="version-information" class="mb-2 pb-4 text-center">
+            <script data-smsgfx-template-id="version-information" type="text/x-handlebars-template">
+                {{#if version}}
+                {{#with version}}
+                <span>Version <a href="{{releaseNotesUrl}}" target="_blank" title="Release notes for version {{major}}.{{minor}}.{{patch}}.">{{major}}.{{minor}}.{{patch}}</a></span>
+                {{/with}}
+                {{#if channel}}{{#with channel}}
+                <span title="{{description}}"> ({{name}})</span>
+                {{/with}}{{/if}}
+                {{/if}}
+            </script>
+        </p>
     </div>
     <div class="card-body">
         <div class="row">
@@ -158,9 +170,6 @@
 
         .sms-welcome-screen .project-listing ul {
             max-height: 200px;
-        }
-
-        .sms-welcome-screen .sms-donate-button img {
         }
 
         .sms-welcome-screen .sms-donate-button img {

@@ -5502,6 +5502,11 @@ window.addEventListener('load', async () => {
             visible: getUIState().documentationVisibleOnStartup
         });
 
+        welcomeScreen.setState({
+            version: versionInfo, 
+            channel: channelInfo
+        });
+
         // Set handles on Sponsorship buttons
         if (typeof config?.kofiHandle === 'string') {
             const link = document.querySelector('[data-smsgfx-id=kofi-link-footer]');

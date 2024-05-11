@@ -91,7 +91,6 @@ export default class VersionManager {
  */
 /**
  * @typedef {Object} VersionInformation
- * @property {string} version - Formatted string of the version number.
  * @property {string} releaseNotesUrl - URL for documentation inline help.
  * @property {number} major - Major version number.
  * @property {number} minor - Minor version number.
