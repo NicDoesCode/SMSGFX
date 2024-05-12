@@ -996,6 +996,16 @@ async function handleProjectDropdownOnCommand(args) {
             exportProjectToJson();
             break;
 
+        case ProjectDropdown.Commands.projectLink:
+            const url = new URL(window.location);
+            url.hash = '';
+            url.search = '';
+            url.searchParams.set('project', getProject().id);
+            navigator.clipboard.writeText(url.toString()).then(() => {
+                toast.show('Project link copied to clipboard.');
+            });
+            break;
+
         case ProjectDropdown.Commands.projectLoadById:
             state.setProjectById(args.projectId);
             projectDropdown.setState({ visible: false });
@@ -4009,7 +4019,7 @@ function changePaletteSystem(paletteIndex, system) {
 }
 
 function changePaletteEditorDisplayNativeColours(displayNative) {
-    currentProject.nativePalettes = null; 
+    currentProject.nativePalettes = null;
     state.persistentUIState.displayNativeColour = displayNative;
     state.saveToLocalStorage();
 
@@ -5414,6 +5424,17 @@ window.addEventListener('load', async () => {
         projectEntryList = state.getProjectEntries();
     }
 
+    // Load project from URL?
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('project')) {
+        const projectId = params.get('project');
+        const project = state.getProjectEntries().filter((p) => p.id === projectId)[0];
+        if (project) {
+            getUIState().lastProjectId = projectId;
+        }
+    }
+
+    // Load project
     try {
         state.setProjectById(getUIState().lastProjectId);
     } catch {

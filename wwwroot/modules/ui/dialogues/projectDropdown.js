@@ -16,6 +16,7 @@ const commands = {
     projectLoadFromFile: 'projectLoadFromFile',
     projectLoadById: 'projectLoadById',
     projectSaveToFile: 'projectSaveToFile',
+    projectLink: 'projectLink',
     projectDelete: 'projectDelete',
     projectSort: 'projectSort',
     sampleProjectSelect: 'sampleProjectSelect',
