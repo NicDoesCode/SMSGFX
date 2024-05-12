@@ -888,6 +888,28 @@ function handleStateEvent(args) {
                 // Update instance details
                 instanceState.previousProjectId = args.previousProjectId;
                 resetViewportToCentre();
+
+
+                if (args.context !== State.Contexts.history && args.context !== State.Contexts.init && args.previousProjectId) {
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.set('project', args.projectId);
+    
+                    window.history.pushState({ previousProjectId: args.previousProjectId ?? args.projectId }, '', newUrl);
+                    console.log('PUSHED STATE', { previousProjectId: args.previousProjectId }); // TMP     
+                } else {
+                    console.log('SKIPPED STATE BECAUSE HISTORY'); // TMP 
+                }
+
+                // // Set project in URL
+                // // pushProjectIntoUrlHistory(getProject().id);
+                // const url = new URL(window.location);
+                // const urlProjectId = url.searchParams.get('project');
+                // if (urlProjectId && urlProjectId !== getProject().id) {
+                //     console.log(`ADDED HISTORY, added: ${urlProjectId}, current: ${getProject().id}`); // TMP 
+                //     url.searchParams.set('project', getProject().id);
+                //     window.history.pushState({ projectId: urlProjectId }, '', url.toString());
+                // }
+
             }
             displaySelectedProject();
             break;
@@ -2726,6 +2748,16 @@ function displaySelectedProject() {
         if (project) state.setProject(project);
     }
 }
+
+// function pushProjectIntoUrlHistory(projectId, force) {
+//     if (typeof projectId !== 'string') projectId = getProject().id;
+//     const url = new URL(window.location);
+//     const urlProjectId = url.searchParams.get('project');
+//     if (urlProjectId && urlProjectId !== projectId) {
+//         url.searchParams.set('project', projectId);
+//         window.history.pushState({ projectId: urlProjectId }, '', url.toString());
+//     }
+// }
 
 function uiRefreshProjectLists() {
     const projectEntryList = state.getProjectEntries();
@@ -5431,16 +5463,28 @@ window.addEventListener('load', async () => {
         const project = state.getProjectEntries().filter((p) => p.id === projectId)[0];
         if (project) {
             getUIState().lastProjectId = projectId;
+        } else {
+            toast.show('Project ID from URL not found.');
         }
     }
 
     // Load project
     try {
-        state.setProjectById(getUIState().lastProjectId);
+        state.setProjectById(getUIState().lastProjectId, State.Contexts.init);
     } catch {
         const firstProjectId = state.getProjectEntries()[0].id;
-        state.setProjectById(firstProjectId);
+        state.setProjectById(firstProjectId, State.Contexts.init);
     }
+
+    window.addEventListener('popstate', (e) => {
+        console.log('POP STATE', e); // TMP 
+        if (e.state?.previousProjectId) {
+            console.log('POPPED PROJECT ID STATE', e.state); // TMP 
+            if (e.state?.previousProjectId !== getProject().id) {
+                state.setProjectById(e.state?.previousProjectId, State.Contexts.history);
+            }
+        }
+    });
 
     projectToolbar.setState({
         projects: projectEntryList
