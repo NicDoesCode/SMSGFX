@@ -890,10 +890,14 @@ function handleStateEvent(args) {
                 resetViewportToCentre();
                 // Push the new project to window history to make the back and forward buttons work 
                 // (as long as this project change wasn't due to 'history' ie. the user clicking back or forward buttons)
-                if (args.context !== State.Contexts.history && args.context !== State.Contexts.init && args.previousProjectId) {
+                if (args.context !== State.Contexts.history) {
                     const newUrl = new URL(window.location);
                     newUrl.searchParams.set('project', args.projectId);
-                    window.history.pushState({ previousProjectId: args.previousProjectId ?? args.projectId }, '', newUrl);
+                    if (args.context === State.Contexts.init) {
+                        window.history.replaceState({ projectId: args.projectId }, '', newUrl);
+                    } else {
+                        window.history.pushState({ projectId: args.projectId }, '', newUrl);
+                    }
                 }
             }
             displaySelectedProject();
@@ -5453,9 +5457,9 @@ window.addEventListener('load', async () => {
 
     // Add event listener for when the user clicks back or forward, so that we load their project
     window.addEventListener('popstate', (e) => {
-        if (e.state?.previousProjectId) {
-            if (e.state?.previousProjectId !== getProject().id) {
-                state.setProjectById(e.state?.previousProjectId, State.Contexts.history);
+        if (e.state?.projectId) {
+            if (e.state?.projectId !== getProject().id) {
+                state.setProjectById(e.state?.projectId, State.Contexts.history);
             }
         }
     });
