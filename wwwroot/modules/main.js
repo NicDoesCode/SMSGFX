@@ -889,6 +889,17 @@ function handleStateEvent(args) {
                 // Update instance details
                 instanceState.previousProjectId = args.previousProjectId;
                 resetViewportToCentre();
+                // Push the new project to window history to make the back and forward buttons work 
+                // (as long as this project change wasn't due to 'history' ie. the user clicking back or forward buttons)
+                if (args.context !== State.Contexts.history) {
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.set('project', args.projectId);
+                    if (args.context === State.Contexts.init) {
+                        window.history.replaceState({ projectId: args.projectId }, '', newUrl);
+                    } else {
+                        window.history.pushState({ projectId: args.projectId }, '', newUrl);
+                    }
+                }
             }
             displaySelectedProject();
             break;
@@ -995,6 +1006,16 @@ async function handleProjectDropdownOnCommand(args) {
 
         case ProjectDropdown.Commands.projectSaveToFile:
             exportProjectToJson();
+            break;
+
+        case ProjectDropdown.Commands.projectLink:
+            const url = new URL(window.location);
+            url.hash = '';
+            url.search = '';
+            url.searchParams.set('project', getProject().id);
+            navigator.clipboard.writeText(url.toString()).then(() => {
+                toast.show('Project link copied to clipboard.');
+            });
             break;
 
         case ProjectDropdown.Commands.projectLoadById:
@@ -5415,12 +5436,34 @@ window.addEventListener('load', async () => {
         projectEntryList = state.getProjectEntries();
     }
 
+    // Load project from URL?
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('project')) {
+        const projectId = params.get('project');
+        const project = state.getProjectEntries().filter((p) => p.id === projectId)[0];
+        if (project) {
+            getUIState().lastProjectId = projectId;
+        } else {
+            toast.show('Project ID from URL not found.');
+        }
+    }
+
+    // Load project
     try {
-        state.setProjectById(getUIState().lastProjectId);
+        state.setProjectById(getUIState().lastProjectId, State.Contexts.init);
     } catch {
         const firstProjectId = state.getProjectEntries()[0].id;
-        state.setProjectById(firstProjectId);
+        state.setProjectById(firstProjectId, State.Contexts.init);
     }
+
+    // Add event listener for when the user clicks back or forward, so that we load their project
+    window.addEventListener('popstate', (e) => {
+        if (e.state?.projectId) {
+            if (e.state?.projectId !== getProject().id) {
+                state.setProjectById(e.state?.projectId, State.Contexts.history);
+            }
+        }
+    });
 
     projectToolbar.setState({
         projects: projectEntryList
