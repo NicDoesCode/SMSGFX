@@ -334,6 +334,10 @@ export default class CanvasManager {
     #tilesPerBlock = 2;
     /** @type {number} */
     #selectedTileIndex = -1;
+    /** @type {number[]} */
+    #attentionTiles = [];
+    /** @type {number[]} */
+    #outlineTiles = [];
     /** @type {import("../models/tileGridProvider.js").TileGridRegion?} */
     #selectedRegion = null;
     #cursorSize = 1;
@@ -1155,6 +1159,28 @@ export default class CanvasManager {
             }
         }
 
+        // Highlight mode is tile instance
+        if (this.#outlineTiles.length > 0 || true) {
+            this.#outlineTiles.forEach((outlineTileId) => {
+                const indicies = this.tileGrid.getTileIdIndexes(outlineTileId);
+                // const indicies = [2, 3, 4, 5, 8, 9, 10, 16, 24];
+                context.beginPath();
+                for (let tileIndex of indicies) {
+                    const selCol = tileIndex % this.tileGrid.columnCount;
+                    const selRow = Math.floor(tileIndex / this.tileGrid.columnCount);
+                    const tileX = 8 * selCol * pxSize;
+                    const tileY = 8 * selRow * pxSize;
+
+                    // Highlight the tile
+                    context.rect(tileX + drawX, tileY + drawY, (8 * pxSize), (8 * pxSize));
+                }
+                context.closePath();
+                context.strokeStyle = 'lime';
+                context.stroke();
+            });
+        }
+
+
         // Highlight selected tile
         if (this.selectedTileIndex >= 0 && this.selectedTileIndex < this.tileGrid.tileCount) {
             const selCol = this.selectedTileIndex % this.tileGrid.columnCount;
@@ -1162,7 +1188,7 @@ export default class CanvasManager {
             const tileX = 8 * selCol * pxSize;
             const tileY = 8 * selRow * pxSize;
 
-            // Highlight the pixel
+            // Highlight the tile
             context.strokeStyle = 'black';
             context.strokeRect(tileX + drawX, tileY + drawY, (8 * pxSize), (8 * pxSize));
             context.strokeStyle = 'yellow';
@@ -1249,10 +1275,10 @@ export default class CanvasManager {
             }
         });
         context.globalAlpha = 1;
-  
+
         context.imageSmoothingEnabled = originalSmoothingEnabled;
         context.imageSmoothingQuality = originalSmoothingQuality;
-  }
+    }
 
     /**
      * @param {CanvasRenderingContext2D} context 
