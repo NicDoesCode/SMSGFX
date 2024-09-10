@@ -1532,6 +1532,11 @@ function handleTileEditorOnEvent(args) {
                         isInBounds: args.isInBounds,
                         event: TileEditor.Events.pixelMouseOver
                     });
+                    const tileId = getTileGrid().getTileInfoByRowAndColumn(args.tileGridRowIndex, args.tileGridColumnIndex);
+                    if (tileId) {
+                        const highlights = getTileGrid().getTileIdIndexes(tileId);
+                        tileEditor.setState({  });
+                    }
                     if (result?.saveProject) {
                         state.saveToLocalStorage();
                     }
