@@ -12,8 +12,9 @@ import CacheUtil from "../../util/cacheUtil.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
-const commands = {
-    tileSelect: 'tileSelect'
+export const commands = {
+    tileSelect: 'tileSelect',
+    tileHighlight: 'tileHighlight'
 }
 
 
@@ -142,7 +143,13 @@ export default class TileListing extends ComponentBase {
                 button.classList.add('btn', 'btn-secondary');
 
                 button.addEventListener('click', (ev) => {
-                    this.#handleTileListingCommandButtonClicked(commands.tileSelect, tile.tileId);
+                    this.#handleTileListingCommandButtonClicked(tile.tileId);
+                    ev.stopImmediatePropagation();
+                    ev.preventDefault();
+                });
+
+                button.addEventListener('mouseenter', (ev) => {
+                    this.#handleTileListingMouseEnter(tile.tileId);
                     ev.stopImmediatePropagation();
                     ev.preventDefault();
                 });
@@ -255,8 +262,18 @@ export default class TileListing extends ComponentBase {
      * @param {string} command 
      * @param {string} tileId 
      */
-    #handleTileListingCommandButtonClicked(command, tileId) {
-        const args = this.#createArgs(command);
+    #handleTileListingCommandButtonClicked(tileId) {
+        const args = this.#createArgs(commands.tileSelect);
+        args.tileId = tileId;
+        this.#dispatcher.dispatch(EVENT_OnCommand, args);
+    }
+
+    /**
+     * @param {string} command 
+     * @param {string} tileId 
+     */
+    #handleTileListingMouseEnter(tileId) {
+        const args = this.#createArgs(commands.tileHighlight);
         args.tileId = tileId;
         this.#dispatcher.dispatch(EVENT_OnCommand, args);
     }

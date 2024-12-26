@@ -1386,6 +1386,10 @@ function handleTileManagerOnCommand(args) {
             tileSetTileSelectById(args.tileId);
             break;
 
+        case TileManager.Commands.tileHighlight:
+            tileHighlightById(args.tileId);
+            break;
+
         case TileManager.Commands.tileMapClone:
             tileMapClone(args.tileMapId);
             break;
@@ -1532,14 +1536,21 @@ function handleTileEditorOnEvent(args) {
                         isInBounds: args.isInBounds,
                         event: TileEditor.Events.pixelMouseOver
                     });
-                    const tileId = getTileGrid().getTileInfoByRowAndColumn(args.tileGridRowIndex, args.tileGridColumnIndex);
-                    if (tileId) {
-                        const highlights = getTileGrid().getTileIdIndexes(tileId);
-                        tileEditor.setState({  });
-                    }
                     if (result?.saveProject) {
                         state.saveToLocalStorage();
                     }
+                }
+
+                if (args.isInBounds) {
+                    const tools = TileEditorToolbar.Tools;
+                    if ([tools.select, tools.tileEyedropper, tools.tileLinkBreak, tools.tileMapTileAttributes].includes(instanceState.tool)) {
+                        const tileInfo = getTileGrid().getTileInfoByRowAndColumn(args.tileGridRowIndex, args.tileGridColumnIndex);
+                        tileHighlightById(tileInfo.tileId);
+                    } else {
+                        tileHighlightById(null);
+                    }
+                } else {
+                    tileHighlightById(null);
                 }
 
                 // Show the palette colour
@@ -4014,7 +4025,7 @@ function changePaletteSystem(paletteIndex, system) {
 }
 
 function changePaletteEditorDisplayNativeColours(displayNative) {
-    currentProject.nativePalettes = null; 
+    currentProject.nativePalettes = null;
     state.persistentUIState.displayNativeColour = displayNative;
     state.saveToLocalStorage();
 
@@ -4729,6 +4740,14 @@ function tileSetTileSelectById(tileId) {
     if (instanceState.tool === TileEditorToolbar.Tools.tileStamp) {
         tileEditor.setState({ tileStampPattern: tile?.tileId ?? null });
     }
+}
+
+/**
+ * Selects a tile set tile.
+ * @param {string?} tileId - Unique ID of the tile set tile.
+ */
+function tileHighlightById(tileId) {
+    tileEditor.setState({ outlineTileIds: tileId ?? [] })
 }
 
 /**

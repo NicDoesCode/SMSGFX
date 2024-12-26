@@ -157,6 +157,20 @@ export default class CanvasManager {
     }
 
     /**
+     * Gets or sets a list of IDs of tiles to draw a border around.
+     */
+    get outlineTileIds() {
+        return this.#outlineTileIds;
+    }
+    set outlineTileIds(value) {
+        if (Array.isArray(value)) {
+            this.#outlineTileIds = value.filter((tileId) => typeof tileId === 'string');
+        } else {
+            this.#outlineTileIds = [];
+        }
+    }
+
+    /**
      * Gets or sets the cursor size between 1 and 50 tiles.
      */
     get cursorSize() {
@@ -336,8 +350,8 @@ export default class CanvasManager {
     #selectedTileIndex = -1;
     /** @type {number[]} */
     #attentionTiles = [];
-    /** @type {number[]} */
-    #outlineTiles = [];
+    /** @type {string[]} */
+    #outlineTileIds = [];
     /** @type {import("../models/tileGridProvider.js").TileGridRegion?} */
     #selectedRegion = null;
     #cursorSize = 1;
@@ -1043,7 +1057,7 @@ export default class CanvasManager {
                 const tile = coords.tile;
                 const columnHeight = coords.gridRows * coords.tile.sizePx;
                 const originX = drawX + (tile.sizePx * tile.col);
-                const originY = drawY;
+                const originY = drawY; 1162
                 context.filter = 'opacity(0.25)';
                 context.fillStyle = 'yellow';
                 context.fillRect(originX, originY, tile.sizePx, columnHeight);
@@ -1160,10 +1174,9 @@ export default class CanvasManager {
         }
 
         // Highlight mode is tile instance
-        if (this.#outlineTiles.length > 0 || true) {
-            this.#outlineTiles.forEach((outlineTileId) => {
+        if (this.#outlineTileIds.length > 0) {
+            this.#outlineTileIds.forEach((outlineTileId) => {
                 const indicies = this.tileGrid.getTileIdIndexes(outlineTileId);
-                // const indicies = [2, 3, 4, 5, 8, 9, 10, 16, 24];
                 context.beginPath();
                 for (let tileIndex of indicies) {
                     const selCol = tileIndex % this.tileGrid.columnCount;

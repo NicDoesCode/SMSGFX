@@ -25,6 +25,7 @@ const commands = {
     tileMapFlip: 'tileMapFlip',
     tileMapChangePosition: 'tileMapChangePosition',
     tileSelect: 'tileSelect',
+    tileHighlight: 'tileHighlight',
     tileMapChange: 'tileMapChange',
     tileMapReference: 'tileMapReference',
     tileSetChange: 'tileSetChange',
@@ -374,6 +375,11 @@ export default class TileManager extends ComponentBase {
                 const args1 = this.#createArgs(commands.tileSelect);
                 args1.tileId = args.tileId;
                 this.#dispatcher.dispatch(EVENT_OnCommand, args1);
+                break;
+            case TileListing.Commands.tileHighlight:
+                const args2 = this.#createArgs(commands.tileHighlight);
+                args2.tileId = args.tileId;
+                this.#dispatcher.dispatch(EVENT_OnCommand, args2);
                 break;
         }
     }
