@@ -51,6 +51,7 @@ export default class PersistentUIStateJsonSerialiser {
             displayNativeColour: value.displayNativeColour,
             showTileGrid: value.showTileGrid,
             showPixelGrid: value.showPixelGrid,
+            highlightSameTiles: value.highlightSameTiles,
             documentationVisibleOnStartup: value.documentationVisibleOnStartup,
             welcomeVisibleOnStartup: value.welcomeVisibleOnStartup,
             theme: value.theme,
@@ -95,6 +96,9 @@ export default class PersistentUIStateJsonSerialiser {
         if (typeof serialisable.showPixelGrid === 'boolean') {
             result.showPixelGrid = serialisable.showPixelGrid;
         }
+        if (typeof serialisable.highlightSameTiles === 'boolean') {
+            result.highlightSameTiles = serialisable.highlightSameTiles;
+        }
         if (typeof serialisable.documentationVisibleOnStartup === 'boolean') {
             result.documentationVisibleOnStartup = serialisable.documentationVisibleOnStartup;
         }
@@ -137,6 +141,7 @@ export default class PersistentUIStateJsonSerialiser {
  * @property {boolean} displayNativeColour
  * @property {boolean} showTileGrid
  * @property {boolean} showPixelGrid
+ * @property {boolean} highlightSameTiles
  * @property {boolean} documentationVisibleOnStartup
  * @property {boolean} welcomeVisibleOnStartup
  * @property {string} theme

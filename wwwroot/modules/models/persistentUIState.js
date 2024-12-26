@@ -92,6 +92,16 @@ export default class PersistentUIState {
     }
 
     /**
+     * Gets or sets whether to highlight tiles that are the same.
+     */
+    get highlightSameTiles() {
+        return this.#highlightSameTiles;
+    }
+    set highlightSameTiles(value) {
+        this.#highlightSameTiles = value;
+    }
+
+    /**
      * Gets or sets whether the documentation is visible on startup.
      */
     get documentationVisibleOnStartup() {
@@ -182,6 +192,8 @@ export default class PersistentUIState {
     #showTileGrid = true;
     /** @type {boolean} */
     #showPixelGrid = true;
+    /** @type {boolean} */
+    #highlightSameTiles = true;
     /** @type {boolean} */
     #documentationVisibleOnStartup = false;
     /** @type {boolean} */

@@ -14,7 +14,8 @@ const commands = {
     tileWidth: 'tileWidth',
     scale: 'scale',
     showTileGrid: 'showTileGrid',
-    showPixelGrid: 'showPixelGrid'
+    showPixelGrid: 'showPixelGrid',
+    highlightSameTiles: 'highlightSameTiles'
 }
 const tools = {
     select: 'select',
@@ -39,7 +40,8 @@ const toolstrips = {
     tileMapTools: 'tileMapTools',
     undo: 'undo',
     showTileGrid: 'showTileGrid',
-    showPixelGrid: 'showPixelGrid'
+    showPixelGrid: 'showPixelGrid',
+    highlightSameTiles: 'highlightSameTiles'
 }
 
 export default class TileEditorToolbar extends ComponentBase {
@@ -148,6 +150,10 @@ export default class TileEditorToolbar extends ComponentBase {
             const elm = this.#getElement(commands.showPixelGrid);
             if (elm) elm.checked = state?.showPixelGridChecked;
         }
+        if (typeof state?.highlightSameTilesChecked === 'boolean' || typeof state?.highlightSameTilesChecked === 'number') {
+            const elm = this.#getElement(commands.highlightSameTiles);
+            if (elm) elm.checked = state?.highlightSameTilesChecked;
+        }
         if (state?.visibleToolstrips && Array.isArray(state.visibleToolstrips)) {
             this.#element.querySelectorAll('[data-toolstrip]').forEach(tsElm => {
                 const toolstrip = tsElm.getAttribute('data-toolstrip');
@@ -234,6 +240,7 @@ export default class TileEditorToolbar extends ComponentBase {
         const args = this.#createArgs(command);
         if (command === commands.showTileGrid) args.showTileGrid = element.checked;
         if (command === commands.showPixelGrid) args.showPixelGrid = element.checked;
+        if (command === commands.highlightSameTiles) args.highlightSameTiles = element.checked;
         this.#dispatcher.dispatch(EVENT_OnCommand, args);
     }
 
@@ -287,6 +294,7 @@ export default class TileEditorToolbar extends ComponentBase {
  * @property {boolean?} redoEnabled - Is the user able to redo?
  * @property {boolean?} showTileGridChecked - Should the 'show tile grid' option be checked?
  * @property {boolean?} showPixelGridChecked - Should the 'show pixel grid' option be checked?
+ * @property {boolean?} highlightSameTilesChecked - Should the 'highlight tiles' option be checked?
  * @exports 
  */
 
@@ -304,5 +312,6 @@ export default class TileEditorToolbar extends ComponentBase {
  * @property {number} scale - Current sale value.
  * @property {number} showTileGrid - Value for show tile grid.
  * @property {number} showPixelGrid - Value for show pixel grid.
+ * @property {number} highlightSameTiles - Value for highlight same tiles.
  * @exports
  */

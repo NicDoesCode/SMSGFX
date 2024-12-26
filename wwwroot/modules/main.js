@@ -1244,6 +1244,11 @@ function handleTileEditorToolbarOnCommand(args) {
             state.saveToLocalStorage();
             tileEditor.setState({ showPixelGrid: args.showPixelGrid });
             break;
+        case TileEditorToolbar.Commands.highlightSameTiles:
+            getUIState().highlightSameTiles = args.highlightSameTiles;
+            state.saveToLocalStorage();
+            tileEditor.setState({ highlightSameTiles: args.highlightSameTiles });
+            break;
     }
 }
 
@@ -2413,6 +2418,7 @@ function refreshProjectUI() {
         scale: getUIState().scale,
         showTileGrid: getUIState().showTileGrid,
         showPixelGrid: getUIState().showPixelGrid,
+        highlightSameTiles: getUIState().highlightSameTiles,
         enabled: true
     });
 
@@ -2440,7 +2446,7 @@ function refreshProjectUI() {
         });
     }
     tileEditorBottomToolbar.setState({
-        visibleToolstrips: [toolStrips.scale, toolStrips.showTileGrid, toolStrips.showPixelGrid],
+        visibleToolstrips: [toolStrips.scale, toolStrips.showTileGrid, toolStrips.showPixelGrid, toolStrips.highlightSameTiles],
         systemType: getProject().systemType
     });
     tileContextToolbar.setState({
@@ -2529,6 +2535,7 @@ function formatForProject() {
         redoEnabled: undoManager.canRedo,
         showTileGridChecked: getUIState().showTileGrid,
         showPixelGridChecked: getUIState().showPixelGrid,
+        highlightSameTilesChecked: getUIState().highlightSameTiles,
         enabled: true
     });
     tileEditor.setState({
@@ -4747,7 +4754,11 @@ function tileSetTileSelectById(tileId) {
  * @param {string?} tileId - Unique ID of the tile set tile.
  */
 function tileHighlightById(tileId) {
-    tileEditor.setState({ outlineTileIds: tileId ?? [] })
+    if (getUIState().highlightSameTiles) {
+        tileEditor.setState({ outlineTileIds: tileId ?? [] })
+    } else {
+        tileEditor.setState({ outlineTileIds: [] })
+    }
 }
 
 /**
@@ -5473,7 +5484,7 @@ window.addEventListener('load', async () => {
         });
     }
     tileEditorBottomToolbar.setState({
-        visibleToolstrips: [strips.scale, strips.showTileGrid, strips.showPixelGrid]
+        visibleToolstrips: [strips.scale, strips.showTileGrid, strips.showPixelGrid, strips.highlightSameTiles]
     });
 
     tileContextToolbar.setState({
