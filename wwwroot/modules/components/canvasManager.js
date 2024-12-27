@@ -1173,26 +1173,68 @@ export default class CanvasManager {
             }
         }
 
-        // Highlight mode is tile instance
+        // Outlining tiles by ID
         if (this.#outlineTileIds.length > 0) {
+            const tileSizePx = (8 * pxSize);
+
+            // Fill each tile
+            context.filter = 'opacity(0.75)';
+            context.fillStyle = '#555555';
+            for (let col = 0; col < this.tileGrid.columnCount; col++) {
+                for (let row = 0; row < this.tileGrid.rowCount; row++) {
+                    const thisTile = this.#tileGrid.getTileInfoByRowAndColumn(row, col);
+                    if (!this.#outlineTileIds.includes(thisTile?.tileId)) {
+                        const tileX = tileSizePx * col + drawX;
+                        const tileY = tileSizePx * row + drawY;
+                        context.fillRect(tileX, tileY, tileSizePx, tileSizePx);
+                    }
+                }
+            }
+            context.filter = 'none';
+
+            // Outline each tile
             this.#outlineTileIds.forEach((outlineTileId) => {
                 const indicies = this.tileGrid.getTileIdIndexes(outlineTileId);
                 context.beginPath();
                 for (let tileIndex of indicies) {
                     const selCol = tileIndex % this.tileGrid.columnCount;
                     const selRow = Math.floor(tileIndex / this.tileGrid.columnCount);
-                    const tileX = 8 * selCol * pxSize;
-                    const tileY = 8 * selRow * pxSize;
 
-                    // Highlight the tile
-                    context.rect(tileX + drawX, tileY + drawY, (8 * pxSize), (8 * pxSize));
+                    const surroundingTiles = {
+                        t: (selRow > 0) ? this.#tileGrid.getTileInfoByRowAndColumn(selRow - 1, selCol)?.tileId ?? '' : '',
+                        b: (selRow < this.tileGrid.rowCount - 1) ? this.#tileGrid.getTileInfoByRowAndColumn(selRow + 1, selCol)?.tileId ?? '' : '',
+                        l: (selCol > 0) ? this.#tileGrid.getTileInfoByRowAndColumn(selRow, selCol - 1)?.tileId ?? '' : '',
+                        r: (selCol < this.tileGrid.columnCount - 1) ? this.#tileGrid.getTileInfoByRowAndColumn(selRow, selCol + 1)?.tileId ?? '' : ''
+                    }
+
+                    const tileX = tileSizePx * selCol;
+                    const tileY = tileSizePx * selRow;
+
+                    if (!this.#outlineTileIds.includes(surroundingTiles.t)) {
+                        context.moveTo(tileX + drawX, tileY + drawY);
+                        context.lineTo(tileX + drawX + tileSizePx, tileY + drawY);
+                    }
+
+                    if (!this.#outlineTileIds.includes(surroundingTiles.b)) {
+                        context.moveTo(tileX + drawX, tileY + drawY + tileSizePx);
+                        context.lineTo(tileX + drawX + tileSizePx, tileY + drawY + tileSizePx);
+                    }
+
+                    if (!this.#outlineTileIds.includes(surroundingTiles.l)) {
+                        context.moveTo(tileX + drawX, tileY + drawY);
+                        context.lineTo(tileX + drawX, tileY + drawY + tileSizePx);
+                    }
+
+                    if (!this.#outlineTileIds.includes(surroundingTiles.r)) {
+                        context.moveTo(tileX + drawX + tileSizePx, tileY + drawY);
+                        context.lineTo(tileX + drawX + tileSizePx, tileY + drawY + tileSizePx);
+                    }
                 }
                 context.closePath();
-                context.strokeStyle = 'lime';
+                context.strokeStyle = '#FFFFFF';
                 context.stroke();
             });
         }
-
 
         // Highlight selected tile
         if (this.selectedTileIndex >= 0 && this.selectedTileIndex < this.tileGrid.tileCount) {
