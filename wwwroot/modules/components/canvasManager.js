@@ -298,6 +298,66 @@ export default class CanvasManager {
     }
 
     /**
+     * Gets or sets the colour of the highlighted item (tile, pixel, row, etc).
+     */
+    get primaryHoverHighlightColour() {
+        return this.#primaryHoverHighlightColour;
+    }
+    set primaryHoverHighlightColour(value) {
+        this.#primaryHoverHighlightColour = value;
+    }
+
+    /**
+     * Gets or sets the shadow or background colour of the highlighted item (tile, pixel, row, etc).
+     */
+    get primaryHoverShadowColour() {
+        return this.#primaryHoverShadowColour;
+    }
+    set primaryHoverShadowColour(value) {
+        this.#primaryHoverShadowColour = value;
+    }
+
+    /**
+     * Gets or sets the colour of the sub object (such as tile that contains the pixel, etc).
+     */
+    get secondaryHoverHighlightColour() {
+        return this.#secondaryHoverHighlightColour;
+    }
+    set secondaryHoverHighlightColour(value) {
+        this.#secondaryHoverHighlightColour = value;
+    }
+
+    /**
+     * Gets or sets the border colour of masked tiles in the tile grid.
+     */
+    get maskingBorderColour() {
+        return this.#maskingBorderColour;
+    }
+    set maskingBorderColour(value) {
+        this.#maskingBorderColour = value;
+    }
+
+    /**
+     * Gets or sets the colour of the mask applied when tiles are hidden.
+     */
+    get maskingColour() {
+        return this.#maskingColour;
+    }
+    set maskingColour(value) {
+        this.#maskingColour = value;
+    }
+
+    /**
+     * Gets or sets the opacity of the mask applied when tiles are hidden.
+     */
+    get maskingOpacity() {
+        return this.#maskingOpacity;
+    }
+    set maskingOpacity(value) {
+        this.#maskingOpacity = value;
+    }
+
+    /**
      * Gets or sets the opacity of transparency grid.
      */
     get transparencyGridOpacity() {
@@ -376,6 +436,12 @@ export default class CanvasManager {
     #tileGridOpacity = 0.4;
     #transparencyGridOpacity = 0.25;
     #highlightMode = CanvasManager.HighlightModes.pixel;
+    #primaryHoverHighlightColour = 'pink';
+    #primaryHoverShadowColour = '#000000';
+    #secondaryHoverHighlightColour = 'green';
+    #maskingBorderColour = 'blue';
+    #maskingColour = 'pink';
+    #maskingOpacity = 0.75;
 
 
     /**
@@ -974,18 +1040,13 @@ export default class CanvasManager {
             context.stroke();
         }
 
+        context.filter = 'none';
+
         // Highlight mode is pixel
         if (this.highlightMode === CanvasManager.HighlightModes.pixel) {
             if (coords.x >= 0 && coords.x < coords.gridColumns * 8 && coords.y >= 0 && coords.y < coords.gridRows * 8) {
-                // Highlight the tile
-                context.strokeStyle = 'yellow';
-                context.strokeRect(coords.tileX + drawX, coords.tileY + drawY, (8 * pxSize), (8 * pxSize));
-
-                // Draw the cursor
-                context.strokeStyle = 'white';
-                this.#drawBrushBorder(context, coords, 1);
-                context.strokeStyle = 'black';
-                this.#drawBrushBorder(context, coords, 2);
+                this.#strokeSecondaryArea(context, coords.tileX + drawX, coords.tileY + drawY, (8 * pxSize), (8 * pxSize));
+                this.#strokeBrushBorder(context, coords);
             }
         }
 
@@ -995,23 +1056,17 @@ export default class CanvasManager {
                 const tile = coords.tile;
                 const originX = drawX + (tile.sizePx * tile.col);
                 const originY = drawY + (tile.sizePx * tile.row);
-                context.strokeStyle = 'black';
-                context.strokeRect(originX, originY, tile.sizePx, tile.sizePx);
-                context.strokeStyle = 'yellow';
-                context.strokeRect(originX - 1, originY - 1, tile.sizePx + 2, tile.sizePx + 2);
+                this.#strokePrimaryArea(context, originX - 1, originY - 1, tile.sizePx + 2, tile.sizePx + 2);
             }
         }
 
-        // Highlight mode is tile block
+        // Highlight mode is tile block (NES 4x4 tile blockes for palettes, etc)
         if (this.#highlightMode === CanvasManager.HighlightModes.tileBlock) {
             if (coords.x >= 0 && coords.x < coords.gridColumns * 8 && coords.y >= 0 && coords.y < coords.gridRows * 8) {
                 const block = coords.block;
                 const originX = drawX + (block.sizePx * block.col);
                 const originY = drawY + (block.sizePx * block.row);
-                context.strokeStyle = 'black';
-                context.strokeRect(originX, originY, block.sizePx, block.sizePx);
-                context.strokeStyle = 'yellow';
-                context.strokeRect(originX - 1, originY - 1, block.sizePx + 2, block.sizePx + 2);
+                this.#strokePrimaryArea(context, originX, originY, block.sizePx, block.sizePx);
             }
         }
 
@@ -1022,14 +1077,22 @@ export default class CanvasManager {
                 const rowWidth = coords.gridColumns * coords.tile.sizePx;
                 const originX = drawX;
                 const originY = drawY + (tile.sizePx * tile.row);
-                context.filter = 'opacity(0.25)';
-                context.fillStyle = 'yellow';
-                context.fillRect(originX, originY, rowWidth, tile.sizePx);
-                context.filter = 'none';
-                context.strokeStyle = 'black';
-                context.strokeRect(originX, originY, rowWidth, tile.sizePx);
-                context.strokeStyle = 'white';
-                context.strokeRect(originX + 1, originY + 1, rowWidth - 2, tile.sizePx - 2);
+                // context.filter = 'opacity(0.25)';
+                // context.fillStyle = 'yellow';
+                // context.fillRect(originX, originY, rowWidth, tile.sizePx);
+                // context.filter = 'none';
+                // context.strokeStyle = 'black';
+                // context.strokeRect(originX, originY, rowWidth, tile.sizePx);
+                // context.strokeStyle = 'white';
+                // context.strokeRect(originX + 1, originY + 1, rowWidth - 2, tile.sizePx - 2);
+                this.#maskOutTiles(context, { rows: [ tile.row ] }, drawX, drawY, (8 * pxSize));
+                // // Mask out anything that isn't the row
+                // if (tile.row > 0) {
+
+                // }
+
+                // // Draw a border around the row
+                // this.#strokePrimaryArea(context, originX, originY, rowWidth, tile.sizePx);
             }
         }
 
@@ -1040,14 +1103,15 @@ export default class CanvasManager {
                 const rowWidth = coords.gridColumns * coords.tile.sizePx;
                 const originX = drawX;
                 const originY = drawY + (block.sizePx * block.row);
-                context.filter = 'opacity(0.25)';
-                context.fillStyle = 'yellow';
-                context.fillRect(originX, originY, rowWidth, block.sizePx);
-                context.filter = 'none';
-                context.strokeStyle = 'black';
-                context.strokeRect(originX, originY, rowWidth, block.sizePx);
-                context.strokeStyle = 'white';
-                context.strokeRect(originX + 1, originY + 1, rowWidth - 2, block.sizePx - 2);
+                // context.filter = 'opacity(0.25)';
+                // context.fillStyle = 'yellow';
+                // context.fillRect(originX, originY, rowWidth, block.sizePx);
+                // context.filter = 'none';
+                // context.strokeStyle = 'black';
+                // context.strokeRect(originX, originY, rowWidth, block.sizePx);
+                // context.strokeStyle = 'white';
+                // context.strokeRect(originX + 1, originY + 1, rowWidth - 2, block.sizePx - 2);
+                this.#maskOutTiles(context, { rows: [ block.row ] }, drawX, drawY, (8 * pxSize));
             }
         }
 
@@ -1097,14 +1161,16 @@ export default class CanvasManager {
                 const rowIndex = tile.row + (snapNextIndex ? 1 : 0);
                 const originX = drawX;
                 const originY = drawY + (rowIndex * tile.sizePx);
-                context.filter = 'opacity(0.25)';
-                context.fillStyle = 'yellow';
-                context.fillRect(originX, originY - (tile.sizePx / 2), rowWidth, tile.sizePx);
-                context.filter = 'none';
-                context.strokeStyle = 'black';
-                context.strokeRect(originX, originY - 1, rowWidth, 2);
-                context.strokeStyle = 'white';
-                context.strokeRect(originX + 1, originY, rowWidth - 2, 1);
+                // context.filter = 'opacity(0.25)';
+                // context.fillStyle = 'yellow';
+                // context.fillRect(originX, originY - (tile.sizePx / 2), rowWidth, tile.sizePx);
+                // context.filter = 'none';
+                // context.strokeStyle = 'black';
+                // context.strokeRect(originX, originY - 1, rowWidth, 2);
+                // context.strokeStyle = 'white';
+                // context.strokeRect(originX + 1, originY, rowWidth - 2, 1);
+  
+                this.#maskOutTiles(context, { rows: [ rowIndex ] }, drawX, drawY, (8 * pxSize));
             }
         }
 
@@ -1333,6 +1399,143 @@ export default class CanvasManager {
 
         context.imageSmoothingEnabled = originalSmoothingEnabled;
         context.imageSmoothingQuality = originalSmoothingQuality;
+    }
+
+    /**
+     * @param {CanvasRenderingContext2D} context 
+     * @param {{rows: number[], cols: number[], tiles: {row: number, col: number}[]}} nonMasked
+     * @param {number} tileSizePx 
+     */
+    #maskTiles(context, nonMasked, offsetX, offsetY, tileSizePx) {
+
+        // Walk the path, starting at the top
+
+    }
+
+    /**
+     * @param {CanvasRenderingContext2D} context 
+     * @param {{rows: number[], cols: number[], tiles: {row: number, col: number}[]}} nonMasked
+     * @param {number} tileSizePx 
+     */
+    #maskOutTiles(context, nonMasked, offsetX, offsetY, tileSizePx) {
+        const oldFilter = context.filter;
+        const oldFillStyle = context.fillStyle;
+        const oldStrokeStyle = context.strokeStyle;
+
+        context.beginPath();
+        
+        // Draw outer rectangle
+        context.moveTo(0 + offsetX, 0 + offsetY);
+        context.lineTo(this.tileGrid.columnCount * tileSizePx + offsetX, 0 + offsetY);
+        context.lineTo(this.tileGrid.columnCount * tileSizePx + offsetX, this.tileGrid.rowCount * tileSizePx + offsetY);
+        context.lineTo(0 + offsetX, this.tileGrid.rowCount * tileSizePx + offsetY);
+        context.lineTo(0 + offsetX, 0 + offsetY);
+
+        let tileX = 0 + offsetX + tileSizePx;
+        let tileY = 0 + offsetY + tileSizePx;
+
+        context.moveTo(tileX, tileY);
+        context.lineTo(tileX, tileY + tileSizePx); // Left
+        context.lineTo(tileX + tileSizePx, tileY + tileSizePx); // Bottom
+        // context.lineTo(tileX + tileSizePx, tileY); // Right
+        context.moveTo(tileX + tileSizePx, tileY); // Right
+        context.lineTo(tileX, tileY); // Top
+
+        tileX = 0 + offsetX + tileSizePx + tileSizePx;
+        tileY = 0 + offsetY + tileSizePx;
+
+        context.moveTo(tileX, tileY);
+        // context.lineTo(tileX, tileY + tileSizePx); // Left
+        context.moveTo(tileX, tileY + tileSizePx); // Left
+        context.lineTo(tileX + tileSizePx, tileY + tileSizePx); // Bottom
+        context.lineTo(tileX + tileSizePx, tileY); // Top
+        context.lineTo(tileX, tileY); // Right
+
+        // // Punch out non masked areas
+        // if (Array.isArray(nonMasked.rows)) {
+        //     for (let row of nonMasked.rows) {
+        //         if (row >= 0 && row < this.tileGrid.rowCount) {
+                    
+        //         }
+        //     }
+        // }
+
+        // for (let tile of nonMaskedTiles) {
+
+        // }
+
+        // for (let col = 0; col < this.tileGrid.columnCount; col++) {
+        //     for (let row = 0; row < this.tileGrid.rowCount; row++) {
+        //         context.strokeRect
+        //     }
+        // }
+
+        context.filter = `opacity(${this.maskingOpacity})`;
+        context.fillStyle = this.maskingColour;
+        context.fill();
+
+        context.filter = `none`;
+        context.lineWidth = 2;
+        context.strokeStyle = this.maskingBorderColour;
+        context.stroke();
+
+
+        // context.filter = 'none';
+        // context.lineWidth = 3;
+        // context.strokeStyle = this.primaryHoverShadowColour;
+        // context.strokeRect(x - 2, y - 2, width + 2, height + 2);
+        // context.lineWidth = 2;
+        // context.strokeStyle = this.primaryHoverHighlightColour;
+        // context.strokeRect(x - 1, y - 1, width + 1, height + 1);
+ 
+        // Revert
+        context.filter = oldFilter;
+        context.fillStyle = oldFillStyle;
+        context.strokeStyle = oldStrokeStyle;
+   }
+
+    /**
+     * @param {CanvasRenderingContext2D} context 
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} width 
+     * @param {number} height 
+     */
+    #strokePrimaryArea(context, x, y, width, height) {
+        context.filter = 'none';
+        context.lineWidth = 3;
+        context.strokeStyle = this.primaryHoverShadowColour;
+        context.strokeRect(x - 2, y - 2, width + 2, height + 2);
+        context.lineWidth = 2;
+        context.strokeStyle = this.primaryHoverHighlightColour;
+        context.strokeRect(x - 1, y - 1, width + 1, height + 1);
+    }
+
+    /**
+     * @param {CanvasRenderingContext2D} context 
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} width 
+     * @param {number} height 
+     */
+    #strokeSecondaryArea(context, x, y, width, height) {
+        context.filter = 'none';
+        context.lineWidth = 2;
+        context.strokeStyle = this.secondaryHoverHighlightColour;
+        context.strokeRect(x - 1, y - 1, width + 1, height + 1);
+    }
+
+    /**
+     * @param {CanvasRenderingContext2D} context 
+     * @param {CanvCoords} coords 
+     */
+    #strokeBrushBorder(context, coords) {
+        context.filter = 'none';
+        context.lineWidth = 2;
+        context.strokeStyle = this.primaryHoverHighlightColour;
+        this.#drawBrushBorder(context, coords, 1);
+        context.strokeStyle = this.primaryHoverShadowColour;
+        this.#drawBrushBorder(context, coords, 2);
     }
 
     /**
