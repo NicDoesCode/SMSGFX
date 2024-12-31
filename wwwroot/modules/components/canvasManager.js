@@ -470,19 +470,19 @@ export default class CanvasManager {
     #offsetX = 0;
     #offsetY = 0;
     #backgroundColour = '#FFFFFF';
-    #pixelGridColour = '#FFFFFF';
+    #pixelGridColour = '#000000';
     #pixelGridOpacity = 0.2;
     #tileGridColour = '#000000';
     #tileGridOpacity = 0.4;
-    #transparencyGridOpacity = 0.25;
+    #transparencyGridOpacity = 0.9;
     #highlightMode = CanvasManager.HighlightModes.pixel;
-    #primaryHoverHighlightColour = 'pink';
+    #primaryHoverHighlightColour = '#FFFF00';
     #primaryHoverShadowColour = '#000000';
-    #secondaryHoverHighlightColour = 'green';
-    #maskingBorderColour = 'blue';
-    #maskingColour = 'pink';
-    #maskingOpacity = 0.75;
-    #primarySelectionColour = 'lime';
+    #secondaryHoverHighlightColour = '#FFFF00';
+    #maskingBorderColour = '#000000';
+    #maskingColour = '#888888';
+    #maskingOpacity = 0.65;
+    #primarySelectionColour = '#FFFF00';
     #secondarySelectionColour = '#000000';
     #canvasBorderPrimaryColour = '#888888';
     #canvasBorderSecondaryColour = '#CCCCCC';
@@ -1048,43 +1048,31 @@ export default class CanvasManager {
             this.#drawReferenceImages(context, coords);
         }
 
-        // TODO - Come up with some generic draw functions here and re-use code.
-
         // Draw pixel grid
         if (this.showPixelGrid && this.scale >= 5) {
-            const pixelGridColour = ColourUtil.rgbFromHex(this.pixelGridColour);
-            context.strokeStyle = `rgba(${pixelGridColour.r}, ${pixelGridColour.g}, ${pixelGridColour.b}, ${this.pixelGridOpacity})`;
-            context.beginPath();
-            for (let x = 0; x <= this.#tileCanvas.width; x += pxSize) {
-                context.moveTo(x + drawX, 0 + drawY);
-                context.lineTo(x + drawX, this.#tileCanvas.height + drawY);
-            }
-            for (let y = 0; y <= this.#tileCanvas.height; y += pxSize) {
-                context.moveTo(0 + drawX, y + drawY);
-                context.lineTo(this.#tileCanvas.width + drawX, y + drawY);
-            }
-            context.closePath();
-            context.stroke();
+            this.#drawGrid({
+                context, 
+                x: drawX, y: drawY, 
+                columnCount: this.tileGrid.columnCount * 8, 
+                rowCount: this.tileGrid.rowCount * 8, 
+                lineSpacingPx: this.scale, 
+                gridColour: this.pixelGridColour, 
+                gridOpacity: this.pixelGridOpacity
+            });
         }
 
         // Draw tile grid
         if (this.showTileGrid) {
-            const tileGridColour = ColourUtil.rgbFromHex(this.tileGridColour);
-            context.strokeStyle = `rgba(${tileGridColour.r}, ${tileGridColour.g}, ${tileGridColour.b}, ${this.tileGridOpacity})`;
-            context.beginPath();
-            for (let x = 0; x <= this.#tileCanvas.width; x += pxSize * 8) {
-                context.moveTo(x + drawX, drawY);
-                context.lineTo(x + drawX, this.#tileCanvas.height + drawY);
-            }
-            for (let y = 0; y <= this.#tileCanvas.height; y += pxSize * 8) {
-                context.moveTo(0 + drawX, y + drawY);
-                context.lineTo(this.#tileCanvas.width + drawX, y + drawY);
-            }
-            context.closePath();
-            context.stroke();
+            this.#drawGrid({
+                context, 
+                x: drawX, y: drawY, 
+                columnCount: this.tileGrid.columnCount, 
+                rowCount: this.tileGrid.rowCount, 
+                lineSpacingPx: this.scale * 8, 
+                gridColour: this.tileGridColour, 
+                gridOpacity: this.tileGridOpacity
+            });
         }
-
-        context.filter = 'none';
 
         // Highlight mode is pixel
         if (this.highlightMode === CanvasManager.HighlightModes.pixel) {
@@ -1160,7 +1148,7 @@ export default class CanvasManager {
 
             // Fill each tile
             context.filter = `opacity(${this.maskingOpacity})`;
-            context.fillStyle = this.primaryHoverHighlightColour;
+            context.fillStyle = this.maskingColour;
             for (let col = 0; col < this.tileGrid.columnCount; col++) {
                 for (let row = 0; row < this.tileGrid.rowCount; row++) {
                     const thisTile = this.#tileGrid.getTileInfoByRowAndColumn(row, col);
@@ -1212,7 +1200,7 @@ export default class CanvasManager {
                     }
                 }
                 context.closePath();
-                context.strokeStyle = this.secondaryHoverHighlightColour;
+                context.strokeStyle = this.maskingBorderColour;
                 context.stroke();
             });
         }
@@ -1317,6 +1305,37 @@ export default class CanvasManager {
     }
 
     /**
+     * @param {{context: CanvasRenderingContext2D, x: number, y: number, columnCount: number, rowCount: number, lineSpacingPx: number, gridColour: string, gridOpacity: number}} context 
+     */
+    #drawGrid({context, x, y, columnCount, rowCount, lineSpacingPx, gridColour, gridOpacity}) {
+        const oldStrokeStyle = context.strokeStyle;
+        const oldFilter = context.filter;
+
+        context.strokeStyle = gridColour;
+        context.filter = `opacity(${gridOpacity})`;
+        context.beginPath();
+
+        const widthPx = columnCount * lineSpacingPx;
+        const heightPx = rowCount * lineSpacingPx;
+       
+        for (let col = 0; col <= widthPx; col += lineSpacingPx) {
+            context.moveTo(x + col, y);
+            context.lineTo(x + col, y + heightPx);
+        }
+
+        for (let row = 0; row <= heightPx; row += lineSpacingPx) {
+            context.moveTo(x, y + row);
+            context.lineTo(x + widthPx, y + row);
+        }
+
+        context.closePath();
+        context.stroke();
+
+        context.strokeStyle = oldStrokeStyle;
+        context.filter = oldFilter;
+    }
+
+    /**
      * @param {CanvasRenderingContext2D} context 
      * @param {{rows: number[], cols: number[], tiles: {row: number, col: number}[]}} nonMasked
      * @param {number} tileSizePx 
@@ -1338,7 +1357,7 @@ export default class CanvasManager {
         const oldStrokeStyle = context.strokeStyle;
 
         context.beginPath();
-        
+
         // Draw outer rectangle
         context.moveTo(0 + offsetX, 0 + offsetY);
         context.lineTo(this.tileGrid.columnCount * tileSizePx + offsetX, 0 + offsetY);
@@ -1370,7 +1389,7 @@ export default class CanvasManager {
         // if (Array.isArray(nonMasked.rows)) {
         //     for (let row of nonMasked.rows) {
         //         if (row >= 0 && row < this.tileGrid.rowCount) {
-                    
+
         //         }
         //     }
         // }
@@ -1402,12 +1421,12 @@ export default class CanvasManager {
         // context.lineWidth = 2;
         // context.strokeStyle = this.primaryHoverHighlightColour;
         // context.strokeRect(x - 1, y - 1, width + 1, height + 1);
- 
+
         // Revert
         context.filter = oldFilter;
         context.fillStyle = oldFillStyle;
         context.strokeStyle = oldStrokeStyle;
-   }
+    }
 
     /**
      * @param {CanvasRenderingContext2D} context 
@@ -1438,7 +1457,7 @@ export default class CanvasManager {
         this.#highlightArea({
             context,
             originX: x,
-            originY: y + (tileSizePx * rowIndex), 
+            originY: y + (tileSizePx * rowIndex),
             widthPx: this.tileGrid.columnCount * tileSizePx,
             heightPx: rowWidth * tileSizePx
         });
@@ -1456,7 +1475,7 @@ export default class CanvasManager {
         this.#highlightArea({
             context,
             originX: x + (tileSizePx * columnIndex),
-            originY: y, 
+            originY: y,
             widthPx: columnWidth * tileSizePx,
             heightPx: this.tileGrid.columnCount * tileSizePx
         });
@@ -1465,7 +1484,7 @@ export default class CanvasManager {
     /**
      * @param {{context: CanvasRenderingContext2D, originX: number, originY: number, widthPx: number, heightPx: number}} context 
      */
-    #highlightArea({context, originX, originY, widthPx, heightPx}) {
+    #highlightArea({ context, originX, originY, widthPx, heightPx }) {
         context.filter = `opacity(${this.transparencyGridOpacity})`;
         context.fillStyle = this.primaryHoverShadowColour;
         context.fillRect(originX, originY, widthPx, heightPx);
@@ -1497,7 +1516,7 @@ export default class CanvasManager {
         context.strokeRect(originX, originY - 1, rowWidthPx, 2);
         context.strokeStyle = this.secondaryHoverHighlightColour;
         context.strokeRect(originX + 1, originY, rowWidthPx - 2, 1);
-}
+    }
 
     /**
      * @param {CanvasRenderingContext2D} context 
