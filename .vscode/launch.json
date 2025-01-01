@@ -9,13 +9,17 @@
             "type": "firefox",
             "request": "launch",
             "reAttach": true,
-            "url": "http://localhost:8443/index.html",
+            "url": "https://localhost:8443/index.html",
             "webRoot": "${workspaceFolder}/wwwroot",
             "profile": "debug",
             "keepProfileChanges": true,
             "pathMappings": [
                 {
                     "url": "http://localhost:8080",
+                    "path": "${workspaceFolder}/wwwroot"
+                },
+                {
+                    "url": "https://localhost:8443",
                     "path": "${workspaceFolder}/wwwroot"
                 }
             ],

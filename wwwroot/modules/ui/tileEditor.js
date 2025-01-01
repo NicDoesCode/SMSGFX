@@ -253,6 +253,12 @@ export default class TileEditor extends ComponentBase {
             );
         }
 
+        if (typeof state?.outlineTileIds === 'string') {
+            message.outlineTileIds = [state.outlineTileIds];
+        } else if (Array.isArray(state?.outlineTileIds)) {
+            message.outlineTileIds = state.outlineTileIds;
+        }
+
         if (updatedTiles.length > 0) {
             message.updatedTiles = updatedTiles;
             message.redrawPartial = true;
@@ -836,6 +842,7 @@ export default class TileEditor extends ComponentBase {
  * @property {number[]?} [updatedTileGridIndexes] - Array of tile grid indexes that were updated.
  * @property {string[]?} [updatedTileIds] - Array of tile IDs that were updated.
  * @property {number[]?} [updatedTileIndexes] - Array of tile indexes that were updated.
+ * @property {string|string[]|null} [outlineTileIds] - List of tile IDs to draw an outline around (for example, highlighting all instances of a given tile).
  * @property {string?} [canvasHighlightMode] - How the canvas highlights what is under the mouse cursor (pixel, row, column, etc).
  * @property {string|Tile|TileMap|null} [tileStampPattern] - Either a tile ID, individual tile object or tile grid object with the tile stamp preview.
  * @property {import("../models/tileGridProvider.js").TileGridRegion} [selectedRegion] - Selected region to highlight.
@@ -878,6 +885,7 @@ export default class TileEditor extends ComponentBase {
  * @property {number?} [tileBlockGridInsertRowIndex] - Index in the tile block grid row for inserting a new row.
  * @property {number?} [tileBlockGridInsertColumnIndex] - Index in the tile block grid column for inserting a new column.
  * @property {number?} [tilesPerBlock] - The amount of tiles per tile block.
+ * @property {number[]?} [outlineTileIds] - IDs of tiles to draw a box around.
  * @property {boolean} isInBounds - True when the given coordinate was out of bounds of the tile grid.
  * @property {boolean} mousePrimaryIsDown - True when the primary mouse button is down, otherwise false.
  * @property {boolean} mouseSecondaryIsDown - True when the secondary mouse button is down, otherwise false.

@@ -46,9 +46,9 @@ export default class TileGridProvider {
 
 
     /**
-     * Gets information about a tile by the tile index.
+     * Gets information about a tile by the tile index, or null if the tile was not found or fell outside the bounds.
      * @param {number} tileIndex - Index of the tile.
-     * @returns {TileProviderTileInfo}
+     * @returns {TileProviderTileInfo?}
      */
     getTileInfoByIndex(tileIndex) {
         throw new Error('Not implemented.');

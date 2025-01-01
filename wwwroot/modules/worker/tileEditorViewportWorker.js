@@ -121,6 +121,11 @@ function applyUpdateToCanvasManager(message) {
             .filter((tileId) => typeof tileId === 'string')
             .forEach((tileId) => canvasManager.invalidateTileId(tileId));
     }
+    if (typeof message.outlineTileIds === 'string') {
+        canvasManager.outlineTileIds = [message.outlineTileIds];
+    } else if (Array.isArray(message.outlineTileIds)) {
+        canvasManager.outlineTileIds = message.outlineTileIds;
+    }
     if (typeof message.scale === 'number') {
         if (canvasManager.scale !== message?.scale) {
             canvasManager.scale = message.scale;
@@ -310,6 +315,7 @@ function makeImageResponse() {
  * @property {import('../serialisers/tileJsonSerialiser.js').TileSerialisable[]} [updatedTiles] - Triggers a redraw of only the given tile IDs in this array.
  * @property {string[]} [updatedTileIndexes] - Triggers a redraw of only the tiles at the given index in the tile set.
  * @property {string[]} [updatedTileIds] - Triggers a redraw of only the given tile IDs in this array.
+ * @property {string[]} [outlineTileIds] - List of tile IDs to draw an outline around (for example, highlighting all instances of a given tile).
  * @property {string} [canvasHighlightMode] - How the canvas highlights what is under the mouse cursor (pixel, row, column, etc).
  * @property {number} [scale] - Image drawing scale, 1 = 1:1, 2 = 2:1, 15 = 15:1.
  * @property {number} [tilesPerBlock] - Size of each block of tiles.
