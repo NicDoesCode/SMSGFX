@@ -1,6 +1,11 @@
 'use strict';
 
 
+/**
+ * Enum for direction.
+ * @readonly
+ * @enum {string}
+ */
 const DIRECTION = Object.seal({
     'UP': 'UP',
     'DOWN': 'DOWN',
@@ -113,6 +118,42 @@ export default class Graph {
 
             const thisCoord = { x: coord.x, y: coord.y };
 
+            // Are we walking right?
+            // - Is there an adjacent tile?
+            // - - Yes, is there one above? Yes = stop, that is our right most point
+            // - - No, is there one to right? Yes = walk to next
+
+            // Ray casting R, D, L, U
+            // - The ray ends when it hits a wall, or falls off one
+
+            // Work our start tile
+            // - Be given a tile
+            // - Get to the highest tile
+            // - Start at the top left point of that tile
+
+            // Set 'direction' to right
+
+            // While not met origin
+            // - Ray cast in 'direction'
+            //   - Return the last coordinate
+            //   - Work out what direction to go next
+            // - Work out what 'direction' to go in
+            // Loop
+
+
+            /**
+             * @param {TileCoordinate} coord
+             * @param {DIRECTION} direction 
+             * @returns {TileCoordinate}
+             */
+            function rayCast(coord, direction) {
+
+                // Assume RIGHT
+
+            }
+
+
+
             // Start from the highest tile above
             while (thisCoord.y > 0 && this.isSet(thisCoord.x, thisCoord.y)) {
                 thisCoord.y--;
@@ -142,7 +183,7 @@ export default class Graph {
                         thisCoord.y++;
                     }
                 }
-
+ 
             }
 
 

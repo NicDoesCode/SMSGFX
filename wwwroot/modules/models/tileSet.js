@@ -45,11 +45,15 @@ export default class TileSet extends TileGridProvider {
     /**
      * Gets information about a tile by the tile index.
      * @param {number} tileIndex - Index of the tile.
-     * @returns {import('./tileGridProvider.js').TileProviderTileInfo}
+     * @returns {import('./tileGridProvider.js').TileProviderTileInfo?}
      */
     getTileInfoByIndex(tileIndex) {
-        const tile = this.getTile(tileIndex);
-        return createTileInfo(tile, tileIndex);
+        if (tileIndex >= 0 && tileIndex < this.#tiles.length) {
+            const tile = this.getTile(tileIndex);
+            return createTileInfo(tile, tileIndex);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -61,7 +65,7 @@ export default class TileSet extends TileGridProvider {
     getTileInfoByRowAndColumn(rowIndex, columnIndex) {
         if (rowIndex < 0 || rowIndex >= this.rowCount) throw new Error('Row index must be greater then zero and less then the row count.');
         if (columnIndex < 0 || columnIndex >= this.columnCount) throw new Error('Column index must be greater then zero and less then the column count.');
-        const index = (row * this.tileWidth) + column;
+        const index = (rowIndex * this.tileWidth) + columnIndex;
         return this.getTileInfoByIndex(index);
     }
 
@@ -509,13 +513,13 @@ export default class TileSet extends TileGridProvider {
 }
 
 /**
- * @param {Tile} tile - Tile to convert.
+ * @param {Tile} tile
  * @param {number} tileIndex
  * @returns {import('./tileGridProvider.js').TileProviderTileInfo}
  */
 function createTileInfo(tile, tileIndex) {
     return {
-        tileId: tile.tileId,
+        tileId: tile?.tileId ?? null,
         paletteIndex: 0,
         horizontalFlip: false,
         verticalFlip: false,
