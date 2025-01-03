@@ -56,6 +56,8 @@ export default class PaletteEditor extends ComponentBase {
     #selectedPaletteId = null;
     /** @type {HTMLButtonElement[]} */
     #paletteButtons = [];
+    /** @type {HTMLSelectElement} */
+    #uiHiddenPaletteSelect;
     /** @type {HTMLElement} */
     #uiItemProperties;
     /** @type {HTMLInputElement} */
@@ -112,6 +114,7 @@ export default class PaletteEditor extends ComponentBase {
         });
 
         this.#uiItemProperties = this.#element.querySelector('[data-smsgfx-id=palette-properties]');
+        this.#uiHiddenPaletteSelect = this.#element.querySelector(`select[data-command=${commands.paletteSelect}]`);
 
         this.#btnPaletteTitle = this.#element.querySelector('[data-smsgfx-id=editPaletteTitle]');
         this.#btnPaletteTitle.addEventListener('click', () => this.#handlePaletteTitleEditClick());
@@ -222,9 +225,7 @@ export default class PaletteEditor extends ComponentBase {
                 const palette = this.#paletteList.getPalette(index);
                 this.#selectedPaletteId = palette.paletteId;
 
-                this.#element.querySelectorAll(`[data-command=${commands.paletteSelect}]`).forEach((element) => {
-                    element.selectedIndex = index;
-                });
+                this.#uiHiddenPaletteSelect.selectedIndex = index;
 
                 this.#setPalette(palette);
             } else {
@@ -318,7 +319,8 @@ export default class PaletteEditor extends ComponentBase {
     #createEventArgs(command) {
         return {
             command: command,
-            paletteIndex: this.#element.querySelector(`select[data-command=${commands.paletteSelect}]`)?.selectedIndex,
+            paletteIndex: this.#uiHiddenPaletteSelect?.selectedIndex,
+            paletteId: this.#uiHiddenPaletteSelect?.options[this.#uiHiddenPaletteSelect?.selectedIndex]?.getAttribute('data-palette-id') ?? null,
             paletteTitle: this.#element.querySelector(`input[type=text][data-command=${commands.paletteTitle}]`)?.value ?? null,
             paletteSystem: this.#element.querySelector(`select[data-command=${commands.paletteSystem}]`)?.value ?? null,
             displayNative: this.#element.querySelector(`[data-command=${commands.displayNativeColours}]`)?.checked ?? null,
@@ -393,9 +395,10 @@ export default class PaletteEditor extends ComponentBase {
      * @param {PaletteList?} paletteList - List of palettes, or null.
      */
     #refreshPaletteSelectList(paletteList) {
-        const select = this.#element.querySelector(`select[data-command=${commands.paletteSelect}]`);
+        const select = this.#uiHiddenPaletteSelect;
         if (select) {
             const lastSelectedIndex = select.selectedIndex;
+            const lastSelectedPaletteId = select.options[lastSelectedIndex]?.getAttribute('data-palette-id');
             const optionCount = select.options.length;
             for (let i = 0; i < optionCount; i++) {
                 select.options.remove(0);
@@ -407,7 +410,7 @@ export default class PaletteEditor extends ComponentBase {
                     option.setAttribute('data-palette-id', palettes[i].paletteId);
                     option.innerText = `#${i} | ${palettes[i].title}`;
                     option.value = i.toString();
-                    option.selected = lastSelectedIndex === i;
+                    option.selected = lastSelectedPaletteId === palettes[i].paletteId;
                     select.options.add(option);
                 }
                 if (select.selectedIndex === -1) {
@@ -423,7 +426,7 @@ export default class PaletteEditor extends ComponentBase {
      */
     #updatePaletteSelectVirtualList() {
         const virtualList = this.#element.querySelector(`[data-linked-command=${commands.paletteSelect}]`);
-        const select = this.#element.querySelector(`select[data-command=${commands.paletteSelect}]`);
+        const select = this.#uiHiddenPaletteSelect;
 
         if (virtualList && select) {
 
@@ -650,7 +653,7 @@ export default class PaletteEditor extends ComponentBase {
  * @typedef {Object} PaletteEditorCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {number?} paletteIndex - Index of the selected palette.
- * @property {number?} paletteId - Unique ID of the selected palette.
+ * @property {string?} paletteId - Unique ID of the selected palette.
  * @property {string?} paletteTitle - Title value for the selected palette.
  * @property {string?} paletteSystem - Selected system value for the selected palette, either 'ms', 'gg', 'gb' or 'nes'.
  * @property {number?} colourIndex - Index from 0 to 15 for the given colour.
