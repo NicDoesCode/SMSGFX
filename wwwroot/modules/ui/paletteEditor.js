@@ -118,6 +118,11 @@ export default class PaletteEditor extends ComponentBase {
 
         this.#uiPaletteTitle = this.#element.querySelector('[data-smsgfx-id=paletteTitle]');
         this.#uiPaletteTitle.addEventListener('blur', () => this.#handlePaletteTitleEditBlur());
+        this.#uiPaletteTitle.addEventListener('keyup', (ev) => {
+            if (ev.key === 'Enter') {
+                this.#handlePaletteTitleEditBlur();
+            }
+        });
 
         this.#element.querySelectorAll('button[data-command]').forEach(element => {
             element.onclick = () => {

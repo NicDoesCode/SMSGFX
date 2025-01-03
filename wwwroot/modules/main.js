@@ -3863,6 +3863,8 @@ function paletteReorder(paletteId, targetPaletteId, position) {
 
     state.saveToLocalStorage();
 
+    currentProject.nativePalettes = null;
+
     updatePaletteLists({ skipTileEditor: true });
 }
 
@@ -3876,6 +3878,8 @@ function paletteNew() {
         getPaletteList().addPalette(newPalette);
 
         state.saveToLocalStorage();
+
+        currentProject.nativePalettes = null;
 
         updatePaletteLists({ skipTileEditor: true });
 
@@ -3899,6 +3903,8 @@ function paletteClone(paletteIndex) {
             getPaletteList().insertAt(paletteIndex, newPalette);
 
             state.saveToLocalStorage();
+
+            currentProject.nativePalettes = null;
 
             updatePaletteLists({ skipTileEditor: true });
 
@@ -3930,6 +3936,8 @@ function paletteDelete(paletteIndex) {
             }
 
             state.saveToLocalStorage();
+
+            currentProject.nativePalettes = null;
 
             updatePaletteLists();
 
@@ -3988,6 +3996,8 @@ function paletteListSort(field) {
     addUndoState();
     getPaletteList().setPalettes(palettes);
     state.saveProjectToLocalStorage();
+
+    currentProject.nativePalettes = null;
 
     // Set the UI state
     updatePaletteLists();
@@ -5593,7 +5603,7 @@ window.addEventListener('load', async () => {
         });
 
         welcomeScreen.setState({
-            version: versionInfo, 
+            version: versionInfo,
             channel: channelInfo
         });
 
