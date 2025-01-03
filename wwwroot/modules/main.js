@@ -1744,6 +1744,8 @@ function handleImportPaletteModalDialogueOnConfirm(args) {
     getUIState().importPaletteAssemblyCode = args.paletteData;
     state.saveToLocalStorage();
 
+    currentProject.nativePalettes = null;
+
     paletteEditor.setState({
         paletteList: getRenderPaletteList(),
         selectedPaletteIndex: getProjectUIState().paletteIndex
@@ -1827,6 +1829,8 @@ function paletteSetColourAtIndexWithoutSaving(paletteIndex, colourIndex, colour)
 
     const newColour = PaletteColourFactory.create(colour.r, colour.g, colour.b);
     palette.setColour(colourIndex, newColour);
+
+    currentProject.nativePalettes = null;
 
     paletteEditor.setState({
         paletteList: getRenderPaletteList(),
@@ -1915,6 +1919,8 @@ function handleImageImportModalOnConfirm(args) {
     getProjectUIState().paletteIndex = getPaletteList().length - 1;
 
     state.saveToLocalStorage();
+
+    currentProject.nativePalettes = null;
 
     paletteEditor.setState({
         paletteList: getRenderPaletteList(),
@@ -4022,6 +4028,8 @@ function changePaletteTitle(paletteIndex, newTitle) {
 
     state.saveToLocalStorage();
 
+    currentProject.nativePalettes = null;
+
     paletteEditor.setState({
         paletteList: getRenderPaletteList(),
         displayNative: getUIState().displayNativeColour
@@ -4036,6 +4044,8 @@ function changePaletteSystem(paletteIndex, system) {
 
     const palette = getPaletteList().getPalette(paletteIndex);
     palette.system = system;
+
+    currentProject.nativePalettes = null;
 
     state.saveToLocalStorage();
 
@@ -4117,6 +4127,8 @@ function swapColourIndex(sourceColourIndex, targetColourIndex) {
     getPalette().setColour(targetColourIndex, sourceColour);
 
     state.saveToLocalStorage();
+
+    currentProject.nativePalettes = null;
 
     tileEditor.setState({
         paletteList: getRenderPaletteListToSuitTileMapOrTileSetSelection(),
