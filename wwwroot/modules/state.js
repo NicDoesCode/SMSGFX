@@ -294,6 +294,9 @@ export default class State {
             const storageId = `${LOCAL_STORAGE_PROJECTS}${project.id}`;
             const serialised = ProjectJsonSerialiser.serialise(project);
             localStorage.setItem(storageId, serialised);
+            // Update project in cached list too
+            this.#projects.set(project.id, project);
+            // Raise the event
             if (raise) {
                 this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectSaved, { projectId: project.id }));
                 this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectListChanged));
