@@ -72,6 +72,7 @@ import { DropPosition } from "./types.js";
 import TileMapUtil from "./util/tileMapUtil.js";
 import PaintUtil from "./util/paintUtil.js";
 import PaletteUtil from "./util/paletteUtil.js";
+import TileMapList from "./models/tileMapList.js";
 
 
 /* ****************************************************************************************************
@@ -2621,13 +2622,6 @@ function formatForNoProject() {
 
     currentProject.nativePalettes = null;
 
-    const dummyProject = createEmptyProject({ systemType: 'smsgg' });
-    while (dummyProject.paletteList.length > 1) {
-        dummyProject.paletteList.removeAt(0);
-    }
-    dummyProject.tileMapList.clear();
-    dummyProject.tileSet.clear();
-
     projectToolbar.setState({
         enabled: false,
         projectTitle: ' ',
@@ -2686,8 +2680,8 @@ function formatForNoProject() {
         enabled: false
     });
     tileManager.setState({
-        tileMapList: dummyProject.tileMapList,
-        tileSet: dummyProject.tileSet,
+        tileMapList: new TileMapList([]),
+        tileSet: new TileSet(),
         palette: null,
         paletteList: null,
         selectedTileMapId: null
@@ -4096,7 +4090,7 @@ function changePaletteEditorDisplayNativeColours(displayNative) {
 }
 
 function updateTileEditorGridColours() {
-    const isGameboyProject = getUIState().displayNativeColour && getProject().systemType === 'gb';
+    const isGameboyProject = getUIState().displayNativeColour && getProject()?.systemType === 'gb';
     tileEditor.setState({
         pixelGridColour: (isGameboyProject) ? '#98a200' : '#000000',
         pixelGridOpacity: (isGameboyProject) ? 0.5 : 0.2,

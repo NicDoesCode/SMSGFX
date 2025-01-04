@@ -56,13 +56,6 @@ export default class State {
         return contexts;
     }
 
-    /**
-     * Gets a list of sources that may trigger an event.
-     */
-    static get EventSources() {
-        return eventSources;
-    }
-
 
     /**
      * Gets the presistent UI state (must call the 'loadPersistentUIStateFromLocalStorage()' method before accessing).
@@ -326,7 +319,7 @@ export default class State {
             this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectListChanged, { context: contexts.deleted, projectId: projectId }));
 
             if (this.project?.id === projectId) {
-                this.setProject(null, eventSources.none);
+                this.setProject(null, contexts.deleted);
             }
         }
         addOrRemoveProjectEntriesBasedOnLocalStorage(this.#projectEntries, this);
