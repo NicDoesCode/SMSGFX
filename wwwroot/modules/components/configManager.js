@@ -70,7 +70,7 @@ export default class ConfigManager {
 }
 
 /**
- * @typedef {Object} 
+ * @typedef {Object} ConfigManagerConfig
  * @property {string?} patreonHandle - Patreon handle.
  * @property {string?} kofiHandle - Ko-Fi handle.
  * @property {string?} documentationUrl - URL for main documentation site.

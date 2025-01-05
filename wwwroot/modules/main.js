@@ -20,6 +20,7 @@ import ProjectWatcher from "./components/projectWatcher.js";
 import ImageUtil from "./util/imageUtil.js";
 import ReferenceImage from "./models/referenceImage.js";
 import GoogleAnalyticsManager from "./components/googleAnalyticsManager.js";
+import VersionManager from './components/versionManager.js';
 import ThemeManager from "./components/themeManager.js";
 import SerialisationUtil from "./util/serialisationUtil.js";
 
@@ -5566,19 +5567,12 @@ window.addEventListener('load', async () => {
     }, 50);
 
     // Load general config
-    ConfigManager.getInstanceAsync().then((configManager) => {
-        // Set handles on Sponsorship buttons
+    ConfigManager.getInstanceAsync().then(async (configManager) => {
         const config = configManager.config;
-        if (typeof config?.kofiHandle === 'string') {
-            const link = document.querySelector('[data-smsgfx-id=kofi-link-footer]');
-            link.href = link.getAttribute('data-href').replace('{{HANDLE}}', encodeURIComponent(config.kofiHandle));
-            link.classList.remove('visually-hidden');
-        }
-        if (typeof config?.patreonHandle === 'string') {
-            const link = document.querySelector('[data-smsgfx-id=patreon-link-footer]');
-            link.href = link.getAttribute('data-href').replace('{{HANDLE}}', encodeURIComponent(config.patreonHandle));
-            link.classList.remove('visually-hidden');
-        }
+        const versionManager = await VersionManager.getInstanceAsync();
+        const versionMeta = document.head.querySelector('meta[name="smsgfx-version"]')?.content;
+        const versionInfo = (versionMeta) ? versionManager.versions[versionMeta ?? ''] : null;
+        const channelInfo = (versionManager) ? versionManager.getChannel(window.location.hostname) : null;
 
         documentationViewer.setState({
             documentationUrl: config.documentationUrl,
@@ -5586,51 +5580,65 @@ window.addEventListener('load', async () => {
             visible: getUIState().documentationVisibleOnStartup
         });
 
+        welcomeScreen.setState({
+            version: versionInfo, 
+            channel: channelInfo
+        });
+
+        // Set handles on Sponsorship buttons
+        if (typeof config?.kofiHandle === 'string') {
+            const link = document.querySelector('[data-smsgfx-id=kofi-link-footer]');
+            link.href = link.getAttribute('data-href').replace('{{HANDLE}}', encodeURIComponent(config.kofiHandle));
+            link.classList.remove('visually-hidden');
+            link.after(' | ');
+        }
+        if (typeof config?.patreonHandle === 'string') {
+            const link = document.querySelector('[data-smsgfx-id=patreon-link-footer]');
+            link.href = link.getAttribute('data-href').replace('{{HANDLE}}', encodeURIComponent(config.patreonHandle));
+            link.classList.remove('visually-hidden');
+            link.after(' | ');
+        }
+        // Documentation link
         const link = document.querySelector('[data-smsgfx-id=documentation-link]');
         if (link) {
             link.href = config.documentationInlineUrl ?? config.documentationUrl ?? 'about:blank';
             if (!config.documentationUrl && !config.documentationInlineUrl) {
                 link.style.display = 'none';
+            } else {
+                link.after(' | ');
             }
+        }
+
+        // Footer version number
+        const versionFooter = document.querySelector('[data-smsgfx-id="version-footer"]');
+        if (versionFooter && versionInfo) {
+            if (versionFooter) {
+                versionFooter.innerHTML = '';
+                if (versionInfo) {
+                    versionFooter.append(`Version `);
+                    const a = document.createElement('a');
+                    a.href = versionInfo.releaseNotesUrl;
+                    a.title = `Version ${versionInfo.major}.${versionInfo.minor}.${versionInfo.patch}`;
+                    a.target = `_blank`;
+                    a.innerText = `${versionInfo.major}.${versionInfo.minor}.${versionInfo.patch}`;
+                    versionFooter.append(a);
+                } else if (versionMeta) {
+                    versionFooter.append(`Version ${versionInfo.major}.${versionInfo.minor}.${versionInfo.patch}`);
+                }
+                if (channelInfo) {
+                    versionFooter.append(` (${channelInfo.name})`);
+                }
+                versionFooter.append(versionFooter.innerHTML.length > 0 ? ' | ' : '');
+            }
+        }
+
+        // Loading screen version number
+        const versionLoading = document.querySelector('[data-smsgfx-id="loading-version"]');
+        if (versionLoading && versionInfo) {
+            versionLoading.innerText = `Version ${versionInfo.major}.${versionInfo.minor}.${versionInfo.patch}`;
+            versionLoading.classList.remove('visually-hidden');
         }
 
         loadingScreenManager.switchToApp(1500);
     });
 });
-
-
-
-
-
-
-
-
-// /**
-//  * @param {Palette} palette - Palette to query.
-//  * @returns {Palette}
-//  */
-// #getPaletteInRegularOrNative(palette) {
-//     const displayNative = this.#getElement(commands.displayNativeColours)?.checked ?? false;
-//     if (displayNative) {
-//         return PaletteUtil.clonePaletteWithNativeColours(palette, { preserveIds: true });
-//     } else {
-//         return palette;
-//     }
-// }
-// // Native display
-// if (typeof state?.displayNative === 'boolean') {
-//     this.#displayNative = state.displayNative;
-//     if (state.displayNative && this.#paletteList?.getPalettes().filter((p) => p.system === 'gb').length > 0) {
-//         message.pixelGridColour = '#98a200';
-//         message.pixelGridOpacity = 0.5;
-//         message.tileGridColour = '#98a200';
-//         message.tileGridOpacity = 1;
-//     } else {
-//         message.pixelGridColour = '#000000';
-//         message.pixelGridOpacity = 0.2;
-//         message.tileGridColour = '#000000';
-//         message.tileGridOpacity = 0.4;
-//     }
-//     paletteUpdated = true;
-// }
-

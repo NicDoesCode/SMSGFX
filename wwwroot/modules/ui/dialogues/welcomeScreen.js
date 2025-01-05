@@ -36,6 +36,10 @@ export default class WelcomeScreen extends ComponentBase {
     #showOnStartupCheckbox;
     /** @type {ProjectListing} */
     #projectListing = null;
+    /** @type {import("../../components/versionManager.js").VersionInformation} */
+    #version = null;
+    /** @type {import("../../components/versionManager.js").ChannelInformation} */
+    #channel = null;
 
 
     /**
@@ -154,6 +158,28 @@ export default class WelcomeScreen extends ComponentBase {
                 });
             }
         }
+
+        let versionDirty = false;
+        if (state.version || state.version === null) {
+            if (state.version !== this.#version) {
+                this.#version = state.version;
+                versionDirty = true;
+            }
+        }
+
+        if (state.channel || state.channel === null) {
+            if (state.channel !== this.#channel) {
+                this.#channel = state.channel;
+                versionDirty = true;
+            }
+        }
+
+        if (versionDirty) {
+            const versionElms = this.#element.querySelectorAll('[data-smsgfx-id="version-information"]');
+            versionElms.forEach((versionElm) => {
+                this.renderTemplateToElement(versionElm, 'version-information', { version: this.#version, channel: this.#channel });
+            });
+        }
     }
 
 
@@ -218,6 +244,8 @@ export default class WelcomeScreen extends ComponentBase {
  * @property {string[]?} disabledCommands - Array of commands that should be disabled, overrided enabled state.
  * @property {string[]?} visibleCommands - Array of commands that should be made visible, overrided enabled state.
  * @property {string[]?} invisibleCommands - Array of commands that should be made invisible, overrided enabled state.
+ * @property {import("../../components/versionManager.js").VersionInformation} version - Information about the current version.
+ * @property {import("../../components/versionManager.js").ChannelInformation} channel - Information about the current channel.
  * @exports
  */
 
