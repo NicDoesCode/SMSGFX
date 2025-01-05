@@ -56,6 +56,13 @@ export default class State {
         return contexts;
     }
 
+    /**
+     * Gets a list of sources that may trigger an event.
+     */
+    static get EventSources() {
+        return eventSources;
+    }
+
 
     /**
      * Gets the presistent UI state (must call the 'loadPersistentUIStateFromLocalStorage()' method before accessing).
