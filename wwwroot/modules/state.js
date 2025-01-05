@@ -27,7 +27,9 @@ const events = {
 };
 
 const contexts = {
-    deleted: 'deleted'
+    deleted: 'deleted',
+    init: 'init',
+    history: 'history'
 };
 
 
@@ -52,6 +54,13 @@ export default class State {
      */
     static get Contexts() {
         return contexts;
+    }
+
+    /**
+     * Gets a list of sources that may trigger an event.
+     */
+    static get EventSources() {
+        return eventSources;
     }
 
 
@@ -138,8 +147,9 @@ export default class State {
     /**
      * Set the current project.
      * @param {Project?} project - Project to set, or null if no project.
+     * @param {string?} [context=null] - Context on what triggered the project change.
      */
-    setProject(project) {
+    setProject(project, context) {
         let lastProjectId = this.project?.id ?? null;
         if (project instanceof Project) {
             this.#project = project;
@@ -149,9 +159,15 @@ export default class State {
         let thisProjectId = this.project?.id ?? null;
 
         if (lastProjectId !== thisProjectId) {
-            this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectChanged, { projectId: thisProjectId, lastProjectId: lastProjectId }));
+            this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectChanged, {
+                projectId: thisProjectId,
+                lastProjectId: lastProjectId,
+                context: context ?? null
+            }));
         } else {
-            this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectUpdated, { projectId: thisProjectId }));
+            this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectUpdated, {
+                projectId: thisProjectId
+            }));
         }
     }
 
@@ -169,20 +185,22 @@ export default class State {
     /**
      * Loads a project from local storage and sets it as the current project.
      * @param {string?} projectId - Unique ID of the project to load from local storage.
+     * @param {string?} [context=null] - Context on what triggered the project change.
      */
-    setProjectFromLocalStorage(projectId) {
+    setProjectFromLocalStorage(projectId, context) {
         const project = this.getProjectFromLocalStorage(projectId);
         ensureProjectHasId(project);
-        this.setProject(project);
+        this.setProject(project, context);
     }
 
     /**
      * Loads a project, favouring any cached project, otherwise from local storage, sets it as the current project.
      * @param {string?} projectId - Unique ID of the project to load.
+     * @param {string?} [context=null] - Context on what triggered the project change.
      */
-    setProjectById(projectId) {
+    setProjectById(projectId, context) {
         const project = this.getProjectById(projectId);
-        this.setProject(project);
+        this.setProject(project, context);
     }
 
     /**
@@ -305,7 +323,7 @@ export default class State {
             this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectListChanged, { context: contexts.deleted, projectId: projectId }));
 
             if (this.project?.id === projectId) {
-                this.setProject(null);
+                this.setProject(null, eventSources.none);
             }
         }
         addOrRemoveProjectEntriesBasedOnLocalStorage(this.#projectEntries, this);
@@ -427,6 +445,7 @@ function updateProjectEntriesFromProjects(projectEntryList, projects) {
 /**
  * @typedef {Object} StateEventArgs
  * @property {string} event - The event that occurred.
+ * @property {string} eventSource - Context on what triggered the event.
  * @property {string} context - Context about the event that occurred.
  * @property {string} projectId - Project ID from the current project.
  * @property {string} previousProjectId - Project ID from the last loaded project.
