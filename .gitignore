@@ -2,7 +2,6 @@ tmp/
 dist/
 .exe
 node_modules/
-.vscode/
 .DS_Store
 cert/
 *.instance.*

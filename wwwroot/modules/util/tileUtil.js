@@ -21,11 +21,11 @@ export default class TileUtil {
     }
 
     /**
-     * Mirrors a tile horizontally.
-     * @param {Tile} originalTile - The tile that we are encoding.
+     * Creates a clone of a tile that is horizontally mirrored.
+     * @param {Tile} originalTile - The tile that we are cloning and mirroring.
      * @returns {Tile}
      */
-    static mirrorHorizontal(originalTile) {
+    static createHorizontallyMirroredClone(originalTile) {
         const mirroredTile = TileFactory.create({ tileId: originalTile.tileId });
         for (let col = 0; col < 8; col++) {
             const mCol = 7 - col;
@@ -38,11 +38,11 @@ export default class TileUtil {
     }
 
     /**
-     * Mirrors a tile vertically.
-     * @param {Tile} originalTile - The tile that we are encoding.
+     * Creates a clone of a tile that is vertically mirrored.
+     * @param {Tile} originalTile - The tile that we are cloning and mirroring.
      * @returns {Tile}
      */
-    static mirrorVertical(originalTile) {
+    static createVerticallyMirroredClone(originalTile) {
         const mirroredTile = TileFactory.create({ tileId: originalTile.tileId });
         for (let row = 0; row < 8; row++) {
             const mRow = 7 - row;

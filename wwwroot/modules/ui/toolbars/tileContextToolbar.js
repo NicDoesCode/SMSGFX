@@ -22,7 +22,8 @@ const commands = {
     rowColumnMode: 'rowColumnMode',
     rowColumnFillMode: 'rowColumnFillMode',
     paletteSlot: 'paletteSlot',
-    tileAttributes: 'tileAttributes',
+    tileSetTileAttributes: 'tileSetTileAttributes',
+    tileMapTileAttributes: 'tileMapTileAttributes',
     tileStampDefine: 'tileStampDefine',
     tileStampClear: 'tileStampClear'
 }
@@ -35,7 +36,7 @@ const toolstrips = {
     palettePaint: 'palettePaint',
     tileStamp: 'tileStamp',
     tileLinkBreak: 'tileLinkBreak',
-    tileAttributes: 'tileAttributes',
+    tileMapTileAttributes: 'tileMapTileAttributes',
     tileEyedropper: 'tileEyedropper'
 }
 
@@ -212,44 +213,16 @@ export default class TileContextToolbar extends ComponentBase {
             const element = this.#element.querySelector(`[data-command=${commands.referenceImageDisplay}][data-field=referenceTransparency]`);
             if (element) element.value = state.referenceTransparency;
         }
-        if (state?.tileAttributes) {
-            this.#element.querySelectorAll('button[data-command=tileAttributes][data-field=horizontalFlip]').forEach((el) => {
-                if (state.tileAttributes.horizontalFlip) {
-                    el.classList.add('active');
-                    el.setAttribute('data-selected', 'true');
-                } else {
-                    el.classList.remove('active');
-                    el.removeAttribute('data-selected');
-                }
-            });
-            this.#element.querySelectorAll('button[data-command=tileAttributes][data-field=verticalFlip]').forEach((el) => {
-                if (state.tileAttributes.verticalFlip) {
-                    el.classList.add('active');
-                    el.setAttribute('data-selected', 'true');
-                } else {
-                    el.classList.remove('active');
-                    el.removeAttribute('data-selected');
-                }
-            });
-            this.#element.querySelectorAll('button[data-command=tileAttributes][data-field=priority]').forEach((el) => {
-                if (state.tileAttributes.priority) {
-                    el.classList.add('active');
-                    el.setAttribute('data-selected', 'true');
-                } else {
-                    el.classList.remove('active');
-                    el.removeAttribute('data-selected');
-                }
-            });
-            this.#element.querySelectorAll('button[data-command=tileAttributes][data-field=palette]').forEach((el) => {
-                const slotNumber = parseInt(el.getAttribute('data-slot-number'));
-                if (state.tileAttributes.palette === slotNumber) {
-                    el.classList.add('active');
-                    el.setAttribute('data-selected', 'true');
-                } else {
-                    el.classList.remove('active');
-                    el.removeAttribute('data-selected');
-                }
-            });
+
+        if (state?.tileMapTileAttributes) {
+            setBooleanCheckField(this.#element, commands.tileMapTileAttributes, 'horizontalFlip', state.tileMapTileAttributes.horizontalFlip);
+            setBooleanCheckField(this.#element, commands.tileMapTileAttributes, 'verticalFlip', state.tileMapTileAttributes.verticalFlip);
+            setBooleanCheckField(this.#element, commands.tileMapTileAttributes, 'priority', state.tileMapTileAttributes.priority);
+            setBooleanCheckField(this.#element, commands.tileMapTileAttributes, 'alwaysKeep', state.tileMapTileAttributes.alwaysKeep);
+            setPaletteSlotCheckFields(this.#element, commands.tileMapTileAttributes, 'palette', state.tileMapTileAttributes.palette);
+        }
+        if (state?.tileSetTileAttributes) {
+            setBooleanCheckField(this.#element, commands.tileSetTileAttributes, 'alwaysKeep', state.tileSetTileAttributes.alwaysKeep);
         }
 
         if (typeof state?.enabled === 'boolean') {
@@ -268,7 +241,7 @@ export default class TileContextToolbar extends ComponentBase {
                 });
             });
             this.#element.querySelectorAll('[data-smsgfx-id=tileAttributePaletteSlot]').forEach((container) => {
-                fillPaletteSlotButtons(container, TileContextToolbar.Commands.tileAttributes, 'palette', state.paletteSlotCount, (e, n) => {
+                fillPaletteSlotButtons(container, TileContextToolbar.Commands.tileMapTileAttributes, 'palette', state.paletteSlotCount, (e, n) => {
                     const command = e.getAttribute('data-command');
                     const args = this.#createArgs(command, e);
                     this.#dispatcher.dispatch(EVENT_OnCommand, args);
@@ -366,9 +339,9 @@ export default class TileContextToolbar extends ComponentBase {
             result.paletteSlot = parseInt(element.getAttribute('data-slot-number'));
         }
 
-        if (command === coms.tileAttributes) {
+        if (command === coms.tileMapTileAttributes) {
             const field = element.getAttribute('data-field');
-            /** @type {TileContextToolbarTileAttributes} */ const attr = {};
+            /** @type {TileContextToolbarTileMapTileAttributes} */ const attr = {};
             if (field === 'horizontalFlip') {
                 attr.horizontalFlip = element.getAttribute('data-selected') ? false : true;
             } else {
@@ -390,7 +363,23 @@ export default class TileContextToolbar extends ComponentBase {
                 const selected = this.#element.querySelector(`[data-command=${command}][data-field=palette][data-selected]`);
                 attr.palette = parseInt(selected?.getAttribute('data-slot-number') ?? '0');
             }
-            result.tileAttributes = attr;
+            if (field === 'alwaysKeep') {
+                attr.alwaysKeep = element.getAttribute('data-selected') ? false : true;
+            } else {
+                attr.alwaysKeep = this.#element.querySelector(`[data-command=${command}][data-field=alwaysKeep]`).getAttribute('data-selected') ? true : false;
+            }
+            result.tileMapTileAttributes = attr;
+        }
+
+        if (command === coms.tileSetTileAttributes) {
+            const field = element.getAttribute('data-field');
+            /** @type {TileContextToolbarTileSetTileAttributes} */ const attr = {};
+            if (field === 'alwaysKeep') {
+                attr.alwaysKeep = element.getAttribute('data-selected') ? false : true;
+            } else {
+                attr.alwaysKeep = this.#element.querySelector(`[data-command=${command}][data-field=alwaysKeep]`).getAttribute('data-selected') ? true : false;
+            }
+            result.tileSetTileAttributes = attr;
         }
 
         return result;
@@ -409,7 +398,7 @@ function isToggled(element) {
 
 
 /**
- * @typedef {object} TileContextToolbarState
+ * @typedef {Object} TileContextToolbarState
  * @property {boolean?} visible - Is the toolbar visible?
  * @property {boolean?} enabled - Is the toolbar enabled?
  * @property {string[]?} visibleToolstrips - An array of strings containing visible toolstrips.
@@ -426,16 +415,24 @@ function isToggled(element) {
  * @property {DOMRect?} referenceBounds - Bounds for the reference image.
  * @property {boolean?} referenceLockAspect - Whether or not to lock the aspect ratio for the reference image.
  * @property {number?} referenceTransparency - Transparency colour for the reference image.
- * @property {TileContextToolbarTileAttributes?} [tileAttributes] - Tile attributes to fill.
+ * @property {TileContextToolbarTileSetTileAttributes?} [tileSetTileAttributes] - Tile set tile attributes.
+ * @property {TileContextToolbarTileMapTileAttributes?} [tileMapTileAttributes] - Tile map tile attributes.
  * @exports
  */
 
 /**
- * @typedef {object} TileContextToolbarTileAttributes
+ * @typedef {Object} TileContextToolbarTileMapTileAttributes
  * @property {boolean} horizontalFlip - Flip the tile horizontally?
  * @property {boolean} verticalFlip - Flip the tile vertically?
  * @property {boolean} priority - Does the tile have render priority?
  * @property {number} palette - Which palette slot is the tile using?
+ * @property {boolean} alwaysKeep - Preserve the underlying tile through optimisation routines?
+ * @exports
+ */
+
+/**
+ * @typedef {Object} TileContextToolbarTileSetTileAttributes
+ * @property {boolean} alwaysKeep - Preserve the tile through optimisation routines?
  * @exports
  */
 
@@ -446,7 +443,7 @@ function isToggled(element) {
  * @exports
  */
 /**
- * @typedef {object} TileContextToolbarCommandEventArgs
+ * @typedef {Object} TileContextToolbarCommandEventArgs
  * @property {string} command - Command being invoked.
  * @property {number?} [brushSize] - Brush size, 1 to 5.
  * @property {boolean?} [tileClamp] - Clamp to tile?
@@ -457,7 +454,8 @@ function isToggled(element) {
  * @property {DOMRect} referenceBounds - Bounds for the reference image.
  * @property {boolean} referenceLockAspect - Whether or not to lock the aspect ratio for the reference image.
  * @property {number} referenceTransparency - Colour index to draw transparent.
- * @property {TileContextToolbarTileAttributes?} [tileAttributes] - Tile map tile attributes.
+ * @property {TileContextToolbarTileSetTileAttributes?} [tileSetTileAttributes] - Tile set tile attributes.
+ * @property {TileContextToolbarTileMapTileAttributes?} [tileMapTileAttributes] - Tile map tile attributes.
  * @exports
  */
 
@@ -466,6 +464,8 @@ function isToggled(element) {
  * @argument {HTMLElement} element
  * @argument {number} slotNumber
  */
+
+
 /**
  * 
  * @param {HTMLElement} element 
@@ -493,3 +493,32 @@ function fillPaletteSlotButtons(element, command, field, slotCount, clickEvent) 
     }
 }
 
+function setBooleanCheckField(element, command, field, checkedValue, additionalSelector) {
+    const selector = `button[data-command=${command}][data-field=${field}]`;
+    if (typeof additionalSelector === 'string') {
+        selector += additionalSelector;
+    } else if (Array.isArray(additionalSelector)) {
+        additionalSelector.forEach((sel) => selector += additionalSelector);
+    }
+    element.querySelectorAll(selector).forEach((el) => {
+        if (checkedValue) {
+            el.classList.add('active');
+            el.setAttribute('data-selected', 'true');
+        } else {
+            el.classList.remove('active');
+            el.removeAttribute('data-selected');
+        }
+    });
+}
+function setPaletteSlotCheckFields(element, command, field, selectedPaletteSlot) {
+    element.querySelectorAll(`button[data-command=${command}][data-field=${field}]`).forEach((el) => {
+        const slotNumber = parseInt(el.getAttribute('data-slot-number'));
+        if (selectedPaletteSlot === slotNumber) {
+            el.classList.add('active');
+            el.setAttribute('data-selected', 'true');
+        } else {
+            el.classList.remove('active');
+            el.removeAttribute('data-selected');
+        }
+    });
+}

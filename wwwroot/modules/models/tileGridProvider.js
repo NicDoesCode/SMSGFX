@@ -46,6 +46,16 @@ export default class TileGridProvider {
 
 
     /**
+     * Gets information about a tile by the tile index, or null if the tile was not found or fell outside the bounds.
+     * @param {number} tileIndex - Index of the tile.
+     * @returns {TileProviderTileInfo?}
+     */
+    getTileInfoByIndex(tileIndex) {
+        throw new Error('Not implemented.');
+    }
+
+
+    /**
      * Gets information about a tile by the tile index.
      * @param {number} tileIndex - Index of the tile.
      * @returns {TileProviderTileInfo}
@@ -99,7 +109,7 @@ export default class TileGridProvider {
 
 /**
  * Provides information about a tile.
- * @typedef {object} TileProviderTileInfo
+ * @typedef {Object} TileProviderTileInfo
  * @property {string} tileId - Unique ID of the tile.
  * @property {number?} paletteIndex - Index of the palette to render the tile, null if none specified.
  * @property {boolean} horizontalFlip - Mirror the tile horizontally?
@@ -109,7 +119,7 @@ export default class TileGridProvider {
  */
  
 /**
- * @typedef {object} TileGridRegion
+ * @typedef {Object} TileGridRegion
  * @property {number} rowIndex - Row index that the selection begins.
  * @property {number} columnIndex - Column index that the selection begins.
  * @property {number} width - Width of the selection.

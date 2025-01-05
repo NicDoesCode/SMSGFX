@@ -4,15 +4,23 @@ import TemplateUtil from "./../../util/templateUtil.js";
 import PaletteList from './../../models/paletteList.js';
 import Palette from "./../../models/palette.js";
 
+
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
 const commands = {
     paletteSelect: 'paletteSelect'
 }
 
+
+/**
+ * UI component that displays a list of palettes.
+ */
 export default class PaletteListing extends ComponentBase {
 
 
+    /**
+     * Gets an enumeration of all the commands that may be invoked by this class.
+     */
     static get Commands() {
         return commands;
     }
@@ -29,7 +37,7 @@ export default class PaletteListing extends ComponentBase {
 
 
     /**
-     * Initialises a new instance of this class.
+     * Constructor for the class.
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
@@ -92,8 +100,9 @@ export default class PaletteListing extends ComponentBase {
      * @param {Palette[]} palettes
      */
     #displayPalettes(palettes) {
-        const renderList = palettes.map((p) => {
+        const renderList = palettes.map((p, index) => {
             return {
+                index: index,
                 paletteId: p.paletteId,
                 title: p.title,
                 system: p.system
@@ -130,7 +139,7 @@ export default class PaletteListing extends ComponentBase {
 
 /**
  * Palette list state.
- * @typedef {object} PaletteListingState
+ * @typedef {Object} PaletteListingState
  * @property {PaletteList?} [paletteList] - Palette list to be displayed.
  * @property {string?} [selectedPaletteId] - Unique ID of the selected palette.
  */
@@ -142,7 +151,7 @@ export default class PaletteListing extends ComponentBase {
  * @exports
  */
 /**
- * @typedef {object} PaletteListingCommandEventArgs
+ * @typedef {Object} PaletteListingCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string} paletteId - Unique ID of the palette.
  * @exports

@@ -5,11 +5,30 @@ import ProjectFactory from "../factory/projectFactory.js";
 import ColourUtil from "./colourUtil.js";
 import TileSetFactory from "../factory/tileSetFactory.js";
 import PaletteListFactory from "../factory/paletteListFactory.js";
-import GeneralUtil from "./generalUtil.js";
+import TileMap from "../models/tileMap.js";
 
 const imageMimeTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/gif', 'image/svg+xml'];
 
 export default class ImageUtil {
+
+    
+    /**
+     * Converts an image to an image bitmap.
+     * @param {HTMLImageElement|HTMLCanvasElement|OffscreenCanvas} image - Image to convert.
+     * @returns {ImageBitmap}
+     */
+    static toImageBitmap(image) {
+        if (image instanceof ImageBitmap) {
+            return image;
+        } else if ((image.tagName && image.tagName === 'CANVAS') || image instanceof OffscreenCanvas) {
+            return image.transferToImageBitmap();
+        } else if (image.tagName && image.tagName === 'IMG') {
+            const canvas = new OffscreenCanvas(image.width, image.height);
+            canvas.getContext('2d').drawImage(image, 0, 0);
+            return canvas.transferToImageBitmap();
+        }
+        throw new Error('Invalid image object.');
+    }
 
 
     /**
@@ -117,8 +136,6 @@ export default class ImageUtil {
                 });
             });
 
-            const noMatch = []; // TMP 
-
             let x = 0, y = -1;
             for (let i = 0; i < imageData.data.length; i += 4) {
 
@@ -133,7 +150,6 @@ export default class ImageUtil {
                 if (colourHexLookup[pixel.hex]) {
                     context.fillStyle = colourHexLookup[pixel.hex];
                 } else {
-                    if (!noMatch.includes(pixel.hex)) noMatch.push(pixel.hex); // TMP 
                     context.fillStyle = 'yellow';
                 }
                 context.fillRect(x, y, 1, 1);
@@ -141,7 +157,6 @@ export default class ImageUtil {
                 x++;
             }
 
-            console.log('noMatch', noMatch); // TMP 
             resolve(await canvasToImageAsync(canvas));
         });
     }
@@ -341,7 +356,7 @@ export default class ImageUtil {
         });
 
         const foundImageColoursDict = extractUniqueColours(image);
-        const foundImageColours = Object.values(foundImageColoursDict).sort((a, b) => a.count > b.count);
+        const foundImageColours = Object.values(foundImageColoursDict).sort((a, b) => a.count > b.count ? 1 : -1);
 
         const matchedColours = matchColours(targetColours, foundImageColours);
         return matchedColours.matches;
@@ -379,14 +394,14 @@ export default class ImageUtil {
         }
 
         const foundImageColoursDict = extractUniqueColours(image);
-        let foundImageColours = Object.values(foundImageColoursDict).sort((a, b) => a.count < b.count);
+        let foundImageColours = Object.values(foundImageColoursDict).sort((a, b) => a.count < b.count ? 1 : -1);
         let shortenedColours = groupSimilarColours(foundImageColours, 64);
         let matchedColours = matchColours(targetSystemPalette, shortenedColours.matches);
 
         if (system === 'ms') {
             // When matching for the Master System, create the palette using the most used colours
             if (matchedColours.matches.length > 16) {
-                const mostUsedColours = matchedColours.matches.sort((a, b) => b.count > a.count).slice(0, 16);
+                const mostUsedColours = matchedColours.matches.sort((a, b) => b.count > a.count ? 1 : -1).slice(0, 16);
                 matchedColours = matchColours(mostUsedColours, matchedColours.matches);
             }
         } else {
@@ -412,7 +427,7 @@ export default class ImageUtil {
     static reduceImageColoursToList(image, colours) {
 
         const foundImageColoursDict = extractUniqueColours(image);
-        const foundImageColours = Object.values(foundImageColoursDict).sort((a, b) => a.count < b.count);
+        const foundImageColours = Object.values(foundImageColoursDict).sort((a, b) => a.count < b.count ? 1 : -1);
         let matchedColours = matchColours(colours, foundImageColours);
 
         // Reduce the matched colours to a 16 colour palette
@@ -608,7 +623,7 @@ function matchColours(desiredColours, coloursToMatch) {
 //     const result = { hexLookup: {}, matches: [] };
 
 //     /** @type {ColourMatch[]} */
-//     const coloursMostUsedToLeast = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => b.count > a.count);
+//     const coloursMostUsedToLeast = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => b.count > a.count ? 1 : -1);
 
 //     for (let a = coloursMostUsedToLeast.length; a > 0; a--) {
 //         const lessPopularColour = coloursMostUsedToLeast[a - 1];
@@ -665,9 +680,9 @@ function groupSimilarColours(coloursToGroup, matchRangeFactor) {
     const result = { hexLookup: {}, matches: [] };
 
     /** @type {ColourMatch[]} */
-    const baseColours = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => b.count > a.count);
+    const baseColours = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => b.count > a.count ? 1 : -1);
     /** @type {ColourMatch[]} */
-    let coloursToMatch = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => a.count < b.count);
+    let coloursToMatch = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => a.count < b.count ? 1 : -1);
 
     baseColours.forEach(baseColour => {
 
@@ -837,20 +852,20 @@ function getSimilaritry(colour, range) {
 
 
 /**
- * @typedef {object} ImageDisplayParams
+ * @typedef {Object} ImageDisplayParams
  * @property {TileSpec?} tiles
  * @property {number?} scale
  */
 
 /**
- * @typedef {object} ImageImportParams
+ * @typedef {Object} ImageImportParams
  * @property {TileSpec?} tiles
  * @property {string?} projectName
  * @property {string?} system
  */
 
 /**
- * @typedef {object} TileSpec
+ * @typedef {Object} TileSpec
  * @property {number} offsetX
  * @property {number} offsetY
  * @property {number} tilesWide
@@ -858,14 +873,14 @@ function getSimilaritry(colour, range) {
  */
 
 /** 
- * @typedef {object} Colour 
+ * @typedef {Object} Colour 
  * @property {number} r - Red component.
  * @property {number} g - Green component.
  * @property {number} b - Blue component.
  * @property {string} hex - HEX value for this colour.
  */
 /** 
- * @typedef {object} ColourMatch
+ * @typedef {Object} ColourMatch
  * @property {number} r - Red component.
  * @property {number} g - Green component.
  * @property {number} b - Blue component.
@@ -877,7 +892,7 @@ function getSimilaritry(colour, range) {
  * @typedef {Object.<string, ColourMatch>} ColourMatchDictionary
  */
 /** 
- * @typedef {object} ColourRange 
+ * @typedef {Object} ColourRange 
  * @property {number} rLow
  * @property {number} gLow
  * @property {number} bLow
@@ -890,7 +905,7 @@ function getSimilaritry(colour, range) {
  * @property {number} rangeFactor
 */
 /**
- * @typedef {object} ColourMapping
+ * @typedef {Object} ColourMapping
  * @property {ColourMatch[]} matches
  * @property {Object.<string, string>} hexLookup
  */

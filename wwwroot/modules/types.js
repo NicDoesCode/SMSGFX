@@ -1,4 +1,8 @@
 export const Types = {};
+export const DropPosition = {
+    before: 'before',
+    after: 'after'
+}
 
 /**
  * @typedef {Object} SampleProject
@@ -11,8 +15,46 @@ export const Types = {};
  */
 
 /**
+ * @typedef {Object} Bounds
+ * @property {number} x - X coordinate.
+ * @property {number} y - Y coordinate.
+ * @property {number} width - Width of the dimension.
+ * @property {number} height - Height of the dimension.
+ * @exports
+ */
+
+/**
+ * @typedef {Object} Dimension
+ * @property {number} width - Width of the dimension.
+ * @property {number} height - Height of the dimension.
+ * @exports
+ */
+
+/**
+ * @typedef {Object} GridDimension
+ * @property {number} rows - Amount of rows in the dimension.
+ * @property {number} columns - Amount of columns in the dimension.
+ * @exports
+ */
+
+/**
  * @typedef {Object} Coordinate
  * @property {number} x - X coordinate.
  * @property {number} y - Y coordinate.
  * @exports
+ */
+
+/**
+ * @typedef {Object} SortEntry
+ * @property {string} field - Name of the field.
+ * @property {string} direction - Either 'asc' or 'desc'.
+ * @exports
+ */
+
+/**
+ * @typedef {Object} ColourInformation
+ * @property {number} r - Red component.
+ * @property {number} g - Green component.
+ * @property {number} b - Blue component.
+ * @export
  */

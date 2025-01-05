@@ -70,7 +70,7 @@
         <div data-smsgfx-component-id="tileMapTools" class="input-group input-group-sm">
             <span class="input-group-text">Tile</span>
             <button data-command="toolChange" data-auto-event="click"
-                class="sms-toolstrip-button btn btn-outline-secondary btn-ui" data-tool="tileAttributes"
+                class="sms-toolstrip-button btn btn-outline-secondary btn-ui" data-tool="tileMapTileAttributes"
                 title="Tile attributes: Attributes such as mirroring, and priority.">
                 <i class="bi bi-cursor"></i>
             </button>
@@ -177,6 +177,16 @@
                     class="form-check-input mt-0" type="checkbox" value="" aria-label="Show pixel grid."
                     title="Show pixel grid: When checked the boundary of each pixel will be displayed on the viewport image.">
                 <label for="showPixelGrid" class="ps-1">Pixel grid</label>
+            </div>
+        </div>
+    </div>
+    <div data-toolstrip="highlightSameTiles" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div class="input-group input-group-sm">
+            <div class="input-group-text">
+                <input data-command="highlightSameTiles" data-auto-event="change" data-labelled-by="highlightSameTiles"
+                    class="form-check-input mt-0" type="checkbox" value="" aria-label="Highlight tiles that are the same."
+                    title="Highlight same tiels: When you mouse over a given tile, all other instances of that tile will be highlighted.">
+                <label for="highlightSameTiles" class="ps-1">Tile highlight</label>
             </div>
         </div>
     </div>

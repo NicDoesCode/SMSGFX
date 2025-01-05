@@ -163,9 +163,9 @@ function groupSimilarColours(coloursToGroup, matchRangeFactor) {
     const result = { hexLookup: {}, matches: [] };
 
     /** @type {ColourMatch[]} */
-    const baseColours = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => b.count > a.count);
+    const baseColours = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => b.count > a.count ? 1 : -1);
     /** @type {ColourMatch[]} */
-    let coloursToMatch = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => a.count < b.count);
+    let coloursToMatch = coloursToGroup.map(c => JSON.parse(JSON.stringify(c))).sort((a, b) => a.count < b.count ? 1 : -1);
 
     baseColours.forEach(baseColour => {
 
@@ -399,7 +399,7 @@ function extractUniqueColours(image) {
  * @typedef {Object.<string, ColourMatch>} ColourMatchDictionary
  */
 /** 
- * @typedef {object} ColourMatch
+ * @typedef {Object} ColourMatch
  * @property {number} r - Red component.
  * @property {number} g - Green component.
  * @property {number} b - Blue component.
@@ -408,7 +408,7 @@ function extractUniqueColours(image) {
  * @property {string[]} matchedColours - HEX values of all colours that are similar and hence replaced by this colour.
  */
 /**
- * @typedef {object} ColourMapping
+ * @typedef {Object} ColourMapping
  * @property {ColourMatch[]} matches
  * @property {Object.<string, string>} hexLookup
  */

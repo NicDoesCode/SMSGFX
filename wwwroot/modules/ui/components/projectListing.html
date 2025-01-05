@@ -1,9 +1,22 @@
 <div data-smsgfx-component="components/projectListing" class="project-listing">
+    <div data-smsgfx-id="tools" class="sms-order-div">
+        <div class="btn-group">
+            <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                data-bs-auto-close="true" title="Sort the project list." aria-expanded="false">
+                <i class="bi bi-sort-down"></i>
+            </button>
+            <ul class="dropdown-menu sms-font-small">
+                <li><a class="dropdown-item" href="#" data-command="sort" data-field="title">Title</a></li>
+                <li><a class="dropdown-item" href="#" data-command="sort" data-field="dateLastModified">Date
+                        modified</a></li>
+            </ul>
+        </div>
+    </div>
     <ul data-smsgfx-id="project-list" class="sms-project-list-component list-group list-group-flush">
     </ul>
     <script data-smsgfx-template-id="project-list-template" type="text/x-handlebars-template">
         {{#each this}}
-            <li data-command="projectSelect" data-project-id="{{id}}" class="list-group-item d-flex justify-content-between align-items-start list-group-item-action border-secondary-subtle ps-0 pe-0 pt-1 pb-1">
+            <li data-command="projectSelect" data-project-id="{{id}}" class="list-group-item d-flex justify-content-between align-items-start list-group-item-action border-secondary-subtle ps-0 pe-0 pt-1 pb-1" title="{{tooltip}}">
                 <span data-field="console" class="text-center me-2">
                     {{#if isSmsgg}}
                     <img src="assets/image/game-gear-console.svg" alt="Sega Master System and Sega Game Gear.">
@@ -13,8 +26,11 @@
                     <img src="assets/image/game-boy.svg" alt="Nintendo Game Boy.">
                     {{/if}}
                 </span>
-                <span data-field="title" class="flex-fill">
+                <span data-field="title" class="flex-fill overflow-hidden text-nowrap">
                     {{title}}
+                </span>
+                <span data-field="dateModified" class="ps-2 pe-2 sms-font-small fst-italic">
+                    {{dateLastModifiedFuzzy}}
                 </span>
                 <button data-command="projectDelete" data-project-id="{{id}}" class="btn btn-sm btn-ui btn-outline-secondary p-0 px-2" title="Delete this project.">
                     <i class="bi bi-trash-fill"></i>
@@ -23,13 +39,26 @@
         {{/each}}
     </script>
     <style data-css-scope="global">
+        .project-listing .sms-order-div {
+            position: absolute;
+            z-index: 1;
+            margin-top: -60px;
+            margin-left: -25px;
+            padding: 25px;
+            padding-right: 50px;
+            padding-bottom: 5px;
+            opacity: 0;
+            transition: opacity 0.25s;
+        }
+
         .sms-project-list-component li {
             font-size: 0.9em;
             cursor: pointer;
         }
 
         .sms-project-list-component li [data-field=console] {
-            width: 50px;
+            width: 45px;
+            min-width: 45px;
         }
 
         .sms-project-list-component li [data-field=console] img {

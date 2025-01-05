@@ -136,7 +136,7 @@ export default class OptionsToolbar extends ComponentBase {
 
 /**
  * State object.
- * @typedef {object} OptionsToolbarState
+ * @typedef {Object} OptionsToolbarState
  * @property {string[]?} enabledCommands - Array of commands that should be enabled, overrided enabled state.
  * @property {string[]?} disabledCommands - Array of commands that should be disabled, overrided enabled state.
  * @property {boolean?} enabled - Is the control enabled or disabled?
@@ -153,7 +153,7 @@ export default class OptionsToolbar extends ComponentBase {
  * @exports
  */
 /**
- * @typedef {object} OptionsToolbarCommandEventArgs
+ * @typedef {Object} OptionsToolbarCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string} theme - The theme to change to.
  * @property {string} backgroundTheme - The background theme to change to.

@@ -143,7 +143,7 @@ export default class PaletteEditorContextMenu extends ComponentBase {
 
 
 /**
- * @typedef {object} PaletteEditorContextMenuState
+ * @typedef {Object} PaletteEditorContextMenuState
  * @property {number?} colourIndex - Palette colour index from 0 to 15.
  * @property {boolean?} visible - Visibility of the menu.
  * @property {{x: number, y: number}?} position - Screen position to display the menu.
@@ -157,7 +157,7 @@ export default class PaletteEditorContextMenu extends ComponentBase {
  * @exports
  */
 /**
- * @typedef {object} PaletteEditorContextMenuCommandEventArgs
+ * @typedef {Object} PaletteEditorContextMenuCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {number} sourceColourIndex - Source palette colour index from 0 to 15.
  * @property {number} targetColourIndex - Target palette colour index from 0 to 15.

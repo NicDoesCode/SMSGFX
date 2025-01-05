@@ -3,6 +3,7 @@ import TileMapList from "../../models/tileMapList.js";
 import TemplateUtil from "../../util/templateUtil.js";
 import ComponentBase from "../componentBase.js";
 
+
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
 const commands = {
@@ -11,9 +12,16 @@ const commands = {
     tileMapDelete: 'tileMapDelete'
 }
 
+
+/**
+ * UI component that displays a list of tile maps.
+ */
 export default class TileMapListing extends ComponentBase {
 
 
+    /**
+     * Gets an enumeration of all the commands that may be invoked by this class.
+     */
     static get Commands() {
         return commands;
     }
@@ -35,7 +43,7 @@ export default class TileMapListing extends ComponentBase {
 
 
     /**
-     * Initialises a new instance of this class.
+     * Constructor for the class.
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
@@ -207,7 +215,7 @@ export default class TileMapListing extends ComponentBase {
 
 /**
  * Tile map list state.
- * @typedef {object} TileMapListingState
+ * @typedef {Object} TileMapListingState
  * @property {TileMapList?} tileMapList - List of tile maps to display in the menu.
  * @property {string?} [selectedTileMapId] - Unique ID of the selected tile map.
  * @property {boolean?} showTileSet - Show the tile set option?
@@ -225,7 +233,7 @@ export default class TileMapListing extends ComponentBase {
  * @exports
  */
 /**
- * @typedef {object} TileMapListingCommandEventArgs
+ * @typedef {Object} TileMapListingCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string?} tileMapId - Unique tile map ID.
  * @exports

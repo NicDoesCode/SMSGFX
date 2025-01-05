@@ -10,6 +10,7 @@ import NesTileMapTileBinarySerialiser from "./nesTileMapTileBinarySerialiser.js"
 import NesTileAttributeBinarySerialiser from "./nesTileAttributeBinarySerialiser.js";
 import TileMapListFactory from "../../factory/tileMapListFactory.js";
 import TileMapFactory from "../../factory/tileMapFactory.js";
+import SystemUtil from "../../util/systemUtil.js";
 
 export default class NesAssemblySerialiser extends ProjectAssemblySerialiser {
 
@@ -37,7 +38,8 @@ export default class NesAssemblySerialiser extends ProjectAssemblySerialiser {
             });
         }
 
-        const bundle = TileMapUtil.createOptimisedBundle(tileMapList, project.tileSet, project.paletteList);
+        const capabilities = SystemUtil.getGraphicsCapabilities(project.systemType);
+        const bundle = TileMapUtil.createOptimisedBundle(tileMapList, project.tileSet, project.paletteList, capabilities);
 
         const result = ['; NINTENDO ENTERTAINMENT SYSTEM ASSEMBLY FOR WLA-DX'];
         result.push('');

@@ -3,19 +3,29 @@ import TileGridProvider from './tileGridProvider.js';
 import TileMapTileFactory from "../factory/tileMapTileFactory.js";
 
 /**
- * Tile map.
+ * Represents a tile map, which is a structured collection of tiles with attributes. 
+ * Extends TileGridProvider.
  */
 export default class TileMap extends TileGridProvider {
 
     
+    /**
+     * Gets whether this is a tile set (part of TileGridProvider).
+     */
     get isTileSet() {
         return false;
     }
 
+    /**
+     * Gets whether this is a tile map (part of TileGridProvider).
+     */
     get isTileMap() {
         return true;
     }
 
+    /**
+     * Gets or sets the unique ID of the tile map.
+     */
     get tileMapId() {
         return this.#tileMapId;
     }
@@ -23,6 +33,9 @@ export default class TileMap extends TileGridProvider {
         this.#tileMapId = value;
     }
 
+    /**
+     * Gets or sets the unique ID of the tile.
+     */
     get title() {
         return this.#title;
     }
@@ -30,6 +43,9 @@ export default class TileMap extends TileGridProvider {
         this.#title = value;
     }
 
+    /**
+     * Gets or sets the tile offset in VRAM.
+     */
     get vramOffset() {
         return this.#vramOffset;
     }
@@ -37,23 +53,47 @@ export default class TileMap extends TileGridProvider {
         this.#vramOffset = value;
     }
 
+    /**
+     * Gets the column count.
+     */
     get columnCount() {
         return this.#columns;
     }
 
+    /**
+     * Gets the row count.
+     */
     get rowCount() {
         return this.#rows;
     }
 
+    /**
+     * Gets the tile count.
+     */
     get tileCount() {
         return this.#tiles.length;
     }
 
+    /**
+     * Gets whether the tile map will be optimised on export.
+     * The results of this vary per system.
+     */
     get optimise() {
         return this.#optimise;
     }
     set optimise(value) {
         this.#optimise = value;
+    }
+
+    /**
+     * Gets whether the tile map is to be treated as a sprite which will have an effect on 
+     * the code export of the tile map.
+     */
+    get isSprite() {
+        return this.#isSprite;
+    }
+    set isSprite(value) {
+        this.#isSprite = value;
     }
 
 
@@ -66,12 +106,13 @@ export default class TileMap extends TileGridProvider {
     #columns = 1;
     #rows = 1;
     #optimise = false;
+    #isSprite = false;
     /** @type {TileMapTile[]} */
     #tiles;
 
 
     /**
-     * Initialises a new instanve of the tile map class.
+     * Constructor for the class.
      * @param {number} rows - Initial number of rows for the tile map, default is '1'.
      * @param {number} columns - Initial number of columns for the tile map, default is '1'.
      */
@@ -105,9 +146,23 @@ export default class TileMap extends TileGridProvider {
 
 
     /**
-     * Returns a tile map tile by index.
-     * @param {number} index - Index of the tile to return.
-     * @returns {TileMapTile | null}
+     * Gets an item by index.
+     * @param {number} index - Index of the item to get.
+     * @throws Index is out of range.
+     * @returns {TileMapTile}
+     */
+    getTile(index) {
+        if (index >= 0 && index < this.#tiles.length) {
+            return this.#tiles[index];
+        } else {
+            throw new Error('Index out of range.');
+        }
+    }
+
+    /**
+     * Gets an item by index, or null if out of range.
+     * @param {number} index - Index of the item to get.
+     * @returns {TileMapTile?}
      */
     getTileByIndex(index) {
         if (index >= 0 && index <= this.tileCount) {
@@ -133,7 +188,7 @@ export default class TileMap extends TileGridProvider {
      * @param {number} columnIndex - Column index to obtain the tile from.
      * @returns {TileMapTile?}
      */
-    getTileByCoordinate(rowIndex, columnIndex) {
+    getTileByRowAndColumn(rowIndex, columnIndex) {
         const index = (rowIndex * this.columnCount) + columnIndex;
         return this.getTileByIndex(index);
     }
@@ -308,9 +363,22 @@ export default class TileMap extends TileGridProvider {
     /**
      * Gets the ID of the palette associated with a given index.
      * @param {number} index - Index of the palette ID to return.
+     * @throws Index out of range.
      * @returns {string?}
      */
     getPalette(index) {
+        if (index < 0 || index >= this.#paletteIds.length) {
+            throw new Error('Index out of range.');
+        }
+        return this.#paletteIds[index];
+    }
+
+    /**
+     * Gets the ID of the palette associated with a given index, or null if index out of range.
+     * @param {number} index - Index of the palette ID to return.
+     * @returns {string?}
+     */
+    getPaletteByIndex(index) {
         if (index < 0 || index >= this.#paletteIds.length) {
             return null;
         }
@@ -422,58 +490,12 @@ export default class TileMap extends TileGridProvider {
         };
     }
 
-    // /**
-    //  * Adds a tile to the tile set.
-    //  * @param {Tile} tile - Tile reference to add.
-    //  * @param {TileMapTileParams} params - Parameters.
-    //  */
-    // addTile(tile, params) {
-    //     this.#tiles.push({
-    //         tileIndex: this.#tiles.length,
-    //         sourceTile: tile,
-    //         horizontalFlip: params.horizontalFlip,
-    //         verticalFlip: params.verticalFlip,
-    //         palette: params.palette,
-    //         priority: params.priority
-    //     });
-    // }
-
-    // getTileMapTiles() {
-    //     return this.#tiles.map((tileMapTile) => {
-    //         /** @type {TileMapTile} */
-    //         const result = {
-    //             tileIndex: tileMapTile.tileIndex + this.vramOffset,
-    //             horizontalFlip: tileMapTile.horizontalFlip,
-    //             verticalFlip: tileMapTile.verticalFlip,
-    //             palette: tileMapTile.palette,
-    //             priority: tileMapTile.priority
-    //         };
-    //         return result;
-    //     });
-    // }
-
-
-    // toTileSet() {
-    //     const result = new TileSet();
-    //     result.tileWidth = this.columns;
-    //     if (!this.optimise) {
-    //         this.#tiles.forEach((tile) => {
-    //             result.addTile(tile.sourceTile);
-    //         });
-    //     } else {
-    //         Object.keys(this.#uniqueTiles).forEach(key => {
-    //             result.addTile(this.#uniqueTiles[key].tile);
-    //         });
-    //     }
-    //     return result;
-    // }
-
 
 }
 
 /**
  * Parameters for tile map tiles.
- * @typedef {object} TileMapTileParams
+ * @typedef {Object} TileMapTileParams
  * @property {number} tileIndex - Index of the tile within the tile map.
  * @property {boolean} horizontalFlip - Mirror tile horizontally?
  * @property {boolean} verticalFlip - Mirror tile vertically?

@@ -1,9 +1,12 @@
 import EventDispatcher from "../../components/eventDispatcher.js";
-import ProjectList from "../../models/projectList.js";
 import TemplateUtil from "../../util/templateUtil.js";
 import ComponentBase from "../componentBase.js";
 import ProjectListing from "../components/projectListing.js";
 import ConfigManager from "../../components/configManager.js";
+import Project from "../../models/project.js";
+import ProjectEntry from "../../models/projectEntry.js";
+import ProjectList from "../../models/projectList.js";
+import ProjectEntryList from "../../models/projectEntryList.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -13,6 +16,7 @@ const commands = {
     projectNew: 'projectNew',
     projectLoadById: 'projectLoadById',
     projectLoadFromFile: 'projectLoadFromFile',
+    projectSort: 'projectSort',
     tileImageImport: 'tileImageImport',
     showDocumentation: 'showDocumentation'
 }
@@ -139,11 +143,12 @@ export default class WelcomeScreen extends ComponentBase {
             });
         }
 
-        if (state?.projects !== null) {
+        if (state.projects instanceof ProjectList || state.projects instanceof ProjectEntryList || Array.isArray(state.projects) || state.projects === null) {
+            const projects = state.projects ?? [];
             await this.#loadProjectListIfNotLoaded();
             if (this.#projectListing) {
                 this.#projectListing.setState({
-                    projects: state.projects,
+                    projects: projects,
                     height: '100%',
                     showDelete: false
                 });
@@ -188,6 +193,11 @@ export default class WelcomeScreen extends ComponentBase {
                             projArgs.projectId = args.projectId;
                             this.#dispatcher.dispatch(EVENT_OnCommand, projArgs);
                             break;
+                        case ProjectListing.Commands.sort:
+                            const sortArgs = this.#createArgs(commands.projectSort);
+                            sortArgs.sortField = args.field;
+                            this.#dispatcher.dispatch(EVENT_OnCommand, sortArgs);
+                            break;
                     }
                 });
             }
@@ -199,10 +209,10 @@ export default class WelcomeScreen extends ComponentBase {
 
 
 /**
- * About dialogue state object.
- * @typedef {object} WelcomeScreenState
+ * State object.
+ * @typedef {Object} WelcomeScreenState
  * @property {boolean?} showWelcomeScreenOnStartUpChecked 
- * @property {ProjectList?} projects 
+ * @property {ProjectList|Project[]|ProjectEntryList|ProjectEntry[]|null} [projects] 
  * @property {boolean?} visible - Is the welcome screen visible?
  * @property {string[]?} enabledCommands - Array of commands that should be enabled, overrided enabled state.
  * @property {string[]?} disabledCommands - Array of commands that should be disabled, overrided enabled state.
@@ -218,11 +228,12 @@ export default class WelcomeScreen extends ComponentBase {
  * @exports
  */
 /**
- * @typedef {object} WelcomeScreenStateCommandEventArgs
+ * @typedef {Object} WelcomeScreenStateCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string?} systemType - Type of system, either 'smsgg', 'gb' or 'nes'.
  * @property {string?} projectId - Project ID.
  * @property {boolean?} showOnStartUp - Should the welcome screen be shown on start-up?
+ * @property {string?} [sortField] - Name of the field to be sorted.
  * @exports
  */
 

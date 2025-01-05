@@ -4,6 +4,8 @@ import Tile from '../models/tile.js';
 import TileSet from '../models/tileSet.js'
 import TileGridProvider from '../models/tileGridProvider.js';
 import TileSetFactory from '../factory/tileSetFactory.js';
+import TileMap from '../models/tileMap.js';
+import PaletteList from '../models/paletteList.js';
 
 export default class PaintUtil {
 
@@ -24,7 +26,7 @@ export default class PaintUtil {
         const updatedTileIds = {};
 
         const tileInfo = tileGrid.getTileInfoByPixel(x, y);
-        if (tileInfo === null || tileInfo < 0) return;
+        if (tileInfo === null || tileInfo < 0) return { affectedTileIds: [], affectedTileIndexes: [] };
 
         const brushSize = options.brushSize ?? 1;
         if (brushSize < 1 || brushSize > 100) throw new Error('Brush size must be between 1 and 100 px.');
@@ -88,7 +90,7 @@ export default class PaintUtil {
         const updatedTileIds = {};
 
         const tileInfo = tileGrid.getTileInfoByPixel(x, y);
-        if (tileInfo === null || tileInfo < 0) return;
+        if (tileInfo === null || tileInfo < 0) return { affectedTileIds: [], affectedTileIndexes: [] };
 
         const brushSize = options.brushSize ?? 1;
         if (brushSize < 1 || brushSize > 100) throw new Error('Brush size must be between 1 and 100 px.');
@@ -149,6 +151,7 @@ export default class PaintUtil {
      * @param {number} y - Origin Y coordinate.
      * @param {number} fillColour - Palette index to fill with.
      * @param {FillOptions} options - Options for bucked tool.
+     * @returns {DrawResult}
      */
     static fillOnTileGrid(tileGrid, tileSet, x, y, fillColour, options) {
         const w = tileGrid.columnCount * 8;
@@ -157,7 +160,7 @@ export default class PaintUtil {
 
         const tileInfo = tileGrid.getTileInfoByPixel(x, y);
         const tile = tileSet.getTileById(tileInfo?.tileId ?? null);
-        if (!tile) return;
+        if (!tile) return { affectedTileIds: [], affectedTileIndexes: [] };
 
         // Constrain? Create a virtual tile set and operate on that
         if (!options.affectAdjacentTiles) {
@@ -168,82 +171,135 @@ export default class PaintUtil {
             y = y % 8;
         }
 
-        const coords = translateCoordinate(tileInfo, x % 8, y % 8);
-        const originColour = tile.readAtCoord(coords.x, coords.y);
-        if (originColour === null || originColour === fillColour) return;
+        const coord = translateCoordinate(tileInfo, x % 8, y % 8);
+        const originColour = tile.readAtCoord(coord.x, coord.y);
+        if (originColour === null || originColour === fillColour) return { affectedTileIds: [], affectedTileIndexes: [] };
+
+        const updatedTileIds = {};
+        const updatedTileIndexes = {};
 
         /** @type {FillProps} */
         const props = { tileGrid, tileSet, w, h, originColour };
 
-        if (pxIsInsideImageAndMatchesOriginColour(x, y, props)) {
+        if (pxIsInsideImageAndMatchesOriginColour(coord.x, coord.y, props)) {
 
             /** @type {Coordinate[]} */
-            let scanCoords = [{ x, y }];
+            let scanCoords = [{ x: coord.x, y: coord.y }];
             while (scanCoords.length > 0) {
 
                 const scanCoord = scanCoords.pop();
-                const y = scanCoord.y;
+                const scanY = scanCoord.y;
 
                 // Fill left of the origin
                 let leftX = scanCoord.x;
-                while (pxIsInsideImageAndMatchesOriginColour(pxToLeftOf(leftX), y, props)) {
-                    setColourOnPixel(tileGrid, tileSet, pxToLeftOf(leftX), y, fillColour);
+                while (pxIsInsideImageAndMatchesOriginColour(pxToLeftOf(leftX), scanY, props)) {
+                    const result = setColourOnPixel(tileGrid, tileSet, pxToLeftOf(leftX), scanY, fillColour);
+                    if (result.wasUpdated) {
+                        updatedTileIds[result.tileId] = result.tileId;
+                        updatedTileIndexes[result.tileIndex] = result.tileIndex;
+                    }
                     leftX = pxToLeftOf(leftX);
                 }
 
                 // Fill right of the origin
                 let rightX = scanCoord.x - 1;
-                while (pxIsInsideImageAndMatchesOriginColour(pxToRightOf(rightX), y, props)) {
-                    setColourOnPixel(tileGrid, tileSet, pxToRightOf(rightX), y, fillColour);
+                while (pxIsInsideImageAndMatchesOriginColour(pxToRightOf(rightX), scanY, props)) {
+                    const result = setColourOnPixel(tileGrid, tileSet, pxToRightOf(rightX), scanY, fillColour);
+                    if (result.wasUpdated) {
+                        updatedTileIds[result.tileId] = result.tileId;
+                        updatedTileIndexes[result.tileIndex] = result.tileIndex;
+                    }
                     rightX = pxToRightOf(rightX);
                 }
 
                 // Now scan the line above and below this one, if any matching pixels 
                 // found then add them to the coords list
                 scanCoords = scanCoords
-                    .concat(scanLineForBlocksOfPixelsWithSameOriginColour(leftX, rightX, oneBelow(y), props))
-                    .concat(scanLineForBlocksOfPixelsWithSameOriginColour(leftX, rightX, oneAbove(y), props));
+                    .concat(scanLineForBlocksOfPixelsWithSameOriginColour(leftX, rightX, oneBelow(scanY), props))
+                    .concat(scanLineForBlocksOfPixelsWithSameOriginColour(leftX, rightX, oneAbove(scanY), props));
             }
 
+        }
+
+        return {
+            affectedTileIndexes: Object.keys(updatedTileIndexes),
+            affectedTileIds: Object.keys(updatedTileIds)
         }
 
     }
 
     /**
-     * Draw a single tile to a canvas.
-     * @param {HTMLCanvasElement} canvas - Canvas element to draw onto.
-     * @param {Tile} tile - Tile to draw.
-     * @param {Palette} palette - Palette to use to render the pixel.
+     * Draws a tile map onto a canvas object.
+     * @param {TileGridProvider} tileGrid - Tile grid to draw.
+     * @param {TileSet} tileSet - Tile set that contains the tiles used by the tile grid.
+     * @param {Palette[]|PaletteList} palettes - Palettes to use when drawing.
+     * @param {number[]?} [paletteIndiciesToRenderTransparent] - Palette indicies to render as transparent.
+     * @returns {ImageBitmap}
      */
-    static drawTile(canvas, tile, palette) {
-        const context = canvas.getContext('2d');
-        const numColours = palette.getColours().length;
+    static createTileGridImage(tileGrid, tileSet, palettes, paletteIndiciesToRenderTransparent) {
+        const widthPx = tileGrid.columnCount * 8;
+        const heightPx = tileGrid.rowCount * 8;
+        const canvas = new OffscreenCanvas(widthPx, heightPx);
+        drawTileGridOntoCanvas(canvas, tileGrid, tileSet, palettes, paletteIndiciesToRenderTransparent);
+        return canvas.transferToImageBitmap();
+    }
 
-        const w = canvas.width / 8;
-        const h = canvas.height / 8;
+    /**
+     * Renders an image of the tile onto a canvas object, at the size of the canvas object.
+     * @param {Tile} tile - Tile to draw to the canvas.
+     * @param {Palette} palette - Colour palette to use.
+     * @param {OffscreenCanvas|HTMLCanvasElement} canvas - Canvas to contain the tile image.
+     * @param {CanvasRenderingContext2D?} context - Canvas 2D rendering context.
+     * @param {number[]?} [paletteIndiciesToRenderTransparent] - Palette indicies to render as transparent.
+     * @returns {ImageBitmap}
+     */
+    static drawTileImageOntoCanvas(tile, palette, canvas, context, paletteIndiciesToRenderTransparent) {
+        if (!tile instanceof Tile) throw new Error('Please supply a valid tile to draw.');
+        if (!palette instanceof Palette) throw new Error('Please supply a valid tile to draw.');
+        if (!canvas instanceof OffscreenCanvas && !canvas instanceof HTMLCanvasElement) throw new Error('Please supply a valid canvas.');
 
-        for (let tilePx = 0; tilePx < 64; tilePx++) {
+        if (!context) {
+            context = canvas.getContext('2d');
+        }
 
-            const tileCol = tilePx % 8;
-            const tileRow = (tilePx - tileCol) / 8;
+        if (!paletteIndiciesToRenderTransparent) {
+            paletteIndiciesToRenderTransparent = [];
+        }
 
-            const x = tileCol * w;
-            const y = tileRow * h;
+        let pixelIndex = 0;
+        let scaleX = canvas.width / 8;
+        let scaleY = canvas.height / 8;
+        let pixelX = 0;
+        let pixelY = 0;
 
-            let pixelPaletteIndex = tile.readAt(tilePx);
+        for (let y = 0; y < 8; y++) {
+            pixelY = y * scaleY;
+            for (let x = 0; x < 8; x++) {
+                pixelX = x * scaleX;
 
-            // Set colour
-            if (pixelPaletteIndex >= 0 && pixelPaletteIndex < numColours) {
-                const colour = palette.getColour(pixelPaletteIndex);
-                const hex = ColourUtil.toHex(colour.r, colour.g, colour.b);
-                context.fillStyle = hex;
+                const pixelPaletteIndex = tile.readAt(pixelIndex);
+
+                // Set colour of the pixel
+                if (pixelPaletteIndex >= 0 && pixelPaletteIndex < palette.getColours().length) {
+                    const colour = palette.getColour(pixelPaletteIndex);
+                    context.fillStyle = `rgb(${colour.r}, ${colour.g}, ${colour.b})`;
+                }
+
+                if (paletteIndiciesToRenderTransparent.includes(pixelPaletteIndex)) {
+                    // This palette index is within the transparency indexes, so it shouldn't be
+                    // drawn, so clear it instead of drawing it.
+                    context.clearRect(pixelX, pixelY, scaleX, scaleY);
+                } else {
+                    // Pixel colour is not in transparency indicies, so draw it.
+                    context.fillRect(pixelX, pixelY, scaleX, scaleY);
+                }
+
+                pixelIndex++;
             }
-
-            context.moveTo(0, 0);
-            context.fillRect(x, y, w, h);
         }
     }
 
+    static drawTileImage = drawTileImage;
 
 }
 
@@ -251,6 +307,7 @@ const pxToLeftOf = px => px - 1;
 const pxToRightOf = px => px + 1;
 const oneAbove = line => line - 1;
 const oneBelow = line => line + 1;
+
 
 /**
  * Performs a scan on a given horizontal line and adds one
@@ -309,13 +366,17 @@ function pxIsInsideImageAndMatchesOriginColour(x, y, props) {
  * @param {number} x - Image X coordinate.
  * @param {number} y - Image Y coordinate.
  * @param {number} colour - Palette index to set.
- * @returns {boolean}
+ * @returns {{wasUpdated: boolean, tileId: string, tileIndex: number}}
  */
 function setColourOnPixel(tileGrid, tileSet, x, y, colour) {
     const tileInfo = tileGrid.getTileInfoByPixel(x, y);
     const tile = tileSet.getTileById(tileInfo.tileId);
     const coords = translateCoordinate(tileInfo, x % 8, y % 8);
-    return tile.setValueAtCoord(coords.x, coords.y, colour);
+    return {
+        wasUpdated: tile.setValueAtCoord(coords.x, coords.y, colour),
+        tileId: tileInfo.tileId,
+        tileIndex: tileInfo.tileIndex
+    };
 }
 
 /**
@@ -332,9 +393,97 @@ function translateCoordinate(tileInfo, x, y) {
     };
 }
 
+
+/**
+ * Draws a tile map onto a canvas object.
+ * @param {HTMLCanvasElement|OffscreenCanvas} canvas - Canvas to draw onto.
+ * @param {TileGridProvider} tileGrid - Tile grid to draw.
+ * @param {TileSet} tileSet - Tile set that contains the tiles used by the tile grid.
+ * @param {Palette[]|PaletteList} palettes - Palettes to use when drawing.
+ */
+function drawTileGridOntoCanvas(canvas, tileGrid, tileSet, palettes) {
+    if (!canvas instanceof HTMLCanvasElement && !canvas instanceof OffscreenCanvas) throw new Error('Non valid canvas object was passed.');
+    if (!tileGrid instanceof TileGridProvider) throw new Error('Tile grid was not valid.');
+    if (!tileSet instanceof TileSet) throw new Error('Tile set was not valid.');
+
+    const paletteArray = palettes instanceof PaletteList ? palettes.getPalettes() : palettes.filter((p) => p instanceof Palette);
+
+    const context = canvas.getContext('2d');
+    const dimensions = { w: 8, h: 8 };
+
+    for (let col = 0; col < tileGrid.columnCount; col++) {
+        for (let row = 0; row < tileGrid.rowCount; row++) {
+            const tileInfo = tileGrid.getTileInfoByRowAndColumn(row, col);
+            const tile = tileSet?.getTileById(tileInfo.tileId) ?? null;
+            const palette = paletteArray[tileInfo.paletteIndex];
+            const coords = { x: col * 8, y: row * 8 };
+            if (tile && palette) {
+                drawTileImage(context,
+                    coords.x, coords.y,
+                    dimensions.w, dimensions.h,
+                    tile, palette,
+                    { horizontalFlip: tileInfo.horizontalFlip, verticalFlip: tileInfo.verticalFlip }
+                );
+            }
+        }
+    }
+}
+
+/**
+ * Renders an image of the tile onto a canvas object, at the size of the canvas object.
+ * @param {CanvasRenderingContext2D} context - Context object to do the drawing.
+ * @param {number} x - X position to draw the tile image.
+ * @param {number} y - Y position to draw the tile image.
+ * @param {number} width - Width to draw the tile image.
+ * @param {number} height - Height to draw the tile image.
+ * @param {Tile} tile - Tile to draw to the canvas.
+ * @param {Palette} palette - Colour palette to use.
+ * @param {DrawTileImageOptions?} [options] - Optional. Additional options for painting the tile.
+ * @returns {ImageBitmap}
+ */
+function drawTileImage(context, x, y, width, height, tile, palette, options) {
+    let transIndexes = Array.isArray(options?.transparencyIndexes) ? options.transparencyIndexes : null;
+    let hFlip = options?.horizontalFlip === true;
+    let vflip = options?.verticalFlip === true;
+
+    let tilePixelIndex = 0;
+    let scaleX = width / 8;
+    let scaleY = height / 8;
+    let canvasX = hFlip ? x + (scaleX * 7) : x;
+    let canvasY = vflip ? y + (scaleY * 7) : y;
+
+    for (let tileY = 0; tileY < 8; tileY++) {
+        for (let tileX = 0; tileX < 8; tileX++) {
+
+            const pixelPaletteIndex = tile.readAt(tilePixelIndex);
+
+            // Set colour of the pixel
+            if (pixelPaletteIndex >= 0 && pixelPaletteIndex < palette.getColours().length) {
+                const colour = palette.getColour(pixelPaletteIndex);
+                context.fillStyle = `rgb(${colour.r}, ${colour.g}, ${colour.b})`;
+            }
+
+            if (transIndexes && transIndexes.includes(pixelPaletteIndex)) {
+                // This palette index is within the transparency indexes, so it shouldn't be
+                // drawn, so clear it instead of drawing it.
+                context.clearRect(canvasX, canvasY, scaleX, scaleY);
+            } else {
+                // Pixel colour is not in transparency indicies, so draw it.
+                context.fillRect(canvasX, canvasY, scaleX, scaleY);
+            }
+
+            tilePixelIndex++;
+
+            canvasX += hFlip ? -scaleX : scaleX;
+        }
+        canvasY += vflip ? -scaleY : scaleY;
+        canvasX = hFlip ? x + (scaleX * 7) : x;
+    }
+}
+
+
 /** 
- * @typedef FillProps
- * @type {object}
+ * @typedef {Object} FillProps
  * @property {TileGridProvider} tileGrid - Tile grid provider with tile layout.
  * @property {TileSet} tileSet - Tile set to fill.
  * @property {number} w - Tile set image width.
@@ -345,15 +494,13 @@ function translateCoordinate(tileInfo, x, y) {
  */
 
 /**
- * @typedef Coordinate
- * @type {object}
+ * @typedef {Object} Coordinate
  * @property {number} x - X coordinate.
  * @property {number} y - Y coordinate.
  */
 
 /**
- * @typedef DrawOptions
- * @type {object}
+ * @typedef {Object} DrawOptions
  * @property {number} brushSize - Size of the brush in pixels, between 1 and 100.
  * @property {boolean} affectAdjacentTiles - Default: true. Will neigbouring tiles also be drawn onto?
  * @property {boolean} breakTileLinks - Break links on affected tiles?
@@ -361,17 +508,23 @@ function translateCoordinate(tileInfo, x, y) {
  */
 
 /**
- * @typedef FillOptions
- * @type {object}
+ * @typedef {Object} FillOptions
  * @property {boolean} affectAdjacentTiles - Default: true. Will neigbouring tiles also be affected?
  * @property {boolean} breakTileLinks - Break links on affected tiles?
  * @exports
  */
 
 /**
- * @typedef DrawResult
- * @type {object}
+ * @typedef {Object} DrawResult
  * @property {number[]} affectedTileIndexes - The tiles that were affected by the draw operation.
  * @property {string[]} affectedTileIds - The unique tile IDs that were affected by the draw operation.
  * @exports
 */
+
+/**
+ * @typedef {Object} DrawTileImageOptions
+ * @property {number[]} transparencyIndexes - Palette colour indexes that will be rendered as transparent.
+ * @property {boolean} horizontalFlip - Draw the tile horizontally reversed?
+ * @property {boolean} verticalFlip - Draw the tile vertically reversed?
+ * @exports
+ */

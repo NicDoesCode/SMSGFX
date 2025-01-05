@@ -45,10 +45,10 @@ export default class PaintTool {
      * @param {number} colourIndex - Colour index to be filled.
      * @param {boolean} clampToTile - Will neigbouring tiles be affected?
      * @param {boolean} breakTileLinks - Break links on affected tiles?
-     * @returns {boolean}
+     * @returns {import("../util/paintUtil").DrawResult}
      */
     static fillColourOnTileGrid(tileGrid, tileSet, x, y, colourIndex, clampToTile, breakTileLinks) {
-        PaintUtil.fillOnTileGrid(tileGrid, tileSet, x, y, colourIndex, { affectAdjacentTiles: !clampToTile });
+        return PaintUtil.fillOnTileGrid(tileGrid, tileSet, x, y, colourIndex, { affectAdjacentTiles: !clampToTile });
     }
 
 }

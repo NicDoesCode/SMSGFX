@@ -108,7 +108,7 @@ export default class TileEditorContextMenu extends ComponentBase {
  * @exports
  */
 /**
- * @typedef {object} TileEditorContextMenuCommandEventArgs
+ * @typedef {Object} TileEditorContextMenuCommandEventArgs
  * @property {string} command - Command being invoked.
  * @property {number} x - X tile map pixel.
  * @property {number} y - Y tile map pixel.

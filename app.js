@@ -12,6 +12,7 @@ const portHttps = 8443;
 
 
 function startServer() {
+    console.log('Starting SMSGFX');
 
     let servPath = getPath();
     if (!['wwwroot', 'dist'].includes(servPath)) servPath = 'wwwroot';

@@ -1,5 +1,4 @@
 import TileSet from "./../models/tileSet.js";
-import Palette from "./../models/palette.js";
 import PaletteList from "./../models/paletteList.js";
 import ColourUtil from "./../util/colourUtil.js";
 import ReferenceImage from "../models/referenceImage.js";
@@ -7,6 +6,9 @@ import TileGridProvider from "../models/tileGridProvider.js";
 import Tile from "../models/tile.js";
 import TileMap from "../models/tileMap.js";
 import TileMapFactory from "../factory/tileMapFactory.js";
+import PaletteListFactory from "../factory/paletteListFactory.js";
+import PaintUtil from "../util/paintUtil.js";
+
 
 const highlightModes = {
     pixel: 'pixel',
@@ -22,14 +24,32 @@ const highlightModes = {
     columnBlockIndex: 'columnBlockIndex'
 }
 
+const referenceImageDrawMode = {
+    overIndex: 'overIndex',
+    overlay: 'overlay',
+    underlay: 'underlay'
+};
+
+
+/**
+ * The CanvasManager class renders a tile grid onto a HTMLCanvasElement, as well as other features
+ * such as the tile / pixel grid, the cursor, etc.
+ */
 export default class CanvasManager {
 
 
     /**
-     * Enumerates all of the possible highlight modes for the canvas manager.
+     * Enumerates highlight modes.
      */
     static get HighlightModes() {
         return highlightModes;
+    }
+
+    /**
+     * Enumerates draw modes reference images.
+     */
+    static get ReferenceImageDrawMode() {
+        return referenceImageDrawMode;
     }
 
 
@@ -41,7 +61,7 @@ export default class CanvasManager {
     }
 
     /**
-     * Gets or sets the highlighting mode for the canvas manager.
+     * Gets or sets how the canvas highlights what is under the mouse cursor (pixel, row, column, etc).
      */
     get highlightMode() {
         return this.#highlightMode;
@@ -89,8 +109,9 @@ export default class CanvasManager {
         return this.#paletteList;
     }
     set paletteList(value) {
-        this.invalidateImage();
         this.#paletteList = value;
+        this.#renderPaletteList = null;
+        this.invalidateImage();
     }
 
     /**
@@ -136,6 +157,20 @@ export default class CanvasManager {
     }
 
     /**
+     * Gets or sets a list of IDs of tiles to draw a border around.
+     */
+    get outlineTileIds() {
+        return this.#outlineTileIds;
+    }
+    set outlineTileIds(value) {
+        if (Array.isArray(value)) {
+            this.#outlineTileIds = value.filter((tileId) => typeof tileId === 'string');
+        } else {
+            this.#outlineTileIds = [];
+        }
+    }
+
+    /**
      * Gets or sets the cursor size between 1 and 50 tiles.
      */
     get cursorSize() {
@@ -167,29 +202,54 @@ export default class CanvasManager {
     }
 
     /**
-     * Gets or sets the colour index for transparency, 0 to 15, -1 for none.
+     * Gets or sets the palette indicies for transparency.
      */
-    get transparencyIndex() {
-        return this.#transparencyIndex;
+    get transparencyIndicies() {
+        return this.#transparencyIndicies.slice();
     }
-    set transparencyIndex(value) {
-        this.#transparencyIndex = value;
+    set transparencyIndicies(value) {
+        if (Array.isArray(value)) {
+            this.#transparencyIndicies = value.filter((v) => typeof v === 'number');
+        } else if (typeof value === 'number') {
+            this.#transparencyIndicies = [value];
+        } else {
+            this.#transparencyIndicies = [];
+        }
     }
 
+    /**
+     * Gets or sets the locked palette slot index from 0 to 15, null for none.
+     */
+    get lockedPaletteSlotIndex() {
+        return this.#lockedPaletteSlotIndex;
+    }
+    set lockedPaletteSlotIndex(value) {
+        this.#lockedPaletteSlotIndex = value;
+    }
+
+    /**
+     * Gets or sets the X offset of the tile grid image.
+     */
     get offsetX() {
         return this.#offsetX;
     }
     set offsetX(value) {
-        this.#offsetX = value;
+        this.#offsetX = Math.round(value);
     }
 
+    /**
+     * Gets or sets the Y offset of the tile grid image.
+     */
     get offsetY() {
         return this.#offsetY;
     }
     set offsetY(value) {
-        this.#offsetY = value;
+        this.#offsetY = Math.round(value);
     }
 
+    /**
+     * Gets or sets the background colour of the viewport, set to null for transparency.
+     */
     get backgroundColour() {
         return this.#backgroundColour;
     }
@@ -197,6 +257,9 @@ export default class CanvasManager {
         this.#backgroundColour = value;
     }
 
+    /**
+     * Gets or sets the colour of the pixel grid.
+     */
     get pixelGridColour() {
         return this.#pixelGridColour;
     }
@@ -204,6 +267,9 @@ export default class CanvasManager {
         this.#pixelGridColour = value;
     }
 
+    /**
+     * Gets or sets the opacity of the pixel grid.
+     */
     get pixelGridOpacity() {
         return this.#pixelGridOpacity;
     }
@@ -211,6 +277,9 @@ export default class CanvasManager {
         this.#pixelGridOpacity = value;
     }
 
+    /**
+     * Gets or sets the colour of the tile grid.
+     */
     get tileGridColour() {
         return this.#tileGridColour;
     }
@@ -218,6 +287,9 @@ export default class CanvasManager {
         this.#tileGridColour = value;
     }
 
+    /**
+     * Gets or sets the opacity of the tile grid.
+     */
     get tileGridOpacity() {
         return this.#tileGridOpacity;
     }
@@ -225,8 +297,132 @@ export default class CanvasManager {
         this.#tileGridOpacity = value;
     }
 
+    /**
+     * Gets or sets the colour of the highlighted item (tile, pixel, row, etc).
+     */
+    get primaryHoverHighlightColour() {
+        return this.#primaryHoverHighlightColour;
+    }
+    set primaryHoverHighlightColour(value) {
+        this.#primaryHoverHighlightColour = value;
+    }
 
-    /** @type {HTMLCanvasElement} */
+    /**
+     * Gets or sets the shadow or background colour of the highlighted item (tile, pixel, row, etc).
+     */
+    get primaryHoverShadowColour() {
+        return this.#primaryHoverShadowColour;
+    }
+    set primaryHoverShadowColour(value) {
+        this.#primaryHoverShadowColour = value;
+    }
+
+    /**
+     * Gets or sets the colour of the sub object (such as tile that contains the pixel, etc).
+     */
+    get secondaryHoverHighlightColour() {
+        return this.#secondaryHoverHighlightColour;
+    }
+    set secondaryHoverHighlightColour(value) {
+        this.#secondaryHoverHighlightColour = value;
+    }
+
+    /**
+     * Gets or sets the border colour of masked tiles in the tile grid.
+     */
+    get maskingBorderColour() {
+        return this.#maskingBorderColour;
+    }
+    set maskingBorderColour(value) {
+        this.#maskingBorderColour = value;
+    }
+
+    /**
+     * Gets or sets the colour of the mask applied when tiles are hidden.
+     */
+    get maskingColour() {
+        return this.#maskingColour;
+    }
+    set maskingColour(value) {
+        this.#maskingColour = value;
+    }
+
+    /**
+     * Gets or sets the primary colour of the selection box.
+     */
+    get primarySelectionColour() {
+        return this.#primarySelectionColour;
+    }
+    set primarySelectionColour(value) {
+        this.#primarySelectionColour = value;
+    }
+
+    /**
+     * Gets or sets the secondary colour of the selection box.
+     */
+    get secondarySelectionColour() {
+        return this.#secondarySelectionColour;
+    }
+    set secondarySelectionColour(value) {
+        this.#secondarySelectionColour = value;
+    }
+
+    /**
+     * Gets or sets the primary colour of the canvas border.
+     */
+    get canvasBorderPrimaryColour() {
+        return this.#canvasBorderPrimaryColour;
+    }
+    set canvasBorderPrimaryColour(value) {
+        this.#canvasBorderPrimaryColour = value;
+    }
+
+    /**
+     * Gets or sets the secondary colour of the canvas border.
+     */
+    get canvasBorderSecondaryColour() {
+        return this.#canvasBorderSecondaryColour;
+    }
+    set canvasBorderSecondaryColour(value) {
+        this.#canvasBorderSecondaryColour = value;
+    }
+
+    /**
+     * Gets or sets the opacity of the mask applied when tiles are hidden.
+     */
+    get maskingOpacity() {
+        return this.#maskingOpacity;
+    }
+    set maskingOpacity(value) {
+        this.#maskingOpacity = value;
+    }
+
+    /**
+     * Gets or sets the opacity of transparency grid.
+     */
+    get transparencyGridOpacity() {
+        return this.#transparencyGridOpacity;
+    }
+    set transparencyGridOpacity(value) {
+        if (value !== this.#transparencyGridOpacity) {
+            this.#transparencyGridOpacity = value;
+            this.#refreshTileImage();
+            createGridPatternCanvas(this.scale, value);
+        }
+    }
+
+    /**
+     * Gets or sets the draw mode for the reference image.
+     */
+    get referenceImageDrawMode() {
+        return this.#referenceImageDrawMode;
+    }
+    set referenceImageDrawMode(value) {
+        this.#referenceImageDrawMode = value;
+    }
+
+
+    /** @type {OffscreenCanvas} */
     #tileCanvas;
     /** @type {boolean} */
     #needToDrawTileImage = true;
@@ -234,48 +430,72 @@ export default class CanvasManager {
     #tileGrid = null;
     /** @type {TileMap?} */
     #tilePreviewMap = null;
-    /** @type {HTMLCanvasElement} */
+    /** @type {OffscreenCanvas} */
     #tilePreviewCanvas = null;
-    /** @type {HTMLCanvasElement} */
-    #gridPatternCanvas = null;
+    /** @type {ImageBitmap} */
+    #tilePreviewImage = null;
+    /** @type {ImageBitmap} */
+    #gridPatternImage = null;
     /** @type {TileSet} */
     #tileSet = null;
     /** @type {PaletteList} */
     #paletteList = null;
+    /** @type {PaletteList} */
+    #renderPaletteList = null;
     /** @type {number} */
     #scale = 10;
     /** @type {number} */
     #tilesPerBlock = 2;
     /** @type {number} */
     #selectedTileIndex = -1;
+    /** @type {number[]} */
+    #attentionTiles = [];
+    /** @type {string[]} */
+    #outlineTileIds = [];
     /** @type {import("../models/tileGridProvider.js").TileGridRegion?} */
     #selectedRegion = null;
     #cursorSize = 1;
-    #transparencyIndex = 15;
+    /** @type {number[]} */
+    #transparencyIndicies = [];
+    /** @type {number?} */
+    #lockedPaletteSlotIndex = null;
     #drawTileGrid = false;
     #drawPixelGrid = false;
     /** @type {ReferenceImage[]} */
     #referenceImages = [];
+    /** @type {string} */
+    #referenceImageDrawMode = referenceImageDrawMode.overIndex;
     /** @type {number[]} */
     #redrawTiles = [];
     #offsetX = 0;
     #offsetY = 0;
     #backgroundColour = '#FFFFFF';
-    #pixelGridColour = '#FFFFFF';
+    #pixelGridColour = '#000000';
     #pixelGridOpacity = 0.2;
     #tileGridColour = '#000000';
     #tileGridOpacity = 0.4;
+    #transparencyGridOpacity = 0.9;
     #highlightMode = CanvasManager.HighlightModes.pixel;
+    #primaryHoverHighlightColour = '#FFFF00';
+    #primaryHoverShadowColour = '#000000';
+    #secondaryHoverHighlightColour = '#FFFF00';
+    #maskingBorderColour = '#000000';
+    #maskingColour = '#888888';
+    #maskingOpacity = 0.65;
+    #primarySelectionColour = '#FFFF00';
+    #secondarySelectionColour = '#000000';
+    #canvasBorderPrimaryColour = '#888888';
+    #canvasBorderSecondaryColour = '#CCCCCC';
 
 
     /**
-     * Creates a new instance of the tile canvas.
+     * Constructor for the class.
      * @param {TileGridProvider} [tileGrid] - Object that contains the tile grid to render.
      * @param {TileSet} [tileSet] - Tile set that is the source of tiles.
      * @param {PaletteList} [paletteList] - Colour palette list to use.
      */
     constructor(tileGrid, tileSet, paletteList) {
-        this.#tileCanvas = document.createElement('canvas');
+        this.#tileCanvas = new OffscreenCanvas(8, 8);
         if (tileGrid) this.#tileGrid = tileGrid;
         if (tileSet) this.#tileSet = tileSet;
         if (paletteList) this.#paletteList = paletteList;
@@ -286,7 +506,9 @@ export default class CanvasManager {
      * Invalidates the tile set image and forces a redraw.
      */
     invalidateImage() {
+        // Set redraw variables
         this.#needToDrawTileImage = true;
+        // this.#renderPaletteList = null;
         this.#tilePreviewCanvas = null;
     }
 
@@ -295,7 +517,10 @@ export default class CanvasManager {
      * @param {number} index - Index of the tile to invalidate.
      */
     invalidateTile(index) {
-        this.#redrawTiles.push(index);
+        // Set redraw variables
+        if (!this.#redrawTiles.includes(index)) {
+            this.#redrawTiles.push(index);
+        }
         this.#tilePreviewCanvas = null;
     }
 
@@ -305,8 +530,11 @@ export default class CanvasManager {
      */
     invalidateTileId(tileId) {
         this.tileGrid.getTileIdIndexes(tileId).forEach((index) => {
-            this.invalidateTile(index);
+            if (!this.#redrawTiles.includes(index)) {
+                this.#redrawTiles.push(index);
+            }
         });
+        this.#tilePreviewCanvas = null;
     }
 
 
@@ -319,10 +547,19 @@ export default class CanvasManager {
         return canvas.toDataURL('image/png');
     }
 
+    /**
+     * Returns a bitmap that represents the tile set as a PNG data URL.
+     */
+    toImageBitmap() {
+        const canvas = new OffscreenCanvas(this.#tileCanvas.width, this.#tileCanvas.height);
+        canvas.getContext('2d').drawImage(this.#tileCanvas, 0, 0);
+        return canvas.transferToImageBitmap();
+    }
+
 
     /**
      * Sets the tile preview image, this will be drawn over the tile index where the mouse is.
-     * @param {string|Tile|TileMap} tileOrTileIdOrTileMap 
+     * @param {string|Tile|TileMap|null} tileOrTileIdOrTileMap 
      */
     setTilePreview(tileOrTileIdOrTileMap) {
         /** @type {TileMap} */ let tileMap = null;
@@ -332,7 +569,7 @@ export default class CanvasManager {
                 tileMap = TileMapFactory.create({ defaultTileId: tile.tileId, rows: 1, columns: 1 });
             } else {
                 const tileId = tileOrTileIdOrTileMap instanceof Tile ? tileOrTileIdOrTileMap.tileId : tileOrTileIdOrTileMap;
-                console.warn(`CanvasManager.setTilePreview: Tile with ID '${tileId}' not found, tile preview will be slipped.`);
+                console.warn(`CanvasManager.setTilePreview: Tile with ID '${tileId}' not found, tile preview will be skipped.`);
             }
         } else if (tileOrTileIdOrTileMap instanceof TileMap) {
             tileMap = tileOrTileIdOrTileMap;
@@ -365,12 +602,34 @@ export default class CanvasManager {
 
 
     /**
-     * Sets the reference image.
-     * @param {ReferenceImage} referenceImage - Reference image to draw.
+     * Gets the reference image count.
      */
-    addReferenceImage(referenceImage) {
-        if (referenceImage) {
-            this.#referenceImages.push(referenceImage);
+    getReferenceImageCount() {
+        return this.#referenceImages.length;
+    }
+
+    /**
+     * Gets the reference images.
+     */
+    getReferenceImages() {
+        return this.#referenceImages.slice();
+    }
+
+    /**
+     * Gets a reference image by index.
+     * @param {number} index - Index of the reference image.
+     */
+    getReferenceImageByIndex(index) {
+        return this.#referenceImages[index];
+    }
+
+    /**
+     * Sets the reference image.
+     * @param {ReferenceImage} value - Reference image to draw.
+     */
+    addReferenceImage(value) {
+        if (value) {
+            this.#referenceImages.push(value);
         }
     }
 
@@ -555,17 +814,18 @@ export default class CanvasManager {
      * Refreshes the entire tile image.
      */
     #refreshTileImage() {
-        const transColour = this.#referenceImages.filter(r => r.image !== null).length > 0 ? this.#transparencyIndex : -1;
-        this.#gridPatternCanvas = createGridPatternCanvas(this.scale);
-        this.#drawTileImage(this.#tileCanvas, transColour);
+        this.#gridPatternImage = createGridPatternCanvas(this.scale, this.transparencyGridOpacity);
+        if (this.tileGrid) {
+            this.#drawTileImage(this.#tileCanvas, this.#transparencyIndicies);
+        }
     }
 
     /**
      * Draws the tile image onto a canvas element.
-     * @param {HTMLCanvasElement} tileCanvas - Canvas element to draw onto.
-     * @param {number} transparencyColour - Render this colour as transparent.
+     * @param {HTMLCanvasElement|OffscreenCanvas} tileCanvas - Canvas element to draw onto.
+     * @param {number[]} transparencyIndicies - Render this colour as transparent.
      */
-    #drawTileImage(tileCanvas, transparencyColour) {
+    #drawTileImage(tileCanvas, transparencyIndicies) {
         if (!this.tileGrid) throw new Error('drawTileImage: No tile grid.');
         if (!this.tileSet) throw new Error('drawTileImage: No tile set.');
         if (!this.paletteList) throw new Error('drawTileImage: No palette list.');
@@ -580,8 +840,10 @@ export default class CanvasManager {
         tileCanvas.width = tiles * 8 * pxSize;
         tileCanvas.height = rows * 8 * pxSize;
 
+        this.#buildRenderPaletteList();
+
         for (let tileIndex = 0; tileIndex < this.tileGrid.tileCount; tileIndex++) {
-            this.#drawTile(context, tileIndex, transparencyColour);
+            this.#drawTile(context, tileIndex, transparencyIndicies);
         }
     }
 
@@ -589,85 +851,81 @@ export default class CanvasManager {
      * Refreshes a single tile on the tile image.
      */
     #refreshSingleTile(tileIndex) {
-        const transColour = this.#referenceImages.filter(r => r.image !== null).length > 0 ? this.#transparencyIndex : -1;
-        this.#drawIndividualTile(this.#tileCanvas, tileIndex, transColour);
+        this.#drawIndividualTile(this.#tileCanvas, tileIndex, this.#transparencyIndicies);
     }
 
     /**
      * Updates a single tile on the main tile canvas.
-     * @param {HTMLCanvasElement} canvas - Canvas element to draw onto.
+     * @param {HTMLCanvasElement|OffscreenCanvas} canvas - Canvas element to draw onto.
      * @param {number} tileIndex - Index of the tile to update on the tile image.
-     * @param {number} transparencyColour - Render this colour as transparent.
+     * @param {number[]} transparencyIndicies - Render this colour as transparent.
      */
-    #drawIndividualTile(canvas, tileIndex, transparencyColour) {
+    #drawIndividualTile(canvas, tileIndex, transparencyIndicies) {
         if (!this.tileGrid) throw new Error('drawTileImage: No tile grid.');
         if (!this.tileSet) throw new Error('drawTileImage: No tile set.');
         if (!this.paletteList) throw new Error('drawTileImage: No palette list.');
 
         const context = canvas.getContext('2d');
-        this.#drawTile(context, tileIndex, transparencyColour);
+        this.#drawTile(context, tileIndex, transparencyIndicies);
     }
 
     /**
      * 
      * @param {CanvasRenderingContext2D} context 
      * @param {number} tileindex 
-     * @param {number} transparencyColour 
+     * @param {number} transparencyIndicies 
      */
-    #drawTile(context, tileindex, transparencyColour) {
+    #drawTile(context, tileindex, transparencyIndicies) {
+        this.#buildRenderPaletteList();
+
         const pxSize = this.scale;
         const tileInfo = this.tileGrid.getTileInfoByIndex(tileindex);
         const tile = this.tileSet.getTileById(tileInfo.tileId);
         const tileWidth = Math.max(this.tileGrid.columnCount, 1);
         const tileGridCol = tileindex % tileWidth;
         const tileGridRow = (tileindex - tileGridCol) / tileWidth;
-        const palette = this.paletteList.getPalette(tileInfo.paletteIndex);
-        const numColours = palette.getColours().length;
+        const palette = this.#renderPaletteList.getPalette(Math.min(tileInfo.paletteIndex, this.#renderPaletteList.getPalettes().length - 1));
 
-        if (tile) {
-            // Tile exists 
-            let pixelPaletteIndex = 0;
-            for (let tilePx = 0; tilePx < 64; tilePx++) {
+        context.imageSmoothingEnabled = false;
 
-                const tileCol = tilePx % 8;
-                const tileRow = (tilePx - tileCol) / 8;
-
-                const x = ((tileGridCol * 8) + tileCol) * pxSize;
-                const y = ((tileGridRow * 8) + tileRow) * pxSize;
-
-                if (tileInfo.horizontalFlip && tileInfo.verticalFlip) {
-                    pixelPaletteIndex = tile.readAt(63 - tilePx);
-                } else if (tileInfo.horizontalFlip) {
-                    const readPx = (tileRow * 8) + (7 - tileCol);
-                    pixelPaletteIndex = tile.readAt(readPx);
-                } else if (tileInfo.verticalFlip) {
-                    const readPx = ((7 - tileRow) * 8) + tileCol;
-                    pixelPaletteIndex = tile.readAt(readPx);
-                } else {
-                    pixelPaletteIndex = tile.readAt(tilePx);
-                }
-
-                // Set colour of the pixel
-                if (pixelPaletteIndex >= 0 && pixelPaletteIndex < numColours) {
-                    const colour = palette.getColour(pixelPaletteIndex);
-                    const hex = ColourUtil.toHex(colour.r, colour.g, colour.b);
-                    context.fillStyle = hex;
-                }
-
-                if (pixelPaletteIndex !== transparencyColour) {
-                    // Pixel colour is different to transparency, so draw it.
-                    context.fillRect(x, y, pxSize, pxSize);
-                } else {
-                    // If this pixel colour is the colour of transparency, then it shouldn't be
-                    // drawn, so clear it instead of drawing it.
-                    context.clearRect(x, y, pxSize, pxSize);
-                }
-            }
-        } else {
-            // Draw in pixel mesh when the tile doesn't exist
+        if (!tile || transparencyIndicies >= 0) {
+            // Draw in transparency pixel mesh when the tile doesn't exist
             const originX = (tileGridCol * 8) * pxSize;
             const originY = (tileGridRow * 8) * pxSize;
-            context.drawImage(this.#gridPatternCanvas, originX, originY);
+            const sizeXY = pxSize * 8;
+            context.clearRect(originX, originY, sizeXY, sizeXY);
+            context.drawImage(this.#gridPatternImage, originX, originY);
+        }
+        if (tile) {
+            // Tile exists 
+            const x = tileGridCol * 8 * pxSize;
+            const y = tileGridRow * 8 * pxSize;
+            const sizeXY = pxSize * 8;
+            PaintUtil.drawTileImage(context, x, y, sizeXY, sizeXY, tile, palette, {
+                transparencyIndexes: transparencyIndicies,
+                horizontalFlip: tileInfo.horizontalFlip,
+                verticalFlip: tileInfo.verticalFlip
+            });
+        }
+    }
+
+    #buildRenderPaletteList() {
+        if (this.#renderPaletteList !== null) return;
+        if (this.lockedPaletteSlotIndex !== null && this.lockedPaletteSlotIndex >= 0 && this.lockedPaletteSlotIndex < this.paletteList.getPalette(0).getColours().length) {
+            const list = PaletteListFactory.clone(this.paletteList, { preserveIds: true });
+            const lockColour = this.paletteList.getPalette(0).getColour(this.lockedPaletteSlotIndex);
+            for (let i = 1; i < list.getPalettes().length; i++) {
+                const colour = list.getPalette(i).getColour(this.lockedPaletteSlotIndex);
+                colour.r = lockColour.r;
+                colour.g = lockColour.g;
+                colour.b = lockColour.b;
+            }
+            list.getPalettes().forEach((p) => {
+                p.paletteId = `${p.paletteId}[lock:${this.lockedPaletteSlotIndex}]`;
+            });
+            this.#renderPaletteList = list;
+        } else {
+            this.#renderPaletteList = this.paletteList;
         }
     }
 
@@ -690,15 +948,15 @@ export default class CanvasManager {
 
     /**
      * Draws a tile set and then returns the image as a base 64 URL.
-     * @param {HTMLCanvasElement} canvas - Canvas to draw onto.
+     * @param {CanvasRenderingContext2D} context - Canvas rendering context.
+     * @param {{width: number, height: number}} canvas - Canvas to draw onto.
      * @param {number} mouseX - X position of the cursor on the image.
      * @param {number} mouseY - Y position of the cursor on the image.
      */
-    drawUI(canvas, mouseX, mouseY) {
-        if (!canvas) throw new Error('drawUI: No canvas.');
+    drawUI(context, canvas, mouseX, mouseY) {
+        if (!context) throw new Error('drawUI: No canvas draw context.');
 
         const tileCanvas = this.#tileCanvas;
-        const context = canvas.getContext('2d');
 
         // Fill canvas background
         if (this.backgroundColour === null || this.backgroundColour === 'transparent') {
@@ -720,11 +978,11 @@ export default class CanvasManager {
             this.#refreshTileImage();
             this.#redrawTiles = [];
             this.#needToDrawTileImage = false;
-        }
-
-        while (this.#redrawTiles.length > 0) {
-            const tileIndex = this.#redrawTiles.pop();
-            this.#refreshSingleTile(tileIndex);
+        } else {
+            while (this.#redrawTiles.length > 0) {
+                const tileIndex = this.#redrawTiles.pop();
+                this.#refreshSingleTile(tileIndex);
+            }
         }
 
         const drawCoords = this.getDrawCoords(canvas);
@@ -756,7 +1014,9 @@ export default class CanvasManager {
         } : null;
 
         // Draw the reference image below
-        if (this.transparencyIndex >= 0 && this.transparencyIndex < 16) {
+        if (this.referenceImageDrawMode === referenceImageDrawMode.underlay) {
+            this.#drawReferenceImages(context, coords);
+        } else if (this.referenceImageDrawMode === referenceImageDrawMode.overIndex && this.transparencyIndicies.length > 0) {
             this.#drawReferenceImages(context, coords);
         }
 
@@ -770,12 +1030,13 @@ export default class CanvasManager {
 
         // Draw the border around the canvas
         context.lineWidth = 1;
-        context.strokeStyle = '#888888';
+        context.strokeStyle = this.canvasBorderPrimaryColour;
         context.strokeRect(canvX - 1, canvY - 1, baseW + 2, baseH + 2);
-        context.strokeStyle = '#CCCCCC';
+        context.strokeStyle = this.canvasBorderSecondaryColour;
         context.strokeRect(canvX - 2, canvY - 2, baseW + 4, baseH + 4);
 
         // Draw the cached image
+        context.imageSmoothingEnabled = false;
         context.drawImage(tileCanvas, baseX, baseY, baseW, baseH, canvX, canvY, baseW, baseH);
 
         // Reset things
@@ -783,58 +1044,41 @@ export default class CanvasManager {
         context.moveTo(0, 0);
 
         // If drawing reference images above
-        if (this.transparencyIndex === -1) {
+        if (this.referenceImageDrawMode === referenceImageDrawMode.overlay) {
             this.#drawReferenceImages(context, coords);
-        }
-
-        // TODO - Come up with some generic draw functions here and re-use code.
-
-        // Draw tile grid
-        if (this.showTileGrid) {
-            const tileGridColour = ColourUtil.rgbFromHex(this.tileGridColour);
-            context.strokeStyle = `rgba(${tileGridColour.r}, ${tileGridColour.g}, ${tileGridColour.b}, ${this.tileGridOpacity})`;
-            context.beginPath();
-            for (let x = 0; x <= this.#tileCanvas.width; x += pxSize * 8) {
-                context.moveTo(x + drawX, drawY);
-                context.lineTo(x + drawX, this.#tileCanvas.height + drawY);
-            }
-            for (let y = 0; y <= this.#tileCanvas.height; y += pxSize * 8) {
-                context.moveTo(0 + drawX, y + drawY);
-                context.lineTo(this.#tileCanvas.width + drawX, y + drawY);
-            }
-            context.closePath();
-            context.stroke();
         }
 
         // Draw pixel grid
         if (this.showPixelGrid && this.scale >= 5) {
-            const pixelGridColour = ColourUtil.rgbFromHex(this.pixelGridColour);
-            context.strokeStyle = `rgba(${pixelGridColour.r}, ${pixelGridColour.g}, ${pixelGridColour.b}, ${this.pixelGridOpacity})`;
-            context.beginPath();
-            for (let x = 0; x <= this.#tileCanvas.width; x += pxSize) {
-                context.moveTo(x + drawX, 0 + drawY);
-                context.lineTo(x + drawX, this.#tileCanvas.height + drawY);
-            }
-            for (let y = 0; y <= this.#tileCanvas.height; y += pxSize) {
-                context.moveTo(0 + drawX, y + drawY);
-                context.lineTo(this.#tileCanvas.width + drawX, y + drawY);
-            }
-            context.closePath();
-            context.stroke();
+            this.#drawGrid({
+                context, 
+                x: drawX, y: drawY, 
+                columnCount: this.tileGrid.columnCount * 8, 
+                rowCount: this.tileGrid.rowCount * 8, 
+                lineSpacingPx: this.scale, 
+                gridColour: this.pixelGridColour, 
+                gridOpacity: this.pixelGridOpacity
+            });
+        }
+
+        // Draw tile grid
+        if (this.showTileGrid) {
+            this.#drawGrid({
+                context, 
+                x: drawX, y: drawY, 
+                columnCount: this.tileGrid.columnCount, 
+                rowCount: this.tileGrid.rowCount, 
+                lineSpacingPx: this.scale * 8, 
+                gridColour: this.tileGridColour, 
+                gridOpacity: this.tileGridOpacity
+            });
         }
 
         // Highlight mode is pixel
         if (this.highlightMode === CanvasManager.HighlightModes.pixel) {
             if (coords.x >= 0 && coords.x < coords.gridColumns * 8 && coords.y >= 0 && coords.y < coords.gridRows * 8) {
-                // Highlight the tile
-                context.strokeStyle = 'yellow';
-                context.strokeRect(coords.tileX + drawX, coords.tileY + drawY, (8 * pxSize), (8 * pxSize));
-
-                // Draw the cursor
-                context.strokeStyle = 'white';
-                this.#drawBrushBorder(context, coords, 1);
-                context.strokeStyle = 'black';
-                this.#drawBrushBorder(context, coords, 2);
+                this.#strokeSecondaryArea(context, coords.tileX + drawX, coords.tileY + drawY, (8 * pxSize), (8 * pxSize));
+                this.#strokeBrushBorder(context, coords);
             }
         }
 
@@ -844,182 +1088,121 @@ export default class CanvasManager {
                 const tile = coords.tile;
                 const originX = drawX + (tile.sizePx * tile.col);
                 const originY = drawY + (tile.sizePx * tile.row);
-                context.strokeStyle = 'black';
-                context.strokeRect(originX, originY, tile.sizePx, tile.sizePx);
-                context.strokeStyle = 'yellow';
-                context.strokeRect(originX - 1, originY - 1, tile.sizePx + 2, tile.sizePx + 2);
+                this.#strokePrimaryArea(context, originX - 1, originY - 1, tile.sizePx + 2, tile.sizePx + 2);
             }
         }
 
-        // Highlight mode is tile block
+        // Highlight mode is tile block (NES 4x4 tile blockes for palettes, etc)
         if (this.#highlightMode === CanvasManager.HighlightModes.tileBlock) {
             if (coords.x >= 0 && coords.x < coords.gridColumns * 8 && coords.y >= 0 && coords.y < coords.gridRows * 8) {
                 const block = coords.block;
                 const originX = drawX + (block.sizePx * block.col);
                 const originY = drawY + (block.sizePx * block.row);
-                context.strokeStyle = 'black';
-                context.strokeRect(originX, originY, block.sizePx, block.sizePx);
-                context.strokeStyle = 'yellow';
-                context.strokeRect(originX - 1, originY - 1, block.sizePx + 2, block.sizePx + 2);
+                this.#strokePrimaryArea(context, originX, originY, block.sizePx, block.sizePx);
             }
         }
 
-        // Highlight mode is row
-        if (this.#highlightMode === CanvasManager.HighlightModes.row) {
-            if (coords.y >= 0 && coords.y < coords.gridRows * 8) {
-                const tile = coords.tile;
-                const rowWidth = coords.gridColumns * coords.tile.sizePx;
-                const originX = drawX;
-                const originY = drawY + (tile.sizePx * tile.row);
-                context.filter = 'opacity(0.25)';
-                context.fillStyle = 'yellow';
-                context.fillRect(originX, originY, rowWidth, tile.sizePx);
-                context.filter = 'none';
-                context.strokeStyle = 'black';
-                context.strokeRect(originX, originY, rowWidth, tile.sizePx);
-                context.strokeStyle = 'white';
-                context.strokeRect(originX + 1, originY + 1, rowWidth - 2, tile.sizePx - 2);
-            }
-        }
-
-        // Highlight mode is row block
+        // Highlight mode is row block (eg. delete row)
         if (this.#highlightMode === CanvasManager.HighlightModes.rowBlock) {
             if (coords.y >= 0 && coords.y < coords.gridRows * 8) {
                 const block = coords.block;
-                const rowWidth = coords.gridColumns * coords.tile.sizePx;
-                const originX = drawX;
-                const originY = drawY + (block.sizePx * block.row);
-                context.filter = 'opacity(0.25)';
-                context.fillStyle = 'yellow';
-                context.fillRect(originX, originY, rowWidth, block.sizePx);
-                context.filter = 'none';
-                context.strokeStyle = 'black';
-                context.strokeRect(originX, originY, rowWidth, block.sizePx);
-                context.strokeStyle = 'white';
-                context.strokeRect(originX + 1, originY + 1, rowWidth - 2, block.sizePx - 2);
+                this.#highlightRows(context, drawX, drawY, block.row, block.sizeTiles, block.sizePx);
             }
         }
 
-        // Highlight mode is column
-        if (this.#highlightMode === CanvasManager.HighlightModes.column) {
-            if (coords.x >= 0 && coords.x < coords.gridColumns * 8) {
-                const tile = coords.tile;
-                const columnHeight = coords.gridRows * coords.tile.sizePx;
-                const originX = drawX + (tile.sizePx * tile.col);
-                const originY = drawY;
-                context.filter = 'opacity(0.25)';
-                context.fillStyle = 'yellow';
-                context.fillRect(originX, originY, tile.sizePx, columnHeight);
-                context.filter = 'none';
-                context.strokeStyle = 'black';
-                context.strokeRect(originX, originY, tile.sizePx, columnHeight);
-                context.strokeStyle = 'white';
-                context.strokeRect(originX + 1, originY + 1, tile.sizePx - 2, columnHeight - 2);
-            }
-        }
-
-        // Highlight mode is column block
+        // Highlight mode is column block (eg. delete column)
         if (this.#highlightMode === CanvasManager.HighlightModes.columnBlock) {
             if (coords.x >= 0 && coords.x < coords.gridColumns * 8) {
                 const block = coords.block;
-                const columnHeight = coords.gridRows * coords.tile.sizePx;
-                const originX = drawX + (block.sizePx * block.col);
-                const originY = drawY;
-                context.filter = 'opacity(0.25)';
-                context.fillStyle = 'yellow';
-                context.fillRect(originX, originY, block.sizePx, columnHeight);
-                context.filter = 'none';
-                context.strokeStyle = 'black';
-                context.strokeRect(originX, originY, block.sizePx, columnHeight);
-                context.strokeStyle = 'white';
-                context.strokeRect(originX + 1, originY + 1, block.sizePx - 2, columnHeight - 2);
+                this.#highlightColumns(context, drawX, drawY, block.col, block.sizeTiles, block.sizePx);
             }
         }
 
-        // Highlight mode is row index
-        if (this.#highlightMode === CanvasManager.HighlightModes.rowIndex) {
-            const pxInRow = 8;
-            if (coords.y >= -(pxInRow / 2) && coords.y < (coords.gridRows * pxInRow) + (pxInRow / 2)) {
-                const tile = coords.tile;
-                const snapNextIndex = (coords.y % pxInRow >= (pxInRow / 2));
-                const rowWidth = coords.gridColumns * coords.tile.sizePx;
-                const rowIndex = tile.row + (snapNextIndex ? 1 : 0);
-                const originX = drawX;
-                const originY = drawY + (rowIndex * tile.sizePx);
-                context.filter = 'opacity(0.25)';
-                context.fillStyle = 'yellow';
-                context.fillRect(originX, originY - (tile.sizePx / 2), rowWidth, tile.sizePx);
-                context.filter = 'none';
-                context.strokeStyle = 'black';
-                context.strokeRect(originX, originY - 1, rowWidth, 2);
-                context.strokeStyle = 'white';
-                context.strokeRect(originX + 1, originY, rowWidth - 2, 1);
-            }
-        }
-
-        // Highlight mode is row block index
+        // Highlight mode is row block index (eg. add row)
         if (this.#highlightMode === CanvasManager.HighlightModes.rowBlockIndex) {
             const pxInRow = 8;
             const pxInBlock = this.tilesPerBlock * 8;
             if (coords.y >= -(pxInRow / 2) && coords.y < (coords.gridRows * pxInRow) + (pxInRow / 2)) {
                 const block = coords.block;
                 const snapNextIndex = (coords.y % pxInBlock >= (pxInBlock / 2));
-                const rowWidth = coords.gridColumns * coords.tile.sizePx;
                 const rowIndex = block.row + (snapNextIndex ? 1 : 0);
-                const originX = drawX;
-                const originY = drawY + (rowIndex * block.sizePx);
-                context.filter = 'opacity(0.25)';
-                context.fillStyle = 'yellow';
-                context.fillRect(originX, originY - (block.sizePx / 2), rowWidth, block.sizePx);
-                context.filter = 'none';
-                context.strokeStyle = 'black';
-                context.strokeRect(originX, originY - 1, rowWidth, 2);
-                context.strokeStyle = 'white';
-                context.strokeRect(originX + 1, originY, rowWidth - 2, 1);
+                this.#highlightRowIndex(context, drawX, drawY, rowIndex, block.sizeTiles, block.sizePx);
             }
         }
 
-        // Highlight mode is column index
-        if (this.#highlightMode === CanvasManager.HighlightModes.columnIndex) {
-            const pxInCol = 8;
-            if (coords.x >= -(pxInCol / 2) && coords.x < (coords.gridColumns * pxInCol) + (pxInCol / 2)) {
-                const tile = coords.tile;
-                const snapNextIndex = (coords.x % pxInCol >= (pxInCol / 2));
-                const colHeight = coords.gridRows * coords.tile.sizePx;
-                const colIndex = tile.col + (snapNextIndex ? 1 : 0);
-                const originX = drawX + (colIndex * tile.sizePx);
-                const originY = drawY;
-                context.filter = 'opacity(0.25)';
-                context.fillStyle = 'yellow';
-                context.fillRect(originX - (tile.sizePx / 2), originY, tile.sizePx, colHeight);
-                context.filter = 'none';
-                context.strokeStyle = 'black';
-                context.strokeRect(originX - 1, originY, 2, colHeight);
-                context.strokeStyle = 'white';
-                context.strokeRect(originX + 1, originY, 1, colHeight - 2);
-            }
-        }
-
-        // Highlight mode is column block index
+        // Highlight mode is column block index (eg. add column)
         if (this.#highlightMode === CanvasManager.HighlightModes.columnBlockIndex) {
             const pxInCol = 8;
             const pxInBlock = this.tilesPerBlock * 8;
             if (coords.x >= -(pxInCol / 2) && coords.x < (coords.gridColumns * pxInCol) + ((pxInCol / 2) - 2)) {
                 const block = coords.block;
                 const snapNextIndex = (coords.x % pxInBlock >= (pxInBlock / 2));
-                const colHeight = coords.gridRows * coords.tile.sizePx;
-                const colIndex = block.col + (snapNextIndex ? 1 : 0);
-                const originX = drawX + (colIndex * block.sizePx);
-                const originY = drawY;
-                context.filter = 'opacity(0.25)';
-                context.fillStyle = 'yellow';
-                context.fillRect(originX - (block.sizePx / 2), originY, block.sizePx, colHeight);
-                context.filter = 'none';
-                context.strokeStyle = 'black';
-                context.strokeRect(originX - 1, originY, 2, colHeight);
-                context.strokeStyle = 'white';
-                context.strokeRect(originX + 1, originY, 1, colHeight - 2);
+                const columnIndex = block.col + (snapNextIndex ? 1 : 0);
+                this.#highlightColumnIndex(context, drawX, drawY, columnIndex, block.sizeTiles, block.sizePx);
             }
+        }
+
+        // Outlining tiles by ID
+        if (this.#outlineTileIds.length > 0) {
+            const tileSizePx = (8 * pxSize);
+
+            // Fill each tile
+            context.filter = `opacity(${this.maskingOpacity})`;
+            context.fillStyle = this.maskingColour;
+            for (let col = 0; col < this.tileGrid.columnCount; col++) {
+                for (let row = 0; row < this.tileGrid.rowCount; row++) {
+                    const thisTile = this.#tileGrid.getTileInfoByRowAndColumn(row, col);
+                    if (!this.#outlineTileIds.includes(thisTile?.tileId)) {
+                        const tileX = tileSizePx * col + drawX;
+                        const tileY = tileSizePx * row + drawY;
+                        context.fillRect(tileX, tileY, tileSizePx, tileSizePx);
+                    }
+                }
+            }
+            context.filter = 'none';
+
+            // Outline each tile
+            this.#outlineTileIds.forEach((outlineTileId) => {
+                const indicies = this.tileGrid.getTileIdIndexes(outlineTileId);
+                context.beginPath();
+                for (let tileIndex of indicies) {
+                    const selCol = tileIndex % this.tileGrid.columnCount;
+                    const selRow = Math.floor(tileIndex / this.tileGrid.columnCount);
+
+                    const surroundingTiles = {
+                        t: (selRow > 0) ? this.#tileGrid.getTileInfoByRowAndColumn(selRow - 1, selCol)?.tileId ?? '' : '',
+                        b: (selRow < this.tileGrid.rowCount - 1) ? this.#tileGrid.getTileInfoByRowAndColumn(selRow + 1, selCol)?.tileId ?? '' : '',
+                        l: (selCol > 0) ? this.#tileGrid.getTileInfoByRowAndColumn(selRow, selCol - 1)?.tileId ?? '' : '',
+                        r: (selCol < this.tileGrid.columnCount - 1) ? this.#tileGrid.getTileInfoByRowAndColumn(selRow, selCol + 1)?.tileId ?? '' : ''
+                    }
+
+                    const tileX = tileSizePx * selCol;
+                    const tileY = tileSizePx * selRow;
+
+                    if (!this.#outlineTileIds.includes(surroundingTiles.t)) {
+                        context.moveTo(tileX + drawX, tileY + drawY);
+                        context.lineTo(tileX + drawX + tileSizePx, tileY + drawY);
+                    }
+
+                    if (!this.#outlineTileIds.includes(surroundingTiles.b)) {
+                        context.moveTo(tileX + drawX, tileY + drawY + tileSizePx);
+                        context.lineTo(tileX + drawX + tileSizePx, tileY + drawY + tileSizePx);
+                    }
+
+                    if (!this.#outlineTileIds.includes(surroundingTiles.l)) {
+                        context.moveTo(tileX + drawX, tileY + drawY);
+                        context.lineTo(tileX + drawX, tileY + drawY + tileSizePx);
+                    }
+
+                    if (!this.#outlineTileIds.includes(surroundingTiles.r)) {
+                        context.moveTo(tileX + drawX + tileSizePx, tileY + drawY);
+                        context.lineTo(tileX + drawX + tileSizePx, tileY + drawY + tileSizePx);
+                    }
+                }
+                context.closePath();
+                context.strokeStyle = this.maskingBorderColour;
+                context.stroke();
+            });
         }
 
         // Highlight selected tile
@@ -1029,20 +1212,20 @@ export default class CanvasManager {
             const tileX = 8 * selCol * pxSize;
             const tileY = 8 * selRow * pxSize;
 
-            // Highlight the pixel
-            context.strokeStyle = 'black';
+            // Highlight the tile
+            context.strokeStyle = this.primarySelectionColour;
             context.strokeRect(tileX + drawX, tileY + drawY, (8 * pxSize), (8 * pxSize));
-            context.strokeStyle = 'yellow';
+            context.strokeStyle = this.secondarySelectionColour;
             context.setLineDash([2, 2]);
             context.strokeRect(tileX + drawX, tileY + drawY, (8 * pxSize), (8 * pxSize));
             context.setLineDash([]);
         }
 
-        // Show the preview image
+        // Tile stamp tool, draw a preview of the selected tile / tile map
         if (this.#tilePreviewMap && coords.tile && isInBounds(this.tileGrid, coords.tile.row, coords.tile.col)) {
             let redraw = false;
             if (!this.#tilePreviewCanvas) {
-                this.#tilePreviewCanvas = document.createElement('canvas');
+                this.#tilePreviewCanvas = new OffscreenCanvas(1, 1);
                 redraw = true;
             }
             // Set the palette slot on the preview tile set
@@ -1052,7 +1235,7 @@ export default class CanvasManager {
                     const tsCol = coords.tile.col + r;
                     if (isInBounds(this.tileGrid, tsRow, tsCol)) {
                         const tsTile = this.tileGrid.getTileInfoByRowAndColumn(tsRow, tsCol);
-                        const pTile = this.#tilePreviewMap.getTileByCoordinate(r, c);
+                        const pTile = this.#tilePreviewMap.getTileByRowAndColumn(r, c);
                         if (tsTile && (pTile.paletteIndex !== tsTile.paletteIndex || pTile.horizontalFlip !== tsTile.horizontalFlip || pTile.verticalFlip !== tsTile.verticalFlip)) {
                             pTile.palette = tsTile.paletteIndex;
                             pTile.horizontalFlip = tsTile.horizontalFlip;
@@ -1064,12 +1247,13 @@ export default class CanvasManager {
             }
             // Redraw
             if (redraw) {
-                drawTileImage(this.#tilePreviewMap, this.tileSet, this.paletteList, this.#tilePreviewCanvas, this.transparencyIndex, this.scale);
+                drawTileImage(this.#tilePreviewMap, this.tileSet, this.paletteList, this.#tilePreviewCanvas, this.transparencyIndicies, this.scale);
+                this.#tilePreviewImage = this.#tilePreviewCanvas.transferToImageBitmap();
             }
             // Place the preview image
             const tileX = 8 * coords.tile.col * coords.pxSize;
             const tileY = 8 * coords.tile.row * coords.pxSize;
-            context.drawImage(this.#tilePreviewCanvas, tileX + drawX, tileY + drawY, this.#tilePreviewCanvas.width, this.#tilePreviewCanvas.height);
+            context.drawImage(this.#tilePreviewImage, tileX + drawX, tileY + drawY, this.#tilePreviewCanvas.width, this.#tilePreviewCanvas.height);
         }
 
         // Highlight the selected tile region
@@ -1081,11 +1265,11 @@ export default class CanvasManager {
             const width = coords.pxSize * r.width * 8;
             const height = coords.pxSize * r.height * 8;
             context.setLineDash([1, 1]);
-            context.strokeStyle = 'white';
+            context.strokeStyle = this.primarySelectionColour;
             context.strokeRect(originX - 1, originY - 1, width + 2, height + 2);
-            context.strokeStyle = 'black';
+            context.strokeStyle = this.secondarySelectionColour;
             context.strokeRect(originX, originY, width, height);
-            context.strokeStyle = 'white';
+            context.strokeStyle = this.primarySelectionColour;
             context.strokeRect(originX + 1, originY + 1, width - 2, height - 2);
             context.setLineDash([]);
             // }
@@ -1098,6 +1282,12 @@ export default class CanvasManager {
      * @param {CanvCoords} coords 
      */
     #drawReferenceImages(context, coords) {
+        const originalSmoothingEnabled = context.imageSmoothingEnabled;
+        const originalSmoothingQuality = context.imageSmoothingQuality;
+
+        context.imageSmoothingEnabled = false;
+        context.imageSmoothingQuality = 'high';
+
         const pxSize = coords.pxSize;
         context.globalAlpha = 0.5;
         this.#referenceImages.forEach(ref => {
@@ -1109,6 +1299,273 @@ export default class CanvasManager {
             }
         });
         context.globalAlpha = 1;
+
+        context.imageSmoothingEnabled = originalSmoothingEnabled;
+        context.imageSmoothingQuality = originalSmoothingQuality;
+    }
+
+    /**
+     * @param {{context: CanvasRenderingContext2D, x: number, y: number, columnCount: number, rowCount: number, lineSpacingPx: number, gridColour: string, gridOpacity: number}} context 
+     */
+    #drawGrid({context, x, y, columnCount, rowCount, lineSpacingPx, gridColour, gridOpacity}) {
+        const oldStrokeStyle = context.strokeStyle;
+        const oldFilter = context.filter;
+
+        context.strokeStyle = gridColour;
+        context.filter = `opacity(${gridOpacity})`;
+        context.beginPath();
+
+        const widthPx = columnCount * lineSpacingPx;
+        const heightPx = rowCount * lineSpacingPx;
+       
+        for (let col = 0; col <= widthPx; col += lineSpacingPx) {
+            context.moveTo(x + col, y);
+            context.lineTo(x + col, y + heightPx);
+        }
+
+        for (let row = 0; row <= heightPx; row += lineSpacingPx) {
+            context.moveTo(x, y + row);
+            context.lineTo(x + widthPx, y + row);
+        }
+
+        context.closePath();
+        context.stroke();
+
+        context.strokeStyle = oldStrokeStyle;
+        context.filter = oldFilter;
+    }
+
+    /**
+     * @param {CanvasRenderingContext2D} context 
+     * @param {{rows: number[], cols: number[], tiles: {row: number, col: number}[]}} nonMasked
+     * @param {number} tileSizePx 
+     */
+    #maskTiles(context, nonMasked, offsetX, offsetY, tileSizePx) {
+
+        // Walk the path, starting at the top
+
+    }
+
+    /**
+     * @param {CanvasRenderingContext2D} context 
+     * @param {{rows: number[], cols: number[], tiles: {row: number, col: number}[]}} nonMasked
+     * @param {number} tileSizePx 
+     */
+    #maskOutTiles(context, nonMasked, offsetX, offsetY, tileSizePx) {
+        const oldFilter = context.filter;
+        const oldFillStyle = context.fillStyle;
+        const oldStrokeStyle = context.strokeStyle;
+
+        context.beginPath();
+
+        // Draw outer rectangle
+        context.moveTo(0 + offsetX, 0 + offsetY);
+        context.lineTo(this.tileGrid.columnCount * tileSizePx + offsetX, 0 + offsetY);
+        context.lineTo(this.tileGrid.columnCount * tileSizePx + offsetX, this.tileGrid.rowCount * tileSizePx + offsetY);
+        context.lineTo(0 + offsetX, this.tileGrid.rowCount * tileSizePx + offsetY);
+        context.lineTo(0 + offsetX, 0 + offsetY);
+
+        let tileX = 0 + offsetX + tileSizePx;
+        let tileY = 0 + offsetY + tileSizePx;
+
+        context.moveTo(tileX, tileY);
+        context.lineTo(tileX, tileY + tileSizePx); // Left
+        context.lineTo(tileX + tileSizePx, tileY + tileSizePx); // Bottom
+        // context.lineTo(tileX + tileSizePx, tileY); // Right
+        context.moveTo(tileX + tileSizePx, tileY); // Right
+        context.lineTo(tileX, tileY); // Top
+
+        tileX = 0 + offsetX + tileSizePx + tileSizePx;
+        tileY = 0 + offsetY + tileSizePx;
+
+        context.moveTo(tileX, tileY);
+        // context.lineTo(tileX, tileY + tileSizePx); // Left
+        context.moveTo(tileX, tileY + tileSizePx); // Left
+        context.lineTo(tileX + tileSizePx, tileY + tileSizePx); // Bottom
+        context.lineTo(tileX + tileSizePx, tileY); // Top
+        context.lineTo(tileX, tileY); // Right
+
+        // // Punch out non masked areas
+        // if (Array.isArray(nonMasked.rows)) {
+        //     for (let row of nonMasked.rows) {
+        //         if (row >= 0 && row < this.tileGrid.rowCount) {
+
+        //         }
+        //     }
+        // }
+
+        // for (let tile of nonMaskedTiles) {
+
+        // }
+
+        // for (let col = 0; col < this.tileGrid.columnCount; col++) {
+        //     for (let row = 0; row < this.tileGrid.rowCount; row++) {
+        //         context.strokeRect
+        //     }
+        // }
+
+        context.filter = `opacity(${this.maskingOpacity})`;
+        context.fillStyle = this.maskingColour;
+        context.fill();
+
+        context.filter = `none`;
+        context.lineWidth = 2;
+        context.strokeStyle = this.maskingBorderColour;
+        context.stroke();
+
+
+        // context.filter = 'none';
+        // context.lineWidth = 3;
+        // context.strokeStyle = this.primaryHoverShadowColour;
+        // context.strokeRect(x - 2, y - 2, width + 2, height + 2);
+        // context.lineWidth = 2;
+        // context.strokeStyle = this.primaryHoverHighlightColour;
+        // context.strokeRect(x - 1, y - 1, width + 1, height + 1);
+
+        // Revert
+        context.filter = oldFilter;
+        context.fillStyle = oldFillStyle;
+        context.strokeStyle = oldStrokeStyle;
+    }
+
+    /**
+     * @param {CanvasRenderingContext2D} context 
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} width 
+     * @param {number} height 
+     */
+    #strokePrimaryArea(context, x, y, width, height) {
+        context.filter = 'none';
+        context.lineWidth = 3;
+        context.strokeStyle = this.primaryHoverShadowColour;
+        context.strokeRect(x - 2, y - 2, width + 2, height + 2);
+        context.lineWidth = 2;
+        context.strokeStyle = this.primaryHoverHighlightColour;
+        context.strokeRect(x - 1, y - 1, width + 1, height + 1);
+    }
+
+    /**
+     * @param {CanvasRenderingContext2D} context 
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} rowIndex
+     * @param {number} rowWidth
+     * @param {number} tileSizePx 
+     */
+    #highlightRows(context, x, y, rowIndex, rowWidth, tileSizePx) {
+        this.#highlightArea({
+            context,
+            originX: x,
+            originY: y + (tileSizePx * rowIndex),
+            widthPx: this.tileGrid.columnCount * tileSizePx,
+            heightPx: rowWidth * tileSizePx
+        });
+    }
+
+    /**
+     * @param {CanvasRenderingContext2D} context 
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} columnIndex
+     * @param {number} columnWidth
+     * @param {number} tileSizePx 
+     */
+    #highlightColumns(context, x, y, columnIndex, columnWidth, tileSizePx) {
+        this.#highlightArea({
+            context,
+            originX: x + (tileSizePx * columnIndex),
+            originY: y,
+            widthPx: columnWidth * tileSizePx,
+            heightPx: this.tileGrid.columnCount * tileSizePx
+        });
+    }
+
+    /**
+     * @param {{context: CanvasRenderingContext2D, originX: number, originY: number, widthPx: number, heightPx: number}} context 
+     */
+    #highlightArea({ context, originX, originY, widthPx, heightPx }) {
+        context.filter = `opacity(${this.transparencyGridOpacity})`;
+        context.fillStyle = this.primaryHoverShadowColour;
+        context.fillRect(originX, originY, widthPx, heightPx);
+        context.filter = 'none';
+        context.strokeStyle = this.primaryHoverHighlightColour;
+        context.strokeRect(originX, originY, widthPx, heightPx);
+        context.strokeStyle = this.secondaryHoverHighlightColour;
+        context.strokeRect(originX + 1, originY + 1, widthPx - 2, heightPx - 2);
+    }
+
+    /**
+     * @param {CanvasRenderingContext2D} context 
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} rowIndex
+     * @param {number} rowWidth
+     * @param {number} tileSizePx 
+     */
+    #highlightRowIndex(context, x, y, rowIndex, rowWidth, tileSizePx) {
+        const blockSizePx = tileSizePx * rowWidth;
+        const rowWidthPx = this.tileGrid.columnCount * tileSizePx;
+        const originX = x;
+        const originY = y + (rowIndex * blockSizePx);
+        context.filter = `opacity(${this.transparencyGridOpacity})`;
+        context.fillStyle = this.primaryHoverShadowColour;
+        context.fillRect(originX, originY - (blockSizePx / 2), rowWidthPx, blockSizePx);
+        context.filter = 'none';
+        context.strokeStyle = this.primaryHoverHighlightColour;
+        context.strokeRect(originX, originY - 1, rowWidthPx, 2);
+        context.strokeStyle = this.secondaryHoverHighlightColour;
+        context.strokeRect(originX + 1, originY, rowWidthPx - 2, 1);
+    }
+
+    /**
+     * @param {CanvasRenderingContext2D} context 
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} columnIndex
+     * @param {number} columnWidth
+     * @param {number} tileSizePx 
+     */
+    #highlightColumnIndex(context, x, y, columnIndex, columnWidth, tileSizePx) {
+        const blockSizePx = tileSizePx * columnWidth;
+        const columnWidthPx = this.tileGrid.rowCount * tileSizePx;
+        const originX = x + (columnIndex * blockSizePx);
+        const originY = y;
+        context.filter = `opacity(${this.transparencyGridOpacity})`;
+        context.fillStyle = this.primaryHoverShadowColour;
+        context.fillRect(originX - (blockSizePx / 2), originY, blockSizePx, columnWidthPx);
+        context.filter = 'none';
+        context.strokeStyle = this.primaryHoverHighlightColour;
+        context.strokeRect(originX - 1, originY, 2, columnWidthPx);
+        context.strokeStyle = this.secondaryHoverHighlightColour;
+        context.strokeRect(originX, originY + 1, 1, columnWidthPx - 2);
+    }
+
+    /**
+     * @param {CanvasRenderingContext2D} context 
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} width 
+     * @param {number} height 
+     */
+    #strokeSecondaryArea(context, x, y, width, height) {
+        context.filter = 'none';
+        context.lineWidth = 2;
+        context.strokeStyle = this.secondaryHoverHighlightColour;
+        context.strokeRect(x - 1, y - 1, width + 1, height + 1);
+    }
+
+    /**
+     * @param {CanvasRenderingContext2D} context 
+     * @param {CanvCoords} coords 
+     */
+    #strokeBrushBorder(context, coords) {
+        context.filter = 'none';
+        context.lineWidth = 2;
+        context.strokeStyle = this.primaryHoverHighlightColour;
+        this.#drawBrushBorder(context, coords, 1);
+        context.strokeStyle = this.primaryHoverShadowColour;
+        this.#drawBrushBorder(context, coords, 2);
     }
 
     /**
@@ -1151,7 +1608,7 @@ export default class CanvasManager {
  * @param {TileGridProvider} tileGrid 
  * @param {TileSet} tileSet 
  * @param {PaletteList} paletteList 
- * @param {HTMLCanvasElement} canvas 
+ * @param {OffscreenCanvas} canvas 
  * @param {number?} [transparencyColour]
  * @param {number?} [pxSize]
  */
@@ -1264,21 +1721,19 @@ function isInBounds(tileGrid, row, column) {
 
 /**
  * @param {number} scale 
- * @returns {CanvasPattern}
+ * @returns {ImageBitmap}
  */
-function createGridPatternCanvas(scale) {
-    const gridColour1 = 'rgba(255,255,255,0.25)';
-    const gridColour2 = 'rgba(0,0,0,0.25)';
+function createGridPatternCanvas(scale, opacity) {
+    const gridColour1 = `rgba(255,255,255,${opacity})`;
+    const gridColour2 = `rgba(0,0,0,${opacity})`;
     const gridSizePx = 2;
-    const gridCanvas = document.createElement('canvas');
+    const gridCanvas = new OffscreenCanvas(scale * 8, scale * 8);
     const gridCtx = gridCanvas.getContext('2d');
-    gridCanvas.width = scale * 8;
-    gridCanvas.height = scale * 8;
     for (let y = 0; y < gridCanvas.height; y += gridSizePx) {
         for (let x = 0; x < gridCanvas.width; x += gridSizePx) {
             gridCtx.fillStyle = (x + y) % (gridSizePx * 2) === 0 ? gridColour1 : gridColour2;
             gridCtx.fillRect(x, y, gridSizePx, gridSizePx);
         }
     }
-    return gridCanvas;
+    return gridCanvas.transferToImageBitmap();
 }

@@ -84,12 +84,24 @@ export default class Palette {
     /**
      * Gets the colour at a given index.
      * @param {number} index - Index of the colour to get.
+     * @throws Index is out of range.
      * @returns {PaletteColour}
      */
     getColour(index) {
         if (index >= 0 && index < this.#colours.length) {
             return this.#colours[index];
         } else throw new Error('Colour index was out of range.');
+    }
+
+    /**
+     * Gets the colour at a given index, or null if out of range.
+     * @param {number} index - Index of the colour to get.
+     * @returns {PaletteColour?}
+     */
+    getColourByIndex(index) {
+        if (index >= 0 && index < this.#colours.length) {
+            return this.#colours[index];
+        } else return null;
     }
 
     /**

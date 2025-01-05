@@ -168,10 +168,12 @@ export default class PaletteFactory {
     /**
      * Creates a new instance of a palette object from an existing.
      * @param {Palette} palette - Palette to clone.
+     * @param {ClonePaletteOptions?} [options] - Clone options.
      * @returns {Palette}
      */
-    static clone(palette) {
-        const newPalette = PaletteFactory.create(null, palette.title, palette.system);
+    static clone(palette, options) {
+        const paletteId = options?.preserveId === true ? palette.paletteId : null;
+        const newPalette = PaletteFactory.create(paletteId, palette.title, palette.system);
         palette.getColours().forEach((colour, index) => {
             newPalette.setColour(index, PaletteColourFactory.create(colour.r, colour.g, colour.b));
         });
@@ -211,14 +213,21 @@ export default class PaletteFactory {
 }
 
 
-const defaultColoursMS = ['#000000', '#000000', '#00AA00', '#00FF00', '#000055', '#0000FF', '#550000', '#00FFFF', '#AA0000', '#FF0000', '#555500', '#FFFF00', '#005500', '#FF00FF', '#555555', '#FFFFFF'];
-const defaultColoursGB = ['#000000', '#555555', '#AAAAAA', '#FFFFFF'];
-const defaultColourNES = ['#000000', '#38b4cc', '#3032ec', '#FFFFFF'];
+/**
+ * @typedef {Object} ClonePaletteOptions
+ * @property {boolean?} [preserveId] - Will the output contain the same ID as the original?
+ * @exports
+ */
+
+
+const defaultColoursMS = ['#FFFFFF', '#000000', '#FFFFFF', '#555555', '#00AA00', '#00FF00', '#000055', '#0000FF', '#FF0000', '#550000', '#FFFF00', '#FF5500', '#FF00FF', '#FF0055', '#00AAAA', '#005555'];
+const defaultColoursGB = ['#FFFFFF', '#AAAAAA', '#555555', '#000000'];
+const defaultColourNES = ['#FFFFFF', '#3032ec', '#38b4cc', '#000000'];
 
 /**
  * Gets the colour that corresponds with the NES colour code.
  * @param {number} value - NES colour code.
- * @returns {import("../util/colourUtil.js").ColourInformation}
+ * @returns {import("../types.js").ColourInformation}
  */
 function getColourFromNesIndex(value) {
     const palette = ColourUtil.getFullNESPalette();

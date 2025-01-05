@@ -60,7 +60,7 @@ export default class AssemblyImportTilesModalDialogue extends ModalDialogue {
 
 /**
  * Import tile set dialogue state object.
- * @typedef {object} AssemblyImportTilesModalDialogueState
+ * @typedef {Object} AssemblyImportTilesModalDialogueState
  * @property {string?} tileSetData - The WLA-DLX assembly code that contains the tiles.
  */
 
@@ -72,7 +72,7 @@ export default class AssemblyImportTilesModalDialogue extends ModalDialogue {
  */
 /**
  * Import tile set dialogue confirm args.
- * @typedef {object} AssemblyImportTilesModalDialogueConfirmEventArgs
+ * @typedef {Object} AssemblyImportTilesModalDialogueConfirmEventArgs
  * @property {string} tileSetData - The WLA-DLX assembly code that contains the palette.
  * @exports
  */

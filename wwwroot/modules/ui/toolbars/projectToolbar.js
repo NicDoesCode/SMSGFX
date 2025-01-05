@@ -1,7 +1,10 @@
 import ComponentBase from "../componentBase.js";
 import EventDispatcher from "../../components/eventDispatcher.js";
-import ProjectList from "../../models/projectList.js";
 import TemplateUtil from "../../util/templateUtil.js";
+import Project from "../../models/project.js";
+import ProjectEntry from "../../models/projectEntry.js";
+import ProjectList from "../../models/projectList.js";
+import ProjectEntryList from "../../models/projectEntryList.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -87,7 +90,7 @@ export default class ProjectToolbar extends ComponentBase {
             });
         }
 
-        if (typeof state.projects?.getProjects === 'function') {
+        if (state.projects instanceof ProjectEntryList || state.projects instanceof ProjectList || Array.isArray(state.projects)) {
             this.#displayProjects(state.projects);
         }
 
@@ -141,14 +144,21 @@ export default class ProjectToolbar extends ComponentBase {
 
 
     /**
-     * @param {ProjectList} projects
+     * @param {ProjectList|ProjectEntryList|Project[]|ProjectEntry[]} projects
      */
     #displayProjects(projects) {
         const elm = this.#element.querySelector('[data-smsgfx-id=project-list]');
         while (elm.childNodes.length > 0) {
             elm.childNodes[0].remove();
         }
-        projects.getProjects().forEach(project => {
+
+        /** @type {Project[]|ProjectEntry[]} */
+        const projectArray = [];
+        if (projects instanceof ProjectList) projectArray.push(...projects.getProjects());
+        if (projects instanceof ProjectEntryList) projectArray.push(...projects.getProjectEntries());
+        if (Array.isArray(projects)) projectArray.push(...projects);
+
+        projectArray.forEach((project) => {
             const row = document.createElement('div');
             row.classList.add('dropdown-item', 'd-flex', 'justify-content-between', 'pt-0', 'pb-0', 'mb-1', 'ps-2', 'pe-2');
             row.appendChild((() => {
@@ -200,11 +210,11 @@ export default class ProjectToolbar extends ComponentBase {
 
 /**
  * Project toolbar state.
- * @typedef {object} ProjectToolbarState
+ * @typedef {Object} ProjectToolbarState
  * @property {string?} projectTitle - Project title to display.
  * @property {string[]?} enabledCommands - Array of commands that should be enabled, overrided enabled state.
  * @property {string[]?} disabledCommands - Array of commands that should be disabled, overrided enabled state.
- * @property {ProjectList} projects - List of projects to display in the menu.
+ * @property {ProjectList|ProjectEntryList|Project[]|ProjectEntry[]} projects - List of projects to display in the menu.
  * @property {boolean?} enabled - Is the control enabled or disabled?
  */
 
@@ -215,7 +225,7 @@ export default class ProjectToolbar extends ComponentBase {
  * @exports
  */
 /**
- * @typedef {object} ProjectToolbarCommandEventArgs
+ * @typedef {Object} ProjectToolbarCommandEventArgs
  * @property {string} command - The command being invoked.
  * @property {string?} title - Project title.
  * @property {string?} projectId - Project ID.

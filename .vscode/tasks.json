@@ -1,0 +1,63 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "launch-server",
+			"command": "node ./app.js",
+			"type": "shell",
+			"isBackground": true,
+			"problemMatcher": [
+				{
+					"owner": "custom",
+					"pattern":[
+						{
+							"regexp": "^([^\\\\s].*)\\\\((\\\\d+,\\\\d+)\\\\):\\\\s*(.*)$",
+							"file": 1,
+							"location": 2,
+							"message": 3
+						}
+					],
+					"fileLocation": "relative",
+					"background": {
+						"activeOnStart": true,
+						"beginsPattern": "^Starting\\sSMSGFX$",
+						"endsPattern": "^Server\\srunning\\sat\\:.+"
+					}
+
+				}
+			]
+		},
+		{
+			"label": "launch-prod-server",
+			"command": "node ./app.js -p dist",
+			"type": "shell",
+			"isBackground": true,
+			"problemMatcher": [],
+			"dependsOn": [
+				"build"
+			]
+		},
+		{
+			"label": "build",
+			"command": "npm",
+			"type": "shell",
+			"args": [
+				"run",
+				"build"
+			]
+		},
+		{
+			"label": "stop-server",
+			"command": "echo ${input:terminate}",
+			"type": "shell"
+		}
+	],
+	"inputs": [
+		{
+			"id": "terminate",
+			"type": "command",
+			"command": "workbench.action.tasks.terminate",
+			"args": "terminateAll"
+		}
+	]
+}

@@ -4,22 +4,41 @@ import CopyPlugin from "copy-webpack-plugin";
 import path from "path";
 import fs from "fs";
 import url from 'url';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+const environment = process.env[`ENVIRONMENT`]?.toLowerCase() ?? null;
+
+console.log(`Environment: ${(environment ?? '')}`);
+console.log(`(Configure using 'ENVIRONMENT' environment variable, eg. ENVIRONMENT=develop)`);
+
+const envSettings = {
+    mode: 'production'
+};
+if (environment === 'develop') {
+    envSettings.mode = 'development';
+    envSettings.devtool = 'source-map';
+}
 
 export default {
-    mode: 'production',
+    ...envSettings,
     entry: {
         main: './wwwroot/modules/main.js',
-        pages: './wwwroot/pages/pages.js'
+        pages: './wwwroot/pages/pages.js',
+        tileEditorViewportWorker: './wwwroot/modules/worker/tileEditorViewportWorker.js',
+        tileImageWorker: './wwwroot/modules/worker/tileImageWorker.js',
     },
     output: {
         filename: (pathData) => {
-            if (pathData.chunk.name === 'main')
+            if (pathData.chunk.name === 'main') {
                 return 'modules/[name].js?v=[hash]';
-            else if (pathData.chunk.name === 'pages') {
+            } else if (pathData.chunk.name === 'pages') {
                 return 'pages/[name].js?v=[hash]';
+            } else if (pathData.chunk.name.toLowerCase().includes('worker')) {
+                return 'modules/worker/[name].js?v=[hash]';
             } else {
                 return 'assets/scripts/[name].js?v=[hash]';
             }

@@ -10,7 +10,8 @@ export default class TileFactory {
      * @returns {Tile}
      */
     static create(args) {
-        const tileId = (args && args.tileId !== null) ? args.tileId : null;
+        const tileId = args?.tileId ?? null;
+        const alwaysKeep = args?.alwaysKeep ?? false;
 
         const defaultColourIndex = (args && typeof args.defaultColourIndex === 'number') ? args.defaultColourIndex : 15;
         if (defaultColourIndex < 0 || defaultColourIndex > 15) throw new Error('Default colour index out of range.');
@@ -29,7 +30,7 @@ export default class TileFactory {
             tileDataArray.fill(defaultColourIndex, 0, tileDataArray.length);
         }
 
-        return new Tile(tileId, tileDataArray);
+        return new Tile(tileId, alwaysKeep, tileDataArray);
     }
 
     /**
@@ -81,15 +82,19 @@ export default class TileFactory {
      */
     static clone(tile) {
         const hex = TileUtil.toHex(tile);
-        return TileFactory.fromHex(hex);
+        const cloned = TileFactory.fromHex(hex);
+        cloned.tileId = tile.tileId;
+        cloned.alwaysKeep = tile.alwaysKeep;
+        return cloned;
     }
 
 
 }
 
 /**
- * @typedef {object} TileCreateArgs
+ * @typedef {Object} TileCreateArgs
  * @property {string?} [tileId] - Unique ID for the tile.
+ * @property {boolean?} [alwaysKeep] - Should the tile be kept during the export optimisation phase?
  * @property {number?} [defaultColourIndex] - Colour index to set as the initial colour of the tile, defaults to 15 when not supplied.
  * @property {Uint8ClampedArray|string} [data] - Data for the new tile as either an array or encoded string.
  * @exports

@@ -2,55 +2,64 @@ import Tile from "../models/tile.js";
 import TileFactory from "../factory/tileFactory.js";
 import TileUtil from "../util/tileUtil.js";
 
+
+/**
+ * Provides tile serialisation functions.
+ */
 export default class TileJsonSerialiser {
 
 
     /**
-     * Serialises the list of tile.
-     * @param {Tile} tile - Tile to serialise.
+     * Serialises a tile.
+     * @param {Tile} value - Tile to serialise.
      * @returns {string} 
      */
-    static serialise(tile) {
-        const result = TileJsonSerialiser.toSerialisable(tile);
+    static serialise(value) {
+        const result = TileJsonSerialiser.toSerialisable(value);
         return JSON.stringify(result);
     }
 
     /**
      * Returns a deserialised tile.
-     * @param {string} jsonTile - JSON serialised tile.
+     * @param {string} jsonString - JSON serialised tile.
+     * @throws When the JSON string is null or empty.
      * @returns {Tile}
      */
-    static deserialise(jsonTile) {
-        if (jsonTile) {
-            /** @type {TileSerialisable} */
-            const deserialised = JSON.parse(jsonTile);
-            return TileJsonSerialiser.fromSerialisable(deserialised);
-        } else throw new Error('Invalid tile data supplied.');
+    static deserialise(jsonString) {
+        if (!jsonString || typeof jsonString !== 'string') throw new Error('Please pass a valid JSON string.');
+
+        /** @type {TileSerialisable} */
+        const deserialised = JSON.parse(jsonString);
+        return TileJsonSerialiser.fromSerialisable(deserialised);
     }
 
     /**
      * Converts a tile object to a serialisable one.
-     * @param {Tile} tile - Tile to serialise.
+     * @param {Tile} value - Tile to serialise.
+     * @throws When a valid tile was not passed.
      * @returns {TileSerialisable} 
      */
-     static toSerialisable(tile) {
-        if (!tile || typeof tile.readAll !== 'function') throw new Error('Please pass a tile.');
+    static toSerialisable(value) {
+        if (!value instanceof Tile) throw new Error('Please pass a tile.');
+
         return {
-            tileId: tile.tileId,
-            tileData: TileUtil.toHex(tile)
+            tileId: value.tileId,
+            alwaysKeep: value.alwaysKeep,
+            tileData: TileUtil.toHex(value)
         };
     }
 
     /**
      * Converts a serialisable tile back to a tile.
-     * @param {TileSerialisable} tileSerialisable - Serialisable tile to convert.
-     * @returns {TileSet}
+     * @param {TileSerialisable} serialisable - Serialisable tile to convert.
+     * @returns {Tile}
      */
-    static fromSerialisable(tileSerialisable) {
-        if (!tileSerialisable) throw new Error('Please pass a serialisable tile.');
+    static fromSerialisable(serialisable) {
+        if (!serialisable) throw new Error('Please pass a serialisable tile.');
 
-        const result = TileFactory.fromHex(tileSerialisable.tileData);
-        result.tileId = tileSerialisable.tileId;
+        const result = TileFactory.fromHex(serialisable.tileData);
+        result.tileId = serialisable.tileId;
+        result.alwaysKeep = serialisable.alwaysKeep ?? false;
         return result;
     }
 
@@ -58,8 +67,8 @@ export default class TileJsonSerialiser {
 }
 
 /**
- * @typedef TileSerialisable
- * @type {object}
+ * @typedef {Object} TileSerialisable
  * @property {string} tileId
+ * @property {boolean?} [alwaysKeep]
  * @property {string} tileData
  */

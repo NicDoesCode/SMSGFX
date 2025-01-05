@@ -194,7 +194,7 @@ export default class NewProjectDialogue extends ModalDialogue {
 
 /**
  * New project dialogue state object.
- * @typedef {object} NewProjectDialogueState
+ * @typedef {Object} NewProjectDialogueState
  * @property {string?} title - Project title.
  * @property {string?} systemType - Selected system.
  * @property {boolean?} createTileMap - Create a default tile map?
@@ -211,7 +211,7 @@ export default class NewProjectDialogue extends ModalDialogue {
  */
 /**
  * New project dialogue confirm args.
- * @typedef {object} NewProjectDialogueConfirmEventArgs
+ * @typedef {Object} NewProjectDialogueConfirmEventArgs
  * @property {string} title - Project title.
  * @property {string} systemType - Selected system.
  * @property {boolean} createTileMap - Create a default tile map?

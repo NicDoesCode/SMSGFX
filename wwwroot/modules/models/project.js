@@ -25,7 +25,7 @@ export default class Project {
         this.#title = value;
     }
 
-    /** Gets or sets the system type (either 'smsgg' or 'gb'). */
+    /** Gets or sets the system type (either 'smsgg', 'gb' or 'nes'). */
     get systemType() {
         return this.#systemType;
     }
@@ -60,6 +60,14 @@ export default class Project {
         this.#paletteList = value;
     }
 
+    /** Gets or sets the date that this project was last modified. */
+    get dateLastModified() {
+        return this.#dateLastModified;
+    }
+    set dateLastModified(value) {
+        this.#dateLastModified = value;
+    }
+
 
     /** @type {string} */
     #id = null;
@@ -73,6 +81,8 @@ export default class Project {
     #tileMapList;
     /** @type {PaletteList} */
     #paletteList;
+    /** @type {Date} */
+    #dateLastModified;
 
 
     /**
@@ -83,8 +93,9 @@ export default class Project {
      * @param {TileSet?} tileSet - Tile set, if not supplied one will be created.
      * @param {TileMapList?} tileMapList - Tile map list, if not supplied one will be created.
      * @param {PaletteList?} paletteList - Colour palettes, if not supplied one will be created.
+     * @param {Date|number|null} dateLastModified - Date that the project was last modified.
      */
-    constructor(id, title, systemType, tileSet, tileMapList, paletteList) {
+    constructor(id, title, systemType, tileSet, tileMapList, paletteList, dateLastModified) {
 
         if (typeof id !== 'undefined' && id !== null && id.length > 0) {
             this.#id = id;
@@ -97,7 +108,7 @@ export default class Project {
         } else {
             this.title = 'New project';
         }
-        
+
         if (typeof systemType !== 'undefined' && systemType !== null) {
             switch (systemType) {
                 case 'gb': this.systemType = 'gb'; break;
@@ -113,7 +124,7 @@ export default class Project {
         } else {
             this.#tileSet = TileSetFactory.create();
         }
-        
+
         if (tileMapList) {
             this.#tileMapList = tileMapList;
         } else {
@@ -124,6 +135,14 @@ export default class Project {
             this.#paletteList = paletteList;
         } else {
             this.#paletteList = PaletteListFactory.create();
+        }
+
+        if (dateLastModified instanceof Date) {
+            this.#dateLastModified = dateLastModified;
+        } else if (typeof dateLastModified === 'number') {
+            this.#dateLastModified = new Date(dateLastModified);
+        } else {
+            this.#dateLastModified = new Date();
         }
     }
 

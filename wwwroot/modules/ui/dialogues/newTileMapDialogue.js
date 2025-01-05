@@ -244,7 +244,7 @@ export default class NewTileMapDialogue extends ModalDialogue {
 
 /**
  * New tile map dialogue state object.
- * @typedef {object} NewTileMapDialogueState
+ * @typedef {Object} NewTileMapDialogueState
  * @property {string?} [title] - Tile map title.
  * @property {string?} [createMode] - The tile map creation mode.
  * @property {string?} [createOption] - How to create tiles for the tile map.
@@ -263,7 +263,7 @@ export default class NewTileMapDialogue extends ModalDialogue {
  */
 /**
  * New tile map dialogue confirm args.
- * @typedef {object} NewTileMapDialogueConfirmEventArgs
+ * @typedef {Object} NewTileMapDialogueConfirmEventArgs
  * @property {string} title - Tile map title.
  * @property {string} createMode - The tile map creation mode.
  * @property {string} createOption - How to create tiles for the tile map.

@@ -3,15 +3,23 @@ import EventDispatcher from "../../components/eventDispatcher.js";
 import ColourUtil from "../../util/colourUtil.js";
 import TemplateUtil from "../../util/templateUtil.js";
 
+
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
 const commands = {
     colourSelect: 'colourSelect'
 }
 
+
+/**
+ * UI component that displays a list of colour palettes.
+ */
 export default class ColourPaletteListing extends ComponentBase {
 
 
+    /**
+     * Gets an enumeration of all the commands that may be invoked by this class.
+     */
     static get Commands() {
         return commands;
     }
@@ -19,7 +27,7 @@ export default class ColourPaletteListing extends ComponentBase {
 
     #element;
     #dispatcher;
-    /** @type {import("../../util/colourUtil.js").ColourInformation[]} */
+    /** @type {import("../../types.js").ColourInformation[]} */
     #colours;
     #direction = 'row';
     #buttonWidth = null;
@@ -29,7 +37,7 @@ export default class ColourPaletteListing extends ComponentBase {
 
 
     /**
-     * Initialises a new instance of this class.
+     * Constructor for the class.
      * @param {HTMLElement} element - Element that contains the DOM.
      */
     constructor(element) {
@@ -126,7 +134,7 @@ export default class ColourPaletteListing extends ComponentBase {
 
     /**
      * @param {string} command
-     * @param {import("../../util/colourUtil.js").ColourInformation} colour 
+     * @param {import("../../types.js").ColourInformation} colour 
      * @returns {ColourPaletteListingCommandEventArgs}
      */
     #createEventArgs(command, colour) {
@@ -159,7 +167,7 @@ export default class ColourPaletteListing extends ComponentBase {
         }
 
         // Build the HTML elements
-        /** @type {import("../../util/colourUtil.js").ColourInformation[]} */
+        /** @type {import("../../types.js").ColourInformation[]} */
         const colours = JSON.parse(JSON.stringify(this.#colours));
         if (this.#direction.endsWith('-reverse')) {
             colours.reverse();
@@ -214,9 +222,9 @@ export default class ColourPaletteListing extends ComponentBase {
 
 /**
  * Colour palette list state object.
- * @typedef {object} ColourPaletteListingState
+ * @typedef {Object} ColourPaletteListingState
  * @property {boolean?} enabled - Is the toolbox enabled?
- * @property {import("../../util/colourUtil.js").ColourInformation[]?} colours - Colours to display in the picker list.
+ * @property {import("../../types.js").ColourInformation[]?} colours - Colours to display in the picker list.
  * @property {number?} coloursPerRow - Number of colours to display per row, between 1 and 256.
  * @property {string?} direction - Either 'row', 'row-reverse', 'column' or 'column-reverse'.
  * @property {string?} buttonWidth - CSS button width declaration.
@@ -232,7 +240,7 @@ export default class ColourPaletteListing extends ComponentBase {
  */
 /**
  * Colour palette list on command event args.
- * @typedef {object} ColourPaletteListingCommandEventArgs
+ * @typedef {Object} ColourPaletteListingCommandEventArgs
  * @property {string} command - Command being issued.
  * @property {number} r - Red component.
  * @property {number} g - Green component.

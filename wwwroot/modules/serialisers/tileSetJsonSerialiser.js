@@ -1,69 +1,76 @@
 import TileSet from "../models/tileSet.js";
 import TileSetFactory from "../factory/tileSetFactory.js";
 import TileFactory from "../factory/tileFactory.js";
-import TileUtil from "../util/tileUtil.js";
 import TileJsonSerialiser from "./tileJsonSerialiser.js";
 
+
+/**
+ * Provides tile set serialisation functions.
+ */
 export default class TileSetJsonSerialiser {
 
 
     /**
-     * Serialises the list of tile sets.
-     * @param {TileSet} tileSet - Tile set to serialise.
+     * Serialises a tile set to a JSON string.
+     * @param {TileSet} value - Tile set to serialise.
      * @returns {string} 
      */
-    static serialise(tileSet) {
-        const result = TileSetJsonSerialiser.toSerialisable(tileSet);
+    static serialise(value) {
+        const result = TileSetJsonSerialiser.toSerialisable(value);
         return JSON.stringify(result);
     }
 
     /**
      * Returns a deserialised tile set.
-     * @param {string} jsonTileSet - JSON serialised tile set.
+     * @param {string} jsonString - JSON serialised tile set.
+     * @throws When the JSON string is null or empty.
      * @returns {TileSet}
      */
-    static deserialise(jsonTileSet) {
-        if (jsonTileSet) {
-            /** @type {TileSetSerialisable} */
-            const deserialised = JSON.parse(jsonTileSet);
-            return TileSetJsonSerialiser.fromSerialisable(deserialised);
-        } else throw new Error('Invalid tile set data supplied.');
+    static deserialise(jsonString) {
+        if (!jsonString || typeof jsonString !== 'string') throw new Error('Please pass a valid JSON string.');
+
+        /** @type {TileSetSerialisable} */
+        const deserialised = JSON.parse(jsonString);
+        return TileSetJsonSerialiser.fromSerialisable(deserialised);
     }
 
     /**
      * Converts a tile set object to a serialisable one.
-     * @param {TileSet} tileSet - Tile set to serialise.
+     * @param {TileSet} value - Tile set to serialise.
+     * @throws When a valid tile set was not passed.
      * @returns {TileSetSerialisable} 
      */
-    static toSerialisable(tileSet) {
-        if (!tileSet || typeof tileSet.getPixelAt !== 'function') throw new Error('Please pass a tile set.');
+    static toSerialisable(value) {
+        if (!value instanceof TileSet) throw new Error('Please pass a tile set.');
+
         return {
-            tileWidth: tileSet.tileWidth,
-            tiles: tileSet.getTiles().map(t => TileJsonSerialiser.toSerialisable(t))
+            tileWidth: value.tileWidth,
+            tiles: value.getTiles().map(t => TileJsonSerialiser.toSerialisable(t))
         };
     }
 
     /**
      * Converts a serialisable tiles set back to a tile set.
-     * @param {TileSetSerialisable} tileSetSerialisable - Serialisable tile set to convert.
+     * @param {TileSetSerialisable} serialisable - Serialisable tile set to convert.
+     * @throws When a valid serialisable tile set was not passed.
      * @returns {TileSet}
      */
-    static fromSerialisable(tileSetSerialisable) {
-        if (!tileSetSerialisable) throw new Error('Please pass a serialisable tile set.');
+    static fromSerialisable(serialisable) {
+        if (!serialisable) throw new Error('Please pass a serialisable tile set.');
 
         const result = TileSetFactory.create();
-        result.tileWidth = tileSetSerialisable.tileWidth;
+        result.tileWidth = serialisable.tileWidth;
 
-        if (tileSetSerialisable.tiles && Array.isArray(tileSetSerialisable.tiles)) {
-            tileSetSerialisable.tiles.forEach((t) => {
+        if (serialisable.tiles && Array.isArray(serialisable.tiles)) {
+            serialisable.tiles.forEach((t) => {
                 const newTile = TileJsonSerialiser.fromSerialisable(t);
                 result.addTile(newTile);
             });
         }
 
         // TODO - remove this in the future 
-        if (tileSetSerialisable.tilesAsHex && Array.isArray(tileSetSerialisable.tilesAsHex)) {
-            tileSetSerialisable.tilesAsHex.forEach((tileAsHex) => {
+        if (serialisable.tilesAsHex && Array.isArray(serialisable.tilesAsHex)) {
+            serialisable.tilesAsHex.forEach((tileAsHex) => {
                 const newTile = TileFactory.fromHex(tileAsHex);
                 result.addTile(newTile);
             });
@@ -76,8 +83,7 @@ export default class TileSetJsonSerialiser {
 }
 
 /**
- * @typedef TileSetSerialisable
- * @type {object}
+ * @typedef {Object} TileSetSerialisable
  * @property {number} tileWidth - The width of the tile map (in 8x8 pixel tiles).
  * @property {string[]} tilesAsHex - Array of tiles encoded as hexadecimal.
  * @property {import("./tileJsonSerialiser.js").TileSerialisable[]} tiles - Array of tiles.

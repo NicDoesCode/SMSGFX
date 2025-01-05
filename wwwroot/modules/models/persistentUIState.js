@@ -92,6 +92,16 @@ export default class PersistentUIState {
     }
 
     /**
+     * Gets or sets whether to highlight tiles that are the same.
+     */
+    get highlightSameTiles() {
+        return this.#highlightSameTiles;
+    }
+    set highlightSameTiles(value) {
+        this.#highlightSameTiles = value;
+    }
+
+    /**
      * Gets or sets whether the documentation is visible on startup.
      */
     get documentationVisibleOnStartup() {
@@ -143,6 +153,26 @@ export default class PersistentUIState {
         this.#projectStates = value;
     }
 
+    /**
+     * Gets or sets the project list drop down sort.
+     */
+    get projectDropDownSort() {
+        return this.#projectDropDownSort;
+    }
+    set projectDropDownSort(value) {
+        this.#projectDropDownSort = value;
+    }
+
+    /**
+     * Gets or sets the welcome screen project list sort.
+     */
+    get welcomeScreenProjectSort() {
+        return this.#welcomeScreenProjectSort;
+    }
+    set welcomeScreenProjectSort(value) {
+        this.#welcomeScreenProjectSort = value;
+    }
+
 
     /** @type {string} */
     #lastProjectId = null;
@@ -163,6 +193,8 @@ export default class PersistentUIState {
     /** @type {boolean} */
     #showPixelGrid = true;
     /** @type {boolean} */
+    #highlightSameTiles = true;
+    /** @type {boolean} */
     #documentationVisibleOnStartup = false;
     /** @type {boolean} */
     #welcomeVisibleOnStartup = true;
@@ -172,6 +204,10 @@ export default class PersistentUIState {
     #backgroundTheme = null;
     /** @type {Object.<string, ProjectState>} */
     #projectStates = {};
+    /** @type {import('./../types.js').SortEntry} */
+    #projectDropDownSort = null;
+    /** @type {import('./../types.js').SortEntry} */
+    #welcomeScreenProjectSort = null;
 
 
     constructor() {
@@ -182,7 +218,7 @@ export default class PersistentUIState {
 
 /** 
  * Saved state for an individual project.
- * @typedef {object} ProjectState
+ * @typedef {Object} ProjectState
  * @property {string} projectId - Unique ID of the project.
  * @property {number?} paletteIndex - Last selected palette index.
  * @property {string?} tileMapId - Unique ID of the last selected tile map.
@@ -193,7 +229,7 @@ export default class PersistentUIState {
 
 /** 
  * An individual project's export state.
- * @typedef {object} ProjectAssemblyExportState
+ * @typedef {Object} ProjectAssemblyExportState
  * @property {string[]} tileMapIds
  * @property {boolean} exportPalettes
  * @property {boolean} exportTileSet
