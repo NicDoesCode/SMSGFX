@@ -72,6 +72,7 @@ import { DropPosition } from "./types.js";
 import TileMapUtil from "./util/tileMapUtil.js";
 import PaintUtil from "./util/paintUtil.js";
 import PaletteUtil from "./util/paletteUtil.js";
+import TileMapList from "./models/tileMapList.js";
 
 
 /* ****************************************************************************************************
@@ -1744,6 +1745,8 @@ function handleImportPaletteModalDialogueOnConfirm(args) {
     getUIState().importPaletteAssemblyCode = args.paletteData;
     state.saveToLocalStorage();
 
+    currentProject.nativePalettes = null;
+
     paletteEditor.setState({
         paletteList: getRenderPaletteList(),
         selectedPaletteIndex: getProjectUIState().paletteIndex
@@ -1827,6 +1830,8 @@ function paletteSetColourAtIndexWithoutSaving(paletteIndex, colourIndex, colour)
 
     const newColour = PaletteColourFactory.create(colour.r, colour.g, colour.b);
     palette.setColour(colourIndex, newColour);
+
+    currentProject.nativePalettes = null;
 
     paletteEditor.setState({
         paletteList: getRenderPaletteList(),
@@ -1915,6 +1920,8 @@ function handleImageImportModalOnConfirm(args) {
     getProjectUIState().paletteIndex = getPaletteList().length - 1;
 
     state.saveToLocalStorage();
+
+    currentProject.nativePalettes = null;
 
     paletteEditor.setState({
         paletteList: getRenderPaletteList(),
@@ -2615,13 +2622,6 @@ function formatForNoProject() {
 
     currentProject.nativePalettes = null;
 
-    const dummyProject = createEmptyProject({ systemType: 'smsgg' });
-    while (dummyProject.paletteList.length > 1) {
-        dummyProject.paletteList.removeAt(0);
-    }
-    dummyProject.tileMapList.clear();
-    dummyProject.tileSet.clear();
-
     projectToolbar.setState({
         enabled: false,
         projectTitle: ' ',
@@ -2680,8 +2680,8 @@ function formatForNoProject() {
         enabled: false
     });
     tileManager.setState({
-        tileMapList: dummyProject.tileMapList,
-        tileSet: dummyProject.tileSet,
+        tileMapList: new TileMapList([]),
+        tileSet: new TileSet(),
         palette: null,
         paletteList: null,
         selectedTileMapId: null
@@ -3857,6 +3857,8 @@ function paletteReorder(paletteId, targetPaletteId, position) {
 
     state.saveToLocalStorage();
 
+    currentProject.nativePalettes = null;
+
     updatePaletteLists({ skipTileEditor: true });
 }
 
@@ -3870,6 +3872,8 @@ function paletteNew() {
         getPaletteList().addPalette(newPalette);
 
         state.saveToLocalStorage();
+
+        currentProject.nativePalettes = null;
 
         updatePaletteLists({ skipTileEditor: true });
 
@@ -3893,6 +3897,8 @@ function paletteClone(paletteIndex) {
             getPaletteList().insertAt(paletteIndex, newPalette);
 
             state.saveToLocalStorage();
+
+            currentProject.nativePalettes = null;
 
             updatePaletteLists({ skipTileEditor: true });
 
@@ -3924,6 +3930,8 @@ function paletteDelete(paletteIndex) {
             }
 
             state.saveToLocalStorage();
+
+            currentProject.nativePalettes = null;
 
             updatePaletteLists();
 
@@ -3983,6 +3991,8 @@ function paletteListSort(field) {
     getPaletteList().setPalettes(palettes);
     state.saveProjectToLocalStorage();
 
+    currentProject.nativePalettes = null;
+
     // Set the UI state
     updatePaletteLists();
 }
@@ -4022,6 +4032,8 @@ function changePaletteTitle(paletteIndex, newTitle) {
 
     state.saveToLocalStorage();
 
+    currentProject.nativePalettes = null;
+
     paletteEditor.setState({
         paletteList: getRenderPaletteList(),
         displayNative: getUIState().displayNativeColour
@@ -4036,6 +4048,8 @@ function changePaletteSystem(paletteIndex, system) {
 
     const palette = getPaletteList().getPalette(paletteIndex);
     palette.system = system;
+
+    currentProject.nativePalettes = null;
 
     state.saveToLocalStorage();
 
@@ -4076,7 +4090,7 @@ function changePaletteEditorDisplayNativeColours(displayNative) {
 }
 
 function updateTileEditorGridColours() {
-    const isGameboyProject = getUIState().displayNativeColour && getProject().systemType === 'gb';
+    const isGameboyProject = getUIState().displayNativeColour && getProject()?.systemType === 'gb';
     tileEditor.setState({
         pixelGridColour: (isGameboyProject) ? '#98a200' : '#000000',
         pixelGridOpacity: (isGameboyProject) ? 0.5 : 0.2,
@@ -4117,6 +4131,8 @@ function swapColourIndex(sourceColourIndex, targetColourIndex) {
     getPalette().setColour(targetColourIndex, sourceColour);
 
     state.saveToLocalStorage();
+
+    currentProject.nativePalettes = null;
 
     tileEditor.setState({
         paletteList: getRenderPaletteListToSuitTileMapOrTileSetSelection(),
@@ -5581,7 +5597,7 @@ window.addEventListener('load', async () => {
         });
 
         welcomeScreen.setState({
-            version: versionInfo, 
+            version: versionInfo,
             channel: channelInfo
         });
 
