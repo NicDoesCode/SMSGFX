@@ -25,12 +25,18 @@ const commands = {
     tileSetTileAttributes: 'tileSetTileAttributes',
     tileMapTileAttributes: 'tileMapTileAttributes',
     tileStampDefine: 'tileStampDefine',
-    tileStampClear: 'tileStampClear'
+    tileStampClear: 'tileStampClear',
+    pattern: 'pattern',
+    foregroundColour: 'foregroundColour',
+    backgroundColour: 'backgroundColour',
+    patternFixedOrigin: 'patternFixedOrigin'
 }
 const toolstrips = {
     select: 'select',
     pencil: 'pencil',
+    pattern: 'pattern',
     tileMapPencil: 'tileMapPencil',
+    tileMapPattern: 'tileMapPattern',
     referenceImage: 'referenceImage',
     rowColumn: 'rowColumn',
     palettePaint: 'palettePaint',
