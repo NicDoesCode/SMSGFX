@@ -31,6 +31,7 @@ const commands = {
     backgroundColour: 'backgroundColour',
     patternFixedOrigin: 'patternFixedOrigin'
 }
+
 const toolstrips = {
     select: 'select',
     pencil: 'pencil',
@@ -45,6 +46,24 @@ const toolstrips = {
     tileMapTileAttributes: 'tileMapTileAttributes',
     tileEyedropper: 'tileEyedropper'
 }
+
+const toolstripLayouts = {
+    tileSelect: [ 'selectLabel', 'tileCutCopyPaste', 'tileClone', 'tileDelete', 'tileMove', 'tileMirror', 'tileInsert', 'alwaysKeepTile' ],
+    tileMapSelect: [ 'tileAttributesLabel', 'tileMapMirror', 'tileMapPriority', 'tileMapPalette', 'alwaysKeepTile' ],
+    tilePencil: [ 'brushSize', 'tileClamp' ],
+    tileMapPencil: [ 'brushSize', 'tileClamp', 'breakLinks' ],
+    tileColourReplace: [ 'brushSize', 'tileClamp' ],
+    tileMapColourReplace: [ 'brushSize', 'tileClamp', 'breakLinkes' ],
+    tilePattern: [ 'patternSelect', 'brushSize', 'foregroundColour', 'backgroundColour', 'tileClamp', 'fixedOrigin' ],
+    tileMapPattern: [ 'patternSelect', 'brushSize', 'foregroundColour', 'backgroundColour', 'tileClamp', 'fixedOrigin', 'breakLinks' ],
+    eyedropper: [ 'tileEyedropperLabel', 'tileEyedropperDescription' ],
+    referenceImage: [ 'referenceImageLabel', 'referenceImageLoadClear', 'referenceImageRevert', 'referenceImagePosition', 'referenceImageDimensions', 'referenceImageColour' ],
+    tileMapAddRemove: [ 'rowColumnLabel', 'rowAddRemove', 'columnAddRemove', 'fillMode' ],
+    tileMapBreakLink: [ 'tileLinkBreakLabel', 'tileLinkBreakDescription' ],
+    tileStampPattern: [ 'tileStampLabel', 'tileStempSettings' ],
+    tileMapPalettePaint: [ 'palettePaintLabel', 'paletteSlot' ],
+    tileEyedropper: [ 'tileEyedropperLabel', 'tileEyedroppedDescription' ]
+};
 
 export default class TileContextToolbar extends ComponentBase {
 
