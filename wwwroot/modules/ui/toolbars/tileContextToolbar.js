@@ -48,21 +48,23 @@ const toolstrips = {
 }
 
 const toolstripLayouts = {
-    tileSelect: [ 'selectLabel', 'tileCutCopyPaste', 'tileClone', 'tileDelete', 'tileMove', 'tileMirror', 'tileInsert', 'alwaysKeepTile' ],
-    tileMapSelect: [ 'tileAttributesLabel', 'tileMapMirror', 'tileMapPriority', 'tileMapPalette', 'alwaysKeepTile' ],
-    tilePencil: [ 'brushSize', 'tileClamp' ],
-    tileMapPencil: [ 'brushSize', 'tileClamp', 'breakLinks' ],
-    tileColourReplace: [ 'brushSize', 'tileClamp' ],
-    tileMapColourReplace: [ 'brushSize', 'tileClamp', 'breakLinkes' ],
-    tilePattern: [ 'patternSelect', 'brushSize', 'foregroundColour', 'backgroundColour', 'tileClamp', 'fixedOrigin' ],
-    tileMapPattern: [ 'patternSelect', 'brushSize', 'foregroundColour', 'backgroundColour', 'tileClamp', 'fixedOrigin', 'breakLinks' ],
-    eyedropper: [ 'tileEyedropperLabel', 'tileEyedropperDescription' ],
-    referenceImage: [ 'referenceImageLabel', 'referenceImageLoadClear', 'referenceImageRevert', 'referenceImagePosition', 'referenceImageDimensions', 'referenceImageColour' ],
-    tileMapAddRemove: [ 'rowColumnLabel', 'rowAddRemove', 'columnAddRemove', 'fillMode' ],
-    tileMapBreakLink: [ 'tileLinkBreakLabel', 'tileLinkBreakDescription' ],
-    tileStampPattern: [ 'tileStampLabel', 'tileStempSettings' ],
-    tileMapPalettePaint: [ 'palettePaintLabel', 'paletteSlot' ],
-    tileEyedropper: [ 'tileEyedropperLabel', 'tileEyedroppedDescription' ]
+    tileSelect: ['selectLabel', 'tileCutCopyPaste', 'tileClone', 'tileDelete', 'tileMove', 'tileMirror', 'tileInsert', 'alwaysKeepTile'],
+    tileMapSelect: ['tileAttributesLabel', 'tileMapMirror', 'tileMapPriority', 'tileMapPalette', 'alwaysKeepTile'],
+    tilePencil: ['brushSize', 'tileClamp'],
+    tileMapPencil: ['brushSize', 'tileClamp', 'breakLinks'],
+    tileColourReplace: ['brushSize', 'tileClamp'],
+    tileMapColourReplace: ['brushSize', 'tileClamp', 'breakLinkes'],
+    tileBucket: ['tileClamp'],
+    tileMapBucket: ['tileClamp', 'breakLinks'],
+    tilePattern: ['patternSelect', 'brushSize', 'foregroundColour', 'backgroundColour', 'tileClamp', 'fixedOrigin'],
+    tileMapPattern: ['patternSelect', 'brushSize', 'foregroundColour', 'backgroundColour', 'tileClamp', 'fixedOrigin', 'breakLinks'],
+    eyedropper: ['tileEyedropperLabel', 'tileEyedropperDescription'],
+    referenceImage: ['referenceImageLabel', 'referenceImageLoadClear', 'referenceImageRevert', 'referenceImagePosition', 'referenceImageDimensions', 'referenceImageColour'],
+    tileMapAddRemove: ['rowColumnLabel', 'rowAddRemove', 'columnAddRemove', 'fillMode'],
+    tileMapBreakLink: ['tileLinkBreakLabel', 'tileLinkBreakDescription'],
+    tileStampPattern: ['tileStampLabel', 'tileStempSettings'],
+    tileMapPalettePaint: ['palettePaintLabel', 'paletteSlot'],
+    tileEyedropper: ['tileEyedropperLabel', 'tileEyedroppedDescription']
 };
 
 export default class TileContextToolbar extends ComponentBase {
@@ -74,6 +76,10 @@ export default class TileContextToolbar extends ComponentBase {
 
     static get Toolstrips() {
         return toolstrips;
+    }
+
+    static get ToolstripLayouts() {
+        return toolstripLayouts;
     }
 
 
@@ -200,17 +206,9 @@ export default class TileContextToolbar extends ComponentBase {
             this.#element.querySelectorAll(`select[data-command=${TileContextToolbar.Commands.rowColumnFillMode}]`)
                 .forEach((select) => select.value = mode);
         }
-        if (state?.visibleToolstrips && Array.isArray(state.visibleToolstrips)) {
-            this.#element.querySelectorAll('[data-toolstrip]').forEach(element => {
-                const toolstrip = element.getAttribute('data-toolstrip');
-                if (state.visibleToolstrips.includes(toolstrip)) {
-                    while (element.classList.contains('visually-hidden')) {
-                        element.classList.remove('visually-hidden');
-                    }
-                } else {
-                    element.classList.add('visually-hidden');
-                }
-            });
+        console.log('AYE!', state?.toolstripLayout, state); // TMP 
+        if (Array.isArray(state?.toolstripLayout)) {
+            this.#setToolstripLayout(state.toolstripLayout.filter((i) => typeof i === 'string'));
         }
         if (state.referenceBounds) {
             const b = state.referenceBounds;
@@ -411,6 +409,31 @@ export default class TileContextToolbar extends ComponentBase {
     }
 
 
+    /**
+     * @param {string[]} layoutItems 
+     */
+    #setToolstripLayout(layoutItems) {
+        const container = this.#element.querySelector('[data-smsgfx-id=toolstrip]');
+        const components = this.#element.querySelector('[data-smsgfx-id=toolstrip-components]');
+
+        container.querySelectorAll('[data-tool-id]').forEach((layoutItemElement) => {
+            components.appendChild(layoutItemElement);
+        });
+        // container.childNodes.forEach((n) => {
+        //     components.appendChild(n);
+        // });
+
+        layoutItems.forEach((layoutItem) => {
+            const layoutItemElement = components.querySelector(`[data-tool-id=${layoutItem}]`);
+            if (layoutItemElement) {
+                container.appendChild(layoutItemElement);
+            } else {
+                console.error(`Can't find tool item: ${layoutItem}`); // TMP 
+            }
+        });
+    }
+
+
 }
 
 /**
@@ -426,7 +449,7 @@ function isToggled(element) {
  * @typedef {Object} TileContextToolbarState
  * @property {boolean?} visible - Is the toolbar visible?
  * @property {boolean?} enabled - Is the toolbar enabled?
- * @property {string[]?} visibleToolstrips - An array of strings containing visible toolstrips.
+ * @property {string[]?} [toolstripLayout] - Array of toolstrip items to display.
  * @property {string[]?} disabledCommands - An array of strings containing disabled buttons.
  * @property {string[]?} selectedCommands - An array of strings containing selected commands to set to active display status.
  * @property {string?} [systemType] - Type of system, which will affect fields with 'data-system-type' attribute .

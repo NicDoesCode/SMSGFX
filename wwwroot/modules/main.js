@@ -2479,7 +2479,7 @@ function refreshProjectUI() {
         systemType: getProject().systemType
     });
     tileContextToolbar.setState({
-        visibleToolstrips: getTileMapContextToolbarVisibleToolstrips(instanceState.tool)
+        toolstripLayout: getTileContextToolbarLayout(instanceState.tool)
     });
 
     const disabledCommands = [];
@@ -2690,53 +2690,44 @@ function formatForNoProject() {
     updateTileEditorGridColours();
 }
 
-/**
- * Gets what toolstrips should be visible on the tile context toolbar.
- * @param {string} tool - Currently selected tool.
+/** Gets the visible toolstrip options for a given tool.
+ * @param {string} tool - Tool to get the items for.
  * @returns {string[]}
  */
-function getTileMapContextToolbarVisibleToolstrips(tool) {
-    let visibleStrips = [];
+function getTileContextToolbarLayout(tool) {
     if (tool && typeof tool === 'string') {
         const tools = TileEditorToolbar.Tools;
+        const layouts = TileContextToolbar.ToolstripLayouts;
         switch (tool) {
             case tools.pencil:
+                return isTileMap() ? layouts.tilePencil : layouts.tileMapPencil;
             case tools.colourReplace:
-                visibleStrips.push(TileContextToolbar.Toolstrips.pencil);
-                if (isTileMap()) {
-                    visibleStrips.push(TileContextToolbar.Toolstrips.tileMapPencil);
-                }
+                return isTileMap() ? layouts.tileColourReplace : layouts.tileMapColourReplace;
+            case tools.pattern:
+                return isTileMap() ? layouts.tilePattern : layouts.tileStampPattern;
             case tools.bucket:
+                return isTileMap() ? layouts.tileBucket : layouts.tileMapBucket;
             case tools.eyedropper:
-                visibleStrips.push(TileContextToolbar.Toolstrips.pencil);
-                break;
+                return layouts.eyedropper;
             case tools.select:
-                visibleStrips.push(TileContextToolbar.Toolstrips.select);
-                break;
+                return layouts.tileSelect;
             case tools.referenceImage:
-                visibleStrips.push(TileContextToolbar.Toolstrips.referenceImage);
-                break;
+                return layouts.referenceImage;
             case tools.tileMapTileAttributes:
-                visibleStrips.push(TileContextToolbar.Toolstrips.tileMapTileAttributes);
-                break;
+                return layouts.tileMapSelect;
             case tools.rowColumn:
-                visibleStrips.push(TileContextToolbar.Toolstrips.rowColumn);
-                break;
+                return layouts.tileMapAddRemove;
             case tools.tileLinkBreak:
-                visibleStrips.push(TileContextToolbar.Toolstrips.tileLinkBreak);
-                break;
+                return layouts.tileMapBreakLink;
             case tools.palettePaint:
-                visibleStrips.push(TileContextToolbar.Toolstrips.palettePaint);
-                break;
+                return layouts.tileMapPalettePaint;
             case tools.tileStamp:
-                visibleStrips.push(TileContextToolbar.Toolstrips.tileStamp);
-                break;
+                return layouts.tileStampPattern;
             case tools.tileEyedropper:
-                visibleStrips.push(TileContextToolbar.Toolstrips.tileEyedropper);
-                break;
+                return layouts.tileEyedropper;
         }
     }
-    return visibleStrips;
+    return [];
 }
 
 function displaySelectedProject() {
@@ -5201,7 +5192,7 @@ function selectTool(tool) {
             visible: true,
             brushSize: instanceState.pencilSize,
             rowColumnFillMode: instanceState.rowColumnFillMode ?? TileMapRowColumnTool.TileFillMode.useSelected,
-            visibleToolstrips: getTileMapContextToolbarVisibleToolstrips(tool),
+            toolstripLayout: getTileContextToolbarLayout(tool),
             clampToTile: instanceState.clampToTile,
             disabledCommands: disabledCommands
         });
