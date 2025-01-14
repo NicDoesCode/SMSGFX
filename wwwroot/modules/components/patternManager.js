@@ -25,9 +25,20 @@ export default class PatternManager {
      */
     async loadPatterns() {
         const path = './assets/patterns/patterns.json';
-        const patternFetch = await fetch(path);
-        const patternsJson = await patternFetch.json();
-        this.#patterns = patternsJson;
+        try {
+            const patternFetch = await fetch(path);
+            if (patternFetch.status === 200) {
+                const patternsJson = await patternFetch.json();
+                this.#patterns = patternsJson;        
+            } else if (patternFetch.status === 404) {
+                console.warn(`PatternManager: Path '${path}' not found.`);
+                this.#patterns = [];
+            } else {
+                throw new Error('Server error when loading patterns.');
+            }
+        } catch (err) {
+            throw new Error('There was an issue when loading the patterns.', { cause: err });
+        }
     }
 
     /**
