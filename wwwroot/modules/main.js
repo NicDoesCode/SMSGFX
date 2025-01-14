@@ -1757,6 +1757,9 @@ function handleImportPaletteModalDialogueOnConfirm(args) {
     tileEditor.setState({
         paletteList: getRenderPaletteListToSuitTileMapOrTileSetSelection()
     });
+    tileContextToolbar.setState({
+        palette: getRenderPalette()
+    });
 
     paletteImportDialogue.hide();
     toast.show('Palette imported.');
@@ -1847,6 +1850,9 @@ function paletteSetColourAtIndexWithoutSaving(paletteIndex, colourIndex, colour)
         paletteList: getRenderPaletteListToSuitTileMapOrTileSetSelection(),
         forceRefresh: true
     });
+    tileContextToolbar.setState({
+        palette: getRenderPalette()
+    });
 }
 
 /**
@@ -1936,6 +1942,9 @@ function handleImageImportModalOnConfirm(args) {
         tileGrid: getTileGrid(),
         tileSet: getTileSet(),
         focusedTile: focusedTile
+    });
+    tileContextToolbar.setState({
+        palette: getRenderPalette()
     });
     projectToolbar.setState({
         projectTitle: getProject().title
@@ -2491,7 +2500,8 @@ function refreshProjectUI() {
         disabledCommands: disabledCommands,
         clampToTile: instanceState.clampToTile,
         tileBreakLinks: instanceState.tileBreakLinks,
-        systemType: getProject().systemType
+        systemType: getProject().systemType,
+        palette: getRenderPalette()
     });
 
     resizeToolboxes();
@@ -2583,6 +2593,7 @@ function formatForProject() {
     });
     tileContextToolbar.setState({
         enabled: true,
+        palette: null,
         paletteSlotCount: getNumberOfPaletteSlots(),
         paletteSlot: instanceState.paletteSlot
     });
@@ -2661,7 +2672,8 @@ function formatForNoProject() {
         showTab: ColourPickerToolbox.Tabs.rgb
     });
     tileContextToolbar.setState({
-        enabled: false
+        enabled: false,
+        palette: null
     });
     tileEditorToolbar.setState({
         enabled: false
@@ -3999,6 +4011,9 @@ function updatePaletteLists(args) {
     tileManager.setState({
         paletteList: getRenderPaletteList()
     });
+    tileContextToolbar.setState({
+        palette: getRenderPalette()
+    });
     if (args?.skipTileEditor !== true) {
         tileEditor.setState({
             paletteList: getRenderPaletteListToSuitTileMapOrTileSetSelection()
@@ -4032,6 +4047,9 @@ function changePaletteTitle(paletteIndex, newTitle) {
     tileManager.setState({
         paletteList: getRenderPaletteList()
     });
+    tileContextToolbar.setState({
+        palette: getRenderPalette()
+    });
 }
 
 function changePaletteSystem(paletteIndex, system) {
@@ -4056,6 +4074,9 @@ function changePaletteSystem(paletteIndex, system) {
     tileManager.setState({
         paletteList: getRenderPaletteList()
     });
+    tileContextToolbar.setState({
+        palette: getRenderPalette()
+    });
 }
 
 function changePaletteEditorDisplayNativeColours(displayNative) {
@@ -4074,6 +4095,9 @@ function changePaletteEditorDisplayNativeColours(displayNative) {
     });
     tileManager.setState({
         paletteList: getRenderPaletteList(),
+        palette: getRenderPalette()
+    });
+    tileContextToolbar.setState({
         palette: getRenderPalette()
     });
 
@@ -4135,6 +4159,9 @@ function swapColourIndex(sourceColourIndex, targetColourIndex) {
     });
     tileManager.setState({
         paletteList: getRenderPaletteList(),
+        palette: getRenderPalette()
+    });
+    tileContextToolbar.setState({
         palette: getRenderPalette()
     });
 }
@@ -4950,6 +4977,9 @@ function tileMapUpdate(tileMapId, args) {
         lockedPaletteSlotIndex: graphicsCapability.lockedPaletteIndex,
         forceRefresh: true
     });
+    tileContextToolbar.setState({
+        palette: getRenderPalette()
+    });
 }
 
 /**
@@ -5292,6 +5322,9 @@ function paletteSelectByIndex(index) {
             paletteList: getRenderPaletteListToSuitTileMapOrTileSetSelection()
         });
     }
+    tileContextToolbar.setState({
+        palette: getRenderPalette()
+    });
 }
 
 function getTransparencyIndicies() {

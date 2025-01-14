@@ -2,6 +2,8 @@ import ComponentBase from "../componentBase.js";
 import EventDispatcher from "../../components/eventDispatcher.js";
 import TileMapRowColumnTool from "../../tools/tileMapRowColumnTool.js";
 import TemplateUtil from "../../util/templateUtil.js";
+import Palette from "../../models/palette.js";
+import ColourUtil from "../../util/colourUtil.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -91,6 +93,8 @@ export default class TileContextToolbar extends ComponentBase {
     #enabled = true;
     /** @type {DOMRect} */
     #lastBounds = null;
+    /** @type {Palette} */
+    #palette = null;
 
 
     /**
@@ -255,6 +259,11 @@ export default class TileContextToolbar extends ComponentBase {
             });
         }
 
+        if (state?.palette instanceof Palette || state?.palette === null) {
+            this.#palette = state.palette;
+            this.#updatePaletteItems(this.#palette);
+        }
+
         if (typeof state?.paletteSlotCount === 'number') {
             this.#element.querySelectorAll('[data-smsgfx-id=paletteSlotSelect]').forEach((container) => {
                 fillPaletteSlotButtons(container, TileContextToolbar.Commands.paletteSlot, null, state.paletteSlotCount, (e, n) => {
@@ -280,6 +289,36 @@ export default class TileContextToolbar extends ComponentBase {
                     button.classList.add('active');
                 }
             });
+        }
+    }
+
+
+    /**
+     * 
+     * @param {Palette?} palette - Palette to update with.
+     */
+    #updatePaletteItems(palette) {
+        /** @type {HTMLSelectElement[]} */
+        const selectors = [
+            this.#element.querySelector('[data-field=foregroundColour]'),
+            this.#element.querySelector('[data-field=backgroundColour]')
+        ];
+        for (let selector of selectors) {
+            const lastSelected = selector.selectedIndex;
+            while (selector.options.length > 0) selector.options.remove(0);
+            if (palette) {
+                palette.getColours().forEach((colour, index) => {
+                    const option = new Option(`#${index}`, index.toString(), index === 0);
+                    option.style.backgroundColor = ColourUtil.toHex(colour.r, colour.g, colour.b);
+                    option.style.color = ColourUtil.toHex(colour.r, colour.g, colour.b);
+                    selector.options.add(option);
+                });
+                if (lastSelected >= 0 && lastSelected < selector.options.length) {
+                    selector.selectedIndex = lastSelected;
+                } else {
+                    selector.selectedIndex = 0;
+                }    
+            }
         }
     }
 
@@ -458,6 +497,7 @@ function isToggled(element) {
  * @property {boolean?} [tileBreakLinks] - Break tile links on edit?
  * @property {string?} [rowColumnMode] - Mode for add / remove row / column.
  * @property {string?} [rowColumnFillMode] - Fill mode for the row / column tool.
+ * @property {Palette?} [palette] - Current colour palette.
  * @property {number?} [paletteSlot] - Palette slot.
  * @property {number?} [paletteSlotCount] - Number of palette slots.
  * @property {DOMRect?} referenceBounds - Bounds for the reference image.
