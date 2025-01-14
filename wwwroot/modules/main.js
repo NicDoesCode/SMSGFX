@@ -22,6 +22,7 @@ import ReferenceImage from "./models/referenceImage.js";
 import GoogleAnalyticsManager from "./components/googleAnalyticsManager.js";
 import VersionManager from './components/versionManager.js';
 import ThemeManager from "./components/themeManager.js";
+import PatternManager from "./components/patternManager.js";
 import SerialisationUtil from "./util/serialisationUtil.js";
 
 import PaletteEditor from "./ui/paletteEditor.js";
@@ -160,6 +161,7 @@ const undoManager = new UndoManager(50);
 const watcher = new ProjectWatcher(instanceState.sessionId);
 const googleAnalytics = new GoogleAnalyticsManager();
 const themeManager = new ThemeManager();
+const patternManager = new PatternManager();
 
 /** @type {ProjectToolbar} */ let projectToolbar;
 /** @type {ProjectDropdown} */ let projectDropdown;
@@ -5477,6 +5479,8 @@ window.addEventListener('load', async () => {
 
     instanceState.tool = 'pencil';
     instanceState.colourToolboxTab = 'rgb';
+
+    await patternManager.loadPatterns();
 
     await initialiseComponents();
     wireUpEventHandlers();

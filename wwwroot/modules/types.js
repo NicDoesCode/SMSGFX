@@ -56,5 +56,12 @@ export const DropPosition = {
  * @property {number} r - Red component.
  * @property {number} g - Green component.
  * @property {number} b - Blue component.
- * @export
+ * @exports
+ */
+
+/** Pattern definition that can be painted onto an image.
+ * @typedef {Object} Pattern
+ * @property {string} name - The pattern's name.
+ * @property {number[]} pattern - The actual pattern, 2 dimensional array of numbers, 0 = transparent, 1 = first colour, 2 = second colour.
+ * @exports
  */
