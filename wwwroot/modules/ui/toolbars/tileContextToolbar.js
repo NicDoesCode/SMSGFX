@@ -28,16 +28,16 @@ const commands = {
     tileMapTileAttributes: 'tileMapTileAttributes',
     tileStampDefine: 'tileStampDefine',
     tileStampClear: 'tileStampClear',
-    pattern: 'pattern',
-    foregroundColour: 'foregroundColour',
-    backgroundColour: 'backgroundColour',
+    patternIndex: 'patternIndex',
+    primaryColourIndex: 'primaryColourIndex',
+    secondaryColourIndex: 'secondaryColourIndex',
     patternFixedOrigin: 'patternFixedOrigin'
 }
 
 const toolstrips = {
     select: 'select',
     pencil: 'pencil',
-    pattern: 'pattern',
+    tilePattern: 'tilePattern',
     tileMapPencil: 'tileMapPencil',
     tileMapPattern: 'tileMapPattern',
     referenceImage: 'referenceImage',
@@ -58,8 +58,8 @@ const toolstripLayouts = {
     tileMapColourReplace: ['brushSize', 'tileClamp', 'breakLinkes'],
     tileBucket: ['tileClamp'],
     tileMapBucket: ['tileClamp', 'breakLinks'],
-    tilePattern: ['patternSelect', 'brushSize', 'foregroundColour', 'backgroundColour', 'tileClamp', 'fixedOrigin'],
-    tileMapPattern: ['patternSelect', 'brushSize', 'foregroundColour', 'backgroundColour', 'tileClamp', 'fixedOrigin', 'breakLinks'],
+    tilePattern: ['patternSelect', 'brushSize', 'primaryColourIndex', 'secondaryColourIndex', 'tileClamp', 'fixedOrigin'],
+    tileMapPattern: ['patternSelect', 'brushSize', 'primaryColourIndex', 'secondaryColourIndex', 'tileClamp', 'fixedOrigin', 'breakLinks'],
     eyedropper: ['tileEyedropperLabel', 'tileEyedropperDescription'],
     referenceImage: ['referenceImageLabel', 'referenceImageLoadClear', 'referenceImageRevert', 'referenceImagePosition', 'referenceImageDimensions', 'referenceImageColour'],
     tileMapAddRemove: ['rowColumnLabel', 'rowAddRemove', 'columnAddRemove', 'fillMode'],
@@ -210,7 +210,6 @@ export default class TileContextToolbar extends ComponentBase {
             this.#element.querySelectorAll(`select[data-command=${TileContextToolbar.Commands.rowColumnFillMode}]`)
                 .forEach((select) => select.value = mode);
         }
-        console.log('AYE!', state?.toolstripLayout, state); // TMP 
         if (Array.isArray(state?.toolstripLayout)) {
             this.#setToolstripLayout(state.toolstripLayout.filter((i) => typeof i === 'string'));
         }
@@ -290,6 +289,48 @@ export default class TileContextToolbar extends ComponentBase {
                 }
             });
         }
+
+        if (Array.isArray(state?.patterns)) {
+            this.#element.querySelectorAll('select[data-field=patternIndex]').forEach((/** @type {HTMLSelectElement} */ select) => {
+                while (select.options.length > 0) select.options.remove(0);
+                state?.patterns.forEach((pattern, index) => {
+                    const option = document.createElement('option');
+                    option.innerText = `#${index}`;
+                    option.value = index;
+                    select.options.add(option);
+                });
+            });
+        }
+
+        if (typeof state?.patternIndex === 'number') {
+            this.#element.querySelectorAll('select[data-field=patternIndex]').forEach((select) => {
+                if (state.patternIndex >= 0 && state.patternIndex < select.options.length) {
+                    select.selectedIndex = state.patternIndex;
+                }
+            });
+        }
+
+        if (typeof state?.patternFixedOrigin === 'boolean') {
+            this.#element.querySelectorAll('input[data-command=patternFixedOrigin]').forEach((checkbox) => {
+                checkbox.checked = state.patternFixedOrigin;
+            });
+        }
+
+        if (typeof state?.primaryColourIndex === 'number') {
+            this.#element.querySelectorAll('select[data-field=primaryColourIndex]').forEach((select) => {
+                if (state.primaryColourIndex >= 0 && state.primaryColourIndex < select.options.length) {
+                    select.selectedIndex = state.primaryColourIndex;
+                }
+            });
+        }
+
+        if (typeof state?.secondaryColourIndex === 'number') {
+            this.#element.querySelectorAll('select[data-field=secondaryColourIndex]').forEach((select) => {
+                if (state.secondaryColourIndex >= 0 && state.secondaryColourIndex < select.options.length) {
+                    select.selectedIndex = state.secondaryColourIndex;
+                }
+            });
+        }
     }
 
 
@@ -300,8 +341,8 @@ export default class TileContextToolbar extends ComponentBase {
     #updatePaletteItems(palette) {
         /** @type {HTMLSelectElement[]} */
         const selectors = [
-            this.#element.querySelector('[data-field=foregroundColour]'),
-            this.#element.querySelector('[data-field=backgroundColour]')
+            this.#element.querySelector('[data-field=primaryColourIndex]'),
+            this.#element.querySelector('[data-field=secondaryColourIndex]')
         ];
         for (let selector of selectors) {
             const lastSelected = selector.selectedIndex;
@@ -444,6 +485,22 @@ export default class TileContextToolbar extends ComponentBase {
             result.tileSetTileAttributes = attr;
         }
 
+        if (command === coms.patternIndex) {
+            result.patternIndex = element.selectedIndex;
+        }
+
+        if (command === coms.patternFixedOrigin) {
+            result.patternFixedOrigin = element.checked;
+        }
+
+        if (command === coms.primaryColourIndex) {
+            result.primaryColourIndex = element.selectedIndex;
+        }
+
+        if (command === coms.secondaryColourIndex) {
+            result.secondaryColourIndex = element.selectedIndex;
+        }
+
         return result;
     }
 
@@ -505,7 +562,12 @@ function isToggled(element) {
  * @property {number?} referenceTransparency - Transparency colour for the reference image.
  * @property {TileContextToolbarTileSetTileAttributes?} [tileSetTileAttributes] - Tile set tile attributes.
  * @property {TileContextToolbarTileMapTileAttributes?} [tileMapTileAttributes] - Tile map tile attributes.
- * @exports
+ * @property {import("../../types.js").Pattern[]} [patterns] - Index of the pattern in the pattern list.
+ * @property {number} [patternIndex] - Index of the pattern in the pattern list.
+ * @property {boolean} [patternFixedOrigin] - Use a fixed origin for pattern painting?
+ * @property {number} [primaryColourIndex] - Index of the pattern primary colour (colour #1).
+ * @property {number} [secondaryColourIndex] - Index of the pattern secondary colour (colour #2).
+* @exports
  */
 
 /**
@@ -544,6 +606,10 @@ function isToggled(element) {
  * @property {number} referenceTransparency - Colour index to draw transparent.
  * @property {TileContextToolbarTileSetTileAttributes?} [tileSetTileAttributes] - Tile set tile attributes.
  * @property {TileContextToolbarTileMapTileAttributes?} [tileMapTileAttributes] - Tile map tile attributes.
+ * @property {number} [patternIndex] - Index of the pattern in the pattern list.
+ * @property {boolean} [patternFixedOrigin] - Use a fixed origin for pattern painting?
+ * @property {number} [primaryColourIndex] - Index of the pattern primary colour (colour #1).
+ * @property {number} [secondaryColourIndex] - Index of the pattern secondary colour (colour #2).
  * @exports
  */
 
