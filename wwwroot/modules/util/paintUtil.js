@@ -144,6 +144,26 @@ export default class PaintUtil {
 
 
     /**
+     * Paints a defined pattern onto a tile grid.
+     * @param {TileGridProvider} tileGrid - Tile grid that contains information about the tile layout.
+     * @param {TileSet} tileSet - Tile set that countains the tiles.
+     * @param {Object} options - Pattern paint options.
+     * @param {number} options.x - Origin X coordinate.
+     * @param {number} options.y - Origin Y coordinate.
+     * @param {number} options.primaryColourIndex - Primary colour index that matches 1 on the pattern.
+     * @param {number} options.secondaryColourIndex - Secondary colour index that matches 2 on the pattern.
+     * @param {import('../types.js').Pattern} options.pattern - Pattern object.
+     * @param {number} options.patternOriginX - Origin X coordinate for the pattern.
+     * @param {number} options.patternOriginY - Origin Y coordinate for the pattern.
+     * @param {number} options.brushSize - Size of the brush to paint with.
+     * @param {boolean} options.affectAdjacentTiles - Does the operation affect tiles adjacent to the tile that the user clicked?
+     */
+    static paintPatternOntoTileGrid(tileGrid, tileSet, options) {
+
+    }
+
+
+    /**
      * Fills a contiguious area on a tile grid of one colour with another colour.
      * @param {TileGridProvider} tileGrid - Tile grid that contains information about the tile layout.
      * @param {TileSet} tileSet - Tile set that countains the tiles.

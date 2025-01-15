@@ -50,5 +50,26 @@ export default class PaintTool {
     static fillColourOnTileGrid(tileGrid, tileSet, x, y, colourIndex, clampToTile, breakTileLinks) {
         return PaintUtil.fillOnTileGrid(tileGrid, tileSet, x, y, colourIndex, { affectAdjacentTiles: !clampToTile });
     }
+    
+    /**
+     * Replaces one colour on a tile with another.
+     * @param {TileGridProvider} tileGrid - Tile grid with the tiles that comprise the image.
+     * @param {TileSet} tileSet - Tile set that contains the tiles to modify.
+     * @param {number} x - X coordinate.
+     * @param {number} y - Y coordinate.
+     * @param {number} primaryColourIndex - Colour for #1 on the pattern.
+     * @param {number} secondaryColourIndex - Colour for #2 on the pattern.
+     * @param {number} pencilSize - Size of the brush.
+     * @param {boolean} clampToTile - Will neigbouring tiles be affected?
+     * @returns {import("../util/paintUtil").DrawResult}
+     */
+    static patternPaintOnTileGrid(tileGrid, tileSet, x, y, primaryColourIndex, secondaryColourIndex, pencilSize, pattern, patternOriginX, patternOriginY, clampToTile) {
+        return PaintUtil.paintPatternOntoTileGrid(tileGrid, tileSet, { 
+            x, y, primaryColourIndex, secondaryColourIndex, 
+            brushSize: pencilSize, 
+            pattern, patternOriginX, patternOriginY, 
+            affectAdjacentTiles: !clampToTile 
+        });
+    }
 
 }
