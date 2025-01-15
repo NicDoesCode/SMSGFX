@@ -1,4 +1,5 @@
 import HtmlWebpackPlugin from "html-webpack-plugin";
+import { HtmlWebpackSkipAssetsPlugin } from "html-webpack-skip-assets-plugin";
 // import HtmlWebpackExcludeScriptsPlugin from "./build/plugins/HtmlWebpackExcludeScriptsPlugin.js";
 import CopyPlugin from "copy-webpack-plugin";
 import path from "path";
@@ -29,7 +30,7 @@ export default {
         main: './wwwroot/modules/main.js',
         pages: './wwwroot/pages/pages.js',
         tileEditorViewportWorker: './wwwroot/modules/worker/tileEditorViewportWorker.js',
-        tileImageWorker: './wwwroot/modules/worker/tileImageWorker.js',
+        tileImageWorker: './wwwroot/modules/worker/tileImageWorker.js'
     },
     output: {
         filename: (pathData) => {
@@ -72,20 +73,23 @@ export default {
             filename: 'index.html',
             chunks: ['main'],
             inject: 'body',
-            hash: true,
-            // excludeAssets: [
-            //     (asset) => {
-            //         console.log('ASSET!', asset);
-            //         return asset.attributes && asset.attributes["x-skip"]
-            //     }
-            // ],
+            hash: true
         }),
+        // new HtmlWebpackSkipAssetsPlugin({
+        //     excludeAssets: [
+        //         (asset) => {
+        //             console.log('ASSET!', asset);
+        //             return asset.attributes && asset.attributes["x-skip"]
+        //         }
+        //     ],
+        // }),
         new CopyPlugin({
             patterns: [
                 { from: 'wwwroot/assets/image', to: 'assets/image' },
                 { from: 'wwwroot/assets/sample', to: 'assets/sample', noErrorOnMissing: true },
                 { from: 'wwwroot/assets/patterns', to: 'assets/patterns', noErrorOnMissing: true },
                 { from: 'wwwroot/assets/libs', to: 'assets/libs', noErrorOnMissing: true },
+                { from: 'wwwroot/assets/libs/bootstrap-icons/fonts', to: 'fonts', noErrorOnMissing: true },
                 { from: 'wwwroot/config', to: 'config', noErrorOnMissing: true },
                 { from: 'wwwroot/metadata', to: 'metadata' },
             ]
