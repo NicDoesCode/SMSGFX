@@ -3606,13 +3606,14 @@ function changePencilSize(step) {
  * @param {number} brushSize - Pencil size, 1 to 50.
  */
 function setPencilSize(brushSize) {
+    const TOOLS = TileEditorToolbar.Tools;
     if (brushSize && brushSize >= 1 && brushSize <= 50) {
         instanceState.pencilSize = brushSize;
         tileContextToolbar.setState({
             brushSize: instanceState.pencilSize
         });
         let cursorSize = 1;
-        if (instanceState.tool === TileEditorToolbar.Tools.pencil || instanceState.tool === TileEditorToolbar.Tools.colourReplace) {
+        if (instanceState.tool === TOOLS.pencil || instanceState.tool === TOOLS.colourReplace || instanceState.tool === TOOLS.pattern) {
             cursorSize = instanceState.pencilSize;
         }
         tileEditor.setState({
@@ -5288,10 +5289,12 @@ function tileSwapByIndex(tileAIndex, tileBIndex) {
  */
 function selectTool(tool) {
     if (TileEditorToolbar.Tools[tool]) {
+        const TOOLS = TileEditorToolbar.Tools;
+
         instanceState.tool = tool;
         instanceState.swapTool = null;
 
-        if (tool !== TileEditorToolbar.Tools.select) {
+        if (tool !== TOOLS.select) {
             // Select tool
             const tile = getTileSet().getTileByIndex(instanceState.tileIndex);
             if (tile) {
@@ -5303,7 +5306,7 @@ function selectTool(tool) {
             }
         } else {
             // Was not select tool, de-select any tiles
-            if (tool !== TileEditorToolbar.Tools.select) {
+            if (tool !== TOOLS.select) {
                 instanceState.tileIndex = -1;
                 tileEditor.setState({
                     selectedTileIndex: instanceState.tileIndex
@@ -5312,7 +5315,7 @@ function selectTool(tool) {
         }
 
         // Set the stamp preview in the canvas
-        if (tool === TileEditorToolbar.Tools.tileStamp) {
+        if (tool === TOOLS.tileStamp) {
             if (!getProjectUIState().tileId && getTileSet() && getTileSet().length > 0 || !getTileSet().getTileById(getProjectUIState().tileId)) {
                 tileSetTileSelectById(getTileSet().getTile(0).tileId);
             }
@@ -5321,7 +5324,7 @@ function selectTool(tool) {
             tileEditor.setState({ tileStampPattern: null });
         }
 
-        if (tool !== TileEditorToolbar.Tools.tileStamp && getProject() !== null) {
+        if (tool !== TOOLS.tileStamp && getProject() !== null) {
             clearTileStampRegion();
         }
 
@@ -5329,15 +5332,15 @@ function selectTool(tool) {
 
         let cursor = 'arrow';
         let cursorSize = 1;
-        if ([TileEditorToolbar.Tools.eyedropper, TileEditorToolbar.Tools.bucket].includes(tool)) {
+        if ([TOOLS.eyedropper, TOOLS.bucket].includes(tool)) {
             cursor = 'crosshair';
-        } else if (tool === TileEditorToolbar.Tools.pencil || tool === TileEditorToolbar.Tools.colourReplace) {
+        } else if (tool === TOOLS.pencil || tool === TOOLS.colourReplace || tool === TOOLS.pattern) {
             cursor = 'crosshair';
             cursorSize = instanceState.pencilSize;
         }
 
         const disabledCommands = [];
-        if (isTileMap() && instanceState.tool === TileEditorToolbar.Tools.bucket) {
+        if (isTileMap() && instanceState.tool === TOOLS.bucket) {
             instanceState.clampToTile = true;
             disabledCommands.push(TileContextToolbar.Commands.tileClamp);
         }

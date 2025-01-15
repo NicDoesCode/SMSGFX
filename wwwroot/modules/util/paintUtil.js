@@ -159,7 +159,84 @@ export default class PaintUtil {
      * @param {boolean} options.affectAdjacentTiles - Does the operation affect tiles adjacent to the tile that the user clicked?
      */
     static paintPatternOntoTileGrid(tileGrid, tileSet, options) {
+        const x = options.x;
+        const y = options.y;
+        const primaryColourIndex = options.primaryColourIndex;
+        const secondaryColourIndex = options.secondaryColourIndex;
+        const pattern = options.pattern;
+        const patOriginX = options.patternOriginX;
+        const patOriginY = options.patternOriginY;
+        const updatedTileIndexes = [];
+        /** @type {Object.<string, number>} */
+        const updatedTileIds = {};
 
+        const tileInfo = tileGrid.getTileInfoByPixel(x, y);
+        if (tileInfo === null || tileInfo < 0) return { affectedTileIds: [], affectedTileIndexes: [] };
+
+        const brushSize = options.brushSize ?? 1;
+        if (brushSize < 1 || brushSize > 100) throw new Error('Brush size must be between 1 and 100 px.');
+
+        if (brushSize === 1) {
+
+            // Get pattern info
+            const patX = x % pattern.width;
+            const patY = y % pattern.height;
+            const patValue = pattern.pattern[patY][patX];
+
+            // Paint if its not a transparent pixel
+            if (patValue === 1 || patValue === 2) {
+                const coord = translateCoordinate(tileInfo, x % 8, y % 8);
+                const tile = tileSet.getTileById(tileInfo.tileId);
+                const colourIndex = patValue === 1 ? primaryColourIndex : secondaryColourIndex;
+                const drawSuccess = tile.setValueAtCoord(coord.x, coord.y, colourIndex);
+                if (drawSuccess) {
+                    updatedTileIndexes.push(tileInfo.tileIndex);
+                    updatedTileIds[tileInfo.tileId] = tileInfo;
+                }
+            }
+
+        } else {
+            const affect = options?.affectAdjacentTiles ?? true;
+            const startX = x - Math.floor(brushSize / 2);
+            const startY = y - Math.floor(brushSize / 2);
+            const endX = x + Math.ceil(brushSize / 2);
+            const endY = y + Math.ceil(brushSize / 2);
+            for (let yPx = startY; yPx < endY; yPx++) {
+                const xLeft = (brushSize > 3 && (yPx === startY || yPx === endY - 1)) ? startX + 1 : startX;
+                const xRight = (brushSize > 3 && (yPx === startY || yPx === endY - 1)) ? endX - 1 : endX;
+                for (let xPx = xLeft; xPx < xRight; xPx++) {
+                    const thisTileInfo = tileGrid.getTileInfoByPixel(xPx, yPx);
+                    if (thisTileInfo !== null) {
+                        const differentTile = thisTileInfo.tileIndex !== tileInfo.tileIndex;
+                        if (!differentTile || affect) {
+
+                            // Get pattern info
+                            const patX = xPx % pattern.width;
+                            const patY = yPx % pattern.height;
+                            const patValue = pattern.pattern[patY][patX];
+
+                            // Paint if its not a transparent pixel
+                            if (patValue === 1 || patValue === 2) {
+                                const coord = translateCoordinate(thisTileInfo, xPx % 8, yPx % 8);
+                                const tile = tileSet.getTileById(thisTileInfo.tileId);
+                                const currentColourIndex = patValue === 1 ? primaryColourIndex : secondaryColourIndex;
+                                const drawSuccess = tile.setValueAtCoord(coord.x, coord.y, currentColourIndex);
+                                if (drawSuccess) {
+                                    if (!updatedTileIndexes.includes(thisTileInfo.tileIndex)) updatedTileIndexes.push(thisTileInfo.tileIndex);
+                                    updatedTileIds[thisTileInfo.tileId] = tileInfo;
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+
+        return {
+            affectedTileIndexes: updatedTileIndexes,
+            affectedTileIds: Object.keys(updatedTileIds)
+        };
     }
 
 

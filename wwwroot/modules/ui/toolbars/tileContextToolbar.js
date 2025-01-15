@@ -295,7 +295,7 @@ export default class TileContextToolbar extends ComponentBase {
                 while (select.options.length > 0) select.options.remove(0);
                 state?.patterns.forEach((pattern, index) => {
                     const option = document.createElement('option');
-                    option.innerText = `#${index}`;
+                    option.innerText = pattern.name;
                     option.value = index;
                     select.options.add(option);
                 });
