@@ -47,7 +47,7 @@ export default class PaintUtil {
         if (brushSize === 1) {
 
             const paintResult = PaintUtil.#paintOntoPixel({ 
-                tileSet: tileSet, tileInfo: tileInfo, 
+                tileGrid: tileGrid, tileSet: tileSet, tileInfo: tileInfo, 
                 coordinate: coordinate, 
                 colour: { primaryIndex: brush.primaryColourIndex, secondaryIndex: brush.secondaryColourIndex, constrainIndex: options?.constrainToColourIndex ?? null },
                 pattern: pattern
@@ -74,7 +74,7 @@ export default class PaintUtil {
                         if (!differentTile || affectAdjacent) {
 
                             const paintResult = PaintUtil.#paintOntoPixel({ 
-                                tileSet: tileSet, tileInfo: thisTileInfo, 
+                                tileGrid: tileGrid, tileSet: tileSet, tileInfo: thisTileInfo, 
                                 coordinate: { x: xPx, y: yPx }, 
                                 colour: { primaryIndex: brush.primaryColourIndex, secondaryIndex: brush.secondaryColourIndex, constrainIndex: options?.constrainToColourIndex ?? null },
                                 pattern: pattern
@@ -100,6 +100,7 @@ export default class PaintUtil {
     /**
      * Paints onto a tile grid.
      * @param {Object} config
+     * @param {TileGridProvider} config.tileGrid - Tile grid with the tiles that comprise the image.
      * @param {TileSet} config.tileSet - Tile set that contains the tiles to modify.
      * @param {import('../models/tileGridProvider.js').TileProviderTileInfo} config.tileInfo
      * @param {Object} config.coordinate - Coordinates that are the centre of the brush.
@@ -115,11 +116,7 @@ export default class PaintUtil {
      * @param {number} config.pattern.originY - Y origin of the pattern, relative to the top of the image.
      * @returns {{ tileIndex: number, tileId: string } | null}
      */
-    static #paintOntoPixel({ tileSet, tileInfo, coordinate, colour, pattern }) {
-
-        const patternObj = pattern?.pattern ?? null;
-        const patOriginX = pattern?.originX ?? 0;
-        const patOriginY = pattern?.originY ?? 0;
+    static #paintOntoPixel({ tileGrid, tileSet, tileInfo, coordinate, colour, pattern }) {
 
         let paintColourIndex = colour.primaryIndex;
         const tileCoord = translateCoordinate(tileInfo, coordinate.x % 8, coordinate.y % 8);
@@ -133,7 +130,11 @@ export default class PaintUtil {
         }
 
         // If we're using a pattern then use the pattern info to set the colour
-        if (patternObj) {
+        if (pattern?.pattern) {
+            const patternObj = pattern?.pattern ?? null;
+            const patOriginX = pattern?.originX ?? 0;
+            const patOriginY = pattern?.originY ?? 0;
+
             let patX = (patternObj !== null) ? coordinate.x % patternObj.width : 0;
             let patY = (patternObj !== null) ? coordinate.y % patternObj.height : 0;
             let patValue = (patternObj !== null) ? patternObj.pattern[patY][patX] : null;
