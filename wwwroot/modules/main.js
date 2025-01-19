@@ -2750,8 +2750,6 @@ function getTileContextToolbarLayout(tool) {
                 return isTileMap() ? layouts.tilePencil : layouts.tileMapPencil;
             case tools.colourReplace:
                 return isTileMap() ? layouts.tileColourReplace : layouts.tileMapColourReplace;
-            case tools.pattern:
-                return isTileMap() ? layouts.tilePattern : layouts.tileStampPattern;
             case tools.bucket:
                 return isTileMap() ? layouts.tileBucket : layouts.tileMapBucket;
             case tools.eyedropper:
@@ -5324,7 +5322,7 @@ function selectTool(tool) {
         let cursorSize = 1;
         if ([TOOLS.eyedropper, TOOLS.bucket].includes(tool)) {
             cursor = 'crosshair';
-        } else if (tool === TOOLS.pencil || tool === TOOLS.colourReplace || tool === TOOLS.pattern) {
+        } else if (tool === TOOLS.pencil || tool === TOOLS.colourReplace) {
             cursor = 'crosshair';
             cursorSize = instanceState.pencilSize;
         }

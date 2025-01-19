@@ -38,9 +38,7 @@ const commands = {
 const toolstrips = {
     select: 'select',
     pencil: 'pencil',
-    tilePattern: 'tilePattern',
     tileMapPencil: 'tileMapPencil',
-    tileMapPattern: 'tileMapPattern',
     referenceImage: 'referenceImage',
     rowColumn: 'rowColumn',
     palettePaint: 'palettePaint',
@@ -53,18 +51,12 @@ const toolstrips = {
 const toolstripLayouts = {
     tileSelect: ['selectLabel', 'tileCutCopyPaste', 'tileClone', 'tileDelete', 'tileMove', 'tileMirror', 'tileInsert', 'alwaysKeepTile'],
     tileMapSelect: ['tileAttributesLabel', 'tileMapMirror', 'tileMapPriority', 'tileMapPalette', 'alwaysKeepTile'],
-
     tilePencil: ['colourIndex', 'brushSize', 'patternSelect', 'fixedOrigin', 'tileClamp'],
     tileMapPencil: ['colourIndex', 'brushSize', 'patternSelect', 'fixedOrigin', 'tileClamp', 'breakLinks'],
-
-    tileColourReplace: ['brushSize', 'tileClamp'],
-    tileMapColourReplace: ['brushSize', 'tileClamp', 'breakLinkes'],
+    tileColourReplace: ['colourIndex', 'brushSize', 'patternSelect', 'fixedOrigin', 'tileClamp'],
+    tileMapColourReplace: ['colourIndex', 'brushSize', 'patternSelect', 'fixedOrigin', 'tileClamp', 'breakLinks'],
     tileBucket: ['tileClamp'],
     tileMapBucket: ['tileClamp', 'breakLinks'],
-
-    tilePattern: ['patternSelect', 'brushSize', 'colourIndex', 'tileClamp', 'fixedOrigin'],
-    tileMapPattern: ['patternSelect', 'brushSize', 'colourIndex', 'tileClamp', 'fixedOrigin', 'breakLinks'],
-
     eyedropper: ['tileEyedropperLabel', 'tileEyedropperDescription'],
     referenceImage: ['referenceImageLabel', 'referenceImageLoadClear', 'referenceImageRevert', 'referenceImagePosition', 'referenceImageDimensions', 'referenceImageColour'],
     tileMapAddRemove: ['rowColumnLabel', 'rowAddRemove', 'columnAddRemove', 'fillMode'],
