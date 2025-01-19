@@ -34,15 +34,9 @@ export default class PaintUtil {
     static paintOntoTileGrid(tileGrid, tileSet, { coordinate, brush, pattern, options }) {
         const x = coordinate.x;
         const y = coordinate.y;
-        const colourIndex = brush.primaryColourIndex;
-        const secondaryColourIndex = brush.secondaryColourIndex;
-        const constrainColourIndex = options?.constrainToColourIndex ?? null;
-        const patternObj = pattern?.pattern ?? null;
-        const patOriginX = pattern?.originX ?? 0;
-        const patOriginY = pattern?.originY ?? 0;
-        const updatedTileIndexes = [];
-        /** @type {Object.<string, number>} */
-        const updatedTileIds = {};
+
+        const updatedTileIndexes = new Set();
+        const updatedTileIds = new Set();
 
         const tileInfo = tileGrid.getTileInfoByPixel(x, y);
         if (tileInfo === null || tileInfo < 0) return { affectedTileIds: [], affectedTileIndexes: [] };
@@ -52,28 +46,17 @@ export default class PaintUtil {
 
         if (brushSize === 1) {
 
-            // Only paint if we're not constraining colour index or if the colour index is the constrained one
-            const currentColourIndex = (constrainColourIndex) ? tile.readAtCoord(coord.x, coord.y) : null;
-            if (constrainColourIndex === null || currentColourIndex === constrainColourIndex) {
+            const paintResult = PaintUtil.#paintOntoPixel({ 
+                tileSet: tileSet, tileInfo: tileInfo, 
+                coordinate: coordinate, 
+                colour: { primaryIndex: brush.primaryColourIndex, secondaryIndex: brush.secondaryColourIndex, constrainIndex: options?.constrainToColourIndex ?? null },
+                pattern: pattern
+            });
 
-                // Paint if we're not using a pattern, or the pixel on the pattern has a value
-                const patX = (patternObj !== null) ? x % patternObj.width : 0;
-                const patY = (patternObj !== null) ? y % patternObj.height : 0;
-                const patValue = (patternObj !== null) ? patternObj.pattern[patY][patX] : null;
-                if (patternObj === null || patValue === 1 || patValue === 2) {
-
-                    const coord = translateCoordinate(tileInfo, x % 8, y % 8);
-                    const tile = tileSet.getTileById(tileInfo.tileId);
-                    const paintColourIndex = (patternObj === null || patValue === 1) ? paintColourIndex : secondaryColourIndex;
-                    const drawSuccess = tile.setValueAtCoord(coord.x, coord.y, paintColourIndex);
-                    if (drawSuccess) {
-                        updatedTileIndexes.push(tileInfo.tileIndex);
-                        updatedTileIds[tileInfo.tileId] = tileInfo;
-                    }
-
-                }
-
-            }
+            return {
+                affectedTileIndexes: (paintResult) ? [paintResult.tileIndex] : [],
+                affectedTileIds:  (paintResult) ? [paintResult.tileId] : []
+            };    
 
         } else {
             const affectAdjacent = options?.clampToTile === false ?? true;
@@ -90,37 +73,90 @@ export default class PaintUtil {
                         const differentTile = thisTileInfo.tileIndex !== tileInfo.tileIndex;
                         if (!differentTile || affectAdjacent) {
 
-                            // Paint if we're not using a pattern, or the pixel on the pattern has a value
-                            const patX = (patternObj !== null) ? xPx % patternObj.width : 0;
-                            const patY = (patternObj !== null) ? yPx % patternObj.height : 0;
-                            const patValue = (patternObj !== null) ? patternObj.pattern[patY][patX] : null;
-                            if (patternObj === null || patValue === 1 || patValue === 2) {
+                            const paintResult = PaintUtil.#paintOntoPixel({ 
+                                tileSet: tileSet, tileInfo: thisTileInfo, 
+                                coordinate: { x: xPx, y: yPx }, 
+                                colour: { primaryIndex: brush.primaryColourIndex, secondaryIndex: brush.secondaryColourIndex, constrainIndex: options?.constrainToColourIndex ?? null },
+                                pattern: pattern
+                            });
 
-                                const coord = translateCoordinate(thisTileInfo, xPx % 8, yPx % 8);
-                                const tile = tileSet.getTileById(thisTileInfo.tileId);
-
-                                // Only paint if we're not constraining colour index or if the colour index is the constrained one
-                                const currentColourIndex = (patternObj === null || patValue === 1) ? colourIndex : secondaryColourIndex;
-                                if (constrainColourIndex === null || currentColourIndex === constrainColourIndex) {
-                                    const drawSuccess = tile.setValueAtCoord(coord.x, coord.y, currentColourIndex);
-                                    if (drawSuccess) {
-                                        if (!updatedTileIndexes.includes(thisTileInfo.tileIndex)) updatedTileIndexes.push(thisTileInfo.tileIndex);
-                                        updatedTileIds[thisTileInfo.tileId] = tileInfo;
-                                    }
-                                }
-
+                            if (paintResult) {
+                                updatedTileIndexes.add(paintResult.tileIndex);
+                                updatedTileIds.add(paintResult.tileId);
                             }
 
                         }
                     }
                 }
             }
+
+            return {
+                affectedTileIndexes: Array.from(updatedTileIndexes),
+                affectedTileIds: Array.from(updatedTileIds)
+            };    
+        }
+    }
+
+    /**
+     * Paints onto a tile grid.
+     * @param {Object} config
+     * @param {TileSet} config.tileSet - Tile set that contains the tiles to modify.
+     * @param {import('../models/tileGridProvider.js').TileProviderTileInfo} config.tileInfo
+     * @param {Object} config.coordinate - Coordinates that are the centre of the brush.
+     * @param {number} config.coordinate.x - X coordinate, relative to the left of the image.
+     * @param {number} config.coordinate.y - Y coordinate, relative to the top of the image.
+     * @param {Object} config.colour
+     * @param {number} config.colour.primaryIndex - Primary colour to use, for solid brush, or primary pattern colour.
+     * @param {number} config.colour.secondaryIndex - Secondary colour to use, for secondary pattern colour.
+     * @param {number?} config.colour.constrainIndex
+     * @param {Object} config.pattern - Optional, details of the pattern to use.
+     * @param {import("../types.js").Pattern} config.pattern.pattern - Object that contains the pattern data.
+     * @param {number} config.pattern.originX - X origin of the pattern, relative to the left of the image.
+     * @param {number} config.pattern.originY - Y origin of the pattern, relative to the top of the image.
+     * @returns {{ tileIndex: number, tileId: string } | null}
+     */
+    static #paintOntoPixel({ tileSet, tileInfo, coordinate, colour, pattern }) {
+
+        const patternObj = pattern?.pattern ?? null;
+        const patOriginX = pattern?.originX ?? 0;
+        const patOriginY = pattern?.originY ?? 0;
+
+        let paintColourIndex = colour.primaryIndex;
+        const tileCoord = translateCoordinate(tileInfo, coordinate.x % 8, coordinate.y % 8);
+        const paintTile = tileSet.getTileById(tileInfo.tileId);
+
+        // If we're constraining colour then check the value at this pixel
+        if (colour.constrainIndex !== null) {
+            const thisColourIndex = paintTile.readAtCoord(tileCoord.x, tileCoord.y);
+            // Abort if the colour of this pixel doesn't match the one we're constraining to
+            if (colour.constrainIndex !== thisColourIndex) return;
         }
 
-        return {
-            affectedTileIndexes: updatedTileIndexes,
-            affectedTileIds: Object.keys(updatedTileIds)
-        };
+        // If we're using a pattern then use the pattern info to set the colour
+        if (patternObj) {
+            let patX = (patternObj !== null) ? coordinate.x % patternObj.width : 0;
+            let patY = (patternObj !== null) ? coordinate.y % patternObj.height : 0;
+            let patValue = (patternObj !== null) ? patternObj.pattern[patY][patX] : null;
+            if (patValue === 0) {
+                paintColourIndex = null;
+            } else {
+                paintColourIndex = (patValue === 1) ? colour.primaryIndex : colour.secondaryIndex;
+            }
+        }
+
+        // Paint if we're not using a pattern, or the pixel on the pattern has a value
+        if (paintColourIndex !== null) {
+            const drawSuccess = paintTile.setValueAtCoord(tileCoord.x, tileCoord.y, paintColourIndex);
+            if (drawSuccess) {
+                return {
+                    tileIndex: tileInfo.tileIndex,
+                    tileId: tileInfo.tileId
+                };
+            }
+
+        }
+
+        return null;
     }
 
 

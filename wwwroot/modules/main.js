@@ -116,7 +116,7 @@ const instanceState = {
     /** @type {boolean} */
     breakTileLinks: false,
     /** @type {number} */
-    patternIndex: 0,
+    patternIndex: -1,
     /** @type {boolean} */
     patternFixedOrigin: true,
     /** @type {string?} */
