@@ -607,7 +607,7 @@ export default class TileContextToolbar extends ComponentBase {
 
         container.setAttribute('data-pattern-index', patternIndex);
 
-        const pattern = (patternIndex > 0) ? this.#patterns[patternIndex] : null;
+        const pattern = (patternIndex >= 0) ? this.#patterns[patternIndex] : null;
 
         /** @type {HTMLButtonElement} */
         const menuButton = container.querySelector(`button[data-bs-toggle=dropdown]`);
