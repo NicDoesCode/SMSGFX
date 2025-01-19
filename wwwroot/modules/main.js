@@ -1571,6 +1571,8 @@ function handleTileEditorOnEvent(args) {
                         tileBlockIndex: { row: args.tileBlockGridInsertRowIndex, col: args.tileBlockGridInsertColumnIndex },
                         tilesPerBlock: args.tilesPerBlock,
                         isInBounds: args.isInBounds,
+                        controlKey: args.ctrlKeyPressed,
+                        shiftKey: args.shiftKeyPressed,
                         event: TileEditor.Events.pixelMouseDown
                     });
                     if (result?.saveProject) {
@@ -1592,6 +1594,8 @@ function handleTileEditorOnEvent(args) {
                         tileBlockIndex: { row: args.tileBlockGridInsertRowIndex, col: args.tileBlockGridInsertColumnIndex },
                         tilesPerBlock: args.tilesPerBlock,
                         isInBounds: args.isInBounds,
+                        controlKey: args.ctrlKeyPressed,
+                        shiftKey: args.shiftKeyPressed,
                         event: TileEditor.Events.pixelMouseOver
                     });
                     if (result?.saveProject) {
@@ -1638,7 +1642,9 @@ function handleTileEditorOnEvent(args) {
                     tileBlockIndex: { row: args.tileBlockGridInsertRowIndex, col: args.tileBlockGridInsertColumnIndex },
                     tilesPerBlock: args.tilesPerBlock,
                     isInBounds: args.isInBounds,
-                    event: TileEditor.Events.pixelMouseUp
+                    controlKey: args.ctrlKeyPressed,
+                    shiftKey: args.shiftKeyPressed,
+                event: TileEditor.Events.pixelMouseUp
                 });
                 instanceState.operationTileIndex = -1;
                 if (instanceState.undoDisabled) {
@@ -2817,6 +2823,8 @@ function uiRefreshProjectLists() {
  * @property {number} colourIndex 
  * @property {number} imageX 
  * @property {number} imageY 
+ * @property {boolean} shiftKey 
+ * @property {boolean} controlKey 
  * @property {{ row: number, col: number }} tile 
  * @property {{ row: number, col: number }} tileIndex 
  * @property {{ row: number, col: number }} tileBlock 
@@ -2988,7 +2996,11 @@ function takeToolAction(args) {
 
                 const colourIndex = EyedropperTool.getPixelColour(getTileGrid(), getTileSet(), imageX, imageY);
                 if (colourIndex !== null) {
-                    selectColourIndex(colourIndex);
+                    if (args.shiftKey) {
+                        setSecondaryColourIndex(colourIndex);
+                    } else {
+                        selectColourIndex(colourIndex);
+                    }
                 }
 
                 instanceState.lastTileMapPx.x = -1;

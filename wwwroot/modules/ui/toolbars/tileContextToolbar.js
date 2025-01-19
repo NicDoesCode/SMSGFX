@@ -46,6 +46,7 @@ const toolstrips = {
     tileStamp: 'tileStamp',
     tileLinkBreak: 'tileLinkBreak',
     tileMapTileAttributes: 'tileMapTileAttributes',
+    eyedropper: 'eyedropper',
     tileEyedropper: 'tileEyedropper'
 }
 
@@ -58,7 +59,7 @@ const toolstripLayouts = {
     tileMapColourReplace: ['colourIndex', 'brushSize', 'patternSelect', 'fixedOrigin', 'tileClamp', 'breakLinks'],
     tileBucket: ['tileClamp'],
     tileMapBucket: ['tileClamp', 'breakLinks'],
-    eyedropper: ['tileEyedropperLabel', 'tileEyedropperDescription'],
+    eyedropper: ['colourIndex', 'eyedropperDescription'],
     referenceImage: ['referenceImageLabel', 'referenceImageLoadClear', 'referenceImageRevert', 'referenceImagePosition', 'referenceImageDimensions', 'referenceImageColour'],
     tileMapAddRemove: ['rowColumnLabel', 'rowAddRemove', 'columnAddRemove', 'fillMode'],
     tileMapBreakLink: ['tileLinkBreakLabel', 'tileLinkBreakDescription'],

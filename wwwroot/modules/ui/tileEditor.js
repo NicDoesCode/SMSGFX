@@ -482,6 +482,7 @@ export default class TileEditor extends ComponentBase {
                             isSecondaryButton: ev.button === 2,
                             isAuxButton: ev.button === 1,
                             ctrlKeyPressed: ev.ctrlKey,
+                            shiftKeyPressed: ev.shiftKey,
                             tileGridRowIndex: rowColInfo.rowIndex,
                             tileGridColumnIndex: rowColInfo.columnIndex,
                             tileGridInsertRowIndex: rowColInfo.nearestRowIndex,
@@ -537,6 +538,7 @@ export default class TileEditor extends ComponentBase {
                 isSecondaryButton: ev.button === 2,
                 isAuxButton: ev.button === 1,
                 ctrlKeyPressed: ev.ctrlKey,
+                shiftKeyPressed: ev.shiftKey,
                 tileGridRowIndex: rowColInfo.rowIndex,
                 tileGridColumnIndex: rowColInfo.columnIndex,
                 tileGridInsertRowIndex: rowColInfo.nearestRowIndex,
@@ -583,6 +585,7 @@ export default class TileEditor extends ComponentBase {
                 isSecondaryButton: ev.button === 2,
                 isAuxButton: ev.button === 1,
                 ctrlKeyPressed: ev.ctrlKey,
+                shiftKeyPressed: ev.shiftKey,
                 tileGridRowIndex: rowColInfo.rowIndex,
                 tileGridColumnIndex: rowColInfo.columnIndex,
                 tileGridInsertRowIndex: rowColInfo.nearestRowIndex,
@@ -613,6 +616,7 @@ export default class TileEditor extends ComponentBase {
             isSecondaryButton: this.#canvasMouseRightDown,
             isAuxButton: this.#canvasMouseMiddleDown,
             ctrlKeyPressed: ev.ctrlKey,
+            shiftKeyPressed: ev.shiftKey,
             isInBounds: false
         };
         if (this.#lastCoords) {
@@ -893,7 +897,8 @@ export default class TileEditor extends ComponentBase {
  * @property {boolean} isPrimaryButton - True when the mouse button is the primary one, otherwise false.
  * @property {boolean} isSecondaryButton - True when the mouse button is the secondary one, otherwise false.
  * @property {boolean} isAuxButton - True when the mouse button is the auxiliary one (mouse wheel), otherwise false.
- * @property {boolean} ctrlKeyPressed - True when the control key is pressed, otherwise false, otherwise false.
+ * @property {boolean} ctrlKeyPressed - True when the control key is pressed, otherwise false.
+ * @property {boolean} shiftKeyPressed - True when the shift key is pressed, otherwise false.
  * @exports
  */
 
