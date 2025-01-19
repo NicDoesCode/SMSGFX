@@ -11,6 +11,45 @@ const imageMimeTypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/gif', 'im
 
 export default class ImageUtil {
 
+    /**
+     * Creates a preview image of a pattern.
+     * @param {import("../types").Pattern} pattern 
+     * @param {Palette} palette 
+     * @param {number} primaryColourIndex 
+     * @param {number} secondaryColourIndex 
+     * @param {number} [zoom] 
+     * @returns {HTMLImageElement}
+     */
+    static async createPatternPreviewImage(pattern, palette, primaryColourIndex, secondaryColourIndex, zoom) {
+        const canvasResult = await new Promise((resolve, reject) => {
+            zoom = zoom ?? 1;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = pattern.width * zoom;
+            canvas.height = pattern.height * zoom;
+            const ctx = canvas.getContext('2d');
+    
+            const primaryColour = palette.getColourByIndex(primaryColourIndex);
+            const secondaryColour = palette.getColourByIndex(secondaryColourIndex);
+    
+            const primaryColourHex = ColourUtil.toHex(primaryColour.r, primaryColour.g, primaryColour.b);
+            const secondaryColourHex = ColourUtil.toHex(secondaryColour.r, secondaryColour.g, secondaryColour.b);
+    
+            for (let y = 0; y < pattern.height; y++) {
+                for (let x = 0; x < pattern.width; x++) {
+                    const patternValue = pattern.pattern[y][x];
+                    if (patternValue !== 0) {
+                        ctx.fillStyle = (patternValue == 1) ? primaryColourHex : secondaryColourHex;
+                        ctx.fillRect(x * zoom, y * zoom, zoom, zoom);
+                    }
+                }
+            }
+
+            resolve(canvas);
+        });
+
+        return await canvasToImageAsync(canvasResult);
+    }
     
     /**
      * Converts an image to an image bitmap.

@@ -4,6 +4,7 @@ import TileMapRowColumnTool from "../../tools/tileMapRowColumnTool.js";
 import TemplateUtil from "../../util/templateUtil.js";
 import Palette from "../../models/palette.js";
 import ColourUtil from "../../util/colourUtil.js";
+import ImageUtil from "../../util/imageUtil.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -94,6 +95,8 @@ export default class TileContextToolbar extends ComponentBase {
     #palette = null;
     /** @type {import("../../types.js").Pattern[]} */
     #patterns = [];
+    #colourIndex = 0;
+    #secondaryColourIndex = 0;
 
 
     /**
@@ -129,6 +132,8 @@ export default class TileContextToolbar extends ComponentBase {
      * @param {TileContextToolbarState} state - State object.
      */
     setState(state) {
+        let refreshPatternImages = false;
+
         if (typeof state?.visible === 'boolean') {
             // Set visibility
             if (state.visible) {
@@ -258,6 +263,7 @@ export default class TileContextToolbar extends ComponentBase {
         }
 
         if (state?.palette instanceof Palette || state?.palette === null) {
+            refreshPatternImages = true;
             this.#palette = state.palette;
             this.#updatePaletteItems(this.#palette);
         }
@@ -290,6 +296,7 @@ export default class TileContextToolbar extends ComponentBase {
         }
 
         if (state?.patterns === null || Array.isArray(state?.patterns)) {
+            refreshPatternImages = true;
             this.#patterns = state.patterns;
             this.#updatePatternItems(state.patterns);
         }
@@ -305,11 +312,19 @@ export default class TileContextToolbar extends ComponentBase {
         }
 
         if (typeof state?.colourIndex === 'number') {
+            refreshPatternImages = true;
+            this.#colourIndex = state.colourIndex;
             this.#updateColourIndex('PRIMARY', state.colourIndex);
         }
 
         if (typeof state?.secondaryColourIndex === 'number') {
+            refreshPatternImages = true;
+            this.#secondaryColourIndex = state.secondaryColourIndex;
             this.#updateColourIndex('SECONDARY', state.secondaryColourIndex);
+        }
+
+        if (refreshPatternImages) {
+            this.#generatePatternPreviewImages();
         }
     }
 
@@ -607,11 +622,7 @@ export default class TileContextToolbar extends ComponentBase {
 
         container.setAttribute('data-pattern-index', patternIndex);
 
-        const pattern = (patternIndex >= 0) ? this.#patterns[patternIndex] : null;
-
-        /** @type {HTMLButtonElement} */
         const menuButton = container.querySelector(`button[data-bs-toggle=dropdown]`);
-        menuButton.innerText = pattern?.name ?? 'Solid';
 
         const itemContainer = container.querySelector('[data-role=item-container]');
         itemContainer.querySelectorAll(`[data-selected=${true}]`).forEach((button) => {
@@ -619,8 +630,48 @@ export default class TileContextToolbar extends ComponentBase {
         });
         itemContainer.querySelectorAll(`[data-pattern-index='${patternIndex}']`).forEach((button) => {
             button.setAttribute('data-selected', true);
+            if (menuButton && button.getAttribute('data-selected') === 'true') {
+                menuButton.style.backgroundColor = button.style.backgroundColor;
+                menuButton.style.backgroundImage = button.style.backgroundImage;
+            }
         });
     }
+
+
+    async #generatePatternPreviewImages() {
+        const container = this.#element.querySelector(`[data-field=patternIndex]`);
+        /** @type {HTMLButtonElement} */
+        const menuButton = container.querySelector('button[data-bs-toggle=dropdown]');
+        const itemContainer = container.querySelector('[data-role=item-container]');
+
+        const images = [];
+
+        for (let i = 0; i < this.#patterns.length; i++) {
+            const pattern = this.#patterns[i];
+            const image = await ImageUtil.createPatternPreviewImage(pattern, this.#palette, this.#colourIndex, this.#secondaryColourIndex, 2);
+            images.push(image);
+            /** @type {HTMLButtonElement} */
+            const button = itemContainer.querySelector(`button[data-pattern-index='${i}']`);
+            if (button) {
+                button.style.backgroundImage = `url('${image.src}')`;
+                if (menuButton && button.getAttribute('data-selected') === 'true') {
+                    menuButton.style.backgroundColor = 'none';
+                    menuButton.style.backgroundImage = `url('${image.src}')`;
+                }
+            }
+        }
+
+        const button = itemContainer.querySelector(`button[data-pattern-index='-1']`);
+        if (button) {
+            const primaryColour = this.#palette.getColourByIndex(this.#colourIndex);
+            button.style.backgroundColor = ColourUtil.toHex(primaryColour.r, primaryColour.g, primaryColour.b);
+            if (menuButton && button.getAttribute('data-selected') === 'true') {
+                menuButton.style.backgroundColor = ColourUtil.toHex(primaryColour.r, primaryColour.g, primaryColour.b);
+                menuButton.style.backgroundImage = `none`;
+            }
+        }
+    }
+
 
 }
 
