@@ -89,6 +89,8 @@ const instanceState = {
     /** @type {number} */
     colourIndex: 0,
     /** @type {number} */
+    secondaryColourIndex: 0,
+    /** @type {number} */
     startingColourIndex: 0,
     /** @type {number} */
     tileIndex: -1,
@@ -117,10 +119,6 @@ const instanceState = {
     patternIndex: 0,
     /** @type {boolean} */
     patternFixedOrigin: true,
-    /** @type {number} */
-    primaryColourIndex: 0,
-    /** @type {number} */
-    secondaryColourIndex: 0,
     /** @type {string?} */
     rowColumnMode: 'addRow',
     /** @type {string?} */
@@ -315,6 +313,7 @@ const keyboardCommands = {
     paletteIndexRight: 'paletteIndexRight',
     paletteIndexHigher: 'paletteIndexHigher',
     paletteIndexLower: 'paletteIndexLower',
+    paletteSwapPrimarySecondary: 'paletteSwapPrimarySecondary',
     tileNew: 'tileNew',
     tileDelete: 'tileDelete',
     tileMapNew: 'tileMapNew',
@@ -415,6 +414,9 @@ function createEventListeners() {
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paletteIndexLower, [
         { modifiers: { shift: true, control: true }, keySeries: [{ key: ['<', ','] }] }
     ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paletteSwapPrimarySecondary, [
+        { key: ['x', 'X'] }
+    ]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileNew, [
         { modifiers: { alt: true }, keySeries: [{ key: ['n', 'N'] }, { key: ['t', 'T'] }] },
         { platform: 'mac', modifiers: { alt: true }, keySeries: [{ code: 'KeyN' }, { key: ['†', 'ˇ'], code: 'KeyT' }] }
@@ -495,7 +497,7 @@ function createEventListeners() {
         { key: ['l', 'L'] }
     ]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolTileStamp, [
-        { key: ['x', 'X'] }
+        { key: ['s', 'S'], modifiers: { shift: true } }
     ]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolTilePalettePaint, [
         { key: ['c', 'C'] }
@@ -614,6 +616,9 @@ function createEventListeners() {
                 break;
             case keyboardCommands.paletteIndexLower:
                 paletteSelectByIndex(getProjectUIState().paletteIndex - 1);
+                break;
+            case keyboardCommands.paletteSwapPrimarySecondary:
+                swapPrimarySecondaryColourIndex();
                 break;
             case keyboardCommands.tileNew:
                 tileNew();
@@ -1395,11 +1400,14 @@ function handleTileContextToolbarCommand(args) {
     if (args.command === TileContextToolbar.Commands.patternFixedOrigin) {
         setPatternFixedOrigin(args.patternFixedOrigin);
     }
-    if (args.command === TileContextToolbar.Commands.primaryColourIndex) {
-        setPrimaryColourIndex(args.primaryColourIndex);
+    if (args.command === TileContextToolbar.Commands.colourIndex) {
+        setColourIndex(args.colourIndex);
     }
     if (args.command === TileContextToolbar.Commands.secondaryColourIndex) {
         setSecondaryColourIndex(args.secondaryColourIndex);
+    }
+    if (args.command === TileContextToolbar.Commands.swapColourIndex) {
+        swapPrimarySecondaryColourIndex();
     }
 }
 
@@ -2539,12 +2547,10 @@ function formatForProject() {
 
     if (projectChanged) {
         instanceState.colourIndex = 0;
+        instanceState.secondaryColourIndex = 0;
         if (instanceState.paletteSlot < 0) instanceState.paletteSlot = 0;
         if (instanceState.paletteSlot >= getNumberOfPaletteSlots()) instanceState.paletteSlot = getNumberOfPaletteSlots() - 1;
     }
-
-    instanceState.primaryColourIndex = 0;
-    instanceState.secondaryColourIndex = 0;
 
     const palette = getPalette();
     const tileSet = getTileSet();
@@ -2623,7 +2629,7 @@ function formatForProject() {
         paletteSlot: instanceState.paletteSlot,
         patternIndex: instanceState.patternIndex,
         patternFixedOrigin: instanceState.patternFixedOrigin,
-        primaryColourIndex: instanceState.primaryColourIndex,
+        colourIndex: instanceState.colourIndex,
         secondaryColourIndex: instanceState.secondaryColourIndex
     });
 
@@ -2963,16 +2969,14 @@ function takeToolAction(args) {
 
                         const breakLinks = isTileMap() && instanceState.breakTileLinks;
                         const originalTileSet = breakLinks ? TileSetFactory.clone(getTileSet()) : null;
-                        const primaryColourIndex = instanceState.primaryColourIndex;
+                        const colourIndex = instanceState.colourIndex;
                         const secondaryColourIndex = instanceState.secondaryColourIndex;
                         const size = instanceState.pencilSize;
                         const patternIndex = patternManager.getPattern(instanceState.patternIndex);
-                        const patternX =  instanceState.patternFixedOrigin ? 0 : imageX;
-                        const patternY =  instanceState.patternFixedOrigin ? 0 : imageY;
+                        const patternX = instanceState.patternFixedOrigin ? 0 : imageX;
+                        const patternY = instanceState.patternFixedOrigin ? 0 : imageY;
 
-                        console.log({ pattern: patternIndex, primaryColourIndex, secondaryColourIndex, patternX, patternY }); // TMP 
-
-                        const updatedTiles = PaintTool.patternPaintOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, primaryColourIndex, secondaryColourIndex, size, patternIndex, patternX, patternY, clamp);
+                        const updatedTiles = PaintTool.patternPaintOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, colourIndex, secondaryColourIndex, size, patternIndex, patternX, patternY, clamp);
                         if (updatedTiles && updatedTiles.affectedTileIndexes.length > 0) {
 
                             if (breakLinks) {
@@ -3675,11 +3679,8 @@ function setPatternFixedOrigin(value) {
  * Sets the index of the primary colour slot.
  * @param {number} value - Colour index.
  */
-function setPrimaryColourIndex(value) {
-    instanceState.primaryColourIndex = value;
-    tileContextToolbar.setState({
-        primaryColourIndex: instanceState.primaryColourIndex
-    });
+function setColourIndex(value) {
+    selectColourIndex(value);
 }
 
 /**
@@ -3691,6 +3692,15 @@ function setSecondaryColourIndex(value) {
     tileContextToolbar.setState({
         secondaryColourIndex: instanceState.secondaryColourIndex
     });
+}
+
+/**
+ * Swaps the primary and secondary colour indexes.
+ */
+function swapPrimarySecondaryColourIndex() {
+    [instanceState.colourIndex, instanceState.secondaryColourIndex] = [instanceState.secondaryColourIndex, instanceState.colourIndex];
+    setColourIndex(instanceState.colourIndex);
+    setSecondaryColourIndex(instanceState.secondaryColourIndex);
 }
 
 /**
@@ -4246,6 +4256,9 @@ function changeSelectedColourIndex(colourIndex) {
     if (colourIndex >= 0 && colourIndex < 16) {
         paletteEditor.setState({
             selectedColourIndex: colourIndex
+        });
+        tileContextToolbar.setState({
+            colourIndex: colourIndex
         });
         instanceState.colourIndex = colourIndex;
         const colour = getPalette().getColour(instanceState.colourIndex);
@@ -5484,6 +5497,9 @@ function selectColourIndex(index) {
     paletteEditor.setState({
         selectedColourIndex: instanceState.colourIndex
     });
+    tileContextToolbar.setState({
+        colourIndex: instanceState.colourIndex
+    });
 }
 
 /**
@@ -5710,7 +5726,7 @@ window.addEventListener('load', async () => {
         patterns: patternManager.getAllPatterns(),
         patternIndex: instanceState.patternIndex,
         patternFixedOrigin: instanceState.patternFixedOrigin,
-        primaryColourIndex: instanceState.primaryColourIndex,
+        colourIndex: instanceState.colourIndex,
         secondaryColourIndex: instanceState.secondaryColourIndex
     });
 

@@ -150,7 +150,7 @@ export default class PaintUtil {
      * @param {Object} options - Pattern paint options.
      * @param {number} options.x - Origin X coordinate.
      * @param {number} options.y - Origin Y coordinate.
-     * @param {number} options.primaryColourIndex - Primary colour index that matches 1 on the pattern.
+     * @param {number} options.colourIndex - Primary colour index that matches 1 on the pattern.
      * @param {number} options.secondaryColourIndex - Secondary colour index that matches 2 on the pattern.
      * @param {import('../types.js').Pattern} options.pattern - Pattern object.
      * @param {number} options.patternOriginX - Origin X coordinate for the pattern.
@@ -161,7 +161,7 @@ export default class PaintUtil {
     static paintPatternOntoTileGrid(tileGrid, tileSet, options) {
         const x = options.x;
         const y = options.y;
-        const primaryColourIndex = options.primaryColourIndex;
+        const colourIndex = options.colourIndex;
         const secondaryColourIndex = options.secondaryColourIndex;
         const pattern = options.pattern;
         const patOriginX = options.patternOriginX;
@@ -187,7 +187,7 @@ export default class PaintUtil {
             if (patValue === 1 || patValue === 2) {
                 const coord = translateCoordinate(tileInfo, x % 8, y % 8);
                 const tile = tileSet.getTileById(tileInfo.tileId);
-                const colourIndex = patValue === 1 ? primaryColourIndex : secondaryColourIndex;
+                const colourIndex = patValue === 1 ? colourIndex : secondaryColourIndex;
                 const drawSuccess = tile.setValueAtCoord(coord.x, coord.y, colourIndex);
                 if (drawSuccess) {
                     updatedTileIndexes.push(tileInfo.tileIndex);
@@ -219,7 +219,7 @@ export default class PaintUtil {
                             if (patValue === 1 || patValue === 2) {
                                 const coord = translateCoordinate(thisTileInfo, xPx % 8, yPx % 8);
                                 const tile = tileSet.getTileById(thisTileInfo.tileId);
-                                const currentColourIndex = patValue === 1 ? primaryColourIndex : secondaryColourIndex;
+                                const currentColourIndex = patValue === 1 ? colourIndex : secondaryColourIndex;
                                 const drawSuccess = tile.setValueAtCoord(coord.x, coord.y, currentColourIndex);
                                 if (drawSuccess) {
                                     if (!updatedTileIndexes.includes(thisTileInfo.tileIndex)) updatedTileIndexes.push(thisTileInfo.tileIndex);
