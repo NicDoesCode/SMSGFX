@@ -63,70 +63,49 @@
         <div data-tool-id="patternSelect" data-toolstrip="pencil" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <label class="input-group-text">Pattern</label>
-                <select data-command="patternIndex" data-field="patternIndex" data-auto-event="change"
-                    class="form-select sms-toolstrip" title="Set the foreground colour.">
-                    <options>
-                        <option value="0" selected>#1<span></span></option>
-                        <option value="1">#1<span></span></option>
-                        <option value="2">#2<span></span></option>
-                        <option value="3">#3<span></span></option>
-                        <option value="4">#4<span></span></option>
-                    </options>
-                </select>
+                <div data-field="patternIndex" class="sms-select-dropdown dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle rounded-start-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Select a pattern to use.">
+                    </button>
+                    <div class="dropdown-menu p-1">
+                        <div data-role="item-container" class="sms-menu-container d-flex flex-row flex-wrap p-0 m-0">
+                        </div>
+                    </div>
+                </div>
+                <script data-smsgfx-template-id="toolbar-pattern-template" type="text/x-handlebars-template">
+                    {{#each this}}
+                        <button data-command="patternIndex" data-auto-event="click" data-selected="{{selected}}" data-pattern-index="{{patternIndex}}" class="double-width higher btn btn-outline-secondary m-1 p-0"><label class="mt-0">#{{patternName}}</label></button>
+                    {{/each}}
+                </script>
             </div>
         </div>
-        <div data-tool-id="primaryColourIndex" data-toolstrip="pencil" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="colourIndex" data-toolstrip="pencil" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
-                <label title="Primary colour." class="input-group-text">P</label>
-                <select data-command="primaryColourIndex" data-field="primaryColourIndex" data-auto-event="change"
-                    class="form-select sms-toolstrip" title="Set the foreground colour.">
-                    <options>
-                        <option value="-1">None</option>
-                        <option value="0" selected>#1<span></span></option>
-                        <option value="1">#1<span></span></option>
-                        <option value="2">#2<span></span></option>
-                        <option value="3">#3<span></span></option>
-                        <option value="4">#4<span></span></option>
-                        <option value="5">#5<span></span></option>
-                        <option value="6">#6<span></span></option>
-                        <option value="7">#7<span></span></option>
-                        <option value="8">#8<span></span></option>
-                        <option value="9">#9<span></span></option>
-                        <option value="10">#10<span></span></option>
-                        <option value="11">#11<span></span></option>
-                        <option value="12">#12<span></span></option>
-                        <option value="13">#13<span></span></option>
-                        <option value="14">#14<span></span></option>
-                        <option value="15">#15<span></span></option>
-                    </options>
-                </select>
-            </div>
-        </div>
-        <div data-tool-id="secondaryColourIndex" data-toolstrip="pencil" class="col-auto sms-toolstrip m-0 me-2 p-0">
-            <div class="input-group input-group-sm p-0 m-0">
-                <label title="Secondary colour." class="input-group-text">S</label>
-                <select data-command="secondaryColourIndex" data-field="secondaryColourIndex" data-auto-event="change"
-                    class="form-select sms-toolstrip" title="Set the background colour.">
-                    <options>
-                        <option value="-1">None</option>
-                        <option value="0" selected>#1<span></span></option>
-                        <option value="1">#1<span></span></option>
-                        <option value="2">#2<span></span></option>
-                        <option value="3">#3<span></span></option>
-                        <option value="4">#4<span></span></option>
-                        <option value="5">#5<span></span></option>
-                        <option value="6">#6<span></span></option>
-                        <option value="7">#7<span></span></option>
-                        <option value="8">#8<span></span></option>
-                        <option value="9">#9<span></span></option>
-                        <option value="10">#10<span></span></option>
-                        <option value="11">#11<span></span></option>
-                        <option value="12">#12<span></span></option>
-                        <option value="13">#13<span></span></option>
-                        <option value="14">#14<span></span></option>
-                        <option value="15">#15<span></span></option>
-                    </options>
-                </select>
+                <label title="Select the primary and secondary colours." class="input-group-text">Colours</label>
+                <div data-field="colourIndex" class="sms-select-dropdown dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle rounded-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Select the primary colour index.">
+                    </button>
+                    <div class="dropdown-menu p-1">
+                        <div data-role="item-container" class="sms-menu-container d-flex flex-row flex-wrap p-0 m-0">
+                        </div>
+                    </div>
+                </div>
+                <button class="sms-toolstrip-button btn btn-outline-secondary btn-ui" title="Swap primary and secondary colour index."
+                    data-command="swapColourIndex" data-auto-event="click">
+                    <i class="bi bi-arrow-left-right"></i>
+                </button>
+                <div data-field="secondaryColourIndex" class="sms-select-dropdown dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle rounded-start-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Select the secondary colour index.">
+                    </button>
+                    <div class="dropdown-menu p-1">
+                        <div data-role="item-container" class="sms-menu-container d-flex flex-row flex-wrap p-0 m-0">
+                        </div>
+                    </div>
+                </div>
+                <script data-smsgfx-template-id="toolbar-palette-colour-template" type="text/x-handlebars-template">
+                    {{#each this}}
+                        <button data-command="{{command}}" data-auto-event="click" data-selected="{{selected}}" data-colour-index="{{colourIndex}}" class="btn btn-outline-secondary m-1 p-0" style="background-color: {{hex}};"><label class="mt-0">#{{colourIndex}}</label></button>
+                    {{/each}}
+                </script>
             </div>
         </div>
         <!-- End: Pencil toolstrip -->
@@ -489,9 +468,65 @@
             <p class="p-0 m-0"><small>Click on a tile to select it for the tile stamp tool.</small></p>
         </div>
         <!-- End: Tile eyedropper toolstrip -->
+        <div data-tool-id="eyedropperDescription" data-toolstrip="eyedropper"
+            class="col-auto sms-toolstrip m-0 me-2 p-0">
+            <p class="p-0 m-0"><strong>Colour select</strong> <small>- Click on a colour to set it, shift click for secondary colour.</small></p>
+        </div>
     </div>
 
     <style data-css-scope="global">
+
+        .sms-select-dropdown button[data-bs-toggle] {
+            width: 50px;
+            color: #000000;
+        }
+
+        .sms-select-dropdown.wider button[data-bs-toggle] {
+            width: 100px;
+        }
+
+        .sms-select-dropdown button[data-bs-toggle][is-dark] {
+            color: #FFFFFF;
+        }
+
+        .sms-select-dropdown .sms-menu-container {
+            width: 194px;
+        }
+
+        .sms-select-dropdown .sms-menu-container button {
+            min-width: 40px;
+            max-width: 40px;
+            overflow: hidden;
+        }
+
+        .sms-select-dropdown .sms-menu-container button.double-width {
+            min-width: 88px;
+            max-width: 88px;
+        }
+
+        .sms-select-dropdown .sms-menu-container button label {
+            display: block;
+            background-color: #FFFFFF;
+            margin-bottom: 20px;
+        }
+
+        .sms-select-dropdown .sms-menu-container button.higher label {
+            margin-bottom: 30px;
+        }
+
+        [data-bs-theme=dark] .sms-select-dropdown .sms-menu-container button label {
+            background-color: #000000;
+        }
+
+        .sms-select-dropdown .sms-menu-container button[data-selected=true] {
+            border-color: var(--bs-primary);
+        }
+
+        .sms-select-dropdown .sms-menu-container button[data-selected=true] label {
+            background-color: var(--bs-primary);
+            color: #FFFFFF;
+        }
+
     </style>
 
 </div>

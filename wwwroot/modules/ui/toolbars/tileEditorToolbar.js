@@ -22,7 +22,6 @@ const tools = {
     pencil: 'pencil',
     colourReplace: 'colourReplace',
     bucket: 'bucket',
-    pattern: 'pattern',
     eyedropper: 'eyedropper',
     referenceImage: 'referenceImage',
     tileMapTileAttributes: 'tileMapTileAttributes',
