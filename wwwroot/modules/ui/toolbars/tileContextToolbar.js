@@ -100,6 +100,8 @@ export default class TileContextToolbar extends ComponentBase {
     #lastBounds = null;
     /** @type {Palette} */
     #palette = null;
+    /** @type {import("../../types.js").Pattern[]} */
+    #patterns = [];
 
 
     /**
@@ -295,24 +297,13 @@ export default class TileContextToolbar extends ComponentBase {
             });
         }
 
-        if (Array.isArray(state?.patterns)) {
-            this.#element.querySelectorAll('select[data-field=patternIndex]').forEach((/** @type {HTMLSelectElement} */ select) => {
-                while (select.options.length > 0) select.options.remove(0);
-                state?.patterns.forEach((pattern, index) => {
-                    const option = document.createElement('option');
-                    option.innerText = pattern.name;
-                    option.value = index;
-                    select.options.add(option);
-                });
-            });
+        if (state?.patterns === null || Array.isArray(state?.patterns)) {
+            this.#patterns = state.patterns;
+            this.#updatePatternItems(state.patterns);
         }
 
         if (typeof state?.patternIndex === 'number') {
-            this.#element.querySelectorAll('select[data-field=patternIndex]').forEach((select) => {
-                if (state.patternIndex >= 0 && state.patternIndex < select.options.length) {
-                    select.selectedIndex = state.patternIndex;
-                }
-            });
+            this.#updatePatternIndex(state.patternIndex);
         }
 
         if (typeof state?.patternFixedOrigin === 'boolean') {
@@ -328,18 +319,6 @@ export default class TileContextToolbar extends ComponentBase {
         if (typeof state?.secondaryColourIndex === 'number') {
             this.#updateColourIndex('SECONDARY', state.secondaryColourIndex);
         }
-    }
-
-
-    /**
-     * 
-     * @param {Palette?} palette - Palette to update with.
-     */
-    #updatePaletteItems(palette) {
-        const primaryContainer = this.#element.querySelector('[data-field=colourIndex]');
-        const secondaryContainer = this.#element.querySelector('[data-field=secondaryColourIndex]');
-        this.#buildColourSelect(primaryContainer, palette, true);
-        this.#buildColourSelect(secondaryContainer, palette, false);
     }
 
 
@@ -465,7 +444,7 @@ export default class TileContextToolbar extends ComponentBase {
         }
 
         if (command === coms.patternIndex) {
-            result.patternIndex = element.selectedIndex;
+            result.patternIndex = parseInt(element.getAttribute('data-pattern-index'));
         }
 
         if (command === coms.patternFixedOrigin) {
@@ -494,9 +473,6 @@ export default class TileContextToolbar extends ComponentBase {
         container.querySelectorAll('[data-tool-id]').forEach((layoutItemElement) => {
             components.appendChild(layoutItemElement);
         });
-        // container.childNodes.forEach((n) => {
-        //     components.appendChild(n);
-        // });
 
         layoutItems.forEach((layoutItem) => {
             const layoutItemElement = components.querySelector(`[data-tool-id=${layoutItem}]`);
@@ -508,13 +484,24 @@ export default class TileContextToolbar extends ComponentBase {
         });
     }
 
+
+    /**
+     * @param {Palette?} palette - Palette to update with.
+     */
+    #updatePaletteItems(palette) {
+        const primaryContainer = this.#element.querySelector('[data-field=colourIndex]');
+        const secondaryContainer = this.#element.querySelector('[data-field=secondaryColourIndex]');
+        this.#buildColourSelect(primaryContainer, palette, true);
+        this.#buildColourSelect(secondaryContainer, palette, false);
+    }
+
     /**
      * @param {HTMLElement} container 
      * @param {Palette} palette 
      * @param {boolean} isPrimary 
      */
     #buildColourSelect(container, palette, isPrimary) {
-        const button = container.querySelector('button[data-bs-toggle=dropdown]');
+        const selectedIndex = container.getAttribute('data-colour-index') ?? 0;
         const itemContainer = container.querySelector('[data-role=item-container]');
 
         while (itemContainer.hasChildNodes()) itemContainer.firstChild.remove();
@@ -527,7 +514,7 @@ export default class TileContextToolbar extends ComponentBase {
                 r: colour.r,
                 g: colour.g,
                 b: colour.b,
-                selected: index === 0
+                selected: index === selectedIndex
             };
         }) : [];
 
@@ -537,6 +524,8 @@ export default class TileContextToolbar extends ComponentBase {
             const args = self.#createArgs(command, sender);
             self.#dispatcher.dispatch(EVENT_OnCommand, args);
         });
+
+        this.#updateColourIndex(isPrimary ? 'PRIMARY' : 'SECONDARY', selectedIndex);
     }
 
     /**
@@ -571,6 +560,74 @@ export default class TileContextToolbar extends ComponentBase {
                 menuButton.removeAttribute('is-dark');
             }
         }
+    }
+
+
+    /**
+     * @param {import("../../types.js").Pattern[]?} patterns
+     */
+    #updatePatternItems(patterns) {
+        const patternContainer = this.#element.querySelector('[data-field=patternIndex]');
+        this.#buildPatternSelect(patternContainer, patterns);
+    }
+
+    /**
+     * @param {HTMLElement} container 
+     * @param {import("../../types.js").Pattern[]?} patterns
+     */
+    #buildPatternSelect(container, patterns) {
+        const selectedIndex = container.getAttribute('data-pattern-index') ?? 0;
+        const itemContainer = container.querySelector('[data-role=item-container]');
+
+        while (itemContainer.hasChildNodes()) itemContainer.firstChild.remove();
+
+        const data = (patterns) ? patterns.map((pattern, index) => {
+            return {
+                command: commands.patternIndex,
+                patternIndex: index,
+                patternName: pattern.name,
+                selected: index === selectedIndex
+            };
+        }) : [];
+
+        data.unshift({
+            command: commands.patternIndex,
+            patternIndex: -1,
+            patternName: 'Solid',
+            selected: selectedIndex === -1
+        });
+
+        this.renderTemplateToElement(itemContainer, 'toolbar-pattern-template', data);
+        const self = this;
+        TemplateUtil.wireUpCommandAutoEvents(itemContainer, (sender, ev, command) => {
+            const args = self.#createArgs(command, sender);
+            self.#dispatcher.dispatch(EVENT_OnCommand, args);
+        });
+
+        this.#updatePatternIndex(selectedIndex);
+    }
+
+    /**
+     * @param {number} patternIndex 
+     */
+    #updatePatternIndex(patternIndex) {
+        const container = this.#element.querySelector(`[data-field=patternIndex]`);
+
+        container.setAttribute('data-pattern-index', patternIndex);
+
+        const pattern = (patternIndex > 0) ? this.#patterns[patternIndex] : null;
+
+        /** @type {HTMLButtonElement} */
+        const menuButton = container.querySelector(`button[data-bs-toggle=dropdown]`);
+        menuButton.innerText = pattern?.name ?? 'Solid';
+
+        const itemContainer = container.querySelector('[data-role=item-container]');
+        itemContainer.querySelectorAll(`[data-selected=${true}]`).forEach((button) => {
+            button.setAttribute('data-selected', false);
+        });
+        itemContainer.querySelectorAll(`[data-pattern-index='${patternIndex}']`).forEach((button) => {
+            button.setAttribute('data-selected', true);
+        });
     }
 
 }
