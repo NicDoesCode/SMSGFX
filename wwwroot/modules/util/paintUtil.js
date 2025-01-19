@@ -132,11 +132,11 @@ export default class PaintUtil {
         // If we're using a pattern then use the pattern info to set the colour
         if (pattern?.pattern) {
             const patternObj = pattern?.pattern ?? null;
-            const patOriginX = pattern?.originX ?? 0;
-            const patOriginY = pattern?.originY ?? 0;
+            const patOffsetX = pattern?.originX % patternObj.width ?? 0;
+            const patOffsetY = pattern?.originY % patternObj.height ?? 0;
 
-            let patX = (patternObj !== null) ? coordinate.x % patternObj.width : 0;
-            let patY = (patternObj !== null) ? coordinate.y % patternObj.height : 0;
+            let patX = (patternObj !== null) ? ((coordinate.x % patternObj.width) + patOffsetX) % patternObj.width : 0;
+            let patY = (patternObj !== null) ? ((coordinate.y % patternObj.height) + patOffsetY) % patternObj.height : 0;
             let patValue = (patternObj !== null) ? patternObj.pattern[patY][patX] : null;
             if (patValue === 0) {
                 paintColourIndex = null;
