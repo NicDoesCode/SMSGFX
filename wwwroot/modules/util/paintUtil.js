@@ -11,16 +11,35 @@ export default class PaintUtil {
 
 
     /**
-     * Draws onto a tile grid, returns the ID and indexes of any updated tiles.
-     * @param {TileGridProvider} tileGrid - Tile grid that contains information about the tile layout.
-     * @param {TileSet} tileSet - Tile set with the tiles to draw onto.
-     * @param {number} x - X coordinate in the tile grid.
-     * @param {number} y - Y coordinate in the tile grid.
-     * @param {number} colourIndex - Colour palette index, 0 to 15.
-     * @param {DrawOptions} options - Options for drawing onto the tile grid.
+     * Paints onto a tile grid.
+     * @param {TileGridProvider} tileGrid - Tile grid with the tiles that comprise the image.
+     * @param {TileSet} tileSet - Tile set that contains the tiles to modify.
+     * @param {Object} config
+     * @param {Object} config.coordinate - Coordinates that are the centre of the brush.
+     * @param {number} config.coordinate.x - X coordinate, relative to the left of the image.
+     * @param {number} config.coordinate.y - Y coordinate, relative to the top of the image.
+     * @param {Object} config.brush - Details about the paint brush.
+     * @param {number} config.brush.size - Size of the brush.
+     * @param {number} config.brush.primaryColourIndex - Primary colour to use, for solid brush, or primary pattern colour.
+     * @param {number} config.brush.secondaryColourIndex - Secondary colour to use, for secondary pattern colour.
+     * @param {Object} config.pattern - Optional, details of the pattern to use.
+     * @param {import("../types.js").Pattern} config.pattern.pattern - Object that contains the pattern data.
+     * @param {number} config.pattern.originX - X origin of the pattern, relative to the left of the image.
+     * @param {number} config.pattern.originY - Y origin of the pattern, relative to the top of the image.
+     * @param {Object} config.options - Optional, additional painting options.
+     * @param {boolean} config.options.clampToTile - Will neigbouring tiles be affected?
+     * @param {number?} config.options.constrainToColourIndex - Only modify pixels with this colour index value.
      * @returns {DrawResult}
      */
-    static drawOnTileGrid(tileGrid, tileSet, x, y, colourIndex, options) {
+    static paintOntoTileGrid(tileGrid, tileSet, { coordinate, brush, pattern, options }) {
+        const x = coordinate.x;
+        const y = coordinate.y;
+        const colourIndex = brush.primaryColourIndex;
+        const secondaryColourIndex = brush.secondaryColourIndex;
+        const constrainColourIndex = options?.constrainToColourIndex ?? null;
+        const patternObj = pattern?.pattern ?? null;
+        const patOriginX = pattern?.originX ?? 0;
+        const patOriginY = pattern?.originY ?? 0;
         const updatedTileIndexes = [];
         /** @type {Object.<string, number>} */
         const updatedTileIds = {};
@@ -28,86 +47,36 @@ export default class PaintUtil {
         const tileInfo = tileGrid.getTileInfoByPixel(x, y);
         if (tileInfo === null || tileInfo < 0) return { affectedTileIds: [], affectedTileIndexes: [] };
 
-        const brushSize = options.brushSize ?? 1;
+        const brushSize = brush.size ?? 1;
         if (brushSize < 1 || brushSize > 100) throw new Error('Brush size must be between 1 and 100 px.');
 
         if (brushSize === 1) {
-            const coord = translateCoordinate(tileInfo, x % 8, y % 8);
-            const tile = tileSet.getTileById(tileInfo.tileId);
-            const drawSuccess = tile.setValueAtCoord(coord.x, coord.y, colourIndex);
-            if (drawSuccess) {
-                updatedTileIndexes.push(tileInfo.tileIndex);
-                updatedTileIds[tileInfo.tileId] = tileInfo;
-            }
-        } else {
-            const affect = options?.affectAdjacentTiles ?? true;
-            const startX = x - Math.floor(brushSize / 2);
-            const startY = y - Math.floor(brushSize / 2);
-            const endX = x + Math.ceil(brushSize / 2);
-            const endY = y + Math.ceil(brushSize / 2);
-            for (let yPx = startY; yPx < endY; yPx++) {
-                const xLeft = (brushSize > 3 && (yPx === startY || yPx === endY - 1)) ? startX + 1 : startX;
-                const xRight = (brushSize > 3 && (yPx === startY || yPx === endY - 1)) ? endX - 1 : endX;
-                for (let xPx = xLeft; xPx < xRight; xPx++) {
-                    const thisTileInfo = tileGrid.getTileInfoByPixel(xPx, yPx);
-                    if (thisTileInfo !== null && thisTileInfo.tileIndex >= 0) {
-                        const differentTile = thisTileInfo.tileIndex !== tileInfo.tileIndex;
-                        if (!differentTile || affect) {
-                            const coord = translateCoordinate(thisTileInfo, xPx % 8, yPx % 8);
-                            const tile = tileSet.getTileById(thisTileInfo.tileId);
-                            const drawSuccess = tile.setValueAtCoord(coord.x, coord.y, colourIndex);
-                            if (drawSuccess) {
-                                if (!updatedTileIndexes.includes(thisTileInfo.tileIndex)) updatedTileIndexes.push(thisTileInfo.tileIndex);
-                                updatedTileIds[thisTileInfo.tileId] = tileInfo;
-                            }
-                        }
+
+            // Only paint if we're not constraining colour index or if the colour index is the constrained one
+            const currentColourIndex = (constrainColourIndex) ? tile.readAtCoord(coord.x, coord.y) : null;
+            if (constrainColourIndex === null || currentColourIndex === constrainColourIndex) {
+
+                // Paint if we're not using a pattern, or the pixel on the pattern has a value
+                const patX = (patternObj !== null) ? x % patternObj.width : 0;
+                const patY = (patternObj !== null) ? y % patternObj.height : 0;
+                const patValue = (patternObj !== null) ? patternObj.pattern[patY][patX] : null;
+                if (patternObj === null || patValue === 1 || patValue === 2) {
+
+                    const coord = translateCoordinate(tileInfo, x % 8, y % 8);
+                    const tile = tileSet.getTileById(tileInfo.tileId);
+                    const paintColourIndex = (patternObj === null || patValue === 1) ? paintColourIndex : secondaryColourIndex;
+                    const drawSuccess = tile.setValueAtCoord(coord.x, coord.y, paintColourIndex);
+                    if (drawSuccess) {
+                        updatedTileIndexes.push(tileInfo.tileIndex);
+                        updatedTileIds[tileInfo.tileId] = tileInfo;
                     }
+
                 }
+
             }
-        }
 
-        return {
-            affectedTileIndexes: updatedTileIndexes,
-            affectedTileIds: Object.keys(updatedTileIds)
-        };
-    }
-
-
-    /**
-     * Replaces a colour on the tile grid with another colour, returns IDs and indexes of any updated tiles.
-     * @param {TileGridProvider} tileGrid - Tile grid that contains information about the tile layout.
-     * @param {TileSet} tileSet - Tile set with the tiles to draw onto.
-     * @param {number} x - X coordinate in the tile set.
-     * @param {number} y - Y coordinate in the tile set.
-     * @param {number} sourceColourIndex - Colour index that will be replaced, 0 to 15.
-     * @param {number} replacementColourIndex - Colour index to replace any instance of the source colour with, 0 to 15.
-     * @param {DrawOptions} options - Options for drawing onto the tile set.
-     * @returns {DrawResult}
-     */
-    static replaceColourOnTileGrid(tileGrid, tileSet, x, y, sourceColourIndex, replacementColourIndex, options) {
-        const updatedTileIndexes = [];
-        /** @type {Object.<string, number>} */
-        const updatedTileIds = {};
-
-        const tileInfo = tileGrid.getTileInfoByPixel(x, y);
-        if (tileInfo === null || tileInfo < 0) return { affectedTileIds: [], affectedTileIndexes: [] };
-
-        const brushSize = options.brushSize ?? 1;
-        if (brushSize < 1 || brushSize > 100) throw new Error('Brush size must be between 1 and 100 px.');
-
-        if (brushSize === 1) {
-            const coord = translateCoordinate(tileInfo, x % 8, y % 8);
-            const tile = tileSet.getTileById(tileInfo.tileId);
-            const currentColourIndex = tile.readAtCoord(coord.x, coord.y);
-            if (currentColourIndex === sourceColourIndex) {
-                const drawSuccess = tile.setValueAtCoord(coord.x, coord.y, replacementColourIndex);
-                if (drawSuccess) {
-                    updatedTileIndexes.push(tileInfo.tileIndex);
-                    updatedTileIds[tileInfo.tileId] = tileInfo;
-                }
-            }
         } else {
-            const affect = options?.affectAdjacentTiles ?? true;
+            const affectAdjacent = options?.clampToTile === false ?? true;
             const startX = x - Math.floor(brushSize / 2);
             const startY = y - Math.floor(brushSize / 2);
             const endX = x + Math.ceil(brushSize / 2);
@@ -119,112 +88,27 @@ export default class PaintUtil {
                     const thisTileInfo = tileGrid.getTileInfoByPixel(xPx, yPx);
                     if (thisTileInfo !== null) {
                         const differentTile = thisTileInfo.tileIndex !== tileInfo.tileIndex;
-                        if (!differentTile || affect) {
-                            const coord = translateCoordinate(thisTileInfo, xPx % 8, yPx % 8);
-                            const tile = tileSet.getTileById(thisTileInfo.tileId);
-                            const currentColourIndex = tile.readAtCoord(coord.x, coord.y);
-                            if (currentColourIndex === sourceColourIndex) {
-                                const drawSuccess = tile.setValueAtCoord(coord.x, coord.y, replacementColourIndex);
-                                if (drawSuccess) {
-                                    if (!updatedTileIndexes.includes(thisTileInfo.tileIndex)) updatedTileIndexes.push(thisTileInfo.tileIndex);
-                                    updatedTileIds[thisTileInfo.tileId] = tileInfo;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+                        if (!differentTile || affectAdjacent) {
 
-        return {
-            affectedTileIndexes: updatedTileIndexes,
-            affectedTileIds: Object.keys(updatedTileIds)
-        };
-    }
+                            // Paint if we're not using a pattern, or the pixel on the pattern has a value
+                            const patX = (patternObj !== null) ? xPx % patternObj.width : 0;
+                            const patY = (patternObj !== null) ? yPx % patternObj.height : 0;
+                            const patValue = (patternObj !== null) ? patternObj.pattern[patY][patX] : null;
+                            if (patternObj === null || patValue === 1 || patValue === 2) {
 
-
-    /**
-     * Paints a defined pattern onto a tile grid.
-     * @param {TileGridProvider} tileGrid - Tile grid that contains information about the tile layout.
-     * @param {TileSet} tileSet - Tile set that countains the tiles.
-     * @param {Object} options - Pattern paint options.
-     * @param {number} options.x - Origin X coordinate.
-     * @param {number} options.y - Origin Y coordinate.
-     * @param {number} options.colourIndex - Primary colour index that matches 1 on the pattern.
-     * @param {number} options.secondaryColourIndex - Secondary colour index that matches 2 on the pattern.
-     * @param {import('../types.js').Pattern} options.pattern - Pattern object.
-     * @param {number} options.patternOriginX - Origin X coordinate for the pattern.
-     * @param {number} options.patternOriginY - Origin Y coordinate for the pattern.
-     * @param {number} options.brushSize - Size of the brush to paint with.
-     * @param {boolean} options.affectAdjacentTiles - Does the operation affect tiles adjacent to the tile that the user clicked?
-     */
-    static paintPatternOntoTileGrid(tileGrid, tileSet, options) {
-        const x = options.x;
-        const y = options.y;
-        const colourIndex = options.colourIndex;
-        const secondaryColourIndex = options.secondaryColourIndex;
-        const pattern = options.pattern;
-        const patOriginX = options.patternOriginX;
-        const patOriginY = options.patternOriginY;
-        const updatedTileIndexes = [];
-        /** @type {Object.<string, number>} */
-        const updatedTileIds = {};
-
-        const tileInfo = tileGrid.getTileInfoByPixel(x, y);
-        if (tileInfo === null || tileInfo < 0) return { affectedTileIds: [], affectedTileIndexes: [] };
-
-        const brushSize = options.brushSize ?? 1;
-        if (brushSize < 1 || brushSize > 100) throw new Error('Brush size must be between 1 and 100 px.');
-
-        if (brushSize === 1) {
-
-            // Get pattern info
-            const patX = x % pattern.width;
-            const patY = y % pattern.height;
-            const patValue = pattern.pattern[patY][patX];
-
-            // Paint if its not a transparent pixel
-            if (patValue === 1 || patValue === 2) {
-                const coord = translateCoordinate(tileInfo, x % 8, y % 8);
-                const tile = tileSet.getTileById(tileInfo.tileId);
-                const colourIndex = patValue === 1 ? colourIndex : secondaryColourIndex;
-                const drawSuccess = tile.setValueAtCoord(coord.x, coord.y, colourIndex);
-                if (drawSuccess) {
-                    updatedTileIndexes.push(tileInfo.tileIndex);
-                    updatedTileIds[tileInfo.tileId] = tileInfo;
-                }
-            }
-
-        } else {
-            const affect = options?.affectAdjacentTiles ?? true;
-            const startX = x - Math.floor(brushSize / 2);
-            const startY = y - Math.floor(brushSize / 2);
-            const endX = x + Math.ceil(brushSize / 2);
-            const endY = y + Math.ceil(brushSize / 2);
-            for (let yPx = startY; yPx < endY; yPx++) {
-                const xLeft = (brushSize > 3 && (yPx === startY || yPx === endY - 1)) ? startX + 1 : startX;
-                const xRight = (brushSize > 3 && (yPx === startY || yPx === endY - 1)) ? endX - 1 : endX;
-                for (let xPx = xLeft; xPx < xRight; xPx++) {
-                    const thisTileInfo = tileGrid.getTileInfoByPixel(xPx, yPx);
-                    if (thisTileInfo !== null) {
-                        const differentTile = thisTileInfo.tileIndex !== tileInfo.tileIndex;
-                        if (!differentTile || affect) {
-
-                            // Get pattern info
-                            const patX = xPx % pattern.width;
-                            const patY = yPx % pattern.height;
-                            const patValue = pattern.pattern[patY][patX];
-
-                            // Paint if its not a transparent pixel
-                            if (patValue === 1 || patValue === 2) {
                                 const coord = translateCoordinate(thisTileInfo, xPx % 8, yPx % 8);
                                 const tile = tileSet.getTileById(thisTileInfo.tileId);
-                                const currentColourIndex = patValue === 1 ? colourIndex : secondaryColourIndex;
-                                const drawSuccess = tile.setValueAtCoord(coord.x, coord.y, currentColourIndex);
-                                if (drawSuccess) {
-                                    if (!updatedTileIndexes.includes(thisTileInfo.tileIndex)) updatedTileIndexes.push(thisTileInfo.tileIndex);
-                                    updatedTileIds[thisTileInfo.tileId] = tileInfo;
+
+                                // Only paint if we're not constraining colour index or if the colour index is the constrained one
+                                const currentColourIndex = (patternObj === null || patValue === 1) ? colourIndex : secondaryColourIndex;
+                                if (constrainColourIndex === null || currentColourIndex === constrainColourIndex) {
+                                    const drawSuccess = tile.setValueAtCoord(coord.x, coord.y, currentColourIndex);
+                                    if (drawSuccess) {
+                                        if (!updatedTileIndexes.includes(thisTileInfo.tileIndex)) updatedTileIndexes.push(thisTileInfo.tileIndex);
+                                        updatedTileIds[thisTileInfo.tileId] = tileInfo;
+                                    }
                                 }
+
                             }
 
                         }

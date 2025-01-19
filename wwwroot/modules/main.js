@@ -2873,9 +2873,24 @@ function takeToolAction(args) {
 
                         const breakLinks = isTileMap() && instanceState.breakTileLinks;
                         const originalTileSet = breakLinks ? TileSetFactory.clone(getTileSet()) : null;
-                        const size = instanceState.pencilSize;
 
-                        const updatedTiles = PaintTool.paintColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, colourIndex, size, clamp);
+                        const updatedTiles = PaintTool.paintOntoTileGrid(getTileGrid(), getTileSet(), {
+                            coordinate: { x: imageX, y: imageY },
+                            brush: { 
+                                primaryColourIndex: instanceState.colourIndex, 
+                                secondaryColourIndex: instanceState.secondaryColourIndex, 
+                                size: instanceState.pencilSize 
+                            },
+                            options: { 
+                                clampToTile: clamp
+                            },
+                            pattern: {
+                                pattern: (instanceState.patternIndex > -1) ? patternManager.getPattern(instanceState.patternIndex) : null, 
+                                originX: (instanceState.patternFixedOrigin) ? 0 : imageX,
+                                originY: (instanceState.patternFixedOrigin) ? 0 : imageY
+                            }
+                        });
+
                         if (updatedTiles.affectedTileIndexes.length > 0) {
 
                             if (breakLinks) {
@@ -2920,63 +2935,25 @@ function takeToolAction(args) {
 
                         const breakLinks = isTileMap() && instanceState.breakTileLinks;
                         const originalTileSet = breakLinks ? TileSetFactory.clone(getTileSet()) : null;
-                        const sourceColourindex = instanceState.startingColourIndex;
-                        const replacementColourIndex = colourIndex;
-                        const size = instanceState.pencilSize;
 
-                        const updatedTiles = PaintTool.replaceColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, sourceColourindex, replacementColourIndex, size, clamp);
-                        if (updatedTiles && updatedTiles.affectedTileIndexes.length > 0) {
-
-                            if (breakLinks) {
-                                takeToolAction_breakLinks(updatedTiles.affectedTileIndexes, originalTileSet);
+                        const updatedTiles = PaintTool.paintOntoTileGrid(getTileGrid(), getTileSet(), {
+                            coordinate: { x: imageX, y: imageY },
+                            brush: { 
+                                primaryColourIndex: instanceState.colourIndex, 
+                                secondaryColourIndex: instanceState.secondaryColourIndex, 
+                                size: instanceState.pencilSize 
+                            },
+                            options: { 
+                                constrainToColourIndex: instanceState.startingColourIndex, 
+                                clampToTile: clamp
+                            },
+                            pattern: {
+                                pattern: (instanceState.patternIndex > -1) ? patternManager.getPattern(instanceState.patternIndex) : null, 
+                                originX: (instanceState.patternFixedOrigin) ? 0 : imageX,
+                                originY: (instanceState.patternFixedOrigin) ? 0 : imageY
                             }
+                        });
 
-                            updateTilesOnEditors(updatedTiles.affectedTileIds);
-
-                        }
-
-                    }
-                }
-
-            } else {
-                instanceState.lastTileMapPx.x = -1;
-                instanceState.lastTileMapPx.y = -1;
-            }
-        } else if (tool === TileEditorToolbar.Tools.pattern && args.isInBounds) {
-            if (event === TileEditor.Events.pixelMouseDown || event === TileEditor.Events.pixelMouseOver) {
-
-                const lastPx = instanceState.lastTileMapPx;
-                if (imageX !== lastPx.x || imageY !== lastPx.y) {
-
-                    const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
-                    const clamp = instanceState.clampToTile;
-                    if (!clamp || (clamp && tileIndex === instanceState.operationTileIndex)) {
-
-                        addUndoState();
-                        if (!instanceState.undoDisabled) {
-                            instanceState.undoDisabled = true;
-                        }
-
-                        if (event === TileEditor.Events.pixelMouseDown) {
-                            const tileInfo = getTileGrid().getTileInfoByPixel(imageX, imageY);
-                            const tile = getTileSet().getTileById(tileInfo.tileId);
-                            const colour = tile.readAtCoord(imageX % 8, imageY % 8);
-                            instanceState.startingColourIndex = colour;
-                        }
-
-                        instanceState.lastTileMapPx.x = imageX;
-                        instanceState.lastTileMapPx.y = imageY;
-
-                        const breakLinks = isTileMap() && instanceState.breakTileLinks;
-                        const originalTileSet = breakLinks ? TileSetFactory.clone(getTileSet()) : null;
-                        const colourIndex = instanceState.colourIndex;
-                        const secondaryColourIndex = instanceState.secondaryColourIndex;
-                        const size = instanceState.pencilSize;
-                        const patternIndex = patternManager.getPattern(instanceState.patternIndex);
-                        const patternX = instanceState.patternFixedOrigin ? 0 : imageX;
-                        const patternY = instanceState.patternFixedOrigin ? 0 : imageY;
-
-                        const updatedTiles = PaintTool.patternPaintOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, colourIndex, secondaryColourIndex, size, patternIndex, patternX, patternY, clamp);
                         if (updatedTiles && updatedTiles.affectedTileIndexes.length > 0) {
 
                             if (breakLinks) {

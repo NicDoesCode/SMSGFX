@@ -7,33 +7,25 @@ export default class PaintTool {
      * Replaces one colour on a tile with another.
      * @param {TileGridProvider} tileGrid - Tile grid with the tiles that comprise the image.
      * @param {TileSet} tileSet - Tile set that contains the tiles to modify.
-     * @param {number} x - X coordinate.
-     * @param {number} y - Y coordinate.
-     * @param {number} colourIndex - Colour index to be replaced.
-     * @param {number} pencilSize - Size of the brush.
-     * @param {boolean} clampToTile - Will neigbouring tiles be affected?
-     * @param {boolean} breakTileLinks - Break links on affected tiles?
+     * @param {Object} config
+     * @param {Object} config.coordinate - Coordinates that are the centre of the brush.
+     * @param {number} config.coordinate.x - X coordinate, relative to the left of the image.
+     * @param {number} config.coordinate.y - Y coordinate, relative to the top of the image.
+     * @param {Object} config.brush - Details about the paint brush.
+     * @param {number} config.brush.size - Size of the brush.
+     * @param {number} config.brush.primaryColourIndex - Primary colour to use, for solid brush, or primary pattern colour.
+     * @param {number} config.brush.secondaryColourIndex - Secondary colour to use, for secondary pattern colour.
+     * @param {Object} config.pattern - Optional, details of the pattern to use.
+     * @param {import("../types.js").Pattern} config.pattern.pattern - Object that contains the pattern data.
+     * @param {number} config.pattern.originX - X origin of the pattern, relative to the left of the image.
+     * @param {number} config.pattern.originY - Y origin of the pattern, relative to the top of the image.
+     * @param {Object} config.options - Optional, additional painting options.
+     * @param {boolean} config.options.clampToTile - Will neigbouring tiles be affected?
+     * @param {number?} config.options.constrainToColourIndex - Only modify pixels with this colour index value.
      * @returns {import("../util/paintUtil").DrawResult}
      */
-    static paintColourOnTileGrid(tileGrid, tileSet, x, y, colourIndex, pencilSize, clampToTile, breakTileLinks) {
-        return PaintUtil.drawOnTileGrid(tileGrid, tileSet, x, y, colourIndex, { brushSize: pencilSize, affectAdjacentTiles: !clampToTile });
-    }
-
-    /**
-     * Replaces one colour on a tile with another.
-     * @param {TileGridProvider} tileGrid - Tile grid with the tiles that comprise the image.
-     * @param {TileSet} tileSet - Tile set that contains the tiles to modify.
-     * @param {number} x - X coordinate.
-     * @param {number} y - Y coordinate.
-     * @param {number} sourceColourIndex - Colour index to be replaced.
-     * @param {number} replacementColourIndex - Colour index to replace with.
-     * @param {number} pencilSize - Size of the brush.
-     * @param {boolean} clampToTile - Will neigbouring tiles be affected?
-     * @param {boolean} breakTileLinks - Break links on affected tiles?
-     * @returns {import("../util/paintUtil").DrawResult}
-     */
-    static replaceColourOnTileGrid(tileGrid, tileSet, x, y, sourceColourIndex, replacementColourIndex, pencilSize, clampToTile, breakTileLinks) {
-        return PaintUtil.replaceColourOnTileGrid(tileGrid, tileSet, x, y, sourceColourIndex, replacementColourIndex, { brushSize: pencilSize, affectAdjacentTiles: !clampToTile });
+    static paintOntoTileGrid(tileGrid, tileSet, { coordinate, brush, pattern, options }) {
+        return PaintUtil.paintOntoTileGrid(tileGrid, tileSet, { coordinate, brush, pattern, options });
     }
 
     /**
@@ -49,30 +41,6 @@ export default class PaintTool {
      */
     static fillColourOnTileGrid(tileGrid, tileSet, x, y, colourIndex, clampToTile, breakTileLinks) {
         return PaintUtil.fillOnTileGrid(tileGrid, tileSet, x, y, colourIndex, { affectAdjacentTiles: !clampToTile });
-    }
-    
-    /**
-     * Replaces one colour on a tile with another.
-     * @param {TileGridProvider} tileGrid - Tile grid with the tiles that comprise the image.
-     * @param {TileSet} tileSet - Tile set that contains the tiles to modify.
-     * @param {number} x - X coordinate.
-     * @param {number} y - Y coordinate.
-     * @param {number} colourIndex - Colour for #1 on the pattern.
-     * @param {number} secondaryColourIndex - Colour for #2 on the pattern.
-     * @param {number} pencilSize - Size of the brush.
-     * @param {import("../types.js").Pattern} pattern - Size of the brush.
-     * @param {number} patternOriginX - Size of the brush.
-     * @param {number} patternOriginY - Size of the brush.
-     * @param {boolean} clampToTile - Will neigbouring tiles be affected?
-     * @returns {import("../util/paintUtil").DrawResult}
-     */
-    static patternPaintOnTileGrid(tileGrid, tileSet, x, y, colourIndex, secondaryColourIndex, pencilSize, pattern, patternOriginX, patternOriginY, clampToTile) {
-        return PaintUtil.paintPatternOntoTileGrid(tileGrid, tileSet, { 
-            x, y, colourIndex, secondaryColourIndex, 
-            brushSize: pencilSize, 
-            pattern, patternOriginX, patternOriginY, 
-            affectAdjacentTiles: !clampToTile 
-        });
     }
 
 }
