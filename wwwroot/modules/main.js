@@ -89,7 +89,7 @@ const instanceState = {
     /** @type {number} */
     colourIndex: 0,
     /** @type {number} */
-    secondaryColourIndex: 0,
+    secondaryColourIndex: 1,
     /** @type {number} */
     startingColourIndex: 0,
     /** @type {number} */
@@ -2547,7 +2547,7 @@ function formatForProject() {
 
     if (projectChanged) {
         instanceState.colourIndex = 0;
-        instanceState.secondaryColourIndex = 0;
+        instanceState.secondaryColourIndex = 1;
         if (instanceState.paletteSlot < 0) instanceState.paletteSlot = 0;
         if (instanceState.paletteSlot >= getNumberOfPaletteSlots()) instanceState.paletteSlot = getNumberOfPaletteSlots() - 1;
     }
