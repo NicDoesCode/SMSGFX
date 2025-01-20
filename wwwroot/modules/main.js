@@ -1589,6 +1589,7 @@ function handleTileEditorOnEvent(args) {
                         tileBlockIndex: { row: args.tileBlockGridInsertRowIndex, col: args.tileBlockGridInsertColumnIndex },
                         tilesPerBlock: args.tilesPerBlock,
                         isInBounds: args.isInBounds,
+                        isInForgovingBounds: args.isInForgivingBounds,
                         controlKey: args.ctrlKeyPressed,
                         shiftKey: args.shiftKeyPressed,
                         event: TileEditor.Events.pixelMouseDown
@@ -1612,6 +1613,7 @@ function handleTileEditorOnEvent(args) {
                         tileBlockIndex: { row: args.tileBlockGridInsertRowIndex, col: args.tileBlockGridInsertColumnIndex },
                         tilesPerBlock: args.tilesPerBlock,
                         isInBounds: args.isInBounds,
+                        isInForgovingBounds: args.isInForgivingBounds,
                         controlKey: args.ctrlKeyPressed,
                         shiftKey: args.shiftKeyPressed,
                         event: TileEditor.Events.pixelMouseOver
@@ -1660,6 +1662,7 @@ function handleTileEditorOnEvent(args) {
                     tileBlockIndex: { row: args.tileBlockGridInsertRowIndex, col: args.tileBlockGridInsertColumnIndex },
                     tilesPerBlock: args.tilesPerBlock,
                     isInBounds: args.isInBounds,
+                    isInForgovingBounds: args.isInForgivingBounds,
                     controlKey: args.ctrlKeyPressed,
                     shiftKey: args.shiftKeyPressed,
                     event: TileEditor.Events.pixelMouseUp
@@ -2835,7 +2838,8 @@ function uiRefreshProjectLists() {
     });
 }
 
-/** 
+
+/**
  * @typedef {Object} ToolActionArgs
  * @property {string} tool 
  * @property {number} colourIndex 
@@ -2849,9 +2853,9 @@ function uiRefreshProjectLists() {
  * @property {{ row: number, col: number }} tileBlockIndex 
  * @property {number} tilesPerBlock 
  * @property {boolean} isInBounds 
+ * @property {boolean} isInForgovingBounds 
  * @property {string} event 
- */
-
+*/
 /**
  * Performs the action for a tool.
  * @param {ToolActionArgs} args 
@@ -2877,7 +2881,7 @@ function takeToolAction(args) {
                 instanceState.lastTileMapPx.y = -1;
 
             }
-        } else if ((tool === TileEditorToolbar.Tools.pencil || tool === TileEditorToolbar.Tools.colourReplace) && args.isInBounds) {
+        } else if ((tool === TileEditorToolbar.Tools.pencil || tool === TileEditorToolbar.Tools.colourReplace) && args.isInForgovingBounds) {
             if (event === TileEditor.Events.pixelMouseDown || event === TileEditor.Events.pixelMouseOver) {
 
                 const lastPx = instanceState.lastTileMapPx;
