@@ -35,6 +35,9 @@ export default class PaintUtil {
         const x = coordinate.x;
         const y = coordinate.y;
 
+        const imageWidth = tileGrid.columnCount * 8;
+        const imageHeight = tileGrid.rowCount * 8;
+
         const updatedTileIndexes = new Set();
         const updatedTileIds = new Set();
 
@@ -45,6 +48,8 @@ export default class PaintUtil {
         if (brushSize < 1 || brushSize > 100) throw new Error('Brush size must be between 1 and 100 px.');
 
         if (brushSize === 1) {
+
+            // Simple paint function for when brush size is 1
 
             const paintResult = PaintUtil.#paintOntoPixel({ 
                 tileGrid: tileGrid, tileSet: tileSet, tileInfo: tileInfo, 
@@ -59,6 +64,9 @@ export default class PaintUtil {
             };    
 
         } else {
+
+            // More complex with a bigger brush as we have to affect each pixel of brush coverage
+
             const affectAdjacent = options?.clampToTile === false ?? true;
             const startX = x - Math.floor(brushSize / 2);
             const startY = y - Math.floor(brushSize / 2);
@@ -68,25 +76,30 @@ export default class PaintUtil {
                 const xLeft = (brushSize > 3 && (yPx === startY || yPx === endY - 1)) ? startX + 1 : startX;
                 const xRight = (brushSize > 3 && (yPx === startY || yPx === endY - 1)) ? endX - 1 : endX;
                 for (let xPx = xLeft; xPx < xRight; xPx++) {
-                    const thisTileInfo = tileGrid.getTileInfoByPixel(xPx, yPx);
-                    if (thisTileInfo !== null) {
-                        const differentTile = thisTileInfo.tileIndex !== tileInfo.tileIndex;
-                        if (!differentTile || affectAdjacent) {
 
-                            const paintResult = PaintUtil.#paintOntoPixel({ 
-                                tileGrid: tileGrid, tileSet: tileSet, tileInfo: thisTileInfo, 
-                                coordinate: { x: xPx, y: yPx }, 
-                                colour: { primaryIndex: brush.primaryColourIndex, secondaryIndex: brush.secondaryColourIndex, constrainIndex: options?.constrainToColourIndex ?? null },
-                                pattern: pattern
-                            });
+                    const thisPixelWithinImageBounds = (xPx >= 0 && xPx < imageWidth && yPx >= 0 && yPx < imageHeight);
+                    if (thisPixelWithinImageBounds) {
+                        const thisTileInfo = tileGrid.getTileInfoByPixel(xPx, yPx);
+                        if (thisTileInfo !== null) {
+                            const differentTile = thisTileInfo.tileIndex !== tileInfo.tileIndex;
+                            if (!differentTile || affectAdjacent) {
 
-                            if (paintResult) {
-                                updatedTileIndexes.add(paintResult.tileIndex);
-                                updatedTileIds.add(paintResult.tileId);
+                                const paintResult = PaintUtil.#paintOntoPixel({
+                                    tileGrid: tileGrid, tileSet: tileSet, tileInfo: thisTileInfo,
+                                    coordinate: { x: xPx, y: yPx },
+                                    colour: { primaryIndex: brush.primaryColourIndex, secondaryIndex: brush.secondaryColourIndex, constrainIndex: options?.constrainToColourIndex ?? null },
+                                    pattern: pattern
+                                });
+
+                                if (paintResult) {
+                                    updatedTileIndexes.add(paintResult.tileIndex);
+                                    updatedTileIds.add(paintResult.tileId);
+                                }
+
                             }
-
                         }
                     }
+
                 }
             }
 
@@ -135,8 +148,8 @@ export default class PaintUtil {
             const patOffsetX = pattern?.originX % patternObj.width ?? 0;
             const patOffsetY = pattern?.originY % patternObj.height ?? 0;
 
-            let patX = (patternObj !== null) ? ((coordinate.x % patternObj.width) + patOffsetX) % patternObj.width : 0;
-            let patY = (patternObj !== null) ? ((coordinate.y % patternObj.height) + patOffsetY) % patternObj.height : 0;
+            let patX = (patternObj !== null) ? Math.max(((coordinate.x % patternObj.width) + patOffsetX) % patternObj.width, 0) : 0;
+            let patY = (patternObj !== null) ? Math.max(((coordinate.y % patternObj.height) + patOffsetY) % patternObj.height, 0) : 0;
             let patValue = (patternObj !== null) ? patternObj.pattern[patY][patX] : null;
             if (patValue === 0) {
                 paintColourIndex = null;

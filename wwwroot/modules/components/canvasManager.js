@@ -1074,17 +1074,26 @@ export default class CanvasManager {
             });
         }
 
+        const imageLeftBound = 0;
+        const imageRightBound = coords.gridColumns * 8;
+        const imageTopBound = 0;
+        const imageBottomBound = coords.gridRows * 8;
+
         // Highlight mode is pixel
         if (this.highlightMode === CanvasManager.HighlightModes.pixel) {
-            if (coords.x >= 0 && coords.x < coords.gridColumns * 8 && coords.y >= 0 && coords.y < coords.gridRows * 8) {
+            if (coords.x >= imageLeftBound && coords.x < imageRightBound && coords.y >= imageTopBound && coords.y < imageBottomBound) {
                 this.#strokeSecondaryArea(context, coords.tileX + drawX, coords.tileY + drawY, (8 * pxSize), (8 * pxSize));
+            }
+            const isWithinAllowableHorizontalBound = coords.x >= (imageLeftBound - this.cursorSize) && coords.x < (imageRightBound + this.cursorSize);
+            const isWithinAllowableVerticalBound = coords.y >= (imageTopBound - this.cursorSize) && coords.y < (imageBottomBound + this.cursorSize);
+            if (isWithinAllowableHorizontalBound && isWithinAllowableVerticalBound) {
                 this.#strokeBrushBorder(context, coords);
             }
         }
 
         // Highlight mode is tile
         if (this.#highlightMode === CanvasManager.HighlightModes.tile) {
-            if (coords.x >= 0 && coords.x < coords.gridColumns * 8 && coords.y >= 0 && coords.y < coords.gridRows * 8) {
+            if (coords.x >= imageLeftBound && coords.x < imageRightBound && coords.y >= imageTopBound && coords.y < imageBottomBound) {
                 const tile = coords.tile;
                 const originX = drawX + (tile.sizePx * tile.col);
                 const originY = drawY + (tile.sizePx * tile.row);
@@ -1094,7 +1103,7 @@ export default class CanvasManager {
 
         // Highlight mode is tile block (NES 4x4 tile blockes for palettes, etc)
         if (this.#highlightMode === CanvasManager.HighlightModes.tileBlock) {
-            if (coords.x >= 0 && coords.x < coords.gridColumns * 8 && coords.y >= 0 && coords.y < coords.gridRows * 8) {
+            if (coords.x >= imageLeftBound && coords.x < imageRightBound && coords.y >= imageTopBound && coords.y < imageBottomBound) {
                 const block = coords.block;
                 const originX = drawX + (block.sizePx * block.col);
                 const originY = drawY + (block.sizePx * block.row);
@@ -1104,7 +1113,7 @@ export default class CanvasManager {
 
         // Highlight mode is row block (eg. delete row)
         if (this.#highlightMode === CanvasManager.HighlightModes.rowBlock) {
-            if (coords.y >= 0 && coords.y < coords.gridRows * 8) {
+            if (coords.y >= imageTopBound && coords.y < imageBottomBound) {
                 const block = coords.block;
                 this.#highlightRows(context, drawX, drawY, block.row, block.sizeTiles, block.sizePx);
             }
@@ -1112,7 +1121,7 @@ export default class CanvasManager {
 
         // Highlight mode is column block (eg. delete column)
         if (this.#highlightMode === CanvasManager.HighlightModes.columnBlock) {
-            if (coords.x >= 0 && coords.x < coords.gridColumns * 8) {
+            if (coords.x >= imageLeftBound && coords.x < imageRightBound) {
                 const block = coords.block;
                 this.#highlightColumns(context, drawX, drawY, block.col, block.sizeTiles, block.sizePx);
             }
