@@ -4496,7 +4496,7 @@ function projectNew(args) {
     getProjectUIState(newProject).paletteIndex = 0;
     getProjectUIState(newProject).tileMapId = args.createTileMap ? newProject.tileMapList.getTileMap(0).tileMapId : null;
 
-    instanceState.tileIndex = -1;
+    instanceState.tileIndicies = [];
     instanceState.colourIndex = 0;
 
     state.setProject(newProject);
@@ -4872,14 +4872,15 @@ function tileSetSwapByIndex(tileAIndex, tileBIndex) {
     state.saveToLocalStorage();
 
     // Maintain tile index
-    if (instanceState.tileIndex === lowerIndex) {
-        instanceState.tileIndex = higherIndex;
-    } else if (instanceState.tileIndex === higherIndex) {
-        instanceState.tileIndex = lowerIndex;
+    const tileIndex = getFirstSelectedTileIndexOrNull();
+    if (tileIndex === lowerIndex) {
+        tileIndex = higherIndex;
+    } else if (tileIndex === higherIndex) {
+        tileIndex = lowerIndex;
     }
 
     tileEditor.setState({
-        selectedTileIndicies: [instanceState.tileIndex],
+        selectedTileIndicies: [tileIndex],
         tileGrid: getTileGrid(),
         tileSet: getTileSet()
     });
@@ -5251,7 +5252,7 @@ function tileMapOrTileSetSelectById(tileMapId) {
 
     }
 
-    instanceState.tileIndex = -1;
+    instanceState.tileIndicies = [];
 
     state.saveToLocalStorage();
 
@@ -5622,20 +5623,23 @@ function selectTool(tool) {
 
         if (tool !== TOOLS.select) {
             // Select tool
-            const tile = getTileSet().getTileByIndex(instanceState.tileIndex);
-            if (tile) {
-                tileContextToolbar.setState({
-                    tileSetTileAttributes: {
-                        alwaysKeep: tile.alwaysKeep
-                    }
-                });
+            const tileIndex = getFirstSelectedTileIndexOrNull();
+            if (tileIndex) {
+                const tile = getTileSet().getTileByIndex(tileIndex);
+                if (tile) {
+                    tileContextToolbar.setState({
+                        tileSetTileAttributes: {
+                            alwaysKeep: tile.alwaysKeep
+                        }
+                    });
+                }
             }
         } else {
-            // Was not select tool, de-select any tiles
+        // Was not select tool, de-select any tiles
             if (tool !== TOOLS.select) {
-                instanceState.tileIndex = -1;
+                instanceState.tileIndicies = [];
                 tileEditor.setState({
-                    selectedTileIndicies: [instanceState.tileIndex]
+                    selectedTileIndicies: instanceState.tileIndicies
                 });
             }
         }
