@@ -609,9 +609,7 @@ function createEventListeners() {
                 tileNew();
                 break;
             case keyboardCommands.tileDelete:
-                if (isTileSet()) {
-                    tileRemoveSelectedIndexes();
-                }
+                tileSetRemoveSelectedIndexes();
                 break;
             case keyboardCommands.tileImportCode:
                 tilesImportFromAssembly();
@@ -623,7 +621,7 @@ function createEventListeners() {
                 instanceState.tileIndicies.forEach((tileIndex) => {
                     if (tileIndex >= 0 && tileIndex < getTileGrid().tileCount) {
                         if (isTileSet()) {
-                            tileMirrorAtIndex('h', tileIndex);
+                            tileSetMirrorAtIndex('HORIZONTAL');
                         } else {
                             const tile = getTileMap().getTileByIndex(tileIndex);
                             tile.horizontalFlip = !tile.horizontalFlip;
@@ -636,7 +634,7 @@ function createEventListeners() {
                 instanceState.tileIndicies.forEach((tileIndex) => {
                     if (tileIndex >= 0 && tileIndex < getTileGrid().tileCount) {
                         if (isTileSet()) {
-                            tileMirrorAtIndex('v', tileIndex);
+                            tileSetMirrorAtIndex('VERTICAL');
                         } else {
                             const tile = getTileMap().getTileByIndex(tileIndex);
                             tile.verticalFlip = !tile.verticalFlip;
@@ -651,7 +649,7 @@ function createEventListeners() {
                         const tileIndex = instanceState.tileIndicies[0];
                         proposedIndex = tileIndex - getTileSet().tileWidth;
                         if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
-                            tileSwapByIndex(proposedIndex, tileIndex);
+                            tileSetSwapByIndex(proposedIndex, tileIndex);
                         }
                     } else {
                         toast.show('Please select only one tile.');
@@ -664,7 +662,7 @@ function createEventListeners() {
                         const tileIndex = instanceState.tileIndicies[0];
                         proposedIndex = tileIndex + getTileSet().tileWidth;
                         if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
-                            tileSwapByIndex(tileIndex, proposedIndex);
+                            tileSetSwapByIndex(tileIndex, proposedIndex);
                         }
                     } else {
                         toast.show('Please select only one tile.');
@@ -676,7 +674,7 @@ function createEventListeners() {
                     if (instanceState.tileIndicies.length === 1) {
                         const tileIndex = instanceState.tileIndicies[0];
                         if (tileIndex > 0 && tileIndex < getTileSet().length) {
-                            tileSwapByIndex(tileIndex - 1, tileIndex);
+                            tileSetSwapByIndex(tileIndex - 1, tileIndex);
                         }
                     } else {
                         toast.show('Please select only one tile.');
@@ -688,7 +686,7 @@ function createEventListeners() {
                     if (instanceState.tileIndicies.length === 1) {
                         const tileIndex = instanceState.tileIndicies[0];
                         if (tileIndex >= 0 && tileIndex < getTileSet().length - 1) {
-                            tileSwapByIndex(tileIndex, tileIndex + 1);
+                            tileSetSwapByIndex(tileIndex, tileIndex + 1);
                         }
                     } else {
                         toast.show('Please select only one tile.');
@@ -809,30 +807,15 @@ function createEventListeners() {
                 break;
         }
 
-        // Tile set tile - cut, copy, paste, dupliecte
+        // Tile set tile - cut, copy, paste, duplicate
         if (isTileSet() && [keyboardCommands.cut, keyboardCommands.copy, keyboardCommands.paste, keyboardCommands.duplicate].includes(args.command)) {
-            if (instanceState.tileIndicies.length === 1) {
-                const tileIndex = instanceState.tileIndicies[0];
-                if (tileIndex >= 0 && tileIndex < getTileSet().length) {
-                    switch (args.command) {
-                        case keyboardCommands.cut:
-                            tileCutToClipboardAtIndex(tileIndex);
-                            break;
-                        case keyboardCommands.copy:
-                            tileCopyToClipboardFromIndex(tileIndex);
-                            break;
-                        case keyboardCommands.paste:
-                            tilePasteAtIndex(tileIndex);
-                            break;
-                        case keyboardCommands.duplicate:
-                            tileCloneByIndex(tileIndex);
-                            break;
-                    }
-                }
-            } else {
-                toast.show('For cut, copy, paste and duplicate please select a single tile.');
+            switch (args.command) {
+                case keyboardCommands.cut: tileSetCutSelectedTileToClipboard(); break;
+                case keyboardCommands.copy: tileSetCopySelectedTileToClipboard(); break;
+                case keyboardCommands.paste: tileSetPasteTileAtIndex('BEFORE'); break;
+                case keyboardCommands.duplicate: tileSetCloneByIndex('AFTER'); break;
             }
-        } 
+        }
 
         if (args.type === KeyboardManager.types.keydown && args.command === keyboardCommands.control) {
             if (instanceState.tool === TileEditorToolbar.Tools.pencil) {
@@ -877,7 +860,7 @@ function createEventListeners() {
                         tileIndex = getTileSet().length;
                     }
                     instanceState.tileClipboard = pasteData;
-                    tilePasteAtIndex(tileIndex);    
+                    tileSetPasteTileAtIndex('BEFORE');    
                 } else if (instanceState.tileIndicies.length > 1) {
                     toast.show('To paste, please select a single tile.');
                 }
@@ -1323,88 +1306,44 @@ function handleTileEditorToolbarOnCommand(args) {
 
 /** @param {import('./ui/toolbars/tileContextToolbar.js').TileContextToolbarCommandEventArgs} args */
 function handleTileContextToolbarCommand(args) {
-    if (instanceState.tileIndicies.length === 1) {
-        const tileIndex = instanceState.tileIndicies[0];
-        if (tileIndex > -1 && tileIndex < getTileSet().length) {
-
-            switch (args.command) {
-
-                case TileContextToolbar.Commands.cut:
-                    tileCutToClipboardAtIndex(tileIndex);
-                    break;
-
-                case TileContextToolbar.Commands.copy:
-                    tileCopyToClipboardFromIndex(tileIndex);
-                    break;
-
-                case TileContextToolbar.Commands.paste:
-                    tilePasteAtIndex(tileIndex);
-                    break;
-
-                case TileContextToolbar.Commands.clone:
-                    tileCloneByIndex(tileIndex);
-                    break;
-
-                case TileContextToolbar.Commands.moveLeft:
-                    if (tileIndex > 0) {
-                        tileSwapByIndex(tileIndex - 1, tileIndex);
-                    }
-                    break;
-
-                case TileContextToolbar.Commands.moveRight:
-                    if (tileIndex < getTileSet().length - 1) {
-                        tileSwapByIndex(tileIndex, tileIndex + 1);
-                    }
-                    break;
-
-                case TileContextToolbar.Commands.insertBefore:
-                    tileInsertAtIndex(tileIndex);
-                    break;
-
-                case TileContextToolbar.Commands.insertAfter:
-                    tileInsertAtIndex(tileIndex + 1);
-                    break;
-
-                case TileContextToolbar.Commands.remove:
-                    tileRemoveByIndex(tileIndex);
-                    break;
-
-                case TileContextToolbar.Commands.mirrorHorizontal:
-                    tileMirrorAtIndex('h', tileIndex);
-                    break;
-
-                case TileContextToolbar.Commands.mirrorVertical:
-                    tileMirrorAtIndex('v', tileIndex);
-                    break;
-
-            }
-
-        }
-    }
-    if (instanceState.tileIndicies.length > 1) {
-        const tileIndex = instanceState.tileIndicies[0];
-        if (tileIndex > -1 && tileIndex < getTileSet().length) {
-
-            switch (args.command) {
-
-                case TileContextToolbar.Commands.remove:
-                    tileRemoveSelectedIndexes();
-                    break;
-
-                case TileContextToolbar.Commands.mirrorHorizontal:
-                    instanceState.tileIndicies.forEach((thisTileIndex) => {
-                        tileMirrorAtIndex('h', thisTileIndex);
-                    });
-                    break;
-
-                case TileContextToolbar.Commands.mirrorVertical:
-                    instanceState.tileIndicies.forEach((thisTileIndex) => {
-                        tileMirrorAtIndex('v', thisTileIndex);
-                    });
-                    break;
-
-            }
-
+    if (isTileSet()) {
+        switch (args.command) {
+            case TileContextToolbar.Commands.cut:
+                tileSetCutSelectedTileToClipboard();
+                break;
+            case TileContextToolbar.Commands.copy:
+                tileSetCopySelectedTileToClipboard(tileIndex);
+                break;
+            case TileContextToolbar.Commands.paste:
+                tileSetPasteTileAtIndex('BEFORE');
+                break;
+            case TileContextToolbar.Commands.clone:
+                tileSetCloneByIndex('AFTER');
+                break;
+            case TileContextToolbar.Commands.moveLeft:
+                tileSetMoveTile('LEFT');
+                break;
+            case TileContextToolbar.Commands.moveRight:
+                tileSetMoveTile('RIGHT');
+                break;
+            case TileContextToolbar.Commands.insertBefore:
+                tileSetInsertTileAtIndex('BEFORE');
+                break;
+            case TileContextToolbar.Commands.insertAfter:
+                tileSetInsertTileAtIndex('AFTER');
+                break;
+            case TileContextToolbar.Commands.remove:
+                tileSetRemoveSelectedIndexes();
+                break;
+            case TileContextToolbar.Commands.mirrorHorizontal:
+                tileSetMirrorAtIndex('HORIZONTAL');
+                break;
+            case TileContextToolbar.Commands.mirrorVertical:
+                tileSetMirrorAtIndex('VERTICAL');
+                break;
+            case TileContextToolbar.Commands.remove:
+                tileSetRemoveSelectedIndexes();
+                break;
         }
     }
     if (args.command === TileContextToolbar.Commands.brushSize) {
@@ -1425,10 +1364,10 @@ function handleTileContextToolbarCommand(args) {
         setPaletteSlot(args.paletteSlot);
     }
     if (args.command === TileContextToolbar.Commands.tileSetTileAttributes) {
-        setTileSetTileAttributes(args.tileSetTileAttributes);
+        tileSetSetTileAttributes(args.tileSetTileAttributes);
     }
     if (args.command === TileContextToolbar.Commands.tileMapTileAttributes) {
-        setTileMapTileAttributes(args.tileMapTileAttributes);
+        tileMapSetTileAttributes(args.tileMapTileAttributes);
     }
     if (args.command === TileContextToolbar.Commands.tileStampDefine) {
         setTileStampDefineMode();
@@ -1537,45 +1476,48 @@ function handleTileEditorOnCommand(args) {
     switch (args.command) {
 
         case TileEditor.Commands.clone:
-            tileCloneByIndex(args.tileIndex);
-            break;
-
-        case TileEditor.Commands.insertAfter:
-            tileInsertAtIndex(args.tileIndex + 1);
+            setSelectedTileIndex(args.tileIndex);
+            tileSetCloneByIndex('AFTER');
             break;
 
         case TileEditor.Commands.insertBefore:
-            tileInsertAtIndex(args.tileIndex);
+            setSelectedTileIndex(args.tileIndex);
+            tileSetInsertTileAtIndex('BEFORE');
+            break;
+
+        case TileEditor.Commands.insertAfter:
+            setSelectedTileIndex(args.tileIndex);
+            tileSetInsertTileAtIndex('AFTER');
             break;
 
         case TileEditor.Commands.mirrorHorizontal:
-            tileMirrorAtIndex('h', args.tileIndex);
+            setSelectedTileIndex(args.tileIndex);
+            tileSetMirrorAtIndex('HORIZONTAL');
             break;
 
         case TileEditor.Commands.mirrorVertical:
-            tileMirrorAtIndex('v', args.tileIndex);
+            setSelectedTileIndex(args.tileIndex);
+            tileSetMirrorAtIndex('VERTICAL');
             break;
 
         case TileEditor.Commands.moveLeft:
-            if (!args || typeof args.tileIndex !== 'number') return;
-            if (args.tileIndex > 0 && args.tileIndex < getTileSet().length) {
-                tileSwapByIndex(args.tileIndex - 1, args.tileIndex);
-            }
+            setSelectedTileIndex(args.tileIndex);
+            tileSetMoveTile('LEFT');
             break;
 
         case TileEditor.Commands.moveRight:
-            if (!args || typeof args.tileIndex !== 'number') return;
-            if (args.tileIndex >= 0 && args.tileIndex < getTileSet().length - 1) {
-                tileSwapByIndex(args.tileIndex, args.tileIndex + 1);
-            }
+            setSelectedTileIndex(args.tileIndex);
+            tileSetMoveTile('RIGHT');
             break;
 
         case TileEditor.Commands.remove:
-            tileRemoveByIndex(args.tileIndex);
+            setSelectedTileIndex(args.tileIndex);
+            tileSetRemoveSelectedIndexes();
             break;
 
         case TileEditor.Commands.selectTile:
-            toggleTileIndexSelectedState(args.tileIndex);
+            setSelectedTileIndex(args.tileIndex);
+            toggleTileIndexSelectedState();
             break;
 
         case TileEditor.Commands.zoomIn:
@@ -1615,7 +1557,8 @@ function handleTileEditorOnEvent(args) {
                         tileBlockIndex: { row: args.tileBlockGridInsertRowIndex, col: args.tileBlockGridInsertColumnIndex },
                         tilesPerBlock: args.tilesPerBlock,
                         isInBounds: args.isInBounds,
-                        event: TileEditor.Events.pixelMouseDown
+                        event: TileEditor.Events.pixelMouseDown,
+
                     });
                     if (result?.saveProject) {
                         state.saveToLocalStorage();
@@ -2235,6 +2178,7 @@ function checkPersistentUIValues() {
 function getProject() {
     return state.project;
 }
+
 /**
  * @returns {TileGridProvider}
  */
@@ -2245,9 +2189,11 @@ function getTileGrid() {
         return getTileSet();
     }
 }
+
 function getTileMapList() {
     return getProject().tileMapList;
 }
+
 /** @returns {TileMap?} */
 function getTileMap() {
     if (!state.project) return null;
@@ -2258,9 +2204,57 @@ function getTileMap() {
         return null;
     }
 }
+
 function getTileSet() {
     return getProject().tileSet;
 }
+
+function thereAreNoSelectedTiles() {
+    return instanceState.tileIndicies === 0;
+}
+
+function thereIsOnlyASingleSelectedTile() {
+    return instanceState.tileIndicies === 1;
+}
+
+function thereAreMoreThenOneSelectedTiles() {
+    return instanceState.tileIndicies > 1;
+}
+
+function thereIsOneOrMoreSelectedTiles() {
+    return instanceState.tileIndicies > 1;
+}
+
+function getFirstSelectedTileIndexOrNull() {
+    return instanceState.tileIndicies[0] ?? null;
+}
+
+function firstSelectedTileIndexIsOutOfBounds() {
+    if (thereIsOnlyASingleSelectedTile()) {
+        return instanceState.tileIndicies[0] < 0 || instanceState.tileIndicies[0] >= getTileGrid().tileCount
+    }
+    return true;
+}
+
+function anySelectedTileIndexIsOutOfBounds() {
+    return getSelectedTileIndexesThatAreNotOutOfBounds().length > 0;
+}
+
+function getSelectedTileIndexesThatAreNotOutOfBounds() {
+    return instanceState.tileIndicies.filter((i) => i < 0 || i >= getTileGrid().tileCount);
+}
+
+/**
+ * @param {number|number[]} indexOrIndexes 
+ */
+function setSelectedTileIndex(indexOrIndexes) {
+    if (typeof indexOrIndexes === 'number') {
+        instanceState.tileIndicies = [ indexOrIndexes ];
+    } else if (Array.isArray(indexOrIndexes)) {
+        instanceState.tileIndicies = indexOrIndexes.filter((i) => typeof i === 'number');
+    }
+}
+
 // TODO - Use multi tiles where this is called?
 function getSelectedTileSetTile() {
     if (!isTileSet()) return [];
@@ -3716,107 +3710,85 @@ function setPaletteSlot(paletteSlot) {
 }
 
 /**
- * Sets the attributes on the currently selected tile set tile.
- * @param {import("./ui/toolbars/tileContextToolbar.js").TileContextToolbarTileSetTileAttributes} attributes - Attributes to set.
- */
-function setTileSetTileAttributes(attributes) {
-    if (!isTileSet()) return;
-    if (!attributes) return;
-
-    const selectedTiles = getSelectedTileMapTiles();
-    if (selectedTiles.length === 0) return;
-
-    // const tileIndex = instanceState.tileIndex;
-    // const tileSetTile = getTileSet().getTileByIndex(tileIndex);
-    // if (!tileSetTile) return;
-
-    addUndoState();
-    try {
-
-        const updatedTileIds = new Set();
-        for (let selectedTile of selectedTiles) {
-
-            if (typeof attributes.alwaysKeep === 'boolean') {
-                selectedTile.alwaysKeep = attributes.alwaysKeep;
-                updatedTileIds.add(selectedTile.tileId);
-            }
-
-        }
-
-        if (updatedTileIds.length > 0) {
-            state.saveToLocalStorage();
-
-            updateTilesOnEditors(new Array(updatedTileIds));
-            selectTileIndexIfNotSelected(tileIndex);
-        } else {
-            // Nothing changed, no reason to keep the undo in memory
-            undoManager.removeLastUndo();
-        }
-
-    } catch (e) {
-        undoManager.removeLastUndo();
-        throw e;
-    }
-}
-
-/**
  * Sets the attributes on the currently selected tile map tile.
  * @param {import("./ui/toolbars/tileContextToolbar.js").TileContextToolbarTileMapTileAttributes} attributes - Attributes to set.
  */
-function setTileMapTileAttributes(attributes) {
-    if (!isTileMap()) return;
-    if (!attributes) return;
-    if (instanceState.tileIndex < 0 || instanceState.tileIndex >= getTileGrid().tileCount) return;
+function tileMapSetTileAttributes(attributes) {
 
-    const tileIndex = instanceState.tileIndex;
-    const tileMapTile = getTileMap().getTileByIndex(tileIndex);
-    const tileSetTile = getTileSet().getTileById(tileMapTile.tileId);
-    if (!tileMapTile) return;
+    if (!isTileMap()) {
+        toast.show('This function only works with a tile map.');
+        return;
+    }
+
+    if (thereAreNoSelectedTiles()) {
+        toast.show('This function only works when there is one or more tiles selected.');
+        return;
+    }
+
+    if (!attributes) { 
+        return;
+    }
+
+    const tileIndexes = getSelectedTileIndexesThatAreNotOutOfBounds();
+    
+    if (tileIndexes.length === 0) {
+        return;
+    }
 
     addUndoState();
-    try {
 
-        const updatedTileIds = [];
+    const updatedTileIds = new Set();
+    for (let tileIndex of tileIndexes) {
 
-        if (typeof attributes.horizontalFlip === 'boolean') {
-            tileMapTile.horizontalFlip = attributes.horizontalFlip;
-            updatedTileIds.push(tileMapTile.tileId);
+        const tileMapTile = getTileMap().getTileByIndex(tileIndex);
+
+        if (tileMapTile && typeof attributes.horizontalFlip === 'boolean') {
+            if (tileMapTile.horizontalFlip !== attributes.horizontalFlip) {
+                tileMapTile.horizontalFlip = attributes.horizontalFlip;
+                updatedTileIds.add(tileMapTile.tileId);
+            }
         }
-        if (typeof attributes.verticalFlip === 'boolean') {
-            tileMapTile.verticalFlip = attributes.verticalFlip;
-            updatedTileIds.push(tileMapTile.tileId);
+        if (tileMapTile && typeof attributes.verticalFlip === 'boolean') {
+            if (tileMapTile.verticalFlip !== attributes.verticalFlip) {
+                tileMapTile.verticalFlip = attributes.verticalFlip;
+                updatedTileIds.add(tileMapTile.tileId);
+            }
         }
-        if (typeof attributes.priority === 'boolean') {
-            tileMapTile.priority = attributes.priority;
-            updatedTileIds.push(tileMapTile.tileId);
+        if (tileMapTile && typeof attributes.priority === 'boolean') {
+            if (tileMapTile.priority !== attributes.priority) {
+                tileMapTile.priority = attributes.priority;
+                updatedTileIds.add(tileMapTile.tileId);
+            }
         }
-        if (typeof attributes.palette === 'number') {
-            const result = PalettePaintTool.setPaletteIndexByTileIndex({
-                tileMap: getTileMap(),
-                paletteIndex: attributes.palette,
-                tilesPerBlock: getTilesPerBlock(),
-                tileIndex: tileIndex
-            });
-            updatedTileIds.concat(result.updatedTileIds);
+        if (tileMapTile && typeof attributes.palette === 'number') {
+            if (tileMapTile.palette !== attributes.palette) {
+                const result = PalettePaintTool.setPaletteIndexByTileIndex({
+                    tileMap: getTileMap(),
+                    paletteIndex: attributes.palette,
+                    tilesPerBlock: getTilesPerBlock(),
+                    tileIndex: tileIndex
+                });
+                result.updatedTileIds.forEach((updatedTileId) => updatedTileIds.add(updatedTileId));
+            }
         }
-        if (tileSetTile && typeof attributes.alwaysKeep === 'boolean') {
-            tileSetTile.alwaysKeep = attributes.alwaysKeep;
-            updatedTileIds.push(tileSetTile.tileId);
+        if (tileMapTile && typeof attributes.alwaysKeep === 'boolean') {
+            const tileSetTile = getTileSet().getTileById(tileMapTile.tileId);
+            if (tileSetTile && tileSetTile.alwaysKeep !== attributes.alwaysKeep) {
+                tileSetTile.alwaysKeep = attributes.alwaysKeep;
+                updatedTileIds.add(tileSetTile.tileId);
+            }
         }
 
-        if (updatedTileIds.length > 0) {
-            state.saveToLocalStorage();
+    }
 
-            updateTilesOnEditors(updatedTileIds, [tileIndex]);
-            selectTileIndexIfNotSelected(tileIndex);
-        } else {
-            // Nothing changed, no reason to keep the undo in memory
-            undoManager.removeLastUndo();
-        }
-
-    } catch (e) {
+    if (updatedTileIds.length > 0) {
+        state.saveToLocalStorage();
+        const updatedTileIdArray = new Array(updatedTileIds);
+        updateTilesOnEditors(updatedTileIdArray);
+        selectTileIndexIfNotSelected(updatedTileIdArray[0]);
+    } else {
+        // Nothing changed, no reason to keep the undo in memory
         undoManager.removeLastUndo();
-        throw e;
     }
 }
 
@@ -3891,13 +3863,17 @@ function clearTileStampRegion() {
 
 /**
  * Toggles the selected state of a tile by tile grid index.
- * @param {number} tileIndex - Tile index within the tile grid provider.
+ * @param {number|number[]} tileIndexOrIndexes - Tile index within the tile grid provider.
  */
-function toggleTileIndexSelectedState(tileIndex) {
-    if (tileIndex !== instanceState.tileIndex) {
-        selectTileIndexIfNotSelected(tileIndex);
-    } else {
-        selectTileIndexIfNotSelected(-1);
+function toggleTileIndexSelectedState(tileIndexOrIndexes) {
+    const tileIndexes = Array.isArray(tileIndexOrIndexes) ? tileIndexOrIndexes : [ tileIndexOrIndexes ];
+    for (let tileIndex of tileIndexes) {
+        if (instanceState.tileIndicies.includes(tileIndex)) {
+            instanceState.tileIndicies = instanceState.tileIndicies.filter((i) => i !== tileIndex);
+        } else {
+            instanceState.tileIndicies.push(tileIndex);
+            instanceState.tileIndicies.sort();
+        }
     }
 }
 
@@ -4594,58 +4570,175 @@ function addUndoState() {
 }
 
 /**
- * Mirror a tile at a given index.
- * @param {string} direction - Direction to mirror, either 'h' for horizontal or 'v' for vertical.
- * @param {number} index - Tile index.
+ * When in tile set mode this function cuts mirrors the currently selected tile.
+ * @param {'HORIZONTAL'|'VERTICAL'} mirrorAxis - Axis to mirror on, either `HORIZONTAL` or 'VERTICAL'.
  */
-function tileMirrorAtIndex(direction, index) {
-    if (index < 0 || index > getTileSet().length) return;
-    if (!direction || !['h', 'v'].includes(direction)) throw new Error('Please specify horizontal "h" or vertical "v".');
+function tileSetMirrorAtIndex(mirrorAxis) {
+
+    if (!isTileSet()) {
+        toast.show('This function only works with a tile set.');
+        return;
+    }
+
+    if (thereAreMoreThenOneSelectedTiles()) {
+        toast.show('This function only works when a one or more tiles are selected.');
+        return;
+    }
+
+    if (mirrorAxis !== 'HORIZONTAL' && mirrorAxis !== 'VERTICAL') {
+        return;
+    }
+
+    if (getSelectedTileIndexesThatAreNotOutOfBounds().length === 0) {
+        return;
+    }
 
     addUndoState();
 
-    const tile = getTileSet().getTile(index);
+    for (let index of getSelectedTileIndexesThatAreNotOutOfBounds()) {
+        const tile = getTileSet().getTile(index);
 
-    /** @type {Tile} */
-    let mirroredTile;
-    if (direction === 'h') {
-        mirroredTile = TileUtil.createHorizontallyMirroredClone(tile);
-    } else {
-        mirroredTile = TileUtil.createVerticallyMirroredClone(tile);
+        /** @type {Tile} */
+        let mirroredTile;
+        if (mirrorAxis === 'HORIZONTAL') {
+            mirroredTile = TileUtil.createHorizontallyMirroredClone(tile);
+        } else if (mirrorAxis === 'VERTICAL') {
+            mirroredTile = TileUtil.createVerticallyMirroredClone(tile);
+        }
+
+        getTileSet().removeTile(index);
+        getTileSet().insertTileAt(mirroredTile, index);
     }
 
-    getTileSet().removeTile(index);
-    getTileSet().insertTileAt(mirroredTile, index);
+    instanceState.tileIndicies = getSelectedTileIndexesThatAreNotOutOfBounds();
 
     state.saveToLocalStorage();
 
-    updateTilesOnEditors([tile.tileId]);
+    updateTilesOnEditors(instanceState.tileIndicies);
 }
 
 /**
- * Inserts a tile at a given index.
- * @param {number} index - Tile index to insert.
+ * When in tile set mode it inserts a tile at the given index.
+ * @param {'BEFORE'|'AFTER'} position - Where to insert the tile.
  */
-function tileInsertAtIndex(index) {
-    if (index < 0 || index > getTileSet().length) return;
+function tileSetInsertTileAtIndex(position) {
+
+    if (!isTileSet()) {
+        toast.show('This function only works with a tile set.');
+        return;
+    }
+
+    if (thereAreMoreThenOneSelectedTiles()) {
+        toast.show('This function only works when a single tile is selected.');
+        return;
+    }
+
+    if (position !== 'BEFORE' && position !== 'AFTER') {
+        return;
+    }
+
+    if (firstSelectedTileIndexIsOutOfBounds()) {
+        return;
+    }
 
     addUndoState();
 
+    let index = getFirstSelectedTileIndexOrNull();
+    let insertIndex = (position === 'AFTER') ? index + 1 : index;
     const tileDataArray = new Uint8ClampedArray(64);
     tileDataArray.fill(0, 0, tileDataArray.length);
 
     const newTile = TileFactory.fromArray(tileDataArray);
-    if (index < getTileSet().length) {
-        getTileSet().insertTileAt(newTile, index);
-    } else if (index >= getTileSet().length) {
+    if (insertIndex < getTileSet().length) {
+        getTileSet().insertTileAt(newTile, insertIndex);
+    } else if (insertIndex >= getTileSet().length) {
         getTileSet().addTile(newTile);
     }
 
     state.saveToLocalStorage();
 
-    // Increment to maintain the selected tile index if it is after the index where the tile was inserted
-    if (instanceState.tileIndex >= index) {
-        instanceState.tileIndex++;
+    // Shift the selected index up one position if we inserted before
+    if (position === 'BEFORE') index++;
+    // Prevent the index from being greater than the tile set length
+    if (index >= this.getTileSet().length) index = this.getTileSet().length;
+
+    instanceState.tileIndicies = [ index ];
+
+    tileEditor.setState({
+        selectedTileIndicies: instanceState.tileIndicies,
+        tileGrid: getTileGrid(),
+        tileSet: getTileSet()
+    });
+}
+
+/**
+ * @param {'LEFT'|'RIGHT'} direction 
+ */
+function tileSetMoveTile(direction) {
+
+    if (!isTileSet()) {
+        toast.show('This function only works with a tile set.');
+        return;
+    }
+
+    if (thereAreMoreThenOneSelectedTiles()) {
+        toast.show('This function only works when a single tile is selected.');
+        return;
+    }
+
+    if (firstSelectedTileIndexIsOutOfBounds()) {
+        return;
+    }
+
+    const tileIndex = getFirstSelectedTileIndexOrNull();
+
+    if (direction === 'LEFT') {
+
+        if (tileIndex > 0) {
+            tileSetSwapByIndex(tileIndex - 1, tileIndex);
+        }
+
+    } else if (direction === 'RIGHT') {
+
+        if (tileIndex < getTileSet().tileCount - 1) {
+            tileSetSwapByIndex(tileIndex, tileIndex + 1);
+        }
+
+    }
+}
+
+/**
+ * Swaps the places of two tiles witin the tile set.
+ * @param {number} tileAIndex - Index of the first tile to swap.
+ * @param {number} tileBIndex - Index of the second tile to swap.
+ */
+function tileSetSwapByIndex(tileAIndex, tileBIndex) {
+    if (tileAIndex === tileBIndex) return;
+    if (tileAIndex < 0 || tileAIndex >= getTileSet().length) return;
+    if (tileBIndex < 0 || tileBIndex >= getTileSet().length) return;
+
+    addUndoState();
+
+    const lowerIndex = Math.min(tileAIndex, tileBIndex);
+    const higherIndex = Math.max(tileAIndex, tileBIndex);
+    // state.setProject(getProject());
+
+    const lowerTile = getTileSet().getTile(lowerIndex);
+    const higherTile = getTileSet().getTile(higherIndex);
+
+    getTileSet().removeTile(lowerIndex);
+    getTileSet().insertTileAt(higherTile, lowerIndex);
+
+    getTileSet().removeTile(higherIndex);
+    getTileSet().insertTileAt(lowerTile, higherIndex);
+
+    state.saveToLocalStorage();
+
+    // Maintain tile index
+    if (instanceState.tileIndex === lowerIndex) {
+        instanceState.tileIndex = higherIndex;
+    } else if (instanceState.tileIndex === higherIndex) {
+        instanceState.tileIndex = lowerIndex;
     }
 
     tileEditor.setState({
@@ -4656,82 +4749,279 @@ function tileInsertAtIndex(index) {
 }
 
 /**
- * Places a tile in the clipboard and removes it from the tile map.
- * @param {number} index - Tile index to clone.
+ * When in tile set mode this function cuts the current selected tile to clipboard according
+ * to the UI state, the tile set must be selected.
  */
-function tileCutToClipboardAtIndex(index) {
-    if (index < 0 || index >= getTileSet().length) return;
+function tileSetCutSelectedTileToClipboard() {
+
+    if (!isTileSet()) {
+        toast.show('This function only works with a tile set.');
+        return;
+    }
+
+    if (thereAreMoreThenOneSelectedTiles()) {
+        toast.show('This function only works when a single tile is selected.');
+        return;
+    }
+
+    if (firstSelectedTileIndexIsOutOfBounds()) {
+        return;
+    }
 
     addUndoState();
 
+    let index = getFirstSelectedTileIndexOrNull();
     const tile = getTileSet().getTile(index);
     instanceState.tileClipboard = TileUtil.toHex(tile);
     getTileSet().removeTile(index);
 
-    // Maintain selection state, don't allow it to exceed tile count
-    if (instanceState.tileIndex >= getTileSet().length) {
-        instanceState.tileIndex = getTileSet().length - 1;
+    // If the selected tile was the last in the tile set, then move it backwarda
+    if (index >= getTileSet().length) index--;
+
+    instanceState.tileIndicies = [ index ];
+
+    state.saveToLocalStorage();
+
+    tileEditor.setState({
+        selectedTileIndicies: instanceState.tileIndicies,
+        tileGrid: getTileGrid(),
+        tileSet: getTileSet()
+    });
+}
+
+/**
+ * When in tile set mode this function cuts the current selected tile to clipboard according
+ * to the UI state, the tile set must be selected.
+ */
+function tileSetCopySelectedTileToClipboard() {
+
+    if (!isTileSet()) {
+        toast.show('This function only works with a tile set.');
+        return;
     }
 
-    state.saveToLocalStorage();
+    if (thereAreMoreThenOneSelectedTiles()) {
+        toast.show('This function only works when a single tile is selected.');
+        return;
+    }
 
-    tileEditor.setState({
-        selectedTileIndicies: [instanceState.tileIndex],
-        tileGrid: getTileGrid(),
-        tileSet: getTileSet()
-    });
-}
+    if (firstSelectedTileIndexIsOutOfBounds()) {
+        return;
+    }
 
-/**
- * Places a tile in the clipboard.
- * @param {number} index - Tile index to clone.
- */
-function tileCopyToClipboardFromIndex(index) {
-    if (index < 0 || index >= getTileSet().length) return;
-
+    const index = getFirstSelectedTileIndexOrNull();
     const tile = getTileSet().getTile(index);
     instanceState.tileClipboard = TileUtil.toHex(tile);
-
     navigator.clipboard.writeText(TileUtil.toHex(tile));
-
-    state.saveToLocalStorage();
-
-    tileEditor.setState({
-        selectedTileIndicies: [instanceState.tileIndex],
-        tileGrid: getTileGrid(),
-        tileSet: getTileSet()
-    });
 }
 
 /**
- * Pastes a tile from the clipboard.
- * @param {number} index - Tile index to clone.
+ * When in tile set mode it pastes a tile from the clipboard to the current tile position.
+ * @param {'BEFORE'|'AFTER'} position - Where to insert the pasted tile.
  */
-function tilePasteAtIndex(index) {
-    if (index < 0 || index >= getTileSet().length) return;
-    if (!instanceState.tileClipboard) return;
+function tileSetPasteTileAtIndex(position) {
+
+    if (!isTileSet()) {
+        toast.show('This function only works with a tile set.');
+        return;
+    }
+
+    if (thereAreMoreThenOneSelectedTiles()) {
+        toast.show('This function only works when a single tile is selected, or no tiles are selected.');
+        return;
+    }
+
+    if (position !== 'BEFORE' && position !== 'AFTER') {
+        return;
+    }
+
+    if (thereIsOnlyASingleSelectedTile() && firstSelectedTileIndexIsOutOfBounds()) {
+        return;
+    }
+
+    if (!instanceState.tileClipboard) { 
+        toast.show('There was not tile in the clipboard to paste.');
+        return;
+    }
 
     addUndoState();
 
-    const newTile = TileFactory.fromHex(instanceState.tileClipboard);
-    if (index >= 0 && index < getTileSet().length - 1) {
-        getTileSet().insertTileAt(newTile, index + 1);
-    } else {
-        getTileSet().addTile(newTile);
-    }
+    const instanceOfClipboardTile = TileFactory.fromHex(instanceState.tileClipboard);
 
-    // Select the new tile
-    if (instanceState.tileIndex >= 0) {
-        instanceState.tileIndex++;
+    if (thereIsOneOrMoreSelectedTiles()) {
+        const index = getFirstSelectedTileIndexOrNull();
+        if (position === 'BEFORE') {
+            getTileSet().insertTileAt(instanceOfClipboardTile, index);
+        } else if (position === 'AFTER') {
+            getTileSet().insertTileAt(instanceOfClipboardTile, index + 1);
+        }
+    } else if (thereAreNoSelectedTiles()) {
+        if (position === 'BEFORE') {
+            getTileSet().insertTileAt(instanceOfClipboardTile, 0);
+        } else if (position === 'AFTER') {
+            getTileSet().addTile(instanceOfClipboardTile);
+        }
     }
 
     state.saveToLocalStorage();
 
+    // If there was a selected tile then update the selection if we inserted the tile before the index
+    if (thereIsOneOrMoreSelectedTiles() && position === 'BEFORE') {
+        const index = getFirstSelectedTileIndexOrNull();
+        index++;
+        if (index >= getTileSet().length) index = getTileSet().length - 1;
+        instanceState.tileIndicies = [index];
+    }
+
+    // Update the UI
     tileEditor.setState({
-        selectedTileIndicies: [instanceState.tileIndex],
+        selectedTileIndicies: instanceState.tileIndicies,
         tileGrid: getTileGrid(),
         tileSet: getTileSet()
     });
+}
+
+/**
+ * When in tile set mode it clones the selected tiles.
+ * @param {'BEFORE'|'AFTER'} position - Where to insert the pasted tile.
+ */
+function tileSetCloneByIndex(position) {
+
+    if (!isTileSet()) {
+        toast.show('This function only works with a tile set.');
+        return;
+    }
+
+    if (position !== 'BEFORE' && position !== 'AFTER') {
+        return;
+    }
+
+    if (thereAreNoSelectedTiles()) {
+        toast.show('This function only works when there is one or more tiles selected.');
+        return;
+    }
+
+    addUndoState();
+
+    const indexesInReverseOrder = getSelectedTileIndexesThatAreNotOutOfBounds().sort().reverse();
+    for (let index of indexesInReverseOrder) {
+
+        const tile = getTileSet().getTile(index);
+        const tileAsHex = TileUtil.toHex(tile);
+        const clonedTile = TileFactory.fromHex(tileAsHex);
+
+        if (position === 'BEFORE') {
+            getTileSet().insertTileAt(clonedTile, index);
+        } else if (position === 'AFTER') {
+            if (index < getTileSet().length - 1) {
+                getTileSet().insertTileAt(clonedTile, index + 1);
+            } else {
+                getTileSet().addTile(clonedTile);
+            }
+        }
+    }
+
+    state.saveToLocalStorage();
+
+    // Update tile indexes
+    let offset = (position === 'BEFORE') ? 1 : 0;
+    instanceState.tileIndicies = indexesInReverseOrder.sort().map((tileIndex, index) => {
+        tileIndex += offset;
+        offset++;
+        return tileIndex;
+    });
+
+    tileEditor.setState({
+        selectedTileIndicies: instanceState.tileIndicies,
+        tileGrid: getTileGrid(),
+        tileSet: getTileSet()
+    });
+}
+
+/**
+ * When in tile set mode it removes the selected tiles.
+ */
+function tileSetRemoveSelectedIndexes() {
+
+    if (!isTileSet()) {
+        toast.show('This function only works with a tile set.');
+        return;
+    }
+
+    if (thereAreNoSelectedTiles()) {
+        toast.show('This function only works when there is one or more tiles selected.');
+        return;
+    }
+
+    addUndoState();
+
+    const indexesInReverseOrder = getSelectedTileIndexesThatAreNotOutOfBounds().sort().reverse();
+    for (let index of indexesInReverseOrder) {
+        getTileSet().removeTile(index);
+    }
+
+    state.saveToLocalStorage();
+
+    instanceState.tileIndicies = [];
+
+    tileEditor.setState({
+        selectedTileIndicies: instanceState.tileIndicies,
+        tileGrid: getTileGrid(),
+        tileSet: getTileSet()
+    });
+}
+
+/**
+ * When in tile set mode it sets attributes on selected tiles.
+ * @param {import("./ui/toolbars/tileContextToolbar.js").TileContextToolbarTileSetTileAttributes} attributes - Attributes to set.
+ */
+function tileSetSetTileAttributes(attributes) {
+
+    if (!isTileSet()) {
+        toast.show('This function only works with a tile set.');
+        return;
+    }
+
+    if (thereAreNoSelectedTiles()) {
+        toast.show('This function only works when there is one or more tiles selected.');
+        return;
+    }
+
+    if (!attributes) { 
+        return;
+    }
+
+    const tileIndexes = getSelectedTileIndexesThatAreNotOutOfBounds();
+    
+    if (tileIndexes.length === 0) {
+        return;
+    }
+
+    addUndoState();
+
+    const updatedTileIds = new Set();
+    for (let tileIndex of tileIndexes) {
+
+        const tile = getTileSet().getTileByIndex(tileIndex);
+
+        if (typeof attributes.alwaysKeep === 'boolean') {
+            if (tile.alwaysKeep !== attributes.alwaysKeep) {
+                tile.alwaysKeep = attributes.alwaysKeep;
+                updatedTileIds.add(tile.tileId);
+            }
+        }
+
+    }
+
+    if (updatedTileIds.length > 0) {
+        state.saveToLocalStorage();
+        const updatedTileIdArray = new Array(updatedTileIds);
+        updateTilesOnEditors(updatedTileIdArray);
+        selectTileIndexIfNotSelected(updatedTileIdArray[0]);
+    } else {
+        // Nothing changed, no reason to keep the undo in memory
+        undoManager.removeLastUndo();
+    }
 }
 
 /**
@@ -5178,105 +5468,6 @@ function tileMapSort(field) {
     });
 }
 
-/**
- * Clones a tile at a given index.
- * @param {number} index - Tile index to clone.
- */
-function tileCloneByIndex(index) {
-    if (index < 0 || index >= getTileSet().length) return;
-
-    addUndoState();
-
-    const tile = getTileSet().getTile(index);
-    const tileAsHex = TileUtil.toHex(tile);
-    const newTile = TileFactory.fromHex(tileAsHex);
-
-    if (index < getTileSet().length - 1) {
-        getTileSet().insertTileAt(newTile, index + 1);
-    } else {
-        getTileSet().addTile(newTile);
-    }
-
-    state.saveToLocalStorage();
-
-    tileEditor.setState({
-        selectedTileIndicies: [instanceState.tileIndex],
-        tileGrid: getTileGrid(),
-        tileSet: getTileSet()
-    });
-}
-
-
-/**
- * Removes tiles at the indexes in an array.
- */
-function tileRemoveSelectedIndexes(indexes) {
-    const removeIndexes = instanceState.tileIndicies.map((idx) => idx < 0 || idx >= getTileSet().length).sort().reverse();
-    if (removeIndexes.length > 0) {
-        addUndoState();
-
-        removeIndexes.forEach((index) => {
-            getTileSet().removeTile(index);
-        });
-
-        // Select the tile before the first tile in the selection
-        const firstIndex = removeIndexes.sort()[0];
-        if (firstIndex > 0) {
-            instanceState.tileIndicies = [firstIndex - 1];
-        } else {
-            instanceState.tileIndicies = [firstIndex];
-        }
-
-        tileEditor.setState({
-            selectedTileIndicies: instanceState.tileIndicies,
-            tileGrid: getTileGrid(),
-            tileSet: getTileSet()
-        });
-    
-        state.saveToLocalStorage();
-    }
-}
-
-/**
- * Swaps the places of two tiles witin the tile set.
- * @param {number} tileAIndex - Index of the first tile to swap.
- * @param {number} tileBIndex - Index of the second tile to swap.
- */
-function tileSwapByIndex(tileAIndex, tileBIndex) {
-    if (tileAIndex === tileBIndex) return;
-    if (tileAIndex < 0 || tileAIndex >= getTileSet().length) return;
-    if (tileBIndex < 0 || tileBIndex >= getTileSet().length) return;
-
-    addUndoState();
-
-    const lowerIndex = Math.min(tileAIndex, tileBIndex);
-    const higherIndex = Math.max(tileAIndex, tileBIndex);
-    // state.setProject(getProject());
-
-    const lowerTile = getTileSet().getTile(lowerIndex);
-    const higherTile = getTileSet().getTile(higherIndex);
-
-    getTileSet().removeTile(lowerIndex);
-    getTileSet().insertTileAt(higherTile, lowerIndex);
-
-    getTileSet().removeTile(higherIndex);
-    getTileSet().insertTileAt(lowerTile, higherIndex);
-
-    state.saveToLocalStorage();
-
-    // Maintain tile index
-    if (instanceState.tileIndex === lowerIndex) {
-        instanceState.tileIndex = higherIndex;
-    } else if (instanceState.tileIndex === higherIndex) {
-        instanceState.tileIndex = lowerIndex;
-    }
-
-    tileEditor.setState({
-        selectedTileIndicies: [instanceState.tileIndex],
-        tileGrid: getTileGrid(),
-        tileSet: getTileSet()
-    });
-}
 
 /**
  * Selects a tool on the tile editor toolbar.
