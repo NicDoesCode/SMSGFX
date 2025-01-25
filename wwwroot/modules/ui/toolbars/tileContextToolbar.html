@@ -1,7 +1,9 @@
 <div data-smsgfx-component="toolbars/tileContextToolbar" class="container-fluid p-0 m-0">
-    <div class="row align-items-center p-0 m-0">
+    <div data-smsgfx-id="toolstrip" class="row align-items-center p-0 m-0">
+    </div>
+    <div data-smsgfx-id="toolstrip-components" class="visually-hidden">
         <!-- Pencil toolstrip -->
-        <div data-toolstrip="pencil" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="brushSize" data-toolstrip="pencil" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <span class="input-group-text">Size</span>
                 <button class="sms-toolstrip-button btn btn-outline-secondary btn-ui" title="1px brush size."
@@ -31,7 +33,7 @@
                 </button>
             </div>
         </div>
-        <div data-toolstrip="pencil" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="tileClamp" data-toolstrip="pencil" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm">
                 <div class="input-group-text">
                     <input data-command="tileClamp" data-auto-event="change" data-labelled-by="tileClamp"
@@ -44,9 +46,71 @@
                 </div>
             </div>
         </div>
+        <div data-tool-id="fixedOrigin" data-toolstrip="pencil" class="col-auto sms-toolstrip m-0 me-2 p-0">
+            <div class="input-group input-group-sm">
+                <div class="input-group-text">
+                    <input data-command="patternFixedOrigin" data-auto-event="change"
+                        data-labelled-by="patternFixedOrigin" class="form-check-input mt-0" type="checkbox" value=""
+                        aria-label="Use a fixed orgin for placing the pattern."
+                        title="Use fixed origin: When selected pattern origin will be the top left of the image, otherwise it will be set from the brush position.">
+                    <label for="patternFixedOrigin" class="ps-1"
+                        title="Use fixed origin: When selected pattern origin will be the top left of the image, otherwise it will be set from the brush position.">
+                        Fixed origin
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div data-tool-id="patternSelect" data-toolstrip="pencil" class="col-auto sms-toolstrip m-0 me-2 p-0">
+            <div class="input-group input-group-sm p-0 m-0">
+                <label class="input-group-text">Pattern</label>
+                <div data-field="patternIndex" class="sms-select-dropdown dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle rounded-start-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Select a pattern to use.">
+                    </button>
+                    <div class="dropdown-menu p-1">
+                        <div data-role="item-container" class="sms-menu-container d-flex flex-row flex-wrap p-0 m-0">
+                        </div>
+                    </div>
+                </div>
+                <script data-smsgfx-template-id="toolbar-pattern-template" type="text/x-handlebars-template">
+                    {{#each this}}
+                        <button data-command="patternIndex" data-auto-event="click" data-selected="{{selected}}" data-pattern-index="{{patternIndex}}" class="double-width higher btn btn-outline-secondary m-1 p-0"><label class="mt-0">#{{patternName}}</label></button>
+                    {{/each}}
+                </script>
+            </div>
+        </div>
+        <div data-tool-id="colourIndex" data-toolstrip="pencil" class="col-auto sms-toolstrip m-0 me-2 p-0">
+            <div class="input-group input-group-sm p-0 m-0">
+                <label title="Select the primary and secondary colours." class="input-group-text">Colours</label>
+                <div data-field="colourIndex" class="sms-select-dropdown dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle rounded-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Select the primary colour index.">
+                    </button>
+                    <div class="dropdown-menu p-1">
+                        <div data-role="item-container" class="sms-menu-container d-flex flex-row flex-wrap p-0 m-0">
+                        </div>
+                    </div>
+                </div>
+                <button class="sms-toolstrip-button btn btn-outline-secondary btn-ui" title="Swap primary and secondary colour index."
+                    data-command="swapColourIndex" data-auto-event="click">
+                    <i class="bi bi-arrow-left-right"></i>
+                </button>
+                <div data-field="secondaryColourIndex" class="sms-select-dropdown dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle rounded-start-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Select the secondary colour index.">
+                    </button>
+                    <div class="dropdown-menu p-1">
+                        <div data-role="item-container" class="sms-menu-container d-flex flex-row flex-wrap p-0 m-0">
+                        </div>
+                    </div>
+                </div>
+                <script data-smsgfx-template-id="toolbar-palette-colour-template" type="text/x-handlebars-template">
+                    {{#each this}}
+                        <button data-command="{{command}}" data-auto-event="click" data-selected="{{selected}}" data-colour-index="{{colourIndex}}" class="btn btn-outline-secondary m-1 p-0" style="background-color: {{hex}};"><label class="mt-0">#{{colourIndex}}</label></button>
+                    {{/each}}
+                </script>
+            </div>
+        </div>
         <!-- End: Pencil toolstrip -->
         <!-- Tile map pencil toolstrip -->
-        <div data-toolstrip="tileMapPencil" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="breakLinks" data-toolstrip="tileMapPencil" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm">
                 <div class="input-group-text">
                     <input data-command="tileLinkBreak" data-auto-event="change" data-labelled-by="tileLinkBreak"
@@ -61,12 +125,12 @@
         </div>
         <!-- End: Tile map pencil toolstrip -->
         <!-- Select toolstrip -->
-        <div data-toolstrip="select" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="selectLabel" data-toolstrip="select" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <span class="input-group-text fw-bolder">Select tool</span>
             </div>
         </div>
-        <div data-toolstrip="select" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="tileCutCopyPaste" data-toolstrip="select" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <button class="sms-toolstrip-button btn btn-outline-secondary btn-ui"
                     title="Cut tile: Places a copy of the tile data into memory and removes it from the tile set."
@@ -85,7 +149,7 @@
                 </button>
             </div>
         </div>
-        <div data-toolstrip="select" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="tileClone" data-toolstrip="select" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <button class="sms-toolstrip-button btn btn-outline-secondary btn-ui"
                     title="Clones / duplicates the currently selected tile in-place." data-command="clone"
@@ -94,7 +158,7 @@
                 </button>
             </div>
         </div>
-        <div data-toolstrip="select" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="tileDelete" data-toolstrip="select" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <button class="sms-toolstrip-button btn btn-outline-secondary btn-ui"
                     title="Removes the selected tile from the tile set." data-command="remove" data-auto-event="click">
@@ -102,7 +166,7 @@
                 </button>
             </div>
         </div>
-        <div data-toolstrip="select" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="tileMove" data-toolstrip="select" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <span class="input-group-text">Move</span>
                 <button class="sms-toolstrip-button btn btn-outline-secondary btn-ui"
@@ -117,7 +181,7 @@
                 </button>
             </div>
         </div>
-        <div data-toolstrip="select" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="tileMirror" data-toolstrip="select" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <span class="input-group-text">Mirror</span>
                 <button class="sms-toolstrip-button btn btn-outline-secondary btn-ui" title="Mirror tile horizontally."
@@ -130,7 +194,7 @@
                 </button>
             </div>
         </div>
-        <div data-toolstrip="select" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="tileInsert" data-toolstrip="select" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <span class="input-group-text">Insert</span>
                 <button class="sms-toolstrip-button btn btn-outline-secondary btn-ui"
@@ -143,23 +207,25 @@
                 </button>
             </div>
         </div>
-        <div data-toolstrip="select" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="alwaysKeepTile" data-toolstrip="select" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <button class="sms-toolstrip-button btn btn-sm btn-outline-secondary btn-ui"
-                    title="When checked, the tile will be preserved through any tile set optimisation phase." data-command="tileSetTileAttributes" data-field="alwaysKeep"
-                    data-auto-event="click">
+                    title="When checked, the tile will be preserved through any tile set optimisation phase."
+                    data-command="tileSetTileAttributes" data-field="alwaysKeep" data-auto-event="click">
                     <i class="bi bi-pin-angle-fill"></i> Always keep
                 </button>
             </div>
         </div>
         <!-- End: Select toolstrip -->
         <!-- Reference image toolstrip -->
-        <div data-toolstrip="referenceImage" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="referenceImageLabel" data-toolstrip="referenceImage"
+            class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <span class="input-group-text fw-bolder">Reference</span>
             </div>
         </div>
-        <div data-toolstrip="referenceImage" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="referenceImageLoadClear" data-toolstrip="referenceImage"
+            class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <button class="sms-toolstrip-button btn btn-outline-secondary btn-ui"
                     title="Select a new reference image." data-command="referenceImageSelect" data-auto-event="click">
@@ -171,7 +237,8 @@
                 </button>
             </div>
         </div>
-        <div data-toolstrip="referenceImage" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="referenceImageRevert" data-toolstrip="referenceImage"
+            class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <button class="sms-toolstrip-button btn btn-outline-secondary btn-ui"
                     title="Revert proportions of the reference image to default." data-command="referenceImageRevert"
@@ -180,7 +247,8 @@
                 </button>
             </div>
         </div>
-        <div data-toolstrip="referenceImage" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="referenceImagePosition" data-toolstrip="referenceImage"
+            class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <span class="input-group-text">X</span>
                 <input data-command="referenceImageDisplay" data-field="referenceX" data-auto-event="change"
@@ -192,7 +260,8 @@
                     title="Changes the vertical (Y) display coordinate of the reference image.">
             </div>
         </div>
-        <div data-toolstrip="referenceImage" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="referenceImageDimensions" data-toolstrip="referenceImage"
+            class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <span class="input-group-text">W</span>
                 <input data-command="referenceImageDisplay" data-field="referenceWidth" data-auto-event="change"
@@ -210,7 +279,8 @@
                 </button>
             </div>
         </div>
-        <div data-toolstrip="referenceImage" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="referenceImageColour" data-toolstrip="referenceImage"
+            class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <select data-command="referenceImageDisplay" data-field="referenceTransparency" data-auto-event="change"
                     class="form-select sms-toolstrip"
@@ -240,12 +310,12 @@
         </div>
         <!-- End: Reference image toolstrip -->
         <!-- Tile map add remove toolstrip -->
-        <div data-toolstrip="rowColumn" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="rowColumnLabel" data-toolstrip="rowColumn" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm">
                 <span class="input-group-text"><strong>Add / remove rows and columns</strong></span>
             </div>
         </div>
-        <div data-toolstrip="rowColumn" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="rowAddRemove" data-toolstrip="rowColumn" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm">
                 <span class="input-group-text">Row</span>
                 <button data-command="rowColumnMode" data-mode="addRow" data-auto-event="click"
@@ -260,7 +330,7 @@
                 </button>
             </div>
         </div>
-        <div data-toolstrip="rowColumn" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="columnAddRemove" data-toolstrip="rowColumn" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm">
                 <span class="input-group-text">Column</span>
                 <button data-command="rowColumnMode" data-mode="addColumn" data-auto-event="click"
@@ -275,7 +345,7 @@
                 </button>
             </div>
         </div>
-        <div data-toolstrip="rowColumn" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="fillMode" data-toolstrip="rowColumn" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <span class="input-group-text">Fill mode</span>
                 <select data-command="rowColumnFillMode" data-auto-event="change" class="form-select"
@@ -292,24 +362,24 @@
         </div>
         <!-- End: Tile map add remove toolstrip -->
         <!-- Palette paint toolstrip -->
-        <div data-toolstrip="palettePaint" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="palettePaintLabel" data-toolstrip="palettePaint" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm">
                 <span class="input-group-text"><strong>Palette paint</strong></span>
             </div>
         </div>
-        <div data-toolstrip="palettePaint" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="paletteSlot" data-toolstrip="palettePaint" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div data-smsgfx-id="paletteSlotSelect" class="input-group input-group-sm">
                 <span class="input-group-text">Select slot</span>
             </div>
         </div>
         <!-- End: Palette paint toolstrip -->
         <!-- Tile stamp toolstrip -->
-        <div data-toolstrip="tileStamp" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="tileStampLabel" data-toolstrip="tileStamp" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm">
                 <span class="input-group-text"><strong>Tile stamp</strong></span>
             </div>
         </div>
-        <div data-toolstrip="tileStamp" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="tileStampSettings" data-toolstrip="tileStamp" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <span class="input-group-text"><strong>Pattern</strong></span>
                 <button class="sms-toolstrip-button btn btn-sm btn-outline-secondary btn-ui"
@@ -326,22 +396,26 @@
         </div>
         <!-- End: Tile stamp toolstrip -->
         <!-- Tile break link toolstrip -->
-        <div data-toolstrip="tileLinkBreak" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="tileLinkBreakLabel" data-toolstrip="tileLinkBreak"
+            class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm">
                 <span class="input-group-text"><strong>Break link</strong></span>
             </div>
         </div>
-        <div data-toolstrip="tileLinkBreak" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="tileLinkBreakDescription" data-toolstrip="tileLinkBreak"
+            class="col-auto sms-toolstrip m-0 me-2 p-0">
             <p class="p-0 m-0"><small>Click a tile to break it's link and promote it to a new tile.</small></p>
         </div>
         <!-- End: Tile stamp toolstrip -->
         <!-- Tile map tile attributes toolstrip -->
-        <div data-toolstrip="tileMapTileAttributes" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="tileAttributesLabel" data-toolstrip="tileMapTileAttributes"
+            class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm">
                 <span class="input-group-text"><strong>Tile attributes</strong></span>
             </div>
         </div>
-        <div data-toolstrip="tileMapTileAttributes" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="tileMapMirror" data-toolstrip="tileMapTileAttributes"
+            class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <span class="input-group-text">Mirror</span>
                 <button class="sms-toolstrip-button btn btn-outline-secondary btn-ui"
@@ -356,43 +430,103 @@
                 </button>
             </div>
         </div>
-        <div data-toolstrip="tileMapTileAttributes" data-system-type="smsgg" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="tileMapPriority" data-toolstrip="tileMapTileAttributes" data-system-type="smsgg"
+            class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <button class="sms-toolstrip-button btn btn-sm btn-outline-secondary btn-ui"
-                    title="Sets the render priority of the tile." data-command="tileMapTileAttributes" data-field="priority"
-                    data-auto-event="click">
+                    title="Sets the render priority of the tile." data-command="tileMapTileAttributes"
+                    data-field="priority" data-auto-event="click">
                     <i class="bi bi-layers-fill"></i> Priority
                 </button>
             </div>
         </div>
-        <div data-toolstrip="tileMapTileAttributes" data-system-type="smsgg,nes" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="tileMapPalette" data-toolstrip="tileMapTileAttributes" data-system-type="smsgg,nes"
+            class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div data-smsgfx-id="tileAttributePaletteSlot" class="input-group input-group-sm">
                 <span class="input-group-text">Palette slot</span>
             </div>
         </div>
-        <div data-toolstrip="tileMapTileAttributes" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-toolstrip="tileMapKeepOnTop" class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm p-0 m-0">
                 <button class="sms-toolstrip-button btn btn-sm btn-outline-secondary btn-ui"
-                    title="When checked, the underlying tile will be preserved through any tile set optimisation phase." data-command="tileMapTileAttributes" data-field="alwaysKeep"
-                    data-auto-event="click">
+                    title="When checked, the underlying tile will be preserved through any tile set optimisation phase."
+                    data-command="tileMapTileAttributes" data-field="alwaysKeep" data-auto-event="click">
                     <i class="bi bi-pin-angle-fill"></i> Always keep tile
                 </button>
             </div>
         </div>
         <!-- End: Tile attributes toolstrip -->
         <!-- Tile eyedropper toolstrip -->
-        <div data-toolstrip="tileEyedropper" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="tileEyedropperLabel" data-toolstrip="tileEyedropper"
+            class="col-auto sms-toolstrip m-0 me-2 p-0">
             <div class="input-group input-group-sm">
                 <span class="input-group-text"><strong>Tile select</strong></span>
             </div>
         </div>
-        <div data-toolstrip="tileEyedropper" class="col-auto sms-toolstrip m-0 me-2 p-0">
+        <div data-tool-id="tileEyedropperDescription" data-toolstrip="tileEyedropper"
+            class="col-auto sms-toolstrip m-0 me-2 p-0">
             <p class="p-0 m-0"><small>Click on a tile to select it for the tile stamp tool.</small></p>
         </div>
         <!-- End: Tile eyedropper toolstrip -->
+        <div data-tool-id="eyedropperDescription" data-toolstrip="eyedropper"
+            class="col-auto sms-toolstrip m-0 me-2 p-0">
+            <p class="p-0 m-0"><strong>Colour select</strong> <small>- Click on a colour to set it, shift click for secondary colour.</small></p>
+        </div>
     </div>
 
     <style data-css-scope="global">
+
+        .sms-select-dropdown button[data-bs-toggle] {
+            width: 50px;
+            color: #000000;
+        }
+
+        .sms-select-dropdown.wider button[data-bs-toggle] {
+            width: 100px;
+        }
+
+        .sms-select-dropdown button[data-bs-toggle][is-dark] {
+            color: #FFFFFF;
+        }
+
+        .sms-select-dropdown .sms-menu-container {
+            width: 194px;
+        }
+
+        .sms-select-dropdown .sms-menu-container button {
+            min-width: 40px;
+            max-width: 40px;
+            overflow: hidden;
+        }
+
+        .sms-select-dropdown .sms-menu-container button.double-width {
+            min-width: 88px;
+            max-width: 88px;
+        }
+
+        .sms-select-dropdown .sms-menu-container button label {
+            display: block;
+            background-color: #FFFFFF;
+            margin-bottom: 20px;
+        }
+
+        .sms-select-dropdown .sms-menu-container button.higher label {
+            margin-bottom: 30px;
+        }
+
+        [data-bs-theme=dark] .sms-select-dropdown .sms-menu-container button label {
+            background-color: #000000;
+        }
+
+        .sms-select-dropdown .sms-menu-container button[data-selected=true] {
+            border-color: var(--bs-primary);
+        }
+
+        .sms-select-dropdown .sms-menu-container button[data-selected=true] label {
+            background-color: var(--bs-primary);
+            color: #FFFFFF;
+        }
+
     </style>
 
 </div>

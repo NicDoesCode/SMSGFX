@@ -22,6 +22,7 @@ import ReferenceImage from "./models/referenceImage.js";
 import GoogleAnalyticsManager from "./components/googleAnalyticsManager.js";
 import VersionManager from './components/versionManager.js';
 import ThemeManager from "./components/themeManager.js";
+import PatternManager from "./components/patternManager.js";
 import SerialisationUtil from "./util/serialisationUtil.js";
 
 import PaletteEditor from "./ui/paletteEditor.js";
@@ -88,6 +89,8 @@ const instanceState = {
     /** @type {number} */
     colourIndex: 0,
     /** @type {number} */
+    secondaryColourIndex: 1,
+    /** @type {number} */
     startingColourIndex: 0,
     /** @type {number[]} */
     tileIndicies: [],
@@ -112,6 +115,14 @@ const instanceState = {
     clampToTile: false,
     /** @type {boolean} */
     breakTileLinks: false,
+    /** @type {number} */
+    patternIndex: -1,
+    /** @type {boolean} */
+    patternFixedOrigin: true,
+    /** @type {number} */
+    patternOriginX: 0,
+    /** @type {number} */
+    patternOriginY: 0,
     /** @type {string?} */
     rowColumnMode: 'addRow',
     /** @type {string?} */
@@ -160,6 +171,7 @@ const undoManager = new UndoManager(50);
 const watcher = new ProjectWatcher(instanceState.sessionId);
 const googleAnalytics = new GoogleAnalyticsManager();
 const themeManager = new ThemeManager();
+const patternManager = new PatternManager();
 
 /** @type {ProjectToolbar} */ let projectToolbar;
 /** @type {ProjectDropdown} */ let projectDropdown;
@@ -305,6 +317,9 @@ const keyboardCommands = {
     paletteIndexRight: 'paletteIndexRight',
     paletteIndexHigher: 'paletteIndexHigher',
     paletteIndexLower: 'paletteIndexLower',
+    paletteSwapPrimarySecondary: 'paletteSwapPrimarySecondary',
+    patternIndexHigher: 'patternIndexHigher',
+    patternIndexLower: 'patternIndexLower',
     tileNew: 'tileNew',
     tileDelete: 'tileDelete',
     tileMapNew: 'tileMapNew',
@@ -405,6 +420,9 @@ function createEventListeners() {
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paletteIndexLower, [
         { modifiers: { shift: true, control: true }, keySeries: [{ key: ['<', ','] }] }
     ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.paletteSwapPrimarySecondary, [
+        { key: ['x', 'X'] }
+    ]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileNew, [
         { modifiers: { alt: true }, keySeries: [{ key: ['n', 'N'] }, { key: ['t', 'T'] }] },
         { platform: 'mac', modifiers: { alt: true }, keySeries: [{ code: 'KeyN' }, { key: ['†', 'ˇ'], code: 'KeyT' }] }
@@ -425,6 +443,12 @@ function createEventListeners() {
     ]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileMirrorVertical, [
         { modifiers: { alt: true }, key: [']', '}', '‘'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.patternIndexLower, [
+        { modifiers: { shift: true }, key: ['[', '{', '“'] }
+    ]));
+    keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.patternIndexHigher, [
+        { modifiers: { shift: true }, key: [']', '}', '‘'] }
     ]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.tileMapNew, [
         { modifiers: { alt: true }, keySeries: [{ code: ['n', 'N'] }, { key: ['m', 'M'] }] },
@@ -485,7 +509,7 @@ function createEventListeners() {
         { key: ['l', 'L'] }
     ]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolTileStamp, [
-        { key: ['x', 'X'] }
+        { key: ['s', 'S'], modifiers: { shift: true } }
     ]));
     keyboardManager.addKeyHandler(new KeyDownHandler(keyboardCommands.toolTilePalettePaint, [
         { key: ['c', 'C'] }
@@ -605,6 +629,9 @@ function createEventListeners() {
             case keyboardCommands.paletteIndexLower:
                 paletteSelectByIndex(getProjectUIState().paletteIndex - 1);
                 break;
+            case keyboardCommands.paletteSwapPrimarySecondary:
+                swapPrimarySecondaryColourIndex();
+                break;
             case keyboardCommands.tileNew:
                 tileNew();
                 break;
@@ -642,6 +669,12 @@ function createEventListeners() {
                         }
                     }
                 });
+                break;
+            case keyboardCommands.patternIndexLower:
+                patternIndexHigherOrLower('LOWER');
+                break;
+            case keyboardCommands.patternIndexHigher:
+                patternIndexHigherOrLower('HIGHER');
                 break;
             case keyboardCommands.moveUp:
                 if (isTileSet()) {
@@ -1392,6 +1425,21 @@ function handleTileContextToolbarCommand(args) {
         const restoredBounds = new DOMRect(0, 0, drawDimensions.width, drawDimensions.height);
         updateReferenceImage(restoredBounds, args.referenceTransparency);
     }
+    if (args.command === TileContextToolbar.Commands.patternIndex) {
+        setPatternIndex(args.patternIndex);
+    }
+    if (args.command === TileContextToolbar.Commands.patternFixedOrigin) {
+        setPatternFixedOrigin(args.patternFixedOrigin);
+    }
+    if (args.command === TileContextToolbar.Commands.colourIndex) {
+        setColourIndex(args.colourIndex);
+    }
+    if (args.command === TileContextToolbar.Commands.secondaryColourIndex) {
+        setSecondaryColourIndex(args.secondaryColourIndex);
+    }
+    if (args.command === TileContextToolbar.Commands.swapColourIndex) {
+        swapPrimarySecondaryColourIndex();
+    }
 }
 
 
@@ -1557,8 +1605,10 @@ function handleTileEditorOnEvent(args) {
                         tileBlockIndex: { row: args.tileBlockGridInsertRowIndex, col: args.tileBlockGridInsertColumnIndex },
                         tilesPerBlock: args.tilesPerBlock,
                         isInBounds: args.isInBounds,
-                        event: TileEditor.Events.pixelMouseDown,
-
+                        isInForgovingBounds: args.isInForgivingBounds,
+                        controlKey: args.ctrlKeyPressed,
+                        shiftKey: args.shiftKeyPressed,
+                        event: TileEditor.Events.pixelMouseDown
                     });
                     if (result?.saveProject) {
                         state.saveToLocalStorage();
@@ -1579,6 +1629,9 @@ function handleTileEditorOnEvent(args) {
                         tileBlockIndex: { row: args.tileBlockGridInsertRowIndex, col: args.tileBlockGridInsertColumnIndex },
                         tilesPerBlock: args.tilesPerBlock,
                         isInBounds: args.isInBounds,
+                        isInForgovingBounds: args.isInForgivingBounds,
+                        controlKey: args.ctrlKeyPressed,
+                        shiftKey: args.shiftKeyPressed,
                         event: TileEditor.Events.pixelMouseOver
                     });
                     if (result?.saveProject) {
@@ -1625,6 +1678,9 @@ function handleTileEditorOnEvent(args) {
                     tileBlockIndex: { row: args.tileBlockGridInsertRowIndex, col: args.tileBlockGridInsertColumnIndex },
                     tilesPerBlock: args.tilesPerBlock,
                     isInBounds: args.isInBounds,
+                    isInForgovingBounds: args.isInForgivingBounds,
+                    controlKey: args.ctrlKeyPressed,
+                    shiftKey: args.shiftKeyPressed,
                     event: TileEditor.Events.pixelMouseUp
                 });
                 instanceState.operationTileIndex = -1;
@@ -1774,6 +1830,9 @@ function handleImportPaletteModalDialogueOnConfirm(args) {
     tileEditor.setState({
         paletteList: getRenderPaletteListToSuitTileMapOrTileSetSelection()
     });
+    tileContextToolbar.setState({
+        palette: getRenderPalette()
+    });
 
     paletteImportDialogue.hide();
     toast.show('Palette imported.');
@@ -1864,6 +1923,9 @@ function paletteSetColourAtIndexWithoutSaving(paletteIndex, colourIndex, colour)
         paletteList: getRenderPaletteListToSuitTileMapOrTileSetSelection(),
         forceRefresh: true
     });
+    tileContextToolbar.setState({
+        palette: getRenderPalette()
+    });
 }
 
 /**
@@ -1953,6 +2015,9 @@ function handleImageImportModalOnConfirm(args) {
         tileGrid: getTileGrid(),
         tileSet: getTileSet(),
         focusedTile: focusedTile
+    });
+    tileContextToolbar.setState({
+        palette: getRenderPalette()
     });
     projectToolbar.setState({
         projectTitle: getProject().title
@@ -2583,7 +2648,7 @@ function refreshProjectUI() {
         systemType: getProject().systemType
     });
     tileContextToolbar.setState({
-        visibleToolstrips: getTileMapContextToolbarVisibleToolstrips(instanceState.tool)
+        toolstripLayout: getTileContextToolbarLayout(instanceState.tool)
     });
 
     const disabledCommands = [];
@@ -2595,7 +2660,8 @@ function refreshProjectUI() {
         disabledCommands: disabledCommands,
         clampToTile: instanceState.clampToTile,
         tileBreakLinks: instanceState.tileBreakLinks,
-        systemType: getProject().systemType
+        systemType: getProject().systemType,
+        palette: getRenderPalette()
     });
 
     resizeToolboxes();
@@ -2611,6 +2677,7 @@ function formatForProject() {
 
     if (projectChanged) {
         instanceState.colourIndex = 0;
+        instanceState.secondaryColourIndex = 1;
         if (instanceState.paletteSlot < 0) instanceState.paletteSlot = 0;
         if (instanceState.paletteSlot >= getNumberOfPaletteSlots()) instanceState.paletteSlot = getNumberOfPaletteSlots() - 1;
     }
@@ -2687,8 +2754,13 @@ function formatForProject() {
     });
     tileContextToolbar.setState({
         enabled: true,
+        palette: null,
         paletteSlotCount: getNumberOfPaletteSlots(),
-        paletteSlot: instanceState.paletteSlot
+        paletteSlot: instanceState.paletteSlot,
+        patternIndex: instanceState.patternIndex,
+        patternFixedOrigin: instanceState.patternFixedOrigin,
+        colourIndex: instanceState.colourIndex,
+        secondaryColourIndex: instanceState.secondaryColourIndex
     });
 
     updateTileEditorGridColours();
@@ -2765,7 +2837,8 @@ function formatForNoProject() {
         showTab: ColourPickerToolbox.Tabs.rgb
     });
     tileContextToolbar.setState({
-        enabled: false
+        enabled: false,
+        palette: null
     });
     tileEditorToolbar.setState({
         enabled: false
@@ -2794,53 +2867,42 @@ function formatForNoProject() {
     updateTileEditorGridColours();
 }
 
-/**
- * Gets what toolstrips should be visible on the tile context toolbar.
- * @param {string} tool - Currently selected tool.
+/** Gets the visible toolstrip options for a given tool.
+ * @param {string} tool - Tool to get the items for.
  * @returns {string[]}
  */
-function getTileMapContextToolbarVisibleToolstrips(tool) {
-    let visibleStrips = [];
+function getTileContextToolbarLayout(tool) {
     if (tool && typeof tool === 'string') {
         const tools = TileEditorToolbar.Tools;
+        const layouts = TileContextToolbar.ToolstripLayouts;
         switch (tool) {
             case tools.pencil:
+                return isTileMap() ? layouts.tilePencil : layouts.tileMapPencil;
             case tools.colourReplace:
-                visibleStrips.push(TileContextToolbar.Toolstrips.pencil);
-                if (isTileMap()) {
-                    visibleStrips.push(TileContextToolbar.Toolstrips.tileMapPencil);
-                }
+                return isTileMap() ? layouts.tileColourReplace : layouts.tileMapColourReplace;
             case tools.bucket:
+                return isTileMap() ? layouts.tileBucket : layouts.tileMapBucket;
             case tools.eyedropper:
-                visibleStrips.push(TileContextToolbar.Toolstrips.pencil);
-                break;
+                return layouts.eyedropper;
             case tools.select:
-                visibleStrips.push(TileContextToolbar.Toolstrips.select);
-                break;
+                return layouts.tileSelect;
             case tools.referenceImage:
-                visibleStrips.push(TileContextToolbar.Toolstrips.referenceImage);
-                break;
+                return layouts.referenceImage;
             case tools.tileMapTileAttributes:
-                visibleStrips.push(TileContextToolbar.Toolstrips.tileMapTileAttributes);
-                break;
+                return layouts.tileMapSelect;
             case tools.rowColumn:
-                visibleStrips.push(TileContextToolbar.Toolstrips.rowColumn);
-                break;
+                return layouts.tileMapAddRemove;
             case tools.tileLinkBreak:
-                visibleStrips.push(TileContextToolbar.Toolstrips.tileLinkBreak);
-                break;
+                return layouts.tileMapBreakLink;
             case tools.palettePaint:
-                visibleStrips.push(TileContextToolbar.Toolstrips.palettePaint);
-                break;
+                return layouts.tileMapPalettePaint;
             case tools.tileStamp:
-                visibleStrips.push(TileContextToolbar.Toolstrips.tileStamp);
-                break;
+                return layouts.tileStampPattern;
             case tools.tileEyedropper:
-                visibleStrips.push(TileContextToolbar.Toolstrips.tileEyedropper);
-                break;
+                return layouts.tileEyedropper;
         }
     }
-    return visibleStrips;
+    return [];
 }
 
 function displaySelectedProject() {
@@ -2879,21 +2941,24 @@ function uiRefreshProjectLists() {
     });
 }
 
-/** 
+
+/**
  * @typedef {Object} ToolActionArgs
  * @property {string} tool 
  * @property {number} colourIndex 
  * @property {number} imageX 
  * @property {number} imageY 
+ * @property {boolean} shiftKey 
+ * @property {boolean} controlKey 
  * @property {{ row: number, col: number }} tile 
  * @property {{ row: number, col: number }} tileIndex 
  * @property {{ row: number, col: number }} tileBlock 
  * @property {{ row: number, col: number }} tileBlockIndex 
  * @property {number} tilesPerBlock 
  * @property {boolean} isInBounds 
+ * @property {boolean} isInForgovingBounds 
  * @property {string} event 
- */
-
+*/
 /**
  * Performs the action for a tool.
  * @param {ToolActionArgs} args 
@@ -2919,47 +2984,7 @@ function takeToolAction(args) {
                 instanceState.lastTileMapPx.y = -1;
 
             }
-        } else if (tool === TileEditorToolbar.Tools.pencil && args.isInBounds) {
-            if (event === TileEditor.Events.pixelMouseDown || event === TileEditor.Events.pixelMouseOver) {
-
-                const lastPx = instanceState.lastTileMapPx;
-                if (imageX !== lastPx.x || imageY !== lastPx.y) {
-
-                    const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
-                    const clamp = instanceState.clampToTile;
-                    if (!clamp || (clamp && tileIndex === instanceState.operationTileIndex)) {
-
-                        addUndoState();
-                        if (!instanceState.undoDisabled) {
-                            instanceState.undoDisabled = true;
-                        }
-
-                        instanceState.lastTileMapPx.x = imageX;
-                        instanceState.lastTileMapPx.y = imageY;
-
-                        const breakLinks = isTileMap() && instanceState.breakTileLinks;
-                        const originalTileSet = breakLinks ? TileSetFactory.clone(getTileSet()) : null;
-                        const size = instanceState.pencilSize;
-
-                        const updatedTiles = PaintTool.paintColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, colourIndex, size, clamp);
-                        if (updatedTiles.affectedTileIndexes.length > 0) {
-
-                            if (breakLinks) {
-                                takeToolAction_breakLinks(updatedTiles.affectedTileIndexes, originalTileSet);
-                            }
-
-                            updateTilesOnEditors(updatedTiles.affectedTileIds);
-
-                        }
-
-                    }
-                }
-
-            } else {
-                instanceState.lastTileMapPx.x = -1;
-                instanceState.lastTileMapPx.y = -1;
-            }
-        } else if (tool === TileEditorToolbar.Tools.colourReplace && args.isInBounds) {
+        } else if ((tool === TileEditorToolbar.Tools.pencil || tool === TileEditorToolbar.Tools.colourReplace) && args.isInForgovingBounds) {
             if (event === TileEditor.Events.pixelMouseDown || event === TileEditor.Events.pixelMouseOver) {
 
                 const lastPx = instanceState.lastTileMapPx;
@@ -2979,6 +3004,8 @@ function takeToolAction(args) {
                             const tile = getTileSet().getTileById(tileInfo.tileId);
                             const colour = tile.readAtCoord(imageX % 8, imageY % 8);
                             instanceState.startingColourIndex = colour;
+                            instanceState.patternOriginX = (instanceState.patternFixedOrigin) ? 0 : imageX;
+                            instanceState.patternOriginY = (instanceState.patternFixedOrigin) ? 0 : imageY;
                         }
 
                         instanceState.lastTileMapPx.x = imageX;
@@ -2986,11 +3013,25 @@ function takeToolAction(args) {
 
                         const breakLinks = isTileMap() && instanceState.breakTileLinks;
                         const originalTileSet = breakLinks ? TileSetFactory.clone(getTileSet()) : null;
-                        const sourceColourindex = instanceState.startingColourIndex;
-                        const replacementColourIndex = colourIndex;
-                        const size = instanceState.pencilSize;
 
-                        const updatedTiles = PaintTool.replaceColourOnTileGrid(getTileGrid(), getTileSet(), imageX, imageY, sourceColourindex, replacementColourIndex, size, clamp);
+                        const updatedTiles = PaintTool.paintOntoTileGrid(getTileGrid(), getTileSet(), {
+                            coordinate: { x: imageX, y: imageY },
+                            brush: {
+                                primaryColourIndex: instanceState.colourIndex,
+                                secondaryColourIndex: instanceState.secondaryColourIndex,
+                                size: instanceState.pencilSize
+                            },
+                            options: {
+                                constrainToColourIndex: (tool === TileEditorToolbar.Tools.colourReplace) ? instanceState.startingColourIndex : null,
+                                clampToTile: clamp
+                            },
+                            pattern: {
+                                pattern: (instanceState.patternIndex > -1) ? patternManager.getPattern(instanceState.patternIndex) : null,
+                                originX: instanceState.patternOriginX,
+                                originY: instanceState.patternOriginY
+                            }
+                        });
+
                         if (updatedTiles && updatedTiles.affectedTileIndexes.length > 0) {
 
                             if (breakLinks) {
@@ -3027,7 +3068,11 @@ function takeToolAction(args) {
 
                 const colourIndex = EyedropperTool.getPixelColour(getTileGrid(), getTileSet(), imageX, imageY);
                 if (colourIndex !== null) {
-                    selectColourIndex(colourIndex);
+                    if (args.shiftKey) {
+                        setSecondaryColourIndex(colourIndex);
+                    } else {
+                        selectColourIndex(colourIndex);
+                    }
                 }
 
                 instanceState.lastTileMapPx.x = -1;
@@ -3624,13 +3669,14 @@ function changePencilSize(step) {
  * @param {number} brushSize - Pencil size, 1 to 50.
  */
 function setPencilSize(brushSize) {
+    const TOOLS = TileEditorToolbar.Tools;
     if (brushSize && brushSize >= 1 && brushSize <= 50) {
         instanceState.pencilSize = brushSize;
         tileContextToolbar.setState({
             brushSize: instanceState.pencilSize
         });
         let cursorSize = 1;
-        if (instanceState.tool === TileEditorToolbar.Tools.pencil || instanceState.tool === TileEditorToolbar.Tools.colourReplace) {
+        if (instanceState.tool === TOOLS.pencil || instanceState.tool === TOOLS.colourReplace || instanceState.tool === TOOLS.pattern) {
             cursorSize = instanceState.pencilSize;
         }
         tileEditor.setState({
@@ -3664,6 +3710,79 @@ function setTileLinkBreak(value) {
     tileContextToolbar.setState({
         tileBreakLinks: instanceState.breakTileLinks
     });
+}
+
+/**
+ * Sets the pattern index value.
+ * @param {number} value - Index of the pattern.
+ */
+function setPatternIndex(value) {
+    instanceState.patternIndex = value;
+    tileContextToolbar.setState({
+        patternIndex: instanceState.patternIndex
+    });
+}
+
+/**
+ * Sets the pattern index to the previous or next one.
+ * @param {'LOWER'|'HIGHER'} direction - Make it lower or higher.
+ */
+function patternIndexHigherOrLower(direction) {
+    const patternCount = patternManager.getAllPatterns().length;
+    let updatedIndex = instanceState.patternIndex;
+
+    if (direction === 'HIGHER') {
+        updatedIndex++;
+    } else if (direction === 'LOWER') {
+        updatedIndex--;
+    }
+
+    if (updatedIndex < -1) {
+        updatedIndex = patternCount - 1;
+    } else if (updatedIndex >= patternCount) {
+        updatedIndex = -1;
+    }
+
+    setPatternIndex(updatedIndex);
+}
+
+/**
+ * Sets the pattern fixed origin value.
+ * @param {boolean} value - Fixed origin value.
+ */
+function setPatternFixedOrigin(value) {
+    instanceState.patternFixedOrigin = value;
+    tileContextToolbar.setState({
+        patternFixedOrigin: instanceState.patternFixedOrigin
+    });
+}
+
+/**
+ * Sets the index of the primary colour slot.
+ * @param {number} value - Colour index.
+ */
+function setColourIndex(value) {
+    selectColourIndex(value);
+}
+
+/**
+ * Sets the index of the secondary colour slot.
+ * @param {number} value - Colour index.
+ */
+function setSecondaryColourIndex(value) {
+    instanceState.secondaryColourIndex = value;
+    tileContextToolbar.setState({
+        secondaryColourIndex: instanceState.secondaryColourIndex
+    });
+}
+
+/**
+ * Swaps the primary and secondary colour indexes.
+ */
+function swapPrimarySecondaryColourIndex() {
+    [instanceState.colourIndex, instanceState.secondaryColourIndex] = [instanceState.secondaryColourIndex, instanceState.colourIndex];
+    setColourIndex(instanceState.colourIndex);
+    setSecondaryColourIndex(instanceState.secondaryColourIndex);
 }
 
 /**
@@ -4122,6 +4241,9 @@ function updatePaletteLists(args) {
     tileManager.setState({
         paletteList: getRenderPaletteList()
     });
+    tileContextToolbar.setState({
+        palette: getRenderPalette()
+    });
     if (args?.skipTileEditor !== true) {
         tileEditor.setState({
             paletteList: getRenderPaletteListToSuitTileMapOrTileSetSelection()
@@ -4155,6 +4277,9 @@ function changePaletteTitle(paletteIndex, newTitle) {
     tileManager.setState({
         paletteList: getRenderPaletteList()
     });
+    tileContextToolbar.setState({
+        palette: getRenderPalette()
+    });
 }
 
 function changePaletteSystem(paletteIndex, system) {
@@ -4179,6 +4304,9 @@ function changePaletteSystem(paletteIndex, system) {
     tileManager.setState({
         paletteList: getRenderPaletteList()
     });
+    tileContextToolbar.setState({
+        palette: getRenderPalette()
+    });
 }
 
 function changePaletteEditorDisplayNativeColours(displayNative) {
@@ -4199,6 +4327,9 @@ function changePaletteEditorDisplayNativeColours(displayNative) {
         paletteList: getRenderPaletteList(),
         palette: getRenderPalette()
     });
+    tileContextToolbar.setState({
+        palette: getRenderPalette()
+    });
 
     updateTileEditorGridColours();
 }
@@ -4217,6 +4348,9 @@ function changeSelectedColourIndex(colourIndex) {
     if (colourIndex >= 0 && colourIndex < 16) {
         paletteEditor.setState({
             selectedColourIndex: colourIndex
+        });
+        tileContextToolbar.setState({
+            colourIndex: colourIndex
         });
         instanceState.colourIndex = colourIndex;
         const colour = getPalette().getColour(instanceState.colourIndex);
@@ -4258,6 +4392,9 @@ function swapColourIndex(sourceColourIndex, targetColourIndex) {
     });
     tileManager.setState({
         paletteList: getRenderPaletteList(),
+        palette: getRenderPalette()
+    });
+    tileContextToolbar.setState({
         palette: getRenderPalette()
     });
 }
@@ -5387,6 +5524,9 @@ function tileMapUpdate(tileMapId, args) {
         lockedPaletteSlotIndex: graphicsCapability.lockedPaletteIndex,
         forceRefresh: true
     });
+    tileContextToolbar.setState({
+        palette: getRenderPalette()
+    });
 }
 
 /**
@@ -5475,10 +5615,12 @@ function tileMapSort(field) {
  */
 function selectTool(tool) {
     if (TileEditorToolbar.Tools[tool]) {
+        const TOOLS = TileEditorToolbar.Tools;
+
         instanceState.tool = tool;
         instanceState.swapTool = null;
 
-        if (tool !== TileEditorToolbar.Tools.select) {
+        if (tool !== TOOLS.select) {
             // Select tool
             const tile = getTileSet().getTileByIndex(instanceState.tileIndex);
             if (tile) {
@@ -5490,7 +5632,7 @@ function selectTool(tool) {
             }
         } else {
             // Was not select tool, de-select any tiles
-            if (tool !== TileEditorToolbar.Tools.select) {
+            if (tool !== TOOLS.select) {
                 instanceState.tileIndex = -1;
                 tileEditor.setState({
                     selectedTileIndicies: [instanceState.tileIndex]
@@ -5499,7 +5641,7 @@ function selectTool(tool) {
         }
 
         // Set the stamp preview in the canvas
-        if (tool === TileEditorToolbar.Tools.tileStamp) {
+        if (tool === TOOLS.tileStamp) {
             if (!getProjectUIState().tileId && getTileSet() && getTileSet().length > 0 || !getTileSet().getTileById(getProjectUIState().tileId)) {
                 tileSetTileSelectById(getTileSet().getTile(0).tileId);
             }
@@ -5508,7 +5650,7 @@ function selectTool(tool) {
             tileEditor.setState({ tileStampPattern: null });
         }
 
-        if (tool !== TileEditorToolbar.Tools.tileStamp && getProject() !== null) {
+        if (tool !== TOOLS.tileStamp && getProject() !== null) {
             clearTileStampRegion();
         }
 
@@ -5516,15 +5658,15 @@ function selectTool(tool) {
 
         let cursor = 'arrow';
         let cursorSize = 1;
-        if ([TileEditorToolbar.Tools.eyedropper, TileEditorToolbar.Tools.bucket].includes(tool)) {
+        if ([TOOLS.eyedropper, TOOLS.bucket].includes(tool)) {
             cursor = 'crosshair';
-        } else if (tool === TileEditorToolbar.Tools.pencil || tool === TileEditorToolbar.Tools.colourReplace) {
+        } else if (tool === TOOLS.pencil || tool === TOOLS.colourReplace) {
             cursor = 'crosshair';
             cursorSize = instanceState.pencilSize;
         }
 
         const disabledCommands = [];
-        if (isTileMap() && instanceState.tool === TileEditorToolbar.Tools.bucket) {
+        if (isTileMap() && instanceState.tool === TOOLS.bucket) {
             instanceState.clampToTile = true;
             disabledCommands.push(TileContextToolbar.Commands.tileClamp);
         }
@@ -5536,7 +5678,7 @@ function selectTool(tool) {
             visible: true,
             brushSize: instanceState.pencilSize,
             rowColumnFillMode: instanceState.rowColumnFillMode ?? TileMapRowColumnTool.TileFillMode.useSelected,
-            visibleToolstrips: getTileMapContextToolbarVisibleToolstrips(tool),
+            toolstripLayout: getTileContextToolbarLayout(tool),
             clampToTile: instanceState.clampToTile,
             disabledCommands: disabledCommands
         });
@@ -5636,6 +5778,9 @@ function paletteSelectByIndex(index) {
             paletteList: getRenderPaletteListToSuitTileMapOrTileSetSelection()
         });
     }
+    tileContextToolbar.setState({
+        palette: getRenderPalette()
+    });
 }
 
 function getTransparencyIndicies() {
@@ -5664,6 +5809,9 @@ function selectColourIndex(index) {
 
     paletteEditor.setState({
         selectedColourIndex: instanceState.colourIndex
+    });
+    tileContextToolbar.setState({
+        colourIndex: instanceState.colourIndex
     });
 }
 
@@ -5789,6 +5937,8 @@ window.addEventListener('load', async () => {
     instanceState.tool = 'pencil';
     instanceState.colourToolboxTab = 'rgb';
 
+    await patternManager.loadPatterns();
+
     await initialiseComponents();
     wireUpEventHandlers();
     createEventListeners();
@@ -5885,7 +6035,12 @@ window.addEventListener('load', async () => {
     tileContextToolbar.setState({
         rowColumnMode: instanceState.rowColumnMode,
         referenceTransparency: instanceState.referenceImageTransparencyIndex,
-        referenceLockAspect: instanceState.referenceImageLockAspect
+        referenceLockAspect: instanceState.referenceImageLockAspect,
+        patterns: patternManager.getAllPatterns(),
+        patternIndex: instanceState.patternIndex,
+        patternFixedOrigin: instanceState.patternFixedOrigin,
+        colourIndex: instanceState.colourIndex,
+        secondaryColourIndex: instanceState.secondaryColourIndex
     });
 
     selectTool(instanceState.tool);
