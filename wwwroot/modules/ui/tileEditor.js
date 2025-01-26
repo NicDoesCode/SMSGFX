@@ -294,12 +294,8 @@ export default class TileEditor extends ComponentBase {
         }
 
         // Selected tile index?
-        if (typeof state?.selectedTileIndex === 'number') {
-            message.selectedTileIndex = state.selectedTileIndex;
-            message.redrawPartial = true;
-        }
         if (Array.isArray(state?.selectedTileIndicies)) {
-            message.selectedTileIndicies = state.selectedTileIndicies.map((i) => typeof i === 'number');
+            message.selectedTileIndicies = state.selectedTileIndicies.filter((i) => typeof i === 'number');
             message.redrawPartial = true;
         }
 
@@ -836,8 +832,7 @@ export default class TileEditor extends ComponentBase {
  * @property {number?} scale - Current scale level.
  * @property {boolean?} [scaleRelativeToMouse] - Scale based on the mouse cursor position?.
  * @property {number?} [tilesPerBlock] - The amount of tiles per tile block.
- * @property {number?} selectedTileIndex - Currently selected tile index.
- * @property {number?} selectedTileIndicies - Indexes of the currently selected tiles.
+ * @property {number[]?} [selectedTileIndicies] - Indexes of the currently selected tiles.
  * @property {number?} cursorSize - Size of the cursor in px.
  * @property {string?} cursor - Cursor to use when the mouse hovers over the image editor.
  * @property {number?} [viewportPanHorizontal] - Pan the viewport horizontally.

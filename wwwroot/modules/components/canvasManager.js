@@ -141,18 +141,16 @@ export default class CanvasManager {
     }
 
     /**
-     * Gets or sets the selected index of a tile, -1 means no selection.
+     * Gets or sets the selected tile indexes.
      */
-    get selectedTileIndex() {
-        return this.#selectedTileIndex;
+    get selectedTileIndicies() {
+        return this.#selectedTileIndicies.slice();
     }
-    set selectedTileIndex(value) {
-        if (value != this.#selectedTileIndex) {
-            if (this.tileGrid && this.tileGrid.tileCount > 0 && value >= 0 && value < this.tileGrid.tileCount) {
-                this.#selectedTileIndex = value;
-            } else {
-                this.#selectedTileIndex = -1;
-            }
+    set selectedTileIndicies(value) {
+        if (this.tileGrid?.tileCount > 0) {
+            this.#selectedTileIndicies = value.filter((i) => i >= 0 && i < this.tileGrid.tileCount);
+        } else {
+            this.#selectedTileIndicies = [];
         }
     }
 
@@ -446,8 +444,8 @@ export default class CanvasManager {
     #scale = 10;
     /** @type {number} */
     #tilesPerBlock = 2;
-    /** @type {number} */
-    #selectedTileIndex = -1;
+    /** @type {number[]} */
+    #selectedTileIndicies = [];
     /** @type {number[]} */
     #attentionTiles = [];
     /** @type {string[]} */
@@ -1214,20 +1212,22 @@ export default class CanvasManager {
             });
         }
 
-        // Highlight selected tile
-        if (this.selectedTileIndex >= 0 && this.selectedTileIndex < this.tileGrid.tileCount) {
-            const selCol = this.selectedTileIndex % this.tileGrid.columnCount;
-            const selRow = Math.floor(this.selectedTileIndex / this.tileGrid.columnCount);
-            const tileX = 8 * selCol * pxSize;
-            const tileY = 8 * selRow * pxSize;
-
-            // Highlight the tile
-            context.strokeStyle = this.primarySelectionColour;
-            context.strokeRect(tileX + drawX, tileY + drawY, (8 * pxSize), (8 * pxSize));
-            context.strokeStyle = this.secondarySelectionColour;
-            context.setLineDash([2, 2]);
-            context.strokeRect(tileX + drawX, tileY + drawY, (8 * pxSize), (8 * pxSize));
-            context.setLineDash([]);
+        // Highlight selected tiles
+        for (let index of this.selectedTileIndicies) {
+            if (index >= 0 && index < this.tileGrid.tileCount) {
+                const selCol = index % this.tileGrid.columnCount;
+                const selRow = Math.floor(index / this.tileGrid.columnCount);
+                const tileX = 8 * selCol * pxSize;
+                const tileY = 8 * selRow * pxSize;
+    
+                // Highlight the tile
+                context.strokeStyle = this.primarySelectionColour;
+                context.strokeRect(tileX + drawX, tileY + drawY, (8 * pxSize), (8 * pxSize));
+                context.strokeStyle = this.secondarySelectionColour;
+                context.setLineDash([2, 2]);
+                context.strokeRect(tileX + drawX, tileY + drawY, (8 * pxSize), (8 * pxSize));
+                context.setLineDash([]);
+            }    
         }
 
         // Tile stamp tool, draw a preview of the selected tile / tile map

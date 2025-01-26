@@ -412,30 +412,19 @@ export default class TileContextToolbar extends ComponentBase {
             const field = element.getAttribute('data-field');
             /** @type {TileContextToolbarTileMapTileAttributes} */ const attr = {};
             if (field === 'horizontalFlip') {
-                attr.horizontalFlip = element.getAttribute('data-selected') ? false : true;
-            } else {
-                attr.horizontalFlip = this.#element.querySelector(`[data-command=${command}][data-field=horizontalFlip]`).getAttribute('data-selected') ? true : false;
+                attr.toggleHorizontalFlip = true;
             }
             if (field === 'verticalFlip') {
-                attr.verticalFlip = element.getAttribute('data-selected') ? false : true;
-            } else {
-                attr.verticalFlip = this.#element.querySelector(`[data-command=${command}][data-field=verticalFlip]`).getAttribute('data-selected') ? true : false;
+                attr.toggleVerticalFlip = true;
             }
             if (field === 'priority') {
                 attr.priority = element.getAttribute('data-selected') ? false : true;
-            } else {
-                attr.priority = this.#element.querySelector(`[data-command=${command}][data-field=priority]`).getAttribute('data-selected') ? true : false;
             }
             if (field === 'palette') {
                 attr.palette = parseInt(element.getAttribute('data-slot-number') ?? '0');
-            } else {
-                const selected = this.#element.querySelector(`[data-command=${command}][data-field=palette][data-selected]`);
-                attr.palette = parseInt(selected?.getAttribute('data-slot-number') ?? '0');
             }
             if (field === 'alwaysKeep') {
                 attr.alwaysKeep = element.getAttribute('data-selected') ? false : true;
-            } else {
-                attr.alwaysKeep = this.#element.querySelector(`[data-command=${command}][data-field=alwaysKeep]`).getAttribute('data-selected') ? true : false;
             }
             result.tileMapTileAttributes = attr;
         }
@@ -716,11 +705,13 @@ function isToggled(element) {
 
 /**
  * @typedef {Object} TileContextToolbarTileMapTileAttributes
- * @property {boolean} horizontalFlip - Flip the tile horizontally?
- * @property {boolean} verticalFlip - Flip the tile vertically?
- * @property {boolean} priority - Does the tile have render priority?
- * @property {number} palette - Which palette slot is the tile using?
- * @property {boolean} alwaysKeep - Preserve the underlying tile through optimisation routines?
+ * @property {boolean} [horizontalFlip] - Sets the horizontal flip attribute.
+ * @property {boolean} [verticalFlip] - Sets the vertical flip attribute.
+ * @property {boolean} [toggleHorizontalFlip] - Toggle the horizontal flip attribute.
+ * @property {boolean} [toggleVerticalFlip] - Toggle the vertical flip attribute.
+ * @property {boolean} [priority] - Does the tile have render priority?
+ * @property {number} [palette] - Which palette slot is the tile using?
+ * @property {boolean} [alwaysKeep] - Preserve the underlying tile through optimisation routines?
  * @exports
  */
 

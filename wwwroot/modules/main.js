@@ -2306,7 +2306,7 @@ function anySelectedTileIndexIsOutOfBounds() {
 }
 
 function getSelectedTileIndexesThatAreNotOutOfBounds() {
-    return instanceState.tileIndicies.filter((i) => i < 0 || i >= getTileGrid().tileCount);
+    return instanceState.tileIndicies.filter((i) => i >= 0 && i < getTileGrid().tileCount);
 }
 
 /**
@@ -3108,6 +3108,8 @@ function takeToolAction(args) {
                     instanceState.lastTileMapPx.x = -1;
                     instanceState.lastTileMapPx.y = -1;
 
+                    tileEditor.setState({ selectedTileIndicies: instanceState.tileIndicies });
+
                 }
             } else if (tool === TileEditorToolbar.Tools.rowColumn) {
                 if (event === TileEditor.Events.pixelMouseDown) {
@@ -3873,6 +3875,14 @@ function tileMapSetTileAttributes(attributes) {
                 updatedTileIds.add(tileMapTile.tileId);
             }
         }
+        if (tileMapTile && attributes.toggleHorizontalFlip === true) {
+            tileMapTile.horizontalFlip = !tileMapTile.horizontalFlip;
+            updatedTileIds.add(tileMapTile.tileId);
+        }
+        if (tileMapTile && attributes.toggleVerticalFlip === true) {
+            tileMapTile.verticalFlip = !tileMapTile.verticalFlip;
+            updatedTileIds.add(tileMapTile.tileId);
+        }
         if (tileMapTile && typeof attributes.priority === 'boolean') {
             if (tileMapTile.priority !== attributes.priority) {
                 tileMapTile.priority = attributes.priority;
@@ -3900,11 +3910,11 @@ function tileMapSetTileAttributes(attributes) {
 
     }
 
-    if (updatedTileIds.length > 0) {
+    if (updatedTileIds.size > 0) {
         state.saveToLocalStorage();
-        const updatedTileIdArray = new Array(updatedTileIds);
+        const updatedTileIdArray = new Array(...updatedTileIds);
         updateTilesOnEditors(updatedTileIdArray);
-        selectTileIndexIfNotSelected(updatedTileIdArray[0]);
+        selectTileIndiciesIfNotSelected(updatedTileIdArray);
     } else {
         // Nothing changed, no reason to keep the undo in memory
         undoManager.removeLastUndo();
@@ -4026,33 +4036,42 @@ function selectTileIndiciesIfNotSelected(tileIndicies) {
 
     instanceState.tileIndicies = filteredIndicies;
 
-    if (!instanceState.tileIndicies.includes(tileIndex)) {
-        instanceState.tileIndicies.push(tileIndex);
-
-        tileEditor.setState({
-            selectedTileIndicies: instanceState.tileIndicies
-        });
+    for (let tileIndex of filteredIndicies) {
+        if (!instanceState.tileIndicies.includes(tileIndex)) {
+            instanceState.tileIndicies.push(tileIndex);
+        }
     }
+    instanceState.tileIndicies.sort();
+
+    tileEditor.setState({
+        selectedTileIndicies: instanceState.tileIndicies
+    });
 
     if (isTileSet()) {
-        const tile = getTileSet().getTileByIndex(tileIndex);
-        tileContextToolbar.setState({
-            tileSetTileAttributes: {
-                alwaysKeep: tile?.alwaysKeep ?? false
-            }
-        });
+        const tileIndex = getFirstSelectedTileIndexOrNull();
+        if (tileIndex) {
+            const tile = getTileSet().getTileByIndex(tileIndex);
+            tileContextToolbar.setState({
+                tileSetTileAttributes: {
+                    alwaysKeep: tile?.alwaysKeep ?? false
+                }
+            });
+        }
     } else if (isTileMap()) {
-        const tileSetTile = getTileMap().getTileByIndex(tileIndex);
-        const tile = getTileSet().getTileById(tileSetTile.tileId);
-        tileContextToolbar.setState({
-            tileMapTileAttributes: {
-                horizontalFlip: tileSetTile.horizontalFlip,
-                verticalFlip: tileSetTile.verticalFlip,
-                priority: tileSetTile.priority,
-                palette: tileSetTile.palette,
-                alwaysKeep: tile?.alwaysKeep ?? false
-            }
-        });
+        const tileIndex = getFirstSelectedTileIndexOrNull();
+        if (tileIndex) {
+            const tileSetTile = getTileMap().getTileByIndex(tileIndex);
+            const tile = getTileSet().getTileById(tileSetTile.tileId);
+            tileContextToolbar.setState({
+                tileMapTileAttributes: {
+                    horizontalFlip: tileSetTile.horizontalFlip,
+                    verticalFlip: tileSetTile.verticalFlip,
+                    priority: tileSetTile.priority,
+                    palette: tileSetTile.palette,
+                    alwaysKeep: tile?.alwaysKeep ?? false
+                }
+            });
+        }
     }
 }
 
@@ -5151,9 +5170,9 @@ function tileSetSetTileAttributes(attributes) {
 
     }
 
-    if (updatedTileIds.length > 0) {
+    if (updatedTileIds.size > 0) {
         state.saveToLocalStorage();
-        const updatedTileIdArray = new Array(updatedTileIds);
+        const updatedTileIdArray = new Array(...updatedTileIds);
         updateTilesOnEditors(updatedTileIdArray);
         selectTileIndexIfNotSelected(updatedTileIdArray[0]);
     } else {

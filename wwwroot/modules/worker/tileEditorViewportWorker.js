@@ -137,10 +137,8 @@ function applyUpdateToCanvasManager(message) {
     if (typeof message.tilesPerBlock === 'number') {
         canvasManager.tilesPerBlock = message.tilesPerBlock;
     }
-    if (typeof message.selectedTileIndex === 'number') {
-        if (canvasManager.selectedTileIndex !== message.selectedTileIndex) {
-            canvasManager.selectedTileIndex = message.selectedTileIndex;
-        }
+    if (Array.isArray(message.selectedTileIndicies)) {
+        canvasManager.selectedTileIndicies = message.selectedTileIndicies.filter((i) => typeof i === 'number');
     }
     if (typeof message.cursorSize === 'number') {
         if (message.cursorSize > 0 && message.cursorSize <= 50) {
