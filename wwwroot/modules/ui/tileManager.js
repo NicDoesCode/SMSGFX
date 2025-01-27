@@ -160,6 +160,13 @@ export default class TileManager extends ComponentBase {
         this.#btnTileMapTitle = this.#element.querySelector('[data-smsgfx-id=editTileMapTitle]');
         this.#btnTileMapTitle.addEventListener('click', () => this.#handleTileMapTitleEditClick());
 
+        // De-highlight any tiles that were highlighted on mouse over the tile grid
+        this.#element.querySelector('[data-smsgfx-id=tile-grid]').addEventListener('mouseleave', (ev) => {
+            const args = this.#createArgs(commands.tileHighlight);
+            args.tileId = null;
+            this.#dispatcher.dispatch(EVENT_OnCommand, args);
+        });
+
         this.#wireAutoEvents(this.#element);
 
         TileListing.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=tile-set-list]'))

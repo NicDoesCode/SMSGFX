@@ -36,6 +36,7 @@ const events = {
     pixelMouseOver: 'pixelMouseOver',
     pixelMouseDown: 'pixelMouseDown',
     pixelMouseUp: 'pixelMouseUp',
+    mouseLeave: 'mouseLeave',
     tileGridImage: 'tileGridImage'
 }
 
@@ -612,8 +613,7 @@ export default class TileEditor extends ComponentBase {
         if (!this.#enabled) return;
 
         /** @type {TileEditorEventArgs} */
-        const args = {
-            event: events.pixelMouseUp,
+        const baseArgs = {
             x: 0, y: 0,
             mousePrimaryIsDown: this.#canvasMouseLeftDown,
             mouseSecondaryIsDown: this.#canvasMouseRightDown,
@@ -627,10 +627,17 @@ export default class TileEditor extends ComponentBase {
             isInForgivingBounds: false
         };
         if (this.#lastCoords) {
-            args.x = this.#lastCoords.x;
-            args.y = this.#lastCoords.y;
+            baseArgs.x = this.#lastCoords.x;
+            baseArgs.y = this.#lastCoords.y;
         }
-        this.#dispatcher.dispatch(EVENT_OnEvent, args);
+
+        const pixelMouseUpArgs = JSON.parse(JSON.stringify(baseArgs));
+        pixelMouseUpArgs.event = events.pixelMouseUp;
+        this.#dispatcher.dispatch(EVENT_OnEvent, pixelMouseUpArgs);
+
+        const mouseLeaveArgs = JSON.parse(JSON.stringify(baseArgs));
+        mouseLeaveArgs.event = events.mouseLeave;
+        this.#dispatcher.dispatch(EVENT_OnEvent, mouseLeaveArgs);
 
         this.#canvasMouseLeftDown = false;
         this.#canvasMouseMiddleDown = false;

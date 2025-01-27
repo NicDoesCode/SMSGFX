@@ -1395,7 +1395,6 @@ function handleTileContextToolbarCommand(args) {
     }
     if (args.command === TileContextToolbar.Commands.paletteSlot) {
         tileMapSetTileAttributes({ palette: args.paletteSlot });
-        // setPaletteSlot(args.paletteSlot);
     }
     if (args.command === TileContextToolbar.Commands.tileSetTileAttributes) {
         tileSetSetTileAttributes(args.tileSetTileAttributes);
@@ -1690,6 +1689,13 @@ function handleTileEditorOnEvent(args) {
                     instanceState.undoDisabled = false;
                 }
                 break;
+
+                case TileEditor.Events.mouseLeave:
+                    // Un-highlight tile IDs when mouse leaves the canvas
+                    tileEditor.setState({
+                        outlineTileIds: []
+                    });
+                    break;
 
         }
     }
@@ -3890,25 +3896,6 @@ function setRowColumnMode(mode, fillMode) {
             });
             break;
     }
-}
-
-/**
- * Sets the palette slot.
- * @param {number} paletteSlot - Palette slot number.
- */
-function setPaletteSlot(paletteSlot) {
-    paletteSlot = Math.max(paletteSlot, 0);
-    paletteSlot = Math.min(paletteSlot, getNumberOfPaletteSlots() - 1);
-
-    addUndoState();
-
-    instanceState.paletteSlot = paletteSlot;
-
-    state.saveToLocalStorage();
-
-    tileContextToolbar.setState({
-        paletteSlot: instanceState.paletteSlot
-    });
 }
 
 /**
