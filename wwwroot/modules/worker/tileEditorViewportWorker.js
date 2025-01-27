@@ -137,10 +137,8 @@ function applyUpdateToCanvasManager(message) {
     if (typeof message.tilesPerBlock === 'number') {
         canvasManager.tilesPerBlock = message.tilesPerBlock;
     }
-    if (typeof message.selectedTileIndex === 'number') {
-        if (canvasManager.selectedTileIndex !== message.selectedTileIndex) {
-            canvasManager.selectedTileIndex = message.selectedTileIndex;
-        }
+    if (Array.isArray(message.selectedTileIndicies)) {
+        canvasManager.selectedTileIndicies = message.selectedTileIndicies.filter((i) => typeof i === 'number');
     }
     if (typeof message.cursorSize === 'number') {
         if (message.cursorSize > 0 && message.cursorSize <= 50) {
@@ -319,7 +317,7 @@ function makeImageResponse() {
  * @property {string} [canvasHighlightMode] - How the canvas highlights what is under the mouse cursor (pixel, row, column, etc).
  * @property {number} [scale] - Image drawing scale, 1 = 1:1, 2 = 2:1, 15 = 15:1.
  * @property {number} [tilesPerBlock] - Size of each block of tiles.
- * @property {number} [selectedTileIndex] - Selected index of a tile, -1 means no selection.
+ * @property {number} [selectedTileIndicies] - Array of selected indexes.
  * @property {number} [cursorSize] - Cursor size.
  * @property {boolean} [showTileGrid] - Draw grid lines for the tiles?
  * @property {boolean} [showPixelGrid] - Draw grid lines for the pixels?
