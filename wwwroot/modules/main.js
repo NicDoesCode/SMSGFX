@@ -678,51 +678,51 @@ function createEventListeners() {
                 break;
             case keyboardCommands.moveUp:
                 if (isTileSet()) {
-                    if (instanceState.tileIndicies.length === 1) {
+                    if (thereIsOnlyASingleSelectedTile()) {
                         const tileIndex = instanceState.tileIndicies[0];
                         proposedIndex = tileIndex - getTileSet().tileWidth;
                         if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
                             tileSetSwapByIndex(proposedIndex, tileIndex);
                         }
                     } else {
-                        toast.show('Please select only one tile.');
+                        toast.show('Please select only one tile.', { type: 'WARNING', icon: 'WARNING' });
                     }
                 }
                 break;
             case keyboardCommands.moveDown:
                 if (isTileSet()) {
-                    if (instanceState.tileIndicies.length === 1) {
+                    if (thereIsOnlyASingleSelectedTile()) {
                         const tileIndex = instanceState.tileIndicies[0];
                         proposedIndex = tileIndex + getTileSet().tileWidth;
                         if (proposedIndex >= 0 && proposedIndex < getTileSet().length) {
                             tileSetSwapByIndex(tileIndex, proposedIndex);
                         }
                     } else {
-                        toast.show('Please select only one tile.');
+                        toast.show('Please select only one tile.', { type: 'WARNING', icon: 'WARNING' });
                     }
                 }
                 break;
             case keyboardCommands.moveLeft:
                 if (isTileSet()) {
-                    if (instanceState.tileIndicies.length === 1) {
+                    if (thereIsOnlyASingleSelectedTile()) {
                         const tileIndex = instanceState.tileIndicies[0];
                         if (tileIndex > 0 && tileIndex < getTileSet().length) {
                             tileSetSwapByIndex(tileIndex - 1, tileIndex);
                         }
                     } else {
-                        toast.show('Please select only one tile.');
+                        toast.show('Please select only one tile.', { type: 'WARNING', icon: 'WARNING' });
                     }
                 }
                 break;
             case keyboardCommands.moveRight:
                 if (isTileSet()) {
-                    if (instanceState.tileIndicies.length === 1) {
+                    if (thereIsOnlyASingleSelectedTile()) {
                         const tileIndex = instanceState.tileIndicies[0];
                         if (tileIndex >= 0 && tileIndex < getTileSet().length - 1) {
                             tileSetSwapByIndex(tileIndex, tileIndex + 1);
                         }
                     } else {
-                        toast.show('Please select only one tile.');
+                        toast.show('Please select only one tile.', { type: 'WARNING', icon: 'WARNING' });
                     }
                 }
                 break;
@@ -887,15 +887,15 @@ function createEventListeners() {
             /** @type {string} */
             let pasteData = (clipboardEvent.clipboardData || window.clipboardData).getData('text');
             if (typeof pasteData === 'string' && pasteData.length === 128 && /^[0-9a-f]+$/i.test(pasteData)) {
-                if (instanceState.tileIndicies.length === 1) {
+                if (thereIsOnlyASingleSelectedTile()) {
                     const tileIndex  = instanceState.tileIndicies[0];
                     if (tileIndex < 0 || tileIndex >= getTileSet().length) {
                         tileIndex = getTileSet().length;
                     }
                     instanceState.tileClipboard = pasteData;
                     tileSetPasteTileAtIndex('BEFORE');    
-                } else if (instanceState.tileIndicies.length > 1) {
-                    toast.show('To paste, please select a single tile.');
+                } else if (thereAreOneOrMoreSelectedTiles()) {
+                    toast.show('To paste, please select a single tile.', { type: 'INFO', icon: 'INFO' });
                 }
             }
         }
@@ -979,7 +979,7 @@ function handleStateEvent(args) {
             uiRefreshProjectLists();
             watcher.sendProjectListChanged();
             if (args.context === State.Contexts.deleted) {
-                toast.show('Project deleted.');
+                toast.show('Project deleted.', { type: 'INFO', icon: 'INFO' });
             }
             break;
 
@@ -1394,7 +1394,8 @@ function handleTileContextToolbarCommand(args) {
         setRowColumnMode(args.rowColumnMode, args.rowColumnFillMode);
     }
     if (args.command === TileContextToolbar.Commands.paletteSlot) {
-        setPaletteSlot(args.paletteSlot);
+        tileMapSetTileAttributes({ palette: args.paletteSlot });
+        // setPaletteSlot(args.paletteSlot);
     }
     if (args.command === TileContextToolbar.Commands.tileSetTileAttributes) {
         tileSetSetTileAttributes(args.tileSetTileAttributes);
@@ -1780,7 +1781,7 @@ function handleNewTileMapDialogueOnConfirm(args) {
         toast.show('Tile map created.');
 
     } catch (e) {
-        toast.show('Error creating tile map.');
+        toast.show('Error creating tile map.', { type: 'ERROR', icon: 'ERROR' });
         undoManager.removeLastUndo();
         console.error(e);
     }
@@ -1835,7 +1836,7 @@ function handleImportPaletteModalDialogueOnConfirm(args) {
     });
 
     paletteImportDialogue.hide();
-    toast.show('Palette imported.');
+    toast.show('Palette imported.', { type: 'INFO', icon: 'INFO' });
 }
 
 /**
@@ -1971,7 +1972,7 @@ function handleImportTileSet(args) {
     }
 
     assemblyImportTilesModalDialogue.hide();
-    toast.show('Tile data imported.');
+    toast.show('Tile data imported.', { type: 'INFO', icon: 'INFO' });
 }
 
 
@@ -2274,20 +2275,58 @@ function getTileSet() {
     return getProject().tileSet;
 }
 
+/**
+ * Toggles the selected state of a tile by tile grid index.
+ * @param {number|number[]} tileIndexOrIndexes - Tile index within the tile grid provider.
+ */
+function toggleTileIndexSelectedState(tileIndexOrIndexes) {
+    const tileIndexes = Array.isArray(tileIndexOrIndexes) ? tileIndexOrIndexes : [ tileIndexOrIndexes ];
+    for (let tileIndex of tileIndexes) {
+        if (instanceState.tileIndicies.includes(tileIndex)) {
+            instanceState.tileIndicies = instanceState.tileIndicies.filter((i) => i !== tileIndex);
+        } else {
+            instanceState.tileIndicies.push(tileIndex);
+            instanceState.tileIndicies.sort();
+        }
+    }
+}
+
+/**
+ * Sets the selected state to either selected or unselected.
+ * @param {number|number[]} tileIndexOrIndexes - Tile index within the tile grid provider.
+ * @param {boolean|'SELECTED'|'UNSELECTED'} selectedState - Selected state of the tile, either `SELECTED` or `UNSELECTED`.
+ */
+function setTileIndexSelectedState(tileIndexOrIndexes, selectedState) {
+    if (typeof selectedState === 'boolean') selectedState = (selectedState === true) ? 'SELECTED' : 'UNSELECTED';
+    const tileIndexes = Array.isArray(tileIndexOrIndexes) ? tileIndexOrIndexes : [ tileIndexOrIndexes ];
+    for (let tileIndex of tileIndexes) {
+        if (selectedState === 'SELECTED' && !instanceState.tileIndicies.includes(tileIndex)) {
+            instanceState.tileIndicies.push(tileIndex);
+            instanceState.tileIndicies.sort();
+        } else if (selectedState === 'UNSELECTED' && instanceState.tileIndicies.includes(tileIndex)) {
+            instanceState.tileIndicies = instanceState.tileIndicies.filter((i) => i !== tileIndex);
+        }
+    }
+}
+
+function clearSelectedTileIndexes() {
+    instanceState.tileIndicies = [];
+}
+
 function thereAreNoSelectedTiles() {
-    return instanceState.tileIndicies === 0;
+    return instanceState.tileIndicies.length === 0;
 }
 
 function thereIsOnlyASingleSelectedTile() {
-    return instanceState.tileIndicies === 1;
+    return instanceState.tileIndicies.length === 1;
 }
 
 function thereAreMoreThenOneSelectedTiles() {
-    return instanceState.tileIndicies > 1;
+    return instanceState.tileIndicies.length > 1;
 }
 
-function thereIsOneOrMoreSelectedTiles() {
-    return instanceState.tileIndicies > 1;
+function thereAreOneOrMoreSelectedTiles() {
+    return instanceState.tileIndicies.length > 1;
 }
 
 function getFirstSelectedTileIndexOrNull() {
@@ -2977,11 +3016,39 @@ function takeToolAction(args) {
             if (event === TileEditor.Events.pixelMouseDown) {
 
                 const tileInfo = getTileGrid().getTileInfoByPixel(imageX, imageY);
-                toggleTileIndexSelectedState(tileInfo.tileIndex);
+                if (args.controlKey && args.shiftKey) {
+                    // Ctrl + Shift = Unselect
+                    setTileIndexSelectedState(tileInfo.tileIndex, 'UNSELECTED');
+                } else if (args.shiftKey) {
+                    // Shift = ensure it is selected
+                    setTileIndexSelectedState(tileInfo.tileIndex, 'SELECTED');
+                } else if (args.controlKey) {
+                    // Ctrl = toggle selection state
+                    toggleTileIndexSelectedState(tileInfo.tileIndex);
+                } else {
+                    // Neither just means to select the one tile
+                    clearSelectedTileIndexes();
+                    setTileIndexSelectedState(tileInfo.tileIndex, 'SELECTED');
+                }
                 tileSetTileSelectById(tileInfo.tileId);
 
                 instanceState.lastTileMapPx.x = -1;
                 instanceState.lastTileMapPx.y = -1;
+
+                tileEditor.setState({ selectedTileIndicies: instanceState.tileIndicies });
+
+                // Set up toolbars
+                setTileInfoOnTileContextToolbar();
+                if (thereIsOnlyASingleSelectedTile()) {
+                    tileContextToolbar.setState(
+                        { disabledCommands: [] }
+                    );
+                } else {
+                    const coms = TileContextToolbar.Commands;
+                    tileContextToolbar.setState(
+                        { disabledCommands: [ coms.cut, coms.copy, coms.paste, coms.moveLeft, coms.moveRight, coms.insertBefore, coms.insertAfter, coms.tileSetTileAttributes ] }
+                    );
+                }
 
             }
         } else if ((tool === TileEditorToolbar.Tools.pencil || tool === TileEditorToolbar.Tools.colourReplace) && args.isInForgovingBounds) {
@@ -3102,13 +3169,27 @@ function takeToolAction(args) {
             if (tool === TileEditorToolbar.Tools.tileMapTileAttributes && args.isInBounds) {
                 if (event === TileEditor.Events.pixelMouseDown) {
 
-                    const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
-                    toggleTileIndexSelectedState(tileIndex);
-
+                    const tileInfo = getTileGrid().getTileInfoByPixel(imageX, imageY);
+                    if (args.controlKey && args.shiftKey) {
+                        // Ctrl + Shift = Unselect
+                        setTileIndexSelectedState(tileInfo.tileIndex, 'UNSELECTED');
+                    } else if (args.shiftKey) {
+                        // Shift = ensure it is selected
+                        setTileIndexSelectedState(tileInfo.tileIndex, 'SELECTED');
+                    } else if (args.controlKey) {
+                        // Ctrl = toggle selection state
+                        toggleTileIndexSelectedState(tileInfo.tileIndex);
+                    } else {
+                        // Neither just means to select the one tile
+                        clearSelectedTileIndexes();
+                        setTileIndexSelectedState(tileInfo.tileIndex, 'SELECTED');
+                    }
+    
                     instanceState.lastTileMapPx.x = -1;
                     instanceState.lastTileMapPx.y = -1;
 
                     tileEditor.setState({ selectedTileIndicies: instanceState.tileIndicies });
+                    setTileInfoOnTileContextToolbar();
 
                 }
             } else if (tool === TileEditorToolbar.Tools.rowColumn) {
@@ -3837,12 +3918,12 @@ function setPaletteSlot(paletteSlot) {
 function tileMapSetTileAttributes(attributes) {
 
     if (!isTileMap()) {
-        toast.show('This function only works with a tile map.');
+        toast.show('This function only works with a tile map.', { type: 'WARNING', icon: 'WARNING' });
         return;
     }
 
     if (thereAreNoSelectedTiles()) {
-        toast.show('This function only works when there is one or more tiles selected.');
+        toast.show('This function only works when there are one or more tiles selected.', { type: 'WARNING', icon: 'WARNING' });
         return;
     }
 
@@ -3850,43 +3931,49 @@ function tileMapSetTileAttributes(attributes) {
         return;
     }
 
-    const tileIndexes = getSelectedTileIndexesThatAreNotOutOfBounds();
+    const tileMapIndexes = getSelectedTileIndexesThatAreNotOutOfBounds();
     
-    if (tileIndexes.length === 0) {
+    if (tileMapIndexes.length === 0) {
         return;
     }
 
     addUndoState();
 
-    const updatedTileIds = new Set();
-    for (let tileIndex of tileIndexes) {
+    /** @type {Set<string>} */ const updatedTileIds = new Set();
+    /** @type {Set<number>} */ const updatedTileMapIndexes = new Set();
+    for (let tileMapIndex of tileMapIndexes) {
 
-        const tileMapTile = getTileMap().getTileByIndex(tileIndex);
+        const tileMapTile = getTileMap().getTileByIndex(tileMapIndex);
 
         if (tileMapTile && typeof attributes.horizontalFlip === 'boolean') {
             if (tileMapTile.horizontalFlip !== attributes.horizontalFlip) {
                 tileMapTile.horizontalFlip = attributes.horizontalFlip;
                 updatedTileIds.add(tileMapTile.tileId);
+                updatedTileMapIndexes.add(tileMapIndex);
             }
         }
         if (tileMapTile && typeof attributes.verticalFlip === 'boolean') {
             if (tileMapTile.verticalFlip !== attributes.verticalFlip) {
                 tileMapTile.verticalFlip = attributes.verticalFlip;
                 updatedTileIds.add(tileMapTile.tileId);
+                updatedTileMapIndexes.add(tileMapIndex);
             }
         }
         if (tileMapTile && attributes.toggleHorizontalFlip === true) {
             tileMapTile.horizontalFlip = !tileMapTile.horizontalFlip;
             updatedTileIds.add(tileMapTile.tileId);
+            updatedTileMapIndexes.add(tileMapIndex);
         }
         if (tileMapTile && attributes.toggleVerticalFlip === true) {
             tileMapTile.verticalFlip = !tileMapTile.verticalFlip;
             updatedTileIds.add(tileMapTile.tileId);
+            updatedTileMapIndexes.add(tileMapIndex);
         }
         if (tileMapTile && typeof attributes.priority === 'boolean') {
             if (tileMapTile.priority !== attributes.priority) {
                 tileMapTile.priority = attributes.priority;
                 updatedTileIds.add(tileMapTile.tileId);
+                updatedTileMapIndexes.add(tileMapIndex);
             }
         }
         if (tileMapTile && typeof attributes.palette === 'number') {
@@ -3895,9 +3982,10 @@ function tileMapSetTileAttributes(attributes) {
                     tileMap: getTileMap(),
                     paletteIndex: attributes.palette,
                     tilesPerBlock: getTilesPerBlock(),
-                    tileIndex: tileIndex
+                    tileIndex: tileMapIndex
                 });
                 result.updatedTileIds.forEach((updatedTileId) => updatedTileIds.add(updatedTileId));
+                result.updatedTileMapTileIndexes.forEach((updatedTileMapIndex) => updatedTileMapIndexes.add(updatedTileMapIndex));
             }
         }
         if (tileMapTile && typeof attributes.alwaysKeep === 'boolean') {
@@ -3905,18 +3993,20 @@ function tileMapSetTileAttributes(attributes) {
             if (tileSetTile && tileSetTile.alwaysKeep !== attributes.alwaysKeep) {
                 tileSetTile.alwaysKeep = attributes.alwaysKeep;
                 updatedTileIds.add(tileSetTile.tileId);
+                updatedTileMapIndexes.add(tileMapIndex);
             }
         }
 
     }
 
-    if (updatedTileIds.size > 0) {
+    if (updatedTileIds.size > 0 || updatedTileMapIndexes.size > 0) {
+        // There were changes, save the state and send requests to updated affected tiles and tile map tiles
         state.saveToLocalStorage();
-        const updatedTileIdArray = new Array(...updatedTileIds);
-        updateTilesOnEditors(updatedTileIdArray);
-        selectTileIndiciesIfNotSelected(updatedTileIdArray);
+        updateTilesOnEditors([...updatedTileIds], [...updatedTileMapIndexes]);
+        selectTileIndiciesIfNotSelected([...updatedTileIds]);
+        setTileInfoOnTileContextToolbar();
     } else {
-        // Nothing changed, no reason to keep the undo in memory
+        // No changes, we don't need the undo state that we created
         undoManager.removeLastUndo();
     }
 }
@@ -3991,22 +4081,6 @@ function clearTileStampRegion() {
 }
 
 /**
- * Toggles the selected state of a tile by tile grid index.
- * @param {number|number[]} tileIndexOrIndexes - Tile index within the tile grid provider.
- */
-function toggleTileIndexSelectedState(tileIndexOrIndexes) {
-    const tileIndexes = Array.isArray(tileIndexOrIndexes) ? tileIndexOrIndexes : [ tileIndexOrIndexes ];
-    for (let tileIndex of tileIndexes) {
-        if (instanceState.tileIndicies.includes(tileIndex)) {
-            instanceState.tileIndicies = instanceState.tileIndicies.filter((i) => i !== tileIndex);
-        } else {
-            instanceState.tileIndicies.push(tileIndex);
-            instanceState.tileIndicies.sort();
-        }
-    }
-}
-
-/**
  * Deselected all tiles.
  */
 function clearTileSelection() {
@@ -4047,31 +4121,36 @@ function selectTileIndiciesIfNotSelected(tileIndicies) {
         selectedTileIndicies: instanceState.tileIndicies
     });
 
+    setTileInfoOnTileContextToolbar();
+}
+
+function setTileInfoOnTileContextToolbar() {
     if (isTileSet()) {
-        const tileIndex = getFirstSelectedTileIndexOrNull();
-        if (tileIndex) {
-            const tile = getTileSet().getTileByIndex(tileIndex);
-            tileContextToolbar.setState({
-                tileSetTileAttributes: {
-                    alwaysKeep: tile?.alwaysKeep ?? false
-                }
-            });
-        }
+
+        const tileIndex = (thereIsOnlyASingleSelectedTile()) ? getFirstSelectedTileIndexOrNull() : null;
+        const tile = (tileIndex) ? getTileSet().getTileByIndex(tileIndex) : null;
+        tileContextToolbar.setState({
+            tileSetTileAttributes: {
+                alwaysKeep: tile?.alwaysKeep ?? false
+            }
+        });
+
     } else if (isTileMap()) {
-        const tileIndex = getFirstSelectedTileIndexOrNull();
-        if (tileIndex) {
-            const tileSetTile = getTileMap().getTileByIndex(tileIndex);
-            const tile = getTileSet().getTileById(tileSetTile.tileId);
-            tileContextToolbar.setState({
-                tileMapTileAttributes: {
-                    horizontalFlip: tileSetTile.horizontalFlip,
-                    verticalFlip: tileSetTile.verticalFlip,
-                    priority: tileSetTile.priority,
-                    palette: tileSetTile.palette,
-                    alwaysKeep: tile?.alwaysKeep ?? false
-                }
-            });
-        }
+
+        const tileIndex = (thereIsOnlyASingleSelectedTile()) ? getFirstSelectedTileIndexOrNull() : null;
+        const tileSetTile = (tileIndex) ? getTileMap().getTileByIndex(tileIndex) : null;
+        const tile = (tileIndex) ? getTileSet().getTileById(tileSetTile.tileId) : null;
+        tileContextToolbar.setState({
+            tileMapTileAttributes: {
+                horizontalFlip: tileSetTile?.horizontalFlip ?? false,
+                verticalFlip: tileSetTile?.verticalFlip ?? false,
+                priority: tileSetTile?.priority ?? false,
+                palette: tileSetTile?.palette ?? null,
+                alwaysKeep: tile?.alwaysKeep ?? false
+            },
+            paletteSlot: tileSetTile?.palette ?? null
+        });
+
     }
 }
 
@@ -4133,7 +4212,7 @@ function paletteNew() {
         toast.show('Palette created.');
     } catch (e) {
         undoManager.removeLastUndo();
-        toast.show('Error creating palette.');
+        toast.show('Error creating palette.', { type: 'ERROR', icon: 'ERROR' });
         throw e;
     }
 }
@@ -4160,7 +4239,7 @@ function paletteClone(paletteIndex) {
 
         } catch (e) {
             undoManager.removeLastUndo();
-            toast.show('Error cloning palette.');
+            toast.show('Error cloning palette.', { type: 'ERROR', icon: 'ERROR' });
             throw e;
         }
     }
@@ -4194,7 +4273,7 @@ function paletteDelete(paletteIndex) {
 
         } catch (e) {
             undoManager.removeLastUndo();
-            toast.show('Error removing palette.');
+            toast.show('Error removing palette.', { type: 'ERROR', icon: 'ERROR' });
             throw e;
         }
     }
@@ -4732,12 +4811,12 @@ function addUndoState() {
 function tileSetMirrorAtIndex(mirrorAxis) {
 
     if (!isTileSet()) {
-        toast.show('This function only works with a tile set.');
+        toast.show('This function only works with a tile set.', { type: 'WARNING', icon: 'WARNING' });
         return;
     }
 
-    if (thereAreMoreThenOneSelectedTiles()) {
-        toast.show('This function only works when a one or more tiles are selected.');
+    if (thereAreNoSelectedTiles()) {
+        toast.show('This function only works when a one or more tiles are selected.', { type: 'WARNING', icon: 'WARNING' });
         return;
     }
 
@@ -4751,6 +4830,7 @@ function tileSetMirrorAtIndex(mirrorAxis) {
 
     addUndoState();
 
+    /** @type {Set<string>} */ const updatedTileIds = new Set();
     for (let index of getSelectedTileIndexesThatAreNotOutOfBounds()) {
         const tile = getTileSet().getTile(index);
 
@@ -4764,13 +4844,15 @@ function tileSetMirrorAtIndex(mirrorAxis) {
 
         getTileSet().removeTile(index);
         getTileSet().insertTileAt(mirroredTile, index);
+
+        updatedTileIds.add(tile.tileId);
     }
 
     instanceState.tileIndicies = getSelectedTileIndexesThatAreNotOutOfBounds();
 
     state.saveToLocalStorage();
 
-    updateTilesOnEditors(instanceState.tileIndicies);
+    updateTilesOnEditors([...updatedTileIds]);
 }
 
 /**
@@ -4780,12 +4862,12 @@ function tileSetMirrorAtIndex(mirrorAxis) {
 function tileSetInsertTileAtIndex(position) {
 
     if (!isTileSet()) {
-        toast.show('This function only works with a tile set.');
+        toast.show('This function only works with a tile set.', { type: 'WARNING', icon: 'WARNING' });
         return;
     }
 
-    if (thereAreMoreThenOneSelectedTiles()) {
-        toast.show('This function only works when a single tile is selected.');
+    if (thereAreNoSelectedTiles() || thereAreMoreThenOneSelectedTiles()) {
+        toast.show('This function only works when a single tile is selected.', { type: 'WARNING', icon: 'WARNING' });
         return;
     }
 
@@ -4816,7 +4898,7 @@ function tileSetInsertTileAtIndex(position) {
     // Shift the selected index up one position if we inserted before
     if (position === 'BEFORE') index++;
     // Prevent the index from being greater than the tile set length
-    if (index >= this.getTileSet().length) index = this.getTileSet().length;
+    if (index >= getTileSet().length) index = this.getTileSet().length;
 
     instanceState.tileIndicies = [ index ];
 
@@ -4833,12 +4915,12 @@ function tileSetInsertTileAtIndex(position) {
 function tileSetMoveTile(direction) {
 
     if (!isTileSet()) {
-        toast.show('This function only works with a tile set.');
+        toast.show('This function only works with a tile set.', { type: 'WARNING', icon: 'WARNING' });
         return;
     }
 
-    if (thereAreMoreThenOneSelectedTiles()) {
-        toast.show('This function only works when a single tile is selected.');
+    if (thereAreNoSelectedTiles() || thereAreMoreThenOneSelectedTiles()) {
+        toast.show('This function only works when a single tile is selected.', { type: 'WARNING', icon: 'WARNING' });
         return;
     }
 
@@ -4877,7 +4959,6 @@ function tileSetSwapByIndex(tileAIndex, tileBIndex) {
 
     const lowerIndex = Math.min(tileAIndex, tileBIndex);
     const higherIndex = Math.max(tileAIndex, tileBIndex);
-    // state.setProject(getProject());
 
     const lowerTile = getTileSet().getTile(lowerIndex);
     const higherTile = getTileSet().getTile(higherIndex);
@@ -4891,15 +4972,17 @@ function tileSetSwapByIndex(tileAIndex, tileBIndex) {
     state.saveToLocalStorage();
 
     // Maintain tile index
-    const tileIndex = getFirstSelectedTileIndexOrNull();
-    if (tileIndex === lowerIndex) {
-        tileIndex = higherIndex;
-    } else if (tileIndex === higherIndex) {
-        tileIndex = lowerIndex;
+    let selectedTileIndex = getFirstSelectedTileIndexOrNull();
+    if (selectedTileIndex === tileAIndex) {
+        selectedTileIndex = tileBIndex;
+    } else {
+        selectedTileIndex = tileAIndex;
     }
 
+    instanceState.tileIndicies = [ selectedTileIndex ];
+
     tileEditor.setState({
-        selectedTileIndicies: [tileIndex],
+        selectedTileIndicies: instanceState.tileIndicies,
         tileGrid: getTileGrid(),
         tileSet: getTileSet()
     });
@@ -4912,12 +4995,12 @@ function tileSetSwapByIndex(tileAIndex, tileBIndex) {
 function tileSetCutSelectedTileToClipboard() {
 
     if (!isTileSet()) {
-        toast.show('This function only works with a tile set.');
+        toast.show('This function only works with a tile set.', { type: 'WARNING', icon: 'WARNING' });
         return;
     }
 
-    if (thereAreMoreThenOneSelectedTiles()) {
-        toast.show('This function only works when a single tile is selected.');
+    if (thereAreNoSelectedTiles() || thereAreMoreThenOneSelectedTiles()) {
+        toast.show('This function only works when a single tile is selected.', { type: 'WARNING', icon: 'WARNING' });
         return;
     }
 
@@ -4953,12 +5036,12 @@ function tileSetCutSelectedTileToClipboard() {
 function tileSetCopySelectedTileToClipboard() {
 
     if (!isTileSet()) {
-        toast.show('This function only works with a tile set.');
+        toast.show('This function only works with a tile set.', { type: 'WARNING', icon: 'WARNING' });
         return;
     }
 
-    if (thereAreMoreThenOneSelectedTiles()) {
-        toast.show('This function only works when a single tile is selected.');
+    if (thereAreNoSelectedTiles() || thereAreMoreThenOneSelectedTiles()) {
+        toast.show('This function only works when a single tile is selected.', { type: 'WARNING', icon: 'WARNING' });
         return;
     }
 
@@ -4979,12 +5062,12 @@ function tileSetCopySelectedTileToClipboard() {
 function tileSetPasteTileAtIndex(position) {
 
     if (!isTileSet()) {
-        toast.show('This function only works with a tile set.');
+        toast.show('This function only works with a tile set.', { type: 'WARNING', icon: 'WARNING' });
         return;
     }
 
     if (thereAreMoreThenOneSelectedTiles()) {
-        toast.show('This function only works when a single tile is selected, or no tiles are selected.');
+        toast.show('This function only works when a single tile is selected, or no tiles are selected.', { type: 'WARNING', icon: 'WARNING' });
         return;
     }
 
@@ -4997,7 +5080,7 @@ function tileSetPasteTileAtIndex(position) {
     }
 
     if (!instanceState.tileClipboard) { 
-        toast.show('There was not tile in the clipboard to paste.');
+        toast.show('There was no tile in the clipboard to paste.', { type: 'WARNING', icon: 'WARNING' });
         return;
     }
 
@@ -5005,7 +5088,7 @@ function tileSetPasteTileAtIndex(position) {
 
     const instanceOfClipboardTile = TileFactory.fromHex(instanceState.tileClipboard);
 
-    if (thereIsOneOrMoreSelectedTiles()) {
+    if (thereAreOneOrMoreSelectedTiles()) {
         const index = getFirstSelectedTileIndexOrNull();
         if (position === 'BEFORE') {
             getTileSet().insertTileAt(instanceOfClipboardTile, index);
@@ -5023,7 +5106,7 @@ function tileSetPasteTileAtIndex(position) {
     state.saveToLocalStorage();
 
     // If there was a selected tile then update the selection if we inserted the tile before the index
-    if (thereIsOneOrMoreSelectedTiles() && position === 'BEFORE') {
+    if (thereAreOneOrMoreSelectedTiles() && position === 'BEFORE') {
         const index = getFirstSelectedTileIndexOrNull();
         index++;
         if (index >= getTileSet().length) index = getTileSet().length - 1;
@@ -5045,7 +5128,7 @@ function tileSetPasteTileAtIndex(position) {
 function tileSetCloneByIndex(position) {
 
     if (!isTileSet()) {
-        toast.show('This function only works with a tile set.');
+        toast.show('This function only works with a tile set.', { type: 'WARNING', icon: 'WARNING' });
         return;
     }
 
@@ -5054,7 +5137,7 @@ function tileSetCloneByIndex(position) {
     }
 
     if (thereAreNoSelectedTiles()) {
-        toast.show('This function only works when there is one or more tiles selected.');
+        toast.show('This function only works when there is one or more tiles selected.', { type: 'WARNING', icon: 'WARNING' });
         return;
     }
 
@@ -5101,12 +5184,12 @@ function tileSetCloneByIndex(position) {
 function tileSetRemoveSelectedIndexes() {
 
     if (!isTileSet()) {
-        toast.show('This function only works with a tile set.');
+        toast.show('This function only works with a tile set.', { type: 'WARNING', icon: 'WARNING' });
         return;
     }
 
     if (thereAreNoSelectedTiles()) {
-        toast.show('This function only works when there is one or more tiles selected.');
+        toast.show('This function only works when there is one or more tiles selected.', { type: 'WARNING', icon: 'WARNING' });
         return;
     }
 
@@ -5135,12 +5218,12 @@ function tileSetRemoveSelectedIndexes() {
 function tileSetSetTileAttributes(attributes) {
 
     if (!isTileSet()) {
-        toast.show('This function only works with a tile set.');
+        toast.show('This function only works with a tile set.', { type: 'WARNING', icon: 'WARNING' });
         return;
     }
 
     if (thereAreNoSelectedTiles()) {
-        toast.show('This function only works when there is one or more tiles selected.');
+        toast.show('This function only works when there is one or more tiles selected.', { type: 'WARNING', icon: 'WARNING' });
         return;
     }
 
@@ -5172,9 +5255,9 @@ function tileSetSetTileAttributes(attributes) {
 
     if (updatedTileIds.size > 0) {
         state.saveToLocalStorage();
-        const updatedTileIdArray = new Array(...updatedTileIds);
-        updateTilesOnEditors(updatedTileIdArray);
-        selectTileIndexIfNotSelected(updatedTileIdArray[0]);
+        updateTilesOnEditors([...updatedTileIds]);
+        selectTileIndiciesIfNotSelected(tileIndexes);
+        setTileInfoOnTileContextToolbar();
     } else {
         // Nothing changed, no reason to keep the undo in memory
         undoManager.removeLastUndo();
@@ -5489,7 +5572,7 @@ function tileMapRemove(tileMapId) {
 
     } catch (e) {
         undoManager.removeLastUndo();
-        toast.show('Error removing tile map.')
+        toast.show('Error removing tile map.', { type: 'ERROR', icon: 'ERROR' })
         throw e;
     }
 }
@@ -5574,7 +5657,7 @@ function tileMapMirrorOrFlip(tileMapId, args) {
 
     } catch (e) {
         undoManager.removeLastUndo();
-        toast.show('Error mirroring or flipping tile map.')
+        toast.show('Error mirroring or flipping tile map.', { type: 'ERROR', icon: 'ERROR' })
         throw e;
     }
 
@@ -6003,7 +6086,7 @@ window.addEventListener('load', async () => {
         if (project) {
             getUIState().lastProjectId = projectId;
         } else {
-            toast.show('Project ID from URL not found.');
+            toast.show('Project ID from URL not found.', { type: 'ERROR', icon: 'ERROR' });
         }
     }
 

@@ -52,26 +52,70 @@ export default class Toast extends ComponentBase {
     /**
      * Shows a toast with given content.
      * @param {string} content - Content to display in the toast.
+     * @param {Object} [options] - Options for the alert.
+     * @param {'INFO'|'SUCCESS'|'ERROR'|'WARNING'} [options.type] - Optional, the type of message being conveyed, omit for default.
+     * @param {'INFO'|'SUCCESS'|'ERROR'|'WARNING'} [options.icon] - Optional, icon to display, omit for none.
      */
-    show(content) {
-        this.#createToast(content);
+    show(content, options) {
+        this.#createToast(content, options);
     }
 
 
     /**
-     * @param {string} content 
+     * @param {string} content - Text content for the alert.
+     * @param {Object} [options] - Options for the alert.
+     * @param {'INFO'|'SUCCESS'|'ERROR'|'WARNING'} [options.type] - Optional, the type of message being conveyed, omit for default.
+     * @param {'INFO'|'SUCCESS'|'ERROR'|'WARNING'} [options.icon] - Optional, icon to display, omit for none.
      */
-    #createToast(content) {
+    #createToast(content, options) {
         const toastContainerElm = document.createElement('div');
         toastContainerElm.innerHTML = this.#template.innerHTML;
         const toastElm = toastContainerElm.querySelector('.toast');
         this.#element.appendChild(toastElm);
+        /** @type {HTMLButtonElement} */ 
+        const closeButton = toastElm.querySelector('[data-smsgfx-id=close-button]');
+        const type = options?.type ?? null;
+        const icon = options?.icon ?? null;
 
         const contentElm = toastElm.querySelector('[data-smsgfx-id=content]');
         if (contentElm) {
-            contentElm.innerText = content;
+
+            // Set the icon
+            if (icon === 'INFO') {
+                contentElm.appendChild(createIcon('info-circle-fill'));
+            } else if (icon === 'SUCCESS') {
+                contentElm.appendChild(createIcon('check-circle-fill'));
+            } else if (icon === 'ERROR') {
+                contentElm.appendChild(createIcon('x-circle-fill'));
+            } else if (icon === 'WARNING') {
+                contentElm.appendChild(createIcon('exclamation-triangle-fill'));
+            }
+
+            // Set the content
+            if (typeof content === 'string') {
+                const innerContentElm = document.createElement('p');
+                innerContentElm.classList.add('p-0', 'm-0', 'd-inline-block', 'float-start', 'align-self-center');
+                innerContentElm.innerText = content;
+                contentElm.appendChild(innerContentElm);
+            }
         }
 
+        // Set the style
+        if (type === 'INFO') {
+            toastElm.classList.add('border-0', 'text-bg-info');
+            if (closeButton) closeButton.classList.add('sms-btn-close-dark');
+        } else if (type === 'SUCCESS') {
+            toastElm.classList.add('border-0', 'text-bg-success');
+            if (closeButton) closeButton.classList.add('btn-close-white');
+        } else if (type === 'ERROR') {
+            toastElm.classList.add('border-0', 'text-bg-danger');
+            if (closeButton) closeButton.classList.add('btn-close-white');
+        } else if (type === 'WARNING') {
+            toastElm.classList.add('border-0', 'text-bg-warning');
+            if (closeButton) closeButton.classList.add('sms-btn-close-dark');
+        }
+
+        // Wire up events
         toastElm.addEventListener('shown.bs.toast', () => {
             const args = this.#createArgs(commands.shown);
             args.content = content;
@@ -140,3 +184,14 @@ export default class Toast extends ComponentBase {
  * @property {string} content - Content that was displayed.
  * @exports
  */
+
+
+
+/**
+ * @param {string} iconName 
+ */
+function createIcon(iconName) {
+    const iconElm = document.createElement('i');
+    iconElm.classList.add(`bi`, `bi-${iconName}`, `me-2`, `fs-4`, `float-start`, `align-self-start`);
+    return iconElm;
+}
