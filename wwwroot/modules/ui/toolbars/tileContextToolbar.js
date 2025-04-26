@@ -201,7 +201,7 @@ export default class TileContextToolbar extends ComponentBase {
         }
         if (typeof state?.tileBreakLinks === 'boolean') {
             /** @type {HTMLInputElement?} */
-            const check = this.#element.querySelector(`[data-command=${TileContextToolbar.Commands.tileBreakLinks}]`);
+            const check = this.#element.querySelector(`[data-command=${TileContextToolbar.Commands.tileLinkBreak}]`);
             if (check) check.checked = state.tileBreakLinks;
         }
         if (typeof state?.rowColumnMode !== 'undefined') {
@@ -218,7 +218,7 @@ export default class TileContextToolbar extends ComponentBase {
                 .forEach((select) => select.value = mode);
         }
         if (Array.isArray(state?.toolstripLayout)) {
-            this.#setToolstripLayout(state.toolstripLayout.filter((i) => typeof i === 'string'));
+            this.#setToolstripLayout(state.toolstripLayout);
         }
         if (state.referenceBounds) {
             const b = state.referenceBounds;

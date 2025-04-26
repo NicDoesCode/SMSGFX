@@ -2930,11 +2930,11 @@ function getTileContextToolbarLayout(tool) {
         const layouts = TileContextToolbar.ToolstripLayouts;
         switch (tool) {
             case tools.pencil:
-                return isTileMap() ? layouts.tilePencil : layouts.tileMapPencil;
+                return isTileMap() ? layouts.tileMapPencil : layouts.tilePencil;
             case tools.colourReplace:
-                return isTileMap() ? layouts.tileColourReplace : layouts.tileMapColourReplace;
+                return isTileMap() ? layouts.tileMapColourReplace : layouts.tileColourReplace;
             case tools.bucket:
-                return isTileMap() ? layouts.tileBucket : layouts.tileMapBucket;
+                return isTileMap() ? layouts.tileMapBucket : layouts.tileBucket;
             case tools.eyedropper:
                 return layouts.eyedropper;
             case tools.select:
