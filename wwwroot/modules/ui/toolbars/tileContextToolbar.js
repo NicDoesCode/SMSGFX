@@ -65,9 +65,9 @@ const toolstripLayouts = {
     referenceImage: ['referenceImageLabel', 'referenceImageLoadClear', 'referenceImageRevert', 'referenceImagePosition', 'referenceImageDimensions', 'referenceImageColour'],
     tileMapAddRemove: ['rowColumnLabel', 'rowAddRemove', 'columnAddRemove', 'fillMode'],
     tileMapBreakLink: ['tileLinkBreakLabel', 'tileLinkBreakDescription'],
-    tileStampPattern: ['tileStampLabel', 'tileStempSettings'],
+    tileStampPattern: ['tileStampLabel', 'tileStampSettings'],
     tileMapPalettePaint: ['palettePaintLabel', 'paletteSlot'],
-    tileEyedropper: ['tileEyedropperLabel', 'tileEyedroppedDescription']
+    tileEyedropper: ['tileEyedropperLabel', 'tileEyedropperDescription']
 };
 
 export default class TileContextToolbar extends ComponentBase {
