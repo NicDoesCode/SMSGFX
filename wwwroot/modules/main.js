@@ -1394,7 +1394,10 @@ function handleTileContextToolbarCommand(args) {
         setRowColumnMode(args.rowColumnMode, args.rowColumnFillMode);
     }
     if (args.command === TileContextToolbar.Commands.paletteSlot) {
-        tileMapSetTileAttributes({ palette: args.paletteSlot });
+        if (args.paletteSlot >= 0 && args.paletteSlot < getNumberOfPaletteSlots()) {
+            instanceState.paletteSlot = args.paletteSlot;
+            tileContextToolbar.setState({ paletteSlot: args.paletteSlot });
+        }
     }
     if (args.command === TileContextToolbar.Commands.tileSetTileAttributes) {
         tileSetSetTileAttributes(args.tileSetTileAttributes);
@@ -2706,7 +2709,8 @@ function refreshProjectUI() {
         clampToTile: instanceState.clampToTile,
         tileBreakLinks: instanceState.tileBreakLinks,
         systemType: getProject().systemType,
-        palette: getRenderPalette()
+        palette: getRenderPalette(),
+        paletteSlot: instanceState.paletteSlot
     });
 
     resizeToolboxes();
