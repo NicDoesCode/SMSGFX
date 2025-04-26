@@ -653,6 +653,17 @@ export default class TileEditor extends ComponentBase {
             // Viewing tile map
 
             ev.preventDefault();
+            const fakeMouseEvent = {
+                button: 0,
+                clientX: ev.clientX, 
+                clientY: ev.clientY,
+                target: ev.target,
+                ctrlKey: ev.ctrlKey,
+                shiftKey: ev.shiftKey
+            };
+            this.#handleCanvasMouseDown(fakeMouseEvent);
+            this.#handleCanvasMouseUp(fakeMouseEvent);
+            return false;
 
         } else {
             // Viewing tile set
