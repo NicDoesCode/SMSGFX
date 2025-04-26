@@ -647,24 +647,34 @@ export default class TileEditor extends ComponentBase {
 
     /** @param {MouseEvent} ev */
     #handleCanvasContextMenu(ev) {
-        if (!this.#enabled || canvasState.isTileMap) return;
+        if (!this.#enabled) return;
 
-        const coords = convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
-        if (coords) {
-            // Get the tile index
-            const tile = this.#tileSet.getTileByCoordinate(coords.x, coords.y);
-            const tileIndex = this.#tileSet.getTileIndex(tile);
-
-            /** @type {TileEditorCommandEventArgs} */
-            const tileArgs = {
-                command: commands.selectTile,
-                tileIndex: tileIndex
-            };
-            this.#dispatcher.dispatch(EVENT_OnCommand, tileArgs);
-
-            this.#tileEditorContextMenu.show(ev.clientX, ev.clientY, coords.x, coords.y);
+        if (canvasState.isTileMap) {
+            // Viewing tile map
 
             ev.preventDefault();
+
+        } else {
+            // Viewing tile set
+
+            const coords = convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
+            if (coords) {            
+                // Get the tile index
+                const tile = this.#tileSet.getTileByCoordinate(coords.x, coords.y);
+                const tileIndex = this.#tileSet.getTileIndex(tile);
+    
+                /** @type {TileEditorCommandEventArgs} */
+                const tileArgs = {
+                    command: commands.selectTile,
+                    tileIndex: tileIndex
+                };
+                this.#dispatcher.dispatch(EVENT_OnCommand, tileArgs);
+    
+                this.#tileEditorContextMenu.show(ev.clientX, ev.clientY, coords.x, coords.y);
+    
+                ev.preventDefault();
+            }
+    
         }
         return false;
     }
