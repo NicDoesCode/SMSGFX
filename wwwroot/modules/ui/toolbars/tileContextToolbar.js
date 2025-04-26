@@ -478,7 +478,7 @@ export default class TileContextToolbar extends ComponentBase {
             if (layoutItemElement) {
                 container.appendChild(layoutItemElement);
             } else {
-                console.error(`Can't find tool item: ${layoutItem}`); // TMP 
+                console.error(`Can't find tool item: ${layoutItem}`); 
             }
         });
     }

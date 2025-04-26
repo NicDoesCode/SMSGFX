@@ -2318,6 +2318,10 @@ function setTileIndexSelectedState(tileIndexOrIndexes, selectedState) {
     }
 }
 
+function isTileSelected(tileIndex) {
+    return instanceState.tileIndicies.includes(tileIndex);
+}
+
 function clearSelectedTileIndexes() {
     instanceState.tileIndicies = [];
 }
@@ -3014,7 +3018,6 @@ function uiRefreshProjectLists() {
  * @returns {undefined|{ saveProject: boolean }}
  */
 function takeToolAction(args) {
-
     const tool = args.tool; const colourIndex = args.colourIndex;
     const event = args.event;
     const imageX = args.imageX; const imageY = args.imageY;
@@ -3037,8 +3040,13 @@ function takeToolAction(args) {
                     toggleTileIndexSelectedState(tileInfo.tileIndex);
                 } else {
                     // Neither just means to select the one tile
-                    clearSelectedTileIndexes();
-                    setTileIndexSelectedState(tileInfo.tileIndex, 'SELECTED');
+                    if (isTileSelected(tileInfo.tileIndex)) {
+                        clearSelectedTileIndexes();
+                        setTileIndexSelectedState(tileInfo.tileIndex, 'UNSELECTED');
+                    } else {
+                        clearSelectedTileIndexes();
+                        setTileIndexSelectedState(tileInfo.tileIndex, 'SELECTED');
+                    }
                 }
                 tileSetTileSelectById(tileInfo.tileId);
 
@@ -3176,30 +3184,49 @@ function takeToolAction(args) {
             /** @type {number[]} */
             let updatedTileMapTileIndexes = [];
 
-            if (tool === TileEditorToolbar.Tools.tileMapTileAttributes && args.isInBounds) {
+            if (tool === TileEditorToolbar.Tools.tileMapTileAttributes) {
                 if (event === TileEditor.Events.pixelMouseDown) {
 
-                    const tileInfo = getTileGrid().getTileInfoByPixel(imageX, imageY);
-                    if (args.controlKey && args.shiftKey) {
-                        // Ctrl + Shift = Unselect
-                        setTileIndexSelectedState(tileInfo.tileIndex, 'UNSELECTED');
-                    } else if (args.shiftKey) {
-                        // Shift = ensure it is selected
-                        setTileIndexSelectedState(tileInfo.tileIndex, 'SELECTED');
-                    } else if (args.controlKey) {
-                        // Ctrl = toggle selection state
-                        toggleTileIndexSelectedState(tileInfo.tileIndex);
-                    } else {
-                        // Neither just means to select the one tile
-                        clearSelectedTileIndexes();
-                        setTileIndexSelectedState(tileInfo.tileIndex, 'SELECTED');
-                    }
-    
-                    instanceState.lastTileMapPx.x = -1;
-                    instanceState.lastTileMapPx.y = -1;
+                    if (args.isInBounds) {
 
-                    tileEditor.setState({ selectedTileIndicies: instanceState.tileIndicies });
-                    setTileInfoOnTileContextToolbar();
+                        const tileInfo = getTileGrid().getTileInfoByPixel(imageX, imageY);
+                        if (args.controlKey && args.shiftKey) {
+                            // Ctrl + Shift = Unselect
+                            setTileIndexSelectedState(tileInfo.tileIndex, 'UNSELECTED');
+                        } else if (args.shiftKey) {
+                            // Shift = ensure it is selected
+                            setTileIndexSelectedState(tileInfo.tileIndex, 'SELECTED');
+                        } else if (args.controlKey) {
+                            // Ctrl = toggle selection state
+                            toggleTileIndexSelectedState(tileInfo.tileIndex);
+                        } else {
+                            // Neither just means to select the one tile
+                            if (isTileSelected(tileInfo.tileIndex)) {
+                                clearSelectedTileIndexes();
+                                setTileIndexSelectedState(tileInfo.tileIndex, 'UNSELECTED');
+                            } else {
+                                clearSelectedTileIndexes();
+                                setTileIndexSelectedState(tileInfo.tileIndex, 'SELECTED');
+                            }
+                        }
+        
+                        instanceState.lastTileMapPx.x = -1;
+                        instanceState.lastTileMapPx.y = -1;
+    
+                        tileEditor.setState({ selectedTileIndicies: instanceState.tileIndicies });
+                        setTileInfoOnTileContextToolbar();
+    
+                    } else {
+
+                        clearSelectedTileIndexes();
+        
+                        instanceState.lastTileMapPx.x = -1;
+                        instanceState.lastTileMapPx.y = -1;
+    
+                        tileEditor.setState({ selectedTileIndicies: instanceState.tileIndicies });
+                        setTileInfoOnTileContextToolbar();
+
+                    }
 
                 }
             } else if (tool === TileEditorToolbar.Tools.rowColumn) {
