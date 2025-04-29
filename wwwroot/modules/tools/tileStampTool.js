@@ -37,8 +37,10 @@ export default class TileStampTool {
 
         for (let stampRow = 0; stampRow < args.stampTileMap.rowCount; stampRow++) {
             const row = args.tileRow + stampRow;
+            if (row < 0 || row >= args.tileMap.rowCount) continue;
             for (let stampCol = 0; stampCol < args.stampTileMap.columnCount; stampCol++) {
                 const col = args.tileCol + stampCol;
+                if (col < 0 || col >= args.tileMap.columnCount) continue;
                 const tileInfo = args.tileMap.getTileInfoByRowAndColumn(row, col);
                 const stampTile = args.stampTileMap.getTileByRowAndColumn(stampRow, stampCol);
                 if (tileInfo && stampTile) {

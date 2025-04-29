@@ -1266,7 +1266,8 @@ function handlePaletteEditorOnCommand(args) {
             break;
 
         case PaletteEditor.Commands.colourIndexChange:
-            changeSelectedColourIndex(args.colourIndex);
+            const secondary = args.ctrlKey && args.shiftKey;
+            changeSelectedColourIndex(args.colourIndex, { secondary });
             break;
 
         case PaletteEditor.Commands.colourIndexEdit:
@@ -1394,7 +1395,10 @@ function handleTileContextToolbarCommand(args) {
         setRowColumnMode(args.rowColumnMode, args.rowColumnFillMode);
     }
     if (args.command === TileContextToolbar.Commands.paletteSlot) {
-        tileMapSetTileAttributes({ palette: args.paletteSlot });
+        if (args.paletteSlot >= 0 && args.paletteSlot < getNumberOfPaletteSlots()) {
+            instanceState.paletteSlot = args.paletteSlot;
+            tileContextToolbar.setState({ paletteSlot: args.paletteSlot });
+        }
     }
     if (args.command === TileContextToolbar.Commands.tileSetTileAttributes) {
         tileSetSetTileAttributes(args.tileSetTileAttributes);
@@ -2315,6 +2319,10 @@ function setTileIndexSelectedState(tileIndexOrIndexes, selectedState) {
     }
 }
 
+function isTileSelected(tileIndex) {
+    return instanceState.tileIndicies.includes(tileIndex);
+}
+
 function clearSelectedTileIndexes() {
     instanceState.tileIndicies = [];
 }
@@ -2706,7 +2714,8 @@ function refreshProjectUI() {
         clampToTile: instanceState.clampToTile,
         tileBreakLinks: instanceState.tileBreakLinks,
         systemType: getProject().systemType,
-        palette: getRenderPalette()
+        palette: getRenderPalette(),
+        paletteSlot: instanceState.paletteSlot
     });
 
     resizeToolboxes();
@@ -2922,11 +2931,11 @@ function getTileContextToolbarLayout(tool) {
         const layouts = TileContextToolbar.ToolstripLayouts;
         switch (tool) {
             case tools.pencil:
-                return isTileMap() ? layouts.tilePencil : layouts.tileMapPencil;
+                return isTileMap() ? layouts.tileMapPencil : layouts.tilePencil;
             case tools.colourReplace:
-                return isTileMap() ? layouts.tileColourReplace : layouts.tileMapColourReplace;
+                return isTileMap() ? layouts.tileMapColourReplace : layouts.tileColourReplace;
             case tools.bucket:
-                return isTileMap() ? layouts.tileBucket : layouts.tileMapBucket;
+                return isTileMap() ? layouts.tileMapBucket : layouts.tileBucket;
             case tools.eyedropper:
                 return layouts.eyedropper;
             case tools.select:
@@ -3010,7 +3019,6 @@ function uiRefreshProjectLists() {
  * @returns {undefined|{ saveProject: boolean }}
  */
 function takeToolAction(args) {
-
     const tool = args.tool; const colourIndex = args.colourIndex;
     const event = args.event;
     const imageX = args.imageX; const imageY = args.imageY;
@@ -3033,8 +3041,13 @@ function takeToolAction(args) {
                     toggleTileIndexSelectedState(tileInfo.tileIndex);
                 } else {
                     // Neither just means to select the one tile
-                    clearSelectedTileIndexes();
-                    setTileIndexSelectedState(tileInfo.tileIndex, 'SELECTED');
+                    if (isTileSelected(tileInfo.tileIndex)) {
+                        clearSelectedTileIndexes();
+                        setTileIndexSelectedState(tileInfo.tileIndex, 'UNSELECTED');
+                    } else {
+                        clearSelectedTileIndexes();
+                        setTileIndexSelectedState(tileInfo.tileIndex, 'SELECTED');
+                    }
                 }
                 tileSetTileSelectById(tileInfo.tileId);
 
@@ -3065,7 +3078,7 @@ function takeToolAction(args) {
 
                     const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
                     const clamp = instanceState.clampToTile;
-                    if (!clamp || (clamp && tileIndex === instanceState.operationTileIndex)) {
+                    if ((!clamp || (clamp && tileIndex === instanceState.operationTileIndex)) && args.isInBounds) {
 
                         addUndoState();
                         if (!instanceState.undoDisabled) {
@@ -3172,30 +3185,49 @@ function takeToolAction(args) {
             /** @type {number[]} */
             let updatedTileMapTileIndexes = [];
 
-            if (tool === TileEditorToolbar.Tools.tileMapTileAttributes && args.isInBounds) {
+            if (tool === TileEditorToolbar.Tools.tileMapTileAttributes) {
                 if (event === TileEditor.Events.pixelMouseDown) {
 
-                    const tileInfo = getTileGrid().getTileInfoByPixel(imageX, imageY);
-                    if (args.controlKey && args.shiftKey) {
-                        // Ctrl + Shift = Unselect
-                        setTileIndexSelectedState(tileInfo.tileIndex, 'UNSELECTED');
-                    } else if (args.shiftKey) {
-                        // Shift = ensure it is selected
-                        setTileIndexSelectedState(tileInfo.tileIndex, 'SELECTED');
-                    } else if (args.controlKey) {
-                        // Ctrl = toggle selection state
-                        toggleTileIndexSelectedState(tileInfo.tileIndex);
-                    } else {
-                        // Neither just means to select the one tile
-                        clearSelectedTileIndexes();
-                        setTileIndexSelectedState(tileInfo.tileIndex, 'SELECTED');
-                    }
-    
-                    instanceState.lastTileMapPx.x = -1;
-                    instanceState.lastTileMapPx.y = -1;
+                    if (args.isInBounds) {
 
-                    tileEditor.setState({ selectedTileIndicies: instanceState.tileIndicies });
-                    setTileInfoOnTileContextToolbar();
+                        const tileInfo = getTileGrid().getTileInfoByPixel(imageX, imageY);
+                        if (args.controlKey && args.shiftKey) {
+                            // Ctrl + Shift = Unselect
+                            setTileIndexSelectedState(tileInfo.tileIndex, 'UNSELECTED');
+                        } else if (args.shiftKey) {
+                            // Shift = ensure it is selected
+                            setTileIndexSelectedState(tileInfo.tileIndex, 'SELECTED');
+                        } else if (args.controlKey) {
+                            // Ctrl = toggle selection state
+                            toggleTileIndexSelectedState(tileInfo.tileIndex);
+                        } else {
+                            // Neither just means to select the one tile
+                            if (isTileSelected(tileInfo.tileIndex)) {
+                                clearSelectedTileIndexes();
+                                setTileIndexSelectedState(tileInfo.tileIndex, 'UNSELECTED');
+                            } else {
+                                clearSelectedTileIndexes();
+                                setTileIndexSelectedState(tileInfo.tileIndex, 'SELECTED');
+                            }
+                        }
+        
+                        instanceState.lastTileMapPx.x = -1;
+                        instanceState.lastTileMapPx.y = -1;
+    
+                        tileEditor.setState({ selectedTileIndicies: instanceState.tileIndicies });
+                        setTileInfoOnTileContextToolbar();
+    
+                    } else {
+
+                        clearSelectedTileIndexes();
+        
+                        instanceState.lastTileMapPx.x = -1;
+                        instanceState.lastTileMapPx.y = -1;
+    
+                        tileEditor.setState({ selectedTileIndicies: instanceState.tileIndicies });
+                        setTileInfoOnTileContextToolbar();
+
+                    }
 
                 }
             } else if (tool === TileEditorToolbar.Tools.rowColumn) {
@@ -4429,21 +4461,37 @@ function updateTileEditorGridColours() {
     });
 }
 
-function changeSelectedColourIndex(colourIndex) {
+/**
+ * Change the colour index.
+ * @param {number} colourIndex - Index of the colour to change to.
+ * @param {Object} args - Arguments.
+ * @param {boolean} args.secondary - Should the secondary index be used?
+ */
+function changeSelectedColourIndex(colourIndex, { secondary }) {
     if (colourIndex >= 0 && colourIndex < 16) {
-        paletteEditor.setState({
-            selectedColourIndex: colourIndex
-        });
-        tileContextToolbar.setState({
-            colourIndex: colourIndex
-        });
-        instanceState.colourIndex = colourIndex;
-        const colour = getPalette().getColour(instanceState.colourIndex);
-        colourPickerToolbox.setState({
-            r: colour.r,
-            g: colour.g,
-            b: colour.b
-        });
+        if (!secondary) {
+            // Primary colour
+            paletteEditor.setState({
+                selectedColourIndex: colourIndex
+            });
+            tileContextToolbar.setState({
+                colourIndex: colourIndex
+            });
+            instanceState.colourIndex = colourIndex;
+
+            const colour = getPalette().getColour(instanceState.colourIndex);
+            colourPickerToolbox.setState({
+                r: colour.r,
+                g: colour.g,
+                b: colour.b
+            });
+        } else {
+            // Secondary colour
+            tileContextToolbar.setState({
+                secondaryColourIndex: colourIndex
+            });
+            instanceState.secondaryColourIndex = colourIndex;
+        }
     }
 }
 
@@ -5873,6 +5921,13 @@ function paletteSelectByIndex(index) {
     }
     tileContextToolbar.setState({
         palette: getRenderPalette()
+    });
+
+    const colour = getPalette().getColour(instanceState.colourIndex);
+    colourPickerToolbox.setState({
+        r: colour.r,
+        g: colour.g,
+        b: colour.b
     });
 }
 

@@ -28,21 +28,24 @@ export default class ImageUtil {
             canvas.width = pattern.width * zoom;
             canvas.height = pattern.height * zoom;
             const ctx = canvas.getContext('2d');
+
+            if (palette !== null) {
     
-            const primaryColour = palette.getColourByIndex(primaryColourIndex);
-            const secondaryColour = palette.getColourByIndex(secondaryColourIndex);
-    
-            const primaryColourHex = ColourUtil.toHex(primaryColour.r, primaryColour.g, primaryColour.b);
-            const secondaryColourHex = ColourUtil.toHex(secondaryColour.r, secondaryColour.g, secondaryColour.b);
-    
-            for (let y = 0; y < pattern.height; y++) {
-                for (let x = 0; x < pattern.width; x++) {
-                    const patternValue = pattern.pattern[y][x];
-                    if (patternValue !== 0) {
-                        ctx.fillStyle = (patternValue == 1) ? primaryColourHex : secondaryColourHex;
-                        ctx.fillRect(x * zoom, y * zoom, zoom, zoom);
+                const primaryColour = palette.getColourByIndex(primaryColourIndex);
+                const secondaryColour = palette.getColourByIndex(secondaryColourIndex);
+        
+                const primaryColourHex = ColourUtil.toHex(primaryColour.r, primaryColour.g, primaryColour.b);
+                const secondaryColourHex = ColourUtil.toHex(secondaryColour.r, secondaryColour.g, secondaryColour.b);
+        
+                for (let y = 0; y < pattern.height; y++) {
+                    for (let x = 0; x < pattern.width; x++) {
+                        const patternValue = pattern.pattern[y][x];
+                        if (patternValue !== 0) {
+                            ctx.fillStyle = (patternValue == 1) ? primaryColourHex : secondaryColourHex;
+                            ctx.fillRect(x * zoom, y * zoom, zoom, zoom);
+                        }
                     }
-                }
+                }    
             }
 
             resolve(canvas);

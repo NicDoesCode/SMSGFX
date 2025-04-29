@@ -40,6 +40,8 @@ const toolstrips = {
     select: 'select',
     pencil: 'pencil',
     tileMapPencil: 'tileMapPencil',
+    tileBucket: 'tileBucket',
+    tileMapBucket: 'tileMapBucket',
     referenceImage: 'referenceImage',
     rowColumn: 'rowColumn',
     palettePaint: 'palettePaint',
@@ -57,15 +59,15 @@ const toolstripLayouts = {
     tileMapPencil: ['colourIndex', 'brushSize', 'patternSelect', 'fixedOrigin', 'tileClamp', 'breakLinks'],
     tileColourReplace: ['colourIndex', 'brushSize', 'patternSelect', 'fixedOrigin', 'tileClamp'],
     tileMapColourReplace: ['colourIndex', 'brushSize', 'patternSelect', 'fixedOrigin', 'tileClamp', 'breakLinks'],
-    tileBucket: ['tileClamp'],
-    tileMapBucket: ['tileClamp', 'breakLinks'],
+    tileBucket: ['colourIndex', 'tileClamp'],
+    tileMapBucket: ['colourIndex', 'tileClamp', 'breakLinks'],
     eyedropper: ['colourIndex', 'eyedropperDescription'],
     referenceImage: ['referenceImageLabel', 'referenceImageLoadClear', 'referenceImageRevert', 'referenceImagePosition', 'referenceImageDimensions', 'referenceImageColour'],
     tileMapAddRemove: ['rowColumnLabel', 'rowAddRemove', 'columnAddRemove', 'fillMode'],
     tileMapBreakLink: ['tileLinkBreakLabel', 'tileLinkBreakDescription'],
-    tileStampPattern: ['tileStampLabel', 'tileStempSettings'],
+    tileStampPattern: ['tileStampLabel', 'tileStampSettings'],
     tileMapPalettePaint: ['palettePaintLabel', 'paletteSlot'],
-    tileEyedropper: ['tileEyedropperLabel', 'tileEyedroppedDescription']
+    tileEyedropper: ['tileEyedropperLabel', 'tileEyedropperDescription']
 };
 
 export default class TileContextToolbar extends ComponentBase {
@@ -199,7 +201,7 @@ export default class TileContextToolbar extends ComponentBase {
         }
         if (typeof state?.tileBreakLinks === 'boolean') {
             /** @type {HTMLInputElement?} */
-            const check = this.#element.querySelector(`[data-command=${TileContextToolbar.Commands.tileBreakLinks}]`);
+            const check = this.#element.querySelector(`[data-command=${TileContextToolbar.Commands.tileLinkBreak}]`);
             if (check) check.checked = state.tileBreakLinks;
         }
         if (typeof state?.rowColumnMode !== 'undefined') {
@@ -216,7 +218,7 @@ export default class TileContextToolbar extends ComponentBase {
                 .forEach((select) => select.value = mode);
         }
         if (Array.isArray(state?.toolstripLayout)) {
-            this.#setToolstripLayout(state.toolstripLayout.filter((i) => typeof i === 'string'));
+            this.#setToolstripLayout(state.toolstripLayout);
         }
         if (state.referenceBounds) {
             const b = state.referenceBounds;
@@ -476,7 +478,7 @@ export default class TileContextToolbar extends ComponentBase {
             if (layoutItemElement) {
                 container.appendChild(layoutItemElement);
             } else {
-                console.error(`Can't find tool item: ${layoutItem}`); // TMP 
+                console.error(`Can't find tool item: ${layoutItem}`); 
             }
         });
     }
