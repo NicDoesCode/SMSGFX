@@ -1266,7 +1266,8 @@ function handlePaletteEditorOnCommand(args) {
             break;
 
         case PaletteEditor.Commands.colourIndexChange:
-            changeSelectedColourIndex(args.colourIndex);
+            const secondary = args.ctrlKey && args.shiftKey;
+            changeSelectedColourIndex(args.colourIndex, { secondary });
             break;
 
         case PaletteEditor.Commands.colourIndexEdit:
@@ -4460,21 +4461,37 @@ function updateTileEditorGridColours() {
     });
 }
 
-function changeSelectedColourIndex(colourIndex) {
+/**
+ * Change the colour index.
+ * @param {number} colourIndex - Index of the colour to change to.
+ * @param {Object} args - Arguments.
+ * @param {boolean} args.secondary - Should the secondary index be used?
+ */
+function changeSelectedColourIndex(colourIndex, { secondary }) {
     if (colourIndex >= 0 && colourIndex < 16) {
-        paletteEditor.setState({
-            selectedColourIndex: colourIndex
-        });
-        tileContextToolbar.setState({
-            colourIndex: colourIndex
-        });
-        instanceState.colourIndex = colourIndex;
-        const colour = getPalette().getColour(instanceState.colourIndex);
-        colourPickerToolbox.setState({
-            r: colour.r,
-            g: colour.g,
-            b: colour.b
-        });
+        if (!secondary) {
+            // Primary colour
+            paletteEditor.setState({
+                selectedColourIndex: colourIndex
+            });
+            tileContextToolbar.setState({
+                colourIndex: colourIndex
+            });
+            instanceState.colourIndex = colourIndex;
+
+            const colour = getPalette().getColour(instanceState.colourIndex);
+            colourPickerToolbox.setState({
+                r: colour.r,
+                g: colour.g,
+                b: colour.b
+            });
+        } else {
+            // Secondary colour
+            tileContextToolbar.setState({
+                secondaryColourIndex: colourIndex
+            });
+            instanceState.secondaryColourIndex = colourIndex;
+        }
     }
 }
 
@@ -5904,6 +5921,13 @@ function paletteSelectByIndex(index) {
     }
     tileContextToolbar.setState({
         palette: getRenderPalette()
+    });
+
+    const colour = getPalette().getColour(instanceState.colourIndex);
+    colourPickerToolbox.setState({
+        r: colour.r,
+        g: colour.g,
+        b: colour.b
     });
 }
 
