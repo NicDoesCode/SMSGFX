@@ -3088,7 +3088,9 @@ function takeToolAction(args) {
                         if (event === TileEditor.Events.pixelMouseDown) {
                             const tileInfo = getTileGrid().getTileInfoByPixel(imageX, imageY);
                             const tile = getTileSet().getTileById(tileInfo.tileId);
-                            const colour = tile.readAtCoord(imageX % 8, imageY % 8);
+                            const tileX = tileInfo.horizontalFlip ? 7 - imageX % 8 : imageX % 8;
+                            const tileY = tileInfo.verticalFlip ? 7 - imageY % 8 : imageY % 8;
+                            const colour = tile.readAtCoord(tileX, tileY);
                             instanceState.startingColourIndex = colour;
                             instanceState.patternOriginX = (instanceState.patternFixedOrigin) ? 0 : imageX;
                             instanceState.patternOriginY = (instanceState.patternFixedOrigin) ? 0 : imageY;
