@@ -3077,7 +3077,7 @@ function takeToolAction(args) {
 
                     const tileIndex = getTileGrid().getTileIndexByCoordinate(imageX, imageY);
                     const clamp = instanceState.clampToTile;
-                    if (!clamp || (clamp && tileIndex === instanceState.operationTileIndex)) {
+                    if ((!clamp || (clamp && tileIndex === instanceState.operationTileIndex)) && args.isInBounds) {
 
                         addUndoState();
                         if (!instanceState.undoDisabled) {
