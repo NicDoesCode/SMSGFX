@@ -248,11 +248,11 @@ function createOptimisedTileMapsAndTileSet(tileMaps, tileSet, capabilities) {
                 const hex = TileUtil.toHex(tile);
                 usedTiles[hex] = { tileId: tileMapTile.tileId, horizontalFlip: false, verticalFlip: false };
                 const hexHV = (capability.horizontalFlip && capability.verticalFlip) ? TileUtil.toHex(TileUtil.createHorizontallyMirroredClone(TileUtil.createVerticallyMirroredClone(tile))) : null;
-                if (!usedTiles[hexHV] && capability.horizontalFlip && capability.verticalFlip) usedTiles[hexHV] = { tileId: tileMapTile.tileId, hFlip: true, vFlip: true };
+                if (!usedTiles[hexHV] && capability.horizontalFlip && capability.verticalFlip) usedTiles[hexHV] = { tileId: tileMapTile.tileId, horizontalFlip: true, verticalFlip: true };
                 const hexH = (capability.horizontalFlip) ? TileUtil.toHex(TileUtil.createHorizontallyMirroredClone(tile)) : null;
-                if (!usedTiles[hexH] && capability.horizontalFlip) usedTiles[hexH] = { tileId: tileMapTile.tileId, hFlip: true, vFlip: false };
+                if (!usedTiles[hexH] && capability.horizontalFlip) usedTiles[hexH] = { tileId: tileMapTile.tileId, horizontalFlip: true, verticalFlip: false };
                 const hexV = (capability.verticalFlip) ? TileUtil.toHex(TileUtil.createVerticallyMirroredClone(tile)) : null;
-                if (!usedTiles[hexV] && capability.verticalFlip) usedTiles[hexV] = { tileId: tileMapTile.tileId, hFlip: false, vFlip: true };
+                if (!usedTiles[hexV] && capability.verticalFlip) usedTiles[hexV] = { tileId: tileMapTile.tileId, horizontalFlip: false, verticalFlip: true };
             }
 
         });

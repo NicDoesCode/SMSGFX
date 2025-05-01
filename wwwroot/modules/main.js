@@ -3028,47 +3028,49 @@ function takeToolAction(args) {
 
         if (tool === TileEditorToolbar.Tools.select) {
             if (event === TileEditor.Events.pixelMouseDown) {
+                if (args.isInBounds) {
 
-                const tileInfo = getTileGrid().getTileInfoByPixel(imageX, imageY);
-                if (args.controlKey && args.shiftKey) {
-                    // Ctrl + Shift = Unselect
-                    setTileIndexSelectedState(tileInfo.tileIndex, 'UNSELECTED');
-                } else if (args.shiftKey) {
-                    // Shift = ensure it is selected
-                    setTileIndexSelectedState(tileInfo.tileIndex, 'SELECTED');
-                } else if (args.controlKey) {
-                    // Ctrl = toggle selection state
-                    toggleTileIndexSelectedState(tileInfo.tileIndex);
-                } else {
-                    // Neither just means to select the one tile
-                    if (isTileSelected(tileInfo.tileIndex)) {
-                        clearSelectedTileIndexes();
+                    const tileInfo = getTileGrid().getTileInfoByPixel(imageX, imageY);
+                    if (args.controlKey && args.shiftKey) {
+                        // Ctrl + Shift = Unselect
                         setTileIndexSelectedState(tileInfo.tileIndex, 'UNSELECTED');
-                    } else {
-                        clearSelectedTileIndexes();
+                    } else if (args.shiftKey) {
+                        // Shift = ensure it is selected
                         setTileIndexSelectedState(tileInfo.tileIndex, 'SELECTED');
+                    } else if (args.controlKey) {
+                        // Ctrl = toggle selection state
+                        toggleTileIndexSelectedState(tileInfo.tileIndex);
+                    } else {
+                        // Neither just means to select the one tile
+                        if (isTileSelected(tileInfo.tileIndex)) {
+                            clearSelectedTileIndexes();
+                            setTileIndexSelectedState(tileInfo.tileIndex, 'UNSELECTED');
+                        } else {
+                            clearSelectedTileIndexes();
+                            setTileIndexSelectedState(tileInfo.tileIndex, 'SELECTED');
+                        }
                     }
+                    tileSetTileSelectById(tileInfo.tileId);
+
+                    instanceState.lastTileMapPx.x = -1;
+                    instanceState.lastTileMapPx.y = -1;
+
+                    tileEditor.setState({ selectedTileIndicies: instanceState.tileIndicies });
+
+                    // Set up toolbars
+                    setTileInfoOnTileContextToolbar();
+                    if (thereIsOnlyASingleSelectedTile()) {
+                        tileContextToolbar.setState(
+                            { disabledCommands: [] }
+                        );
+                    } else {
+                        const coms = TileContextToolbar.Commands;
+                        tileContextToolbar.setState(
+                            { disabledCommands: [coms.cut, coms.copy, coms.paste, coms.moveLeft, coms.moveRight, coms.insertBefore, coms.insertAfter, coms.tileSetTileAttributes] }
+                        );
+                    }
+
                 }
-                tileSetTileSelectById(tileInfo.tileId);
-
-                instanceState.lastTileMapPx.x = -1;
-                instanceState.lastTileMapPx.y = -1;
-
-                tileEditor.setState({ selectedTileIndicies: instanceState.tileIndicies });
-
-                // Set up toolbars
-                setTileInfoOnTileContextToolbar();
-                if (thereIsOnlyASingleSelectedTile()) {
-                    tileContextToolbar.setState(
-                        { disabledCommands: [] }
-                    );
-                } else {
-                    const coms = TileContextToolbar.Commands;
-                    tileContextToolbar.setState(
-                        { disabledCommands: [ coms.cut, coms.copy, coms.paste, coms.moveLeft, coms.moveRight, coms.insertBefore, coms.insertAfter, coms.tileSetTileAttributes ] }
-                    );
-                }
-
             }
         } else if ((tool === TileEditorToolbar.Tools.pencil || tool === TileEditorToolbar.Tools.colourReplace) && args.isInForgovingBounds) {
             if (event === TileEditor.Events.pixelMouseDown || event === TileEditor.Events.pixelMouseOver) {
@@ -3088,7 +3090,9 @@ function takeToolAction(args) {
                         if (event === TileEditor.Events.pixelMouseDown) {
                             const tileInfo = getTileGrid().getTileInfoByPixel(imageX, imageY);
                             const tile = getTileSet().getTileById(tileInfo.tileId);
-                            const colour = tile.readAtCoord(imageX % 8, imageY % 8);
+                            const tileX = tileInfo.horizontalFlip ? 7 - imageX % 8 : imageX % 8;
+                            const tileY = tileInfo.verticalFlip ? 7 - imageY % 8 : imageY % 8;
+                            const colour = tile.readAtCoord(tileX, tileY);
                             instanceState.startingColourIndex = colour;
                             instanceState.patternOriginX = (instanceState.patternFixedOrigin) ? 0 : imageX;
                             instanceState.patternOriginY = (instanceState.patternFixedOrigin) ? 0 : imageY;
