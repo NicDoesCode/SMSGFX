@@ -1486,7 +1486,7 @@ export default class CanvasManager {
             originX: x + (tileSizePx * columnIndex),
             originY: y,
             widthPx: columnWidth * tileSizePx,
-            heightPx: this.tileGrid.columnCount * tileSizePx
+            heightPx: this.tileGrid.rowCount * tileSizePx
         });
     }
 
