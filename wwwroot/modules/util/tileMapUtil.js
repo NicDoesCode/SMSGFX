@@ -150,6 +150,38 @@ export default class TileMapUtil {
         }
     }
 
+    /**
+     * Checks and repairs a tile map. Mutates the original tile map list.
+     * @param {TileMap[]|TileMapList} tileMapsOrTileMapList - Array or list of tile maps to check and repair.
+     * @param {string} systemType - System type (either 'smsgg', 'gb' or 'nes').
+     */
+    static checkAndRepairTileMaps(tileMapsOrTileMapList, systemType) {
+        const tileMapArray = Array.isArray(tileMapsOrTileMapList) ? tileMapsOrTileMapList : tileMapsOrTileMapList.getTileMaps();
+        tileMapArray.forEach((tileMap) => {
+            TileMapUtil.checkAndRepairTileMap(tileMap, systemType);
+        });
+    }
+
+    /**
+     * Checks and repairs a tile map. Mutates the original tile map.
+     * @param {TileMap} tileMap - Tile map to check and repair.
+     * @param {string} systemType - System type (either 'smsgg', 'gb' or 'nes').
+     */
+    static checkAndRepairTileMap(tileMap, systemType) {
+        const systemCapabilities = SystemUtil.getGraphicsCapabilities(systemType);
+        tileMap.getTiles().forEach((tileMapTile) => {
+            if (tileMap.isSprite) {
+                if (tileMapTile.palette >= systemCapabilities.sprite.totalPaletteSlots) {
+                    tileMapTile.palette = 0;
+                }
+            } else {
+                if (tileMapTile.palette >= systemCapabilities.background.totalPaletteSlots) {
+                    tileMapTile.palette = 0;
+                }
+            }
+        });
+    }
+
 
 }
 
