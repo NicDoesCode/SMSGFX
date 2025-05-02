@@ -150,6 +150,38 @@ export default class TileMapUtil {
         }
     }
 
+    /**
+     * Checks and repairs a tile map. Mutates the original tile map list.
+     * @param {TileMap[]|TileMapList} tileMapsOrTileMapList - Array or list of tile maps to check and repair.
+     * @param {string} systemType - System type (either 'smsgg', 'gb' or 'nes').
+     */
+    static checkAndRepairTileMaps(tileMapsOrTileMapList, systemType) {
+        const tileMapArray = Array.isArray(tileMapsOrTileMapList) ? tileMapsOrTileMapList : tileMapsOrTileMapList.getTileMaps();
+        tileMapArray.forEach((tileMap) => {
+            TileMapUtil.checkAndRepairTileMap(tileMap, systemType);
+        });
+    }
+
+    /**
+     * Checks and repairs a tile map. Mutates the original tile map.
+     * @param {TileMap} tileMap - Tile map to check and repair.
+     * @param {string} systemType - System type (either 'smsgg', 'gb' or 'nes').
+     */
+    static checkAndRepairTileMap(tileMap, systemType) {
+        const systemCapabilities = SystemUtil.getGraphicsCapabilities(systemType);
+        tileMap.getTiles().forEach((tileMapTile) => {
+            if (tileMap.isSprite) {
+                if (tileMapTile.palette >= systemCapabilities.sprite.totalPaletteSlots) {
+                    tileMapTile.palette = 0;
+                }
+            } else {
+                if (tileMapTile.palette >= systemCapabilities.background.totalPaletteSlots) {
+                    tileMapTile.palette = 0;
+                }
+            }
+        });
+    }
+
 
 }
 
@@ -248,11 +280,11 @@ function createOptimisedTileMapsAndTileSet(tileMaps, tileSet, capabilities) {
                 const hex = TileUtil.toHex(tile);
                 usedTiles[hex] = { tileId: tileMapTile.tileId, horizontalFlip: false, verticalFlip: false };
                 const hexHV = (capability.horizontalFlip && capability.verticalFlip) ? TileUtil.toHex(TileUtil.createHorizontallyMirroredClone(TileUtil.createVerticallyMirroredClone(tile))) : null;
-                if (!usedTiles[hexHV] && capability.horizontalFlip && capability.verticalFlip) usedTiles[hexHV] = { tileId: tileMapTile.tileId, hFlip: true, vFlip: true };
+                if (!usedTiles[hexHV] && capability.horizontalFlip && capability.verticalFlip) usedTiles[hexHV] = { tileId: tileMapTile.tileId, horizontalFlip: true, verticalFlip: true };
                 const hexH = (capability.horizontalFlip) ? TileUtil.toHex(TileUtil.createHorizontallyMirroredClone(tile)) : null;
-                if (!usedTiles[hexH] && capability.horizontalFlip) usedTiles[hexH] = { tileId: tileMapTile.tileId, hFlip: true, vFlip: false };
+                if (!usedTiles[hexH] && capability.horizontalFlip) usedTiles[hexH] = { tileId: tileMapTile.tileId, horizontalFlip: true, verticalFlip: false };
                 const hexV = (capability.verticalFlip) ? TileUtil.toHex(TileUtil.createVerticallyMirroredClone(tile)) : null;
-                if (!usedTiles[hexV] && capability.verticalFlip) usedTiles[hexV] = { tileId: tileMapTile.tileId, hFlip: false, vFlip: true };
+                if (!usedTiles[hexV] && capability.verticalFlip) usedTiles[hexV] = { tileId: tileMapTile.tileId, horizontalFlip: false, verticalFlip: true };
             }
 
         });

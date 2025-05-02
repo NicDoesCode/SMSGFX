@@ -160,6 +160,13 @@ export default class TileManager extends ComponentBase {
         this.#btnTileMapTitle = this.#element.querySelector('[data-smsgfx-id=editTileMapTitle]');
         this.#btnTileMapTitle.addEventListener('click', () => this.#handleTileMapTitleEditClick());
 
+        // De-highlight any tiles that were highlighted on mouse over the tile grid
+        this.#element.querySelector('[data-smsgfx-id=tile-grid]').addEventListener('mouseleave', (ev) => {
+            const args = this.#createArgs(commands.tileHighlight);
+            args.tileId = null;
+            this.#dispatcher.dispatch(EVENT_OnCommand, args);
+        });
+
         this.#wireAutoEvents(this.#element);
 
         TileListing.loadIntoAsync(this.#element.querySelector('[data-smsgfx-component-id=tile-set-list]'))
@@ -602,6 +609,7 @@ export default class TileManager extends ComponentBase {
  * @property {PaletteList?} [paletteList] - Available palettes for the palette slots.
  * @property {string?} [selectedTileMapId] - Unique ID of the selected tile map.
  * @property {string?} [selectedTileId] - Unique ID of the selected tile.
+ * @property {string[]?} [selectedTileIds] - Array of unique IDs of selected tiles.
  * @property {string[]?} [updatedTileIds] - Array of unique tile IDs that were updated.
  * @property {number?} [numberOfPaletteSlots] - Amount of palette slots that the tile map provides.
  * @property {number?} [lockedPaletteSlotIndex] - When not null, the palette slot index specified here will be repeated from palette 0 across all palettes.
@@ -628,5 +636,6 @@ export default class TileManager extends ComponentBase {
  * @property {string?} [field] - Field to sort by.
  * @property {string?} [targetTileMapId] - Unique ID of the target tile map.
  * @property {string?} [targetPosition] - Position where to place the tile map.
+ * @property {boolean?} [shiftIsDown] - Is the shift key being held down?
  * @exports
  */

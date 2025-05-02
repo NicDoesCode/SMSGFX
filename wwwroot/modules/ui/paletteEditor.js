@@ -314,9 +314,10 @@ export default class PaletteEditor extends ComponentBase {
 
     /**
      * @param {string} command 
+     * @param {MouseEvent} ev 
      * @returns {PaletteEditorCommandEventArgs} 
      * */
-    #createEventArgs(command) {
+    #createEventArgs(command, ev) {
         return {
             command: command,
             paletteIndex: this.#uiHiddenPaletteSelect?.selectedIndex,
@@ -325,7 +326,9 @@ export default class PaletteEditor extends ComponentBase {
             paletteSystem: this.#element.querySelector(`select[data-command=${commands.paletteSystem}]`)?.value ?? null,
             displayNative: this.#element.querySelector(`[data-command=${commands.displayNativeColours}]`)?.checked ?? null,
             colourIndex: -1,
-            targetColourIndex: -1
+            targetColourIndex: -1,
+            ctrlKey: ev?.ctrlKey ?? false,
+            shiftKey: ev?.shiftKey ?? false
         };
     }
 
@@ -552,9 +555,9 @@ export default class PaletteEditor extends ComponentBase {
         element.querySelectorAll('button[data-colour-index]').forEach((/** @type {HTMLButtonElement} */ button) => {
             const colourIndex = parseInt(button.getAttribute('data-colour-index'));
             button.style.backgroundColor = button.getAttribute('data-colour-hex');
-            button.addEventListener('click', () => {
+            button.addEventListener('click', (ev) => {
                 const isSelected = this.#currentColourIndex === colourIndex;
-                const args = this.#createEventArgs(isSelected ? commands.colourIndexEdit : commands.colourIndexChange);
+                const args = this.#createEventArgs(isSelected ? commands.colourIndexEdit : commands.colourIndexChange, ev);
                 args.colourIndex = colourIndex;
                 this.#dispatcher.dispatch(EVENT_OnCommand, args);
             });
@@ -662,5 +665,7 @@ export default class PaletteEditor extends ComponentBase {
  * @property {string?} [field] - Field to sort by.
  * @property {string?} [targetPaletteId] - Unique ID of the target palette.
  * @property {string?} [targetPosition] - Position where to place the palette.
+ * @property {boolean?} [ctrlKey] - Is the control key being held?
+ * @property {boolean?} [shiftKey] - Is the shift key being held?
  * @exports
  */

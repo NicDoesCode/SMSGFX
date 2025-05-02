@@ -36,6 +36,7 @@ const events = {
     pixelMouseOver: 'pixelMouseOver',
     pixelMouseDown: 'pixelMouseDown',
     pixelMouseUp: 'pixelMouseUp',
+    mouseLeave: 'mouseLeave',
     tileGridImage: 'tileGridImage'
 }
 
@@ -294,8 +295,8 @@ export default class TileEditor extends ComponentBase {
         }
 
         // Selected tile index?
-        if (typeof state?.selectedTileIndex === 'number') {
-            message.selectedTileIndex = state.selectedTileIndex;
+        if (Array.isArray(state?.selectedTileIndicies)) {
+            message.selectedTileIndicies = state.selectedTileIndicies.filter((i) => typeof i === 'number');
             message.redrawPartial = true;
         }
 
@@ -470,6 +471,7 @@ export default class TileEditor extends ComponentBase {
                 const coords = convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
                 if (coords) {
                     const pxInBounds = coords.x >= 0 && coords.y >= 0 && coords.x < canvasState.tileGridColumns * 8 && coords.y < canvasState.tileGridRows * 8;
+                    const pxInForgivingBounds = coords.x >= -32 && coords.y >= -32 && coords.x < (canvasState.tileGridColumns * 8) + 32 && coords.y < (canvasState.tileGridRows * 8) + 32;
                     const rowColInfo = getRowAndColumnInfo(coords.x, coords.y);
                     const lastCoords = this.#lastCoords;
                     if (!lastCoords || lastCoords.x !== coords.x || lastCoords.y !== coords.y) {
@@ -482,6 +484,7 @@ export default class TileEditor extends ComponentBase {
                             isSecondaryButton: ev.button === 2,
                             isAuxButton: ev.button === 1,
                             ctrlKeyPressed: ev.ctrlKey,
+                            shiftKeyPressed: ev.shiftKey,
                             tileGridRowIndex: rowColInfo.rowIndex,
                             tileGridColumnIndex: rowColInfo.columnIndex,
                             tileGridInsertRowIndex: rowColInfo.nearestRowIndex,
@@ -491,7 +494,8 @@ export default class TileEditor extends ComponentBase {
                             tileBlockGridInsertRowIndex: rowColInfo.nearestRowBlockIndex,
                             tileBlockGridInsertColumnIndex: rowColInfo.nearestColumnBlockIndex,
                             tilesPerBlock: canvasState.tilesPerBlock,
-                            isInBounds: pxInBounds && rowColInfo.isInBounds
+                            isInBounds: pxInBounds && rowColInfo.isInBounds,
+                            isInForgivingBounds: pxInForgivingBounds
                         };
                         this.#dispatcher.dispatch(EVENT_OnEvent, args);
                         this.#lastCoords = coords;
@@ -525,6 +529,7 @@ export default class TileEditor extends ComponentBase {
         const coords = convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
         if (coords) {
             const pxInBounds = coords.x >= 0 && coords.y >= 0 && coords.x < canvasState.tileGridColumns * 8 && coords.y < canvasState.tileGridRows * 8;
+            const pxInForgivingBounds = coords.x >= -32 && coords.y >= -32 && coords.x < (canvasState.tileGridColumns * 8) + 32 && coords.y < (canvasState.tileGridRows * 8) + 32;
             const rowColInfo = getRowAndColumnInfo(coords.x, coords.y);
             /** @type {TileEditorEventArgs} */
             const args = {
@@ -537,6 +542,7 @@ export default class TileEditor extends ComponentBase {
                 isSecondaryButton: ev.button === 2,
                 isAuxButton: ev.button === 1,
                 ctrlKeyPressed: ev.ctrlKey,
+                shiftKeyPressed: ev.shiftKey,
                 tileGridRowIndex: rowColInfo.rowIndex,
                 tileGridColumnIndex: rowColInfo.columnIndex,
                 tileGridInsertRowIndex: rowColInfo.nearestRowIndex,
@@ -546,7 +552,8 @@ export default class TileEditor extends ComponentBase {
                 tileBlockGridInsertRowIndex: rowColInfo.nearestRowBlockIndex,
                 tileBlockGridInsertColumnIndex: rowColInfo.nearestColumnBlockIndex,
                 tilesPerBlock: canvasState.tilesPerBlock,
-                isInBounds: pxInBounds && rowColInfo.isInBounds
+                isInBounds: pxInBounds && rowColInfo.isInBounds,
+                isInForgivingBounds: pxInForgivingBounds
             };
             this.#dispatcher.dispatch(EVENT_OnEvent, args);
         }
@@ -571,6 +578,7 @@ export default class TileEditor extends ComponentBase {
         const coords = convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
         if (coords) {
             const pxInBounds = coords.x >= 0 && coords.y >= 0 && coords.x < canvasState.tileGridColumns * 8 && coords.y < canvasState.tileGridRows * 8;
+            const pxInForgivingBounds = coords.x >= -32 && coords.y >= -32 && coords.x < (canvasState.tileGridColumns * 8) + 32 && coords.y < (canvasState.tileGridRows * 8) + 32;
             const rowColInfo = getRowAndColumnInfo(coords.x, coords.y);
             /** @type {TileEditorEventArgs} */
             const args = {
@@ -583,6 +591,7 @@ export default class TileEditor extends ComponentBase {
                 isSecondaryButton: ev.button === 2,
                 isAuxButton: ev.button === 1,
                 ctrlKeyPressed: ev.ctrlKey,
+                shiftKeyPressed: ev.shiftKey,
                 tileGridRowIndex: rowColInfo.rowIndex,
                 tileGridColumnIndex: rowColInfo.columnIndex,
                 tileGridInsertRowIndex: rowColInfo.nearestRowIndex,
@@ -592,7 +601,8 @@ export default class TileEditor extends ComponentBase {
                 tileBlockGridInsertRowIndex: rowColInfo.nearestRowBlockIndex,
                 tileBlockGridInsertColumnIndex: rowColInfo.nearestColumnBlockIndex,
                 tilesPerBlock: canvasState.tilesPerBlock,
-                isInBounds: pxInBounds && rowColInfo.isInBounds
+                isInBounds: pxInBounds && rowColInfo.isInBounds,
+                isInForgivingBounds: pxInForgivingBounds
             };
             this.#dispatcher.dispatch(EVENT_OnEvent, args);
         }
@@ -603,8 +613,7 @@ export default class TileEditor extends ComponentBase {
         if (!this.#enabled) return;
 
         /** @type {TileEditorEventArgs} */
-        const args = {
-            event: events.pixelMouseUp,
+        const baseArgs = {
             x: 0, y: 0,
             mousePrimaryIsDown: this.#canvasMouseLeftDown,
             mouseSecondaryIsDown: this.#canvasMouseRightDown,
@@ -613,13 +622,22 @@ export default class TileEditor extends ComponentBase {
             isSecondaryButton: this.#canvasMouseRightDown,
             isAuxButton: this.#canvasMouseMiddleDown,
             ctrlKeyPressed: ev.ctrlKey,
-            isInBounds: false
+            shiftKeyPressed: ev.shiftKey,
+            isInBounds: false,
+            isInForgivingBounds: false
         };
         if (this.#lastCoords) {
-            args.x = this.#lastCoords.x;
-            args.y = this.#lastCoords.y;
+            baseArgs.x = this.#lastCoords.x;
+            baseArgs.y = this.#lastCoords.y;
         }
-        this.#dispatcher.dispatch(EVENT_OnEvent, args);
+
+        const pixelMouseUpArgs = JSON.parse(JSON.stringify(baseArgs));
+        pixelMouseUpArgs.event = events.pixelMouseUp;
+        this.#dispatcher.dispatch(EVENT_OnEvent, pixelMouseUpArgs);
+
+        const mouseLeaveArgs = JSON.parse(JSON.stringify(baseArgs));
+        mouseLeaveArgs.event = events.mouseLeave;
+        this.#dispatcher.dispatch(EVENT_OnEvent, mouseLeaveArgs);
 
         this.#canvasMouseLeftDown = false;
         this.#canvasMouseMiddleDown = false;
@@ -629,24 +647,45 @@ export default class TileEditor extends ComponentBase {
 
     /** @param {MouseEvent} ev */
     #handleCanvasContextMenu(ev) {
-        if (!this.#enabled || canvasState.isTileMap) return;
+        if (!this.#enabled) return;
 
-        const coords = convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
-        if (coords) {
-            // Get the tile index
-            const tile = this.#tileSet.getTileByCoordinate(coords.x, coords.y);
-            const tileIndex = this.#tileSet.getTileIndex(tile);
-
-            /** @type {TileEditorCommandEventArgs} */
-            const tileArgs = {
-                command: commands.selectTile,
-                tileIndex: tileIndex
-            };
-            this.#dispatcher.dispatch(EVENT_OnCommand, tileArgs);
-
-            this.#tileEditorContextMenu.show(ev.clientX, ev.clientY, coords.x, coords.y);
+        if (canvasState.isTileMap) {
+            // Viewing tile map
 
             ev.preventDefault();
+            const fakeMouseEvent = {
+                button: 0,
+                clientX: ev.clientX, 
+                clientY: ev.clientY,
+                target: ev.target,
+                ctrlKey: ev.ctrlKey,
+                shiftKey: ev.shiftKey
+            };
+            this.#handleCanvasMouseDown(fakeMouseEvent);
+            this.#handleCanvasMouseUp(fakeMouseEvent);
+            return false;
+
+        } else {
+            // Viewing tile set
+
+            const coords = convertViewportCoordsToTileGridCoords(this.#tbCanvas, ev.clientX, ev.clientY);
+            if (coords) {            
+                // Get the tile index
+                const tile = this.#tileSet.getTileByCoordinate(coords.x, coords.y);
+                const tileIndex = this.#tileSet.getTileIndex(tile);
+    
+                /** @type {TileEditorCommandEventArgs} */
+                const tileArgs = {
+                    command: commands.selectTile,
+                    tileIndex: tileIndex
+                };
+                this.#dispatcher.dispatch(EVENT_OnCommand, tileArgs);
+    
+                this.#tileEditorContextMenu.show(ev.clientX, ev.clientY, coords.x, coords.y);
+    
+                ev.preventDefault();
+            }
+    
         }
         return false;
     }
@@ -821,7 +860,7 @@ export default class TileEditor extends ComponentBase {
  * @property {number?} scale - Current scale level.
  * @property {boolean?} [scaleRelativeToMouse] - Scale based on the mouse cursor position?.
  * @property {number?} [tilesPerBlock] - The amount of tiles per tile block.
- * @property {number?} selectedTileIndex - Currently selected tile index.
+ * @property {number[]?} [selectedTileIndicies] - Indexes of the currently selected tiles.
  * @property {number?} cursorSize - Size of the cursor in px.
  * @property {string?} cursor - Cursor to use when the mouse hovers over the image editor.
  * @property {number?} [viewportPanHorizontal] - Pan the viewport horizontally.
@@ -886,14 +925,16 @@ export default class TileEditor extends ComponentBase {
  * @property {number?} [tileBlockGridInsertColumnIndex] - Index in the tile block grid column for inserting a new column.
  * @property {number?} [tilesPerBlock] - The amount of tiles per tile block.
  * @property {number[]?} [outlineTileIds] - IDs of tiles to draw a box around.
- * @property {boolean} isInBounds - True when the given coordinate was out of bounds of the tile grid.
- * @property {boolean} mousePrimaryIsDown - True when the primary mouse button is down, otherwise false.
- * @property {boolean} mouseSecondaryIsDown - True when the secondary mouse button is down, otherwise false.
- * @property {boolean} mouseAuxIsDown - True when the auxiliary mouse button is down, otherwise false.
- * @property {boolean} isPrimaryButton - True when the mouse button is the primary one, otherwise false.
- * @property {boolean} isSecondaryButton - True when the mouse button is the secondary one, otherwise false.
- * @property {boolean} isAuxButton - True when the mouse button is the auxiliary one (mouse wheel), otherwise false.
- * @property {boolean} ctrlKeyPressed - True when the control key is pressed, otherwise false, otherwise false.
+ * @property {boolean} isInBounds - `true` when the given coordinate is within the image bounds, otherwise `false`.
+ * @property {boolean} isInForgivingBounds - `true` when the given coordinate is within the forgiving image bounds, otherwise `false`. This allows the user to move the mouse outside the image edge and still continue to paint.
+ * @property {boolean} mousePrimaryIsDown - `true` when the primary mouse button is down, otherwise `false`.
+ * @property {boolean} mouseSecondaryIsDown - `true` when the secondary mouse button is down, otherwise `false`.
+ * @property {boolean} mouseAuxIsDown - `true` when the auxiliary mouse button is down, otherwise `false`.
+ * @property {boolean} isPrimaryButton - `true` when the mouse button is the primary one, otherwise `false`.
+ * @property {boolean} isSecondaryButton - `true` when the mouse button is the secondary one, otherwise `false`.
+ * @property {boolean} isAuxButton - `true` when the mouse button is the auxiliary one (mouse wheel), otherwise `false`.
+ * @property {boolean} ctrlKeyPressed - `true` when the control key is pressed, otherwise `false`.
+ * @property {boolean} shiftKeyPressed - `true` when the shift key is pressed, otherwise `false`.
  * @exports
  */
 

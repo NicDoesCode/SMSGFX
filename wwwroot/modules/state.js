@@ -33,9 +33,6 @@ const contexts = {
 };
 
 
-const rxProjectId = /^[A-z0-9]+$/;
-
-
 /**
  * This class handles the application state such as the current loaded project, as well as management of local storage.
  */
@@ -131,11 +128,12 @@ export default class State {
         for (const storageKey in localStorage) {
             if (storageKey.startsWith(LOCAL_STORAGE_PROJECTS)) {
                 const projectId = storageKey.substring(LOCAL_STORAGE_PROJECTS.length);
-                if (rxProjectId.test(projectId)) {
+                if (ProjectUtil.isValidProjectId(projectId)) {
                     if (this.project && this.project.id === projectId) {
                         result.addProject(this.project);
                     } else {
                         const deserialised = ProjectJsonSerialiser.deserialise(localStorage.getItem(storageKey));
+                        ProjectUtil.checkAndRepairProject(deserialised);
                         result.addProject(deserialised);
                     }
                 }
@@ -189,7 +187,6 @@ export default class State {
      */
     setProjectFromLocalStorage(projectId, context) {
         const project = this.getProjectFromLocalStorage(projectId);
-        ensureProjectHasId(project);
         this.setProject(project, context);
     }
 
@@ -208,7 +205,7 @@ export default class State {
      * @param {string?} projectId - Unique ID of the project to load from local storage.
      */
     getProjectFromLocalStorage(projectId) {
-        if (!projectId || !rxProjectId.test(projectId)) throw new Error('Invalid project ID given.');
+        if (!ProjectUtil.isValidProjectId(projectId)) throw new Error('Invalid project ID given.');
 
         const storageId = `${LOCAL_STORAGE_PROJECTS}${projectId}`;
         const serialised = localStorage.getItem(storageId);
@@ -216,6 +213,7 @@ export default class State {
         if (!serialised) throw new Error('Project ID not found.');
 
         const result = ProjectJsonSerialiser.deserialise(serialised);
+        ProjectUtil.checkAndRepairProject(result);
         this.#projects.set(result.id, result);
         return result;
     }
@@ -289,7 +287,7 @@ export default class State {
         const project = projectToSave ?? this.project;
         const raise = typeof raiseEvent === 'boolean' ? raiseEvent : true;
         if (project instanceof Project) {
-            ensureProjectHasId(project);
+            ProjectUtil.ensureProjectHasId(project);
             project.dateLastModified = new Date();
             const storageId = `${LOCAL_STORAGE_PROJECTS}${project.id}`;
             const serialised = ProjectJsonSerialiser.serialise(project);
@@ -320,7 +318,7 @@ export default class State {
      * @param {string?} projectId - Unique ID of the project to delete.
      */
     deleteProjectFromStorage(projectId) {
-        if (projectId && rxProjectId.test(projectId)) {
+        if (ProjectUtil.isValidProjectId(projectId)) {
             const storageId = `${LOCAL_STORAGE_PROJECTS}${projectId}`;
             localStorage.removeItem(storageId);
             this.#dispatcher.dispatch(EVENT_OnEvent, createArgs(events.projectListChanged, { context: contexts.deleted, projectId: projectId }));
@@ -344,17 +342,6 @@ export default class State {
     }
 
 
-}
-
-/**
- * Makes sure that a project has an ID.
- * @param {Project} project - Project to check.
- */
-function ensureProjectHasId(project) {
-    if (!project.id || !rxProjectId.test(project.id)) {
-        project.id = ProjectUtil.generateProjectId();
-    }
-    return project;
 }
 
 /**
