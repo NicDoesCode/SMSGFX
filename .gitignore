@@ -8,3 +8,4 @@ cert/
 .env
 wwwroot/docs/
 wwwroot/config/
+.parcel-cache/

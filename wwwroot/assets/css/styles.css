@@ -53,79 +53,79 @@ body.sms-app .sms-application {
 
 /* Background theme 01 */
 .sms-app .sms-backdrop.sms-background-theme-01 {
-    background-image: url(/assets/image/background/theme-01-light.png);
+    background-image: url(../../assets/image/background/theme-01-light.png);
 }
 
 [data-bs-theme=dark] .sms-app .sms-backdrop.sms-background-theme-01 {
-    background-image: url(/assets/image/background/theme-01-dark.png);
+    background-image: url(../../assets/image/background/theme-01-dark.png);
 }
 
 /* Background theme 02 */
 .sms-app .sms-backdrop.sms-background-theme-02 {
-    background-image: url(/assets/image/background/theme-02-light.png);
+    background-image: url(../../assets/image/background/theme-02-light.png);
 }
 
 [data-bs-theme=dark] .sms-app .sms-backdrop.sms-background-theme-02 {
-    background-image: url(/assets/image/background/theme-02-dark.png);
+    background-image: url(../../assets/image/background/theme-02-dark.png);
 }
 
 /* Background theme 03 */
 .sms-app .sms-backdrop.sms-background-theme-03 {
-    background-image: url(/assets/image/background/theme-03-light.png);
+    background-image: url(../../assets/image/background/theme-03-light.png);
 }
 
 [data-bs-theme=dark] .sms-app .sms-backdrop.sms-background-theme-03 {
-    background-image: url(/assets/image/background/theme-03-dark.png);
+    background-image: url(../../assets/image/background/theme-03-dark.png);
 }
 
 /* Background theme 04 */
 .sms-app .sms-backdrop.sms-background-theme-04 {
-    background-image: url(/assets/image/background/theme-04-light.png);
+    background-image: url(../../assets/image/background/theme-04-light.png);
 }
 
 [data-bs-theme=dark] .sms-app .sms-backdrop.sms-background-theme-04 {
-    background-image: url(/assets/image/background/theme-04-dark.png);
+    background-image: url(../../assets/image/background/theme-04-dark.png);
 }
 
 /* Background theme 05 */
 .sms-app .sms-backdrop.sms-background-theme-05 {
-    background-image: url(/assets/image/background/theme-05-light.png);
+    background-image: url(../../assets/image/background/theme-05-light.png);
 }
 
 [data-bs-theme=dark] .sms-app .sms-backdrop.sms-background-theme-05 {
-    background-image: url(/assets/image/background/theme-05-dark.png);
+    background-image: url(../../assets/image/background/theme-05-dark.png);
 }
 
 /* Background theme 06 */
 .sms-app .sms-backdrop.sms-background-theme-06 {
-    background-image: url(/assets/image/background/theme-06-light.png);
+    background-image: url(../../assets/image/background/theme-06-light.png);
 }
 
 [data-bs-theme=dark] .sms-app .sms-backdrop.sms-background-theme-06 {
-    background-image: url(/assets/image/background/theme-06-dark.png);
+    background-image: url(../../assets/image/background/theme-06-dark.png);
 }
 
 /* Background theme 07 */
 .sms-app .sms-backdrop.sms-background-theme-07 {
-    background-image: url(/assets/image/background/theme-07-light.png);
+    background-image: url(../../assets/image/background/theme-07-light.png);
     background-position: center bottom;
     background-size: cover;
 }
 
 [data-bs-theme=dark] .sms-app .sms-backdrop.sms-background-theme-07 {
-    background-image: url(/assets/image/background/theme-07-dark.png);
+    background-image: url(../../assets/image/background/theme-07-dark.png);
 }
 
 /* Background theme 08 */
 .sms-app .sms-backdrop.sms-background-theme-08 {
-    background-image: url(/assets/image/background/theme-08-light.png), linear-gradient(180deg, #d4e5ef 50%, #bcc2c4 50%);
+    background-image: url(../../assets/image/background/theme-08-light.png), linear-gradient(180deg, #d4e5ef 50%, #bcc2c4 50%);
     background-repeat: repeat-x;
     background-position: center;
     background-size: 65%;
 }
 
 [data-bs-theme=dark] .sms-app .sms-backdrop.sms-background-theme-08 {
-    background-image: url(/assets/image/background/theme-08-dark.png), linear-gradient(180deg, #2a3239 50%, #21272c 50%);
+    background-image: url(../../assets/image/background/theme-08-dark.png), linear-gradient(180deg, #2a3239 50%, #21272c 50%);
 }
 
 /* Utility classes */

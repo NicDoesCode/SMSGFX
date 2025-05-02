@@ -37,7 +37,14 @@ export default class PatternManager {
                 throw new Error('Server error when loading patterns.');
             }
         } catch (err) {
-            throw new Error('There was an issue when loading the patterns.', { cause: err });
+            if (err instanceof SyntaxError) {
+                // Unable to read JSON
+                console.warn(`PatternManager: Error when reading pattern JSON.`, err);
+                this.#patterns = [];
+            } else {
+                // Some other error
+                throw new Error('There was an issue when loading the patterns.', { cause: err });
+            }
         }
     }
 
