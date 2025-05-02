@@ -2,6 +2,9 @@ import ComponentBase from "../componentBase.js";
 import EventDispatcher from "../../components/eventDispatcher.js";
 import TileMapRowColumnTool from "../../tools/tileMapRowColumnTool.js";
 import TemplateUtil from "../../util/templateUtil.js";
+import Palette from "../../models/palette.js";
+import ColourUtil from "../../util/colourUtil.js";
+import ImageUtil from "../../util/imageUtil.js";
 
 const EVENT_OnCommand = 'EVENT_OnCommand';
 
@@ -25,20 +28,47 @@ const commands = {
     tileSetTileAttributes: 'tileSetTileAttributes',
     tileMapTileAttributes: 'tileMapTileAttributes',
     tileStampDefine: 'tileStampDefine',
-    tileStampClear: 'tileStampClear'
+    tileStampClear: 'tileStampClear',
+    patternIndex: 'patternIndex',
+    colourIndex: 'colourIndex',
+    secondaryColourIndex: 'secondaryColourIndex',
+    swapColourIndex: 'swapColourIndex',
+    patternFixedOrigin: 'patternFixedOrigin'
 }
+
 const toolstrips = {
     select: 'select',
     pencil: 'pencil',
     tileMapPencil: 'tileMapPencil',
+    tileBucket: 'tileBucket',
+    tileMapBucket: 'tileMapBucket',
     referenceImage: 'referenceImage',
     rowColumn: 'rowColumn',
     palettePaint: 'palettePaint',
     tileStamp: 'tileStamp',
     tileLinkBreak: 'tileLinkBreak',
     tileMapTileAttributes: 'tileMapTileAttributes',
+    eyedropper: 'eyedropper',
     tileEyedropper: 'tileEyedropper'
 }
+
+const toolstripLayouts = {
+    tileSelect: ['selectLabel', 'tileCutCopyPaste', 'tileClone', 'tileDelete', 'tileMove', 'tileMirror', 'tileInsert', 'alwaysKeepTile'],
+    tileMapSelect: ['tileAttributesLabel', 'tileMapMirror', 'tileMapPriority', 'tileMapPalette', 'alwaysKeepTile'],
+    tilePencil: ['colourIndex', 'brushSize', 'patternSelect', 'fixedOrigin', 'tileClamp'],
+    tileMapPencil: ['colourIndex', 'brushSize', 'patternSelect', 'fixedOrigin', 'tileClamp', 'breakLinks'],
+    tileColourReplace: ['colourIndex', 'brushSize', 'patternSelect', 'fixedOrigin', 'tileClamp'],
+    tileMapColourReplace: ['colourIndex', 'brushSize', 'patternSelect', 'fixedOrigin', 'tileClamp', 'breakLinks'],
+    tileBucket: ['colourIndex', 'tileClamp'],
+    tileMapBucket: ['colourIndex', 'tileClamp', 'breakLinks'],
+    eyedropper: ['colourIndex', 'eyedropperDescription'],
+    referenceImage: ['referenceImageLabel', 'referenceImageLoadClear', 'referenceImageRevert', 'referenceImagePosition', 'referenceImageDimensions', 'referenceImageColour'],
+    tileMapAddRemove: ['rowColumnLabel', 'rowAddRemove', 'columnAddRemove', 'fillMode'],
+    tileMapBreakLink: ['tileLinkBreakLabel', 'tileLinkBreakDescription'],
+    tileStampPattern: ['tileStampLabel', 'tileStampSettings'],
+    tileMapPalettePaint: ['palettePaintLabel', 'paletteSlot'],
+    tileEyedropper: ['tileEyedropperLabel', 'tileEyedropperDescription']
+};
 
 export default class TileContextToolbar extends ComponentBase {
 
@@ -51,6 +81,10 @@ export default class TileContextToolbar extends ComponentBase {
         return toolstrips;
     }
 
+    static get ToolstripLayouts() {
+        return toolstripLayouts;
+    }
+
 
     /** @type {HTMLElement} */
     #element;
@@ -60,6 +94,12 @@ export default class TileContextToolbar extends ComponentBase {
     #enabled = true;
     /** @type {DOMRect} */
     #lastBounds = null;
+    /** @type {Palette} */
+    #palette = null;
+    /** @type {import("../../types.js").Pattern[]} */
+    #patterns = [];
+    #colourIndex = 0;
+    #secondaryColourIndex = 0;
 
 
     /**
@@ -95,6 +135,8 @@ export default class TileContextToolbar extends ComponentBase {
      * @param {TileContextToolbarState} state - State object.
      */
     setState(state) {
+        let refreshPatternImages = false;
+
         if (typeof state?.visible === 'boolean') {
             // Set visibility
             if (state.visible) {
@@ -159,7 +201,7 @@ export default class TileContextToolbar extends ComponentBase {
         }
         if (typeof state?.tileBreakLinks === 'boolean') {
             /** @type {HTMLInputElement?} */
-            const check = this.#element.querySelector(`[data-command=${TileContextToolbar.Commands.tileBreakLinks}]`);
+            const check = this.#element.querySelector(`[data-command=${TileContextToolbar.Commands.tileLinkBreak}]`);
             if (check) check.checked = state.tileBreakLinks;
         }
         if (typeof state?.rowColumnMode !== 'undefined') {
@@ -175,17 +217,8 @@ export default class TileContextToolbar extends ComponentBase {
             this.#element.querySelectorAll(`select[data-command=${TileContextToolbar.Commands.rowColumnFillMode}]`)
                 .forEach((select) => select.value = mode);
         }
-        if (state?.visibleToolstrips && Array.isArray(state.visibleToolstrips)) {
-            this.#element.querySelectorAll('[data-toolstrip]').forEach(element => {
-                const toolstrip = element.getAttribute('data-toolstrip');
-                if (state.visibleToolstrips.includes(toolstrip)) {
-                    while (element.classList.contains('visually-hidden')) {
-                        element.classList.remove('visually-hidden');
-                    }
-                } else {
-                    element.classList.add('visually-hidden');
-                }
-            });
+        if (Array.isArray(state?.toolstripLayout)) {
+            this.#setToolstripLayout(state.toolstripLayout);
         }
         if (state.referenceBounds) {
             const b = state.referenceBounds;
@@ -232,6 +265,12 @@ export default class TileContextToolbar extends ComponentBase {
             });
         }
 
+        if (state?.palette instanceof Palette || state?.palette === null) {
+            refreshPatternImages = true;
+            this.#palette = state.palette;
+            this.#updatePaletteItems(this.#palette);
+        }
+
         if (typeof state?.paletteSlotCount === 'number') {
             this.#element.querySelectorAll('[data-smsgfx-id=paletteSlotSelect]').forEach((container) => {
                 fillPaletteSlotButtons(container, TileContextToolbar.Commands.paletteSlot, null, state.paletteSlotCount, (e, n) => {
@@ -257,6 +296,38 @@ export default class TileContextToolbar extends ComponentBase {
                     button.classList.add('active');
                 }
             });
+        }
+
+        if (state?.patterns === null || Array.isArray(state?.patterns)) {
+            refreshPatternImages = true;
+            this.#patterns = state.patterns;
+            this.#updatePatternItems(state.patterns);
+        }
+
+        if (typeof state?.patternIndex === 'number') {
+            this.#updatePatternIndex(state.patternIndex);
+        }
+
+        if (typeof state?.patternFixedOrigin === 'boolean') {
+            this.#element.querySelectorAll('input[data-command=patternFixedOrigin]').forEach((checkbox) => {
+                checkbox.checked = state.patternFixedOrigin;
+            });
+        }
+
+        if (typeof state?.colourIndex === 'number') {
+            refreshPatternImages = true;
+            this.#colourIndex = state.colourIndex;
+            this.#updateColourIndex('PRIMARY', state.colourIndex);
+        }
+
+        if (typeof state?.secondaryColourIndex === 'number') {
+            refreshPatternImages = true;
+            this.#secondaryColourIndex = state.secondaryColourIndex;
+            this.#updateColourIndex('SECONDARY', state.secondaryColourIndex);
+        }
+
+        if (refreshPatternImages) {
+            this.#generatePatternPreviewImages();
         }
     }
 
@@ -343,30 +414,19 @@ export default class TileContextToolbar extends ComponentBase {
             const field = element.getAttribute('data-field');
             /** @type {TileContextToolbarTileMapTileAttributes} */ const attr = {};
             if (field === 'horizontalFlip') {
-                attr.horizontalFlip = element.getAttribute('data-selected') ? false : true;
-            } else {
-                attr.horizontalFlip = this.#element.querySelector(`[data-command=${command}][data-field=horizontalFlip]`).getAttribute('data-selected') ? true : false;
+                attr.toggleHorizontalFlip = true;
             }
             if (field === 'verticalFlip') {
-                attr.verticalFlip = element.getAttribute('data-selected') ? false : true;
-            } else {
-                attr.verticalFlip = this.#element.querySelector(`[data-command=${command}][data-field=verticalFlip]`).getAttribute('data-selected') ? true : false;
+                attr.toggleVerticalFlip = true;
             }
             if (field === 'priority') {
                 attr.priority = element.getAttribute('data-selected') ? false : true;
-            } else {
-                attr.priority = this.#element.querySelector(`[data-command=${command}][data-field=priority]`).getAttribute('data-selected') ? true : false;
             }
             if (field === 'palette') {
                 attr.palette = parseInt(element.getAttribute('data-slot-number') ?? '0');
-            } else {
-                const selected = this.#element.querySelector(`[data-command=${command}][data-field=palette][data-selected]`);
-                attr.palette = parseInt(selected?.getAttribute('data-slot-number') ?? '0');
             }
             if (field === 'alwaysKeep') {
                 attr.alwaysKeep = element.getAttribute('data-selected') ? false : true;
-            } else {
-                attr.alwaysKeep = this.#element.querySelector(`[data-command=${command}][data-field=alwaysKeep]`).getAttribute('data-selected') ? true : false;
             }
             result.tileMapTileAttributes = attr;
         }
@@ -382,7 +442,226 @@ export default class TileContextToolbar extends ComponentBase {
             result.tileSetTileAttributes = attr;
         }
 
+        if (command === coms.patternIndex) {
+            result.patternIndex = parseInt(element.getAttribute('data-pattern-index'));
+        }
+
+        if (command === coms.patternFixedOrigin) {
+            result.patternFixedOrigin = element.checked;
+        }
+
+        if (command === coms.colourIndex) {
+            result.colourIndex = parseInt(element.getAttribute('data-colour-index'));
+        }
+
+        if (command === coms.secondaryColourIndex) {
+            result.secondaryColourIndex = parseInt(element.getAttribute('data-colour-index'));
+        }
+
         return result;
+    }
+
+
+    /**
+     * @param {string[]} layoutItems 
+     */
+    #setToolstripLayout(layoutItems) {
+        const container = this.#element.querySelector('[data-smsgfx-id=toolstrip]');
+        const components = this.#element.querySelector('[data-smsgfx-id=toolstrip-components]');
+
+        container.querySelectorAll('[data-tool-id]').forEach((layoutItemElement) => {
+            components.appendChild(layoutItemElement);
+        });
+
+        layoutItems.forEach((layoutItem) => {
+            const layoutItemElement = components.querySelector(`[data-tool-id=${layoutItem}]`);
+            if (layoutItemElement) {
+                container.appendChild(layoutItemElement);
+            } else {
+                console.error(`Can't find tool item: ${layoutItem}`); 
+            }
+        });
+    }
+
+
+    /**
+     * @param {Palette?} palette - Palette to update with.
+     */
+    #updatePaletteItems(palette) {
+        const primaryContainer = this.#element.querySelector('[data-field=colourIndex]');
+        const secondaryContainer = this.#element.querySelector('[data-field=secondaryColourIndex]');
+        this.#buildColourSelect(primaryContainer, palette, true);
+        this.#buildColourSelect(secondaryContainer, palette, false);
+    }
+
+    /**
+     * @param {HTMLElement} container 
+     * @param {Palette} palette 
+     * @param {boolean} isPrimary 
+     */
+    #buildColourSelect(container, palette, isPrimary) {
+        const selectedIndex = container.getAttribute('data-colour-index') ?? 0;
+        const itemContainer = container.querySelector('[data-role=item-container]');
+
+        while (itemContainer.hasChildNodes()) itemContainer.firstChild.remove();
+
+        const data = (palette) ? palette.getColours().map((colour, index) => {
+            return {
+                command: (isPrimary) ? commands.colourIndex : commands.secondaryColourIndex,
+                colourIndex: index,
+                hex: ColourUtil.toHex(colour.r, colour.g, colour.b),
+                r: colour.r,
+                g: colour.g,
+                b: colour.b,
+                selected: index === selectedIndex
+            };
+        }) : [];
+
+        this.renderTemplateToElement(itemContainer, 'toolbar-palette-colour-template', data);
+        const self = this;
+        TemplateUtil.wireUpCommandAutoEvents(itemContainer, (sender, ev, command) => {
+            const args = self.#createArgs(command, sender);
+            self.#dispatcher.dispatch(EVENT_OnCommand, args);
+        });
+
+        this.#updateColourIndex(isPrimary ? 'PRIMARY' : 'SECONDARY', selectedIndex);
+    }
+
+    /**
+     * @param {'PRIMARY' | 'SECONDARY'} primarySecondary 
+     * @param {number} colourIndex 
+     */
+    #updateColourIndex(primarySecondary, colourIndex) {
+        const fieldName = (primarySecondary === 'PRIMARY') ? 'colourIndex' : 'secondaryColourIndex';
+        const container = this.#element.querySelector(`[data-field=${fieldName}]`);
+
+        container.setAttribute('data-colour-index', colourIndex);
+
+        /** @type {HTMLButtonElement} */
+        const menuButton = container.querySelector(`button[data-bs-toggle=dropdown]`);
+        menuButton.innerText = `#${colourIndex}`;
+
+        const itemContainer = container.querySelector('[data-role=item-container]');
+        itemContainer.querySelectorAll(`[data-selected=${true}]`).forEach((button) => {
+            button.setAttribute('data-selected', false);
+        });
+        itemContainer.querySelectorAll(`[data-colour-index='${colourIndex}']`).forEach((button) => {
+            button.setAttribute('data-selected', true);
+            menuButton.style.backgroundColor = button.style.backgroundColor;
+        });
+
+        const theColour = this.#palette?.getColour(colourIndex);
+        if (theColour) {
+            const average = (theColour.r + theColour.g + theColour.b) / 3;
+            if (average < 128) {
+                menuButton.setAttribute('is-dark', 'true');
+            } else {
+                menuButton.removeAttribute('is-dark');
+            }
+        }
+    }
+
+
+    /**
+     * @param {import("../../types.js").Pattern[]?} patterns
+     */
+    #updatePatternItems(patterns) {
+        const patternContainer = this.#element.querySelector('[data-field=patternIndex]');
+        this.#buildPatternSelect(patternContainer, patterns);
+    }
+
+    /**
+     * @param {HTMLElement} container 
+     * @param {import("../../types.js").Pattern[]?} patterns
+     */
+    #buildPatternSelect(container, patterns) {
+        const selectedIndex = container.getAttribute('data-pattern-index') ?? 0;
+        const itemContainer = container.querySelector('[data-role=item-container]');
+
+        while (itemContainer.hasChildNodes()) itemContainer.firstChild.remove();
+
+        const data = (patterns) ? patterns.map((pattern, index) => {
+            return {
+                command: commands.patternIndex,
+                patternIndex: index,
+                patternName: pattern.name,
+                selected: index === selectedIndex
+            };
+        }) : [];
+
+        data.unshift({
+            command: commands.patternIndex,
+            patternIndex: -1,
+            patternName: 'Solid',
+            selected: selectedIndex === -1
+        });
+
+        this.renderTemplateToElement(itemContainer, 'toolbar-pattern-template', data);
+        const self = this;
+        TemplateUtil.wireUpCommandAutoEvents(itemContainer, (sender, ev, command) => {
+            const args = self.#createArgs(command, sender);
+            self.#dispatcher.dispatch(EVENT_OnCommand, args);
+        });
+
+        this.#updatePatternIndex(selectedIndex);
+    }
+
+    /**
+     * @param {number} patternIndex 
+     */
+    #updatePatternIndex(patternIndex) {
+        const container = this.#element.querySelector(`[data-field=patternIndex]`);
+
+        container.setAttribute('data-pattern-index', patternIndex);
+
+        const menuButton = container.querySelector(`button[data-bs-toggle=dropdown]`);
+
+        const itemContainer = container.querySelector('[data-role=item-container]');
+        itemContainer.querySelectorAll(`[data-selected=${true}]`).forEach((button) => {
+            button.setAttribute('data-selected', false);
+        });
+        itemContainer.querySelectorAll(`[data-pattern-index='${patternIndex}']`).forEach((button) => {
+            button.setAttribute('data-selected', true);
+            if (menuButton && button.getAttribute('data-selected') === 'true') {
+                menuButton.style.backgroundColor = button.style.backgroundColor;
+                menuButton.style.backgroundImage = button.style.backgroundImage;
+            }
+        });
+    }
+
+
+    async #generatePatternPreviewImages() {
+        const container = this.#element.querySelector(`[data-field=patternIndex]`);
+        /** @type {HTMLButtonElement} */
+        const menuButton = container.querySelector('button[data-bs-toggle=dropdown]');
+        const itemContainer = container.querySelector('[data-role=item-container]');
+
+        const images = [];
+
+        for (let i = 0; i < this.#patterns.length; i++) {
+            const pattern = this.#patterns[i];
+            const image = await ImageUtil.createPatternPreviewImage(pattern, this.#palette, this.#colourIndex, this.#secondaryColourIndex, 2);
+            images.push(image);
+            /** @type {HTMLButtonElement} */
+            const button = itemContainer.querySelector(`button[data-pattern-index='${i}']`);
+            if (button) {
+                button.style.backgroundImage = `url('${image.src}')`;
+                if (menuButton && button.getAttribute('data-selected') === 'true') {
+                    menuButton.style.backgroundColor = 'none';
+                    menuButton.style.backgroundImage = `url('${image.src}')`;
+                }
+            }
+        }
+
+        const button = itemContainer.querySelector(`button[data-pattern-index='-1']`);
+        if (button) {
+            const primaryColour = this.#palette.getColourByIndex(this.#colourIndex);
+            button.style.backgroundColor = ColourUtil.toHex(primaryColour.r, primaryColour.g, primaryColour.b);
+            if (menuButton && button.getAttribute('data-selected') === 'true') {
+                menuButton.style.backgroundColor = ColourUtil.toHex(primaryColour.r, primaryColour.g, primaryColour.b);
+                menuButton.style.backgroundImage = `none`;
+            }
+        }
     }
 
 
@@ -401,7 +680,7 @@ function isToggled(element) {
  * @typedef {Object} TileContextToolbarState
  * @property {boolean?} visible - Is the toolbar visible?
  * @property {boolean?} enabled - Is the toolbar enabled?
- * @property {string[]?} visibleToolstrips - An array of strings containing visible toolstrips.
+ * @property {string[]?} [toolstripLayout] - Array of toolstrip items to display.
  * @property {string[]?} disabledCommands - An array of strings containing disabled buttons.
  * @property {string[]?} selectedCommands - An array of strings containing selected commands to set to active display status.
  * @property {string?} [systemType] - Type of system, which will affect fields with 'data-system-type' attribute .
@@ -410,6 +689,7 @@ function isToggled(element) {
  * @property {boolean?} [tileBreakLinks] - Break tile links on edit?
  * @property {string?} [rowColumnMode] - Mode for add / remove row / column.
  * @property {string?} [rowColumnFillMode] - Fill mode for the row / column tool.
+ * @property {Palette?} [palette] - Current colour palette.
  * @property {number?} [paletteSlot] - Palette slot.
  * @property {number?} [paletteSlotCount] - Number of palette slots.
  * @property {DOMRect?} referenceBounds - Bounds for the reference image.
@@ -417,16 +697,23 @@ function isToggled(element) {
  * @property {number?} referenceTransparency - Transparency colour for the reference image.
  * @property {TileContextToolbarTileSetTileAttributes?} [tileSetTileAttributes] - Tile set tile attributes.
  * @property {TileContextToolbarTileMapTileAttributes?} [tileMapTileAttributes] - Tile map tile attributes.
- * @exports
+ * @property {import("../../types.js").Pattern[]} [patterns] - Index of the pattern in the pattern list.
+ * @property {number} [patternIndex] - Index of the pattern in the pattern list.
+ * @property {boolean} [patternFixedOrigin] - Use a fixed origin for pattern painting?
+ * @property {number} [colourIndex] - Index of the pattern primary colour (colour #1).
+ * @property {number} [secondaryColourIndex] - Index of the pattern secondary colour (colour #2).
+* @exports
  */
 
 /**
  * @typedef {Object} TileContextToolbarTileMapTileAttributes
- * @property {boolean} horizontalFlip - Flip the tile horizontally?
- * @property {boolean} verticalFlip - Flip the tile vertically?
- * @property {boolean} priority - Does the tile have render priority?
- * @property {number} palette - Which palette slot is the tile using?
- * @property {boolean} alwaysKeep - Preserve the underlying tile through optimisation routines?
+ * @property {boolean} [horizontalFlip] - Sets the horizontal flip attribute.
+ * @property {boolean} [verticalFlip] - Sets the vertical flip attribute.
+ * @property {boolean} [toggleHorizontalFlip] - Toggle the horizontal flip attribute.
+ * @property {boolean} [toggleVerticalFlip] - Toggle the vertical flip attribute.
+ * @property {boolean} [priority] - Does the tile have render priority?
+ * @property {number} [palette] - Which palette slot is the tile using?
+ * @property {boolean} [alwaysKeep] - Preserve the underlying tile through optimisation routines?
  * @exports
  */
 
@@ -456,6 +743,10 @@ function isToggled(element) {
  * @property {number} referenceTransparency - Colour index to draw transparent.
  * @property {TileContextToolbarTileSetTileAttributes?} [tileSetTileAttributes] - Tile set tile attributes.
  * @property {TileContextToolbarTileMapTileAttributes?} [tileMapTileAttributes] - Tile map tile attributes.
+ * @property {number} [patternIndex] - Index of the pattern in the pattern list.
+ * @property {boolean} [patternFixedOrigin] - Use a fixed origin for pattern painting?
+ * @property {number} [colourIndex] - Index of the pattern primary colour (colour #1).
+ * @property {number} [secondaryColourIndex] - Index of the pattern secondary colour (colour #2).
  * @exports
  */
 

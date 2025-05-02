@@ -2,6 +2,11 @@ import Project from "../models/project.js";
 import ProjectJsonSerialiser from "../serialisers/projectJsonSerialiser.js";
 import FileUtil from "./fileUtil.js";
 import GeneralUtil from "./generalUtil.js";
+import TileMapUtil from "./tileMapUtil.js";
+
+
+const rxProjectId = /^[A-z0-9]+$/;
+
 
 export default class ProjectUtil {
 
@@ -45,6 +50,36 @@ export default class ProjectUtil {
     static generateProjectId() {
         return GeneralUtil.generateRandomString(16);
     }
-    
+
+
+    /**
+     * Checks and repairs a project.
+     * @param {Project} project - Project to check and repair.
+     */
+    static checkAndRepairProject(project) {
+        ProjectUtil.ensureProjectHasId(project);
+        TileMapUtil.checkAndRepairTileMaps(project.tileMapList, project.systemType);
+    }
+
+    /**
+     * Makes sure that a project has an ID.
+     * @param {Project} project - Project to check.
+     */
+    static ensureProjectHasId(project) {
+        if (!project.id || !rxProjectId.test(project.id)) {
+            project.id = ProjectUtil.generateProjectId();
+        }
+        return project;
+    }
+
+    /**
+     * Validates a project ID.
+     * @param {Project|string} project - Project or ID to check.
+     */
+    static isValidProjectId(projectOrId) {
+        const projectId = projectOrId instanceof Project ? projectOrId.id ?? null : projectOrId;
+        return rxProjectId.test(projectId);
+    }
+
 
 }
