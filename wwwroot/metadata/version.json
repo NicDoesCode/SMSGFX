@@ -1,5 +1,11 @@
 {
     "versions": {
+        "1.5.0": {
+            "releaseNotesUrl": "https://github.com/NicDoesCode/SMSGFX/releases/tag/v1.5",
+            "major": 1,
+            "minor": 5,
+            "patch": 0
+        },
         "1.4.0": {
             "releaseNotesUrl": "https://github.com/NicDoesCode/SMSGFX/releases/tag/v1.4",
             "major": 1,
