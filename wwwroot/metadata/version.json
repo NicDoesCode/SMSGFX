@@ -48,7 +48,7 @@
         "edge": {
             "hidden": false,
             "name": "Edge",
-            "description": "Feature incomplete, and unstable.",
+            "description": "Feature incomplete, unstable.",
             "url": "https://edge.smsgfx.qwerky.games"
         },
         "dev": {
